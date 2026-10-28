@@ -44,6 +44,9 @@
 ExportedObj/
 .consulo/
 *.csproj
+!/Tools/CsvReader.Checks/Check.csproj
+/Tools/**/bin/
+/Tools/**/obj/
 *.unityproj
 *.sln
 *.slnx
@@ -107,3 +110,4 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+.vscode
