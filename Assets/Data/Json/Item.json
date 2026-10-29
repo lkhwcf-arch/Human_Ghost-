@@ -1,0 +1,42 @@
+[
+  {
+    "ID": 6002,
+    "TextID": 30008,
+    "ItemType": "Weapon",
+    "StatJson": "6002.json",
+    "InGstar": true,
+    "SkillID": 7001,
+    "Acquire": "START",
+    "AcquireAnim": "ANIM_ACQ_6002"
+  },
+  {
+    "ID": 6003,
+    "TextID": 30009,
+    "ItemType": "Weapon",
+    "StatJson": "6003.json",
+    "InGstar": false,
+    "SkillID": null,
+    "Acquire": "STORY",
+    "AcquireAnim": "ANIM_ACQ_6003"
+  },
+  {
+    "ID": 6101,
+    "TextID": null,
+    "ItemType": "Armor",
+    "StatJson": "6101.json",
+    "InGstar": false,
+    "SkillID": null,
+    "Acquire": "STORY",
+    "AcquireAnim": null
+  },
+  {
+    "ID": 6201,
+    "TextID": null,
+    "ItemType": "Consumable",
+    "StatJson": "6201.json",
+    "InGstar": false,
+    "SkillID": null,
+    "Acquire": "STORY",
+    "AcquireAnim": null
+  }
+]

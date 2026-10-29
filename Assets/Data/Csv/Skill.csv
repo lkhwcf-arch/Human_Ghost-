@@ -1,0 +1,2 @@
+ID,TextID,WeaponID,StateID,DamageMult,PoiseDamage,Cooldown,UnlockType,Effect
+7001,30010,6002,10009,15000,30,8000,ROOM_LEDGER,CUT_BIND

@@ -1,0 +1,67 @@
+[
+  {
+    "UnitID": 1006,
+    "States": [
+      {
+        "ID": 4001,
+        "UnitID": 1006,
+        "IdleMin": 1500,
+        "IdleMax": 1500,
+        "PoiseRegenDelay": 2000,
+        "PoiseRegen": 15,
+        "ExposeTime": 2000,
+        "ExecuteType": "DAMAGE",
+        "ExecuteDamage": 1800,
+        "SuperArmor": false,
+        "Phase": 0,
+        "Key": "Idle",
+        "HPThreshold": 10000
+      },
+      {
+        "ID": 4002,
+        "UnitID": 1006,
+        "IdleMin": 1500,
+        "IdleMax": 1500,
+        "PoiseRegenDelay": 2000,
+        "PoiseRegen": 15,
+        "ExposeTime": 2000,
+        "ExecuteType": "DAMAGE",
+        "ExecuteDamage": 1800,
+        "SuperArmor": false,
+        "Phase": 1,
+        "Key": "Rage",
+        "HPThreshold": 7000
+      },
+      {
+        "ID": 4003,
+        "UnitID": 1006,
+        "IdleMin": 1000,
+        "IdleMax": 1000,
+        "PoiseRegenDelay": 2000,
+        "PoiseRegen": 15,
+        "ExposeTime": 2000,
+        "ExecuteType": "DAMAGE",
+        "ExecuteDamage": 1800,
+        "SuperArmor": false,
+        "Phase": 2,
+        "Key": "Frenzy",
+        "HPThreshold": 4000
+      },
+      {
+        "ID": 4004,
+        "UnitID": 1006,
+        "IdleMin": 1000,
+        "IdleMax": 1000,
+        "PoiseRegenDelay": 2000,
+        "PoiseRegen": 15,
+        "ExposeTime": 2000,
+        "ExecuteType": "DAMAGE",
+        "ExecuteDamage": 1800,
+        "SuperArmor": false,
+        "Phase": 3,
+        "Key": "Desperate",
+        "HPThreshold": 1000
+      }
+    ]
+  }
+]

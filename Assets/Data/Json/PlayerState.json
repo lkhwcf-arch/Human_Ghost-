@@ -1,0 +1,40 @@
+[
+  {
+    "UnitID": 1001,
+    "States": [
+      {
+        "ID": 12001,
+        "UnitID": 1001,
+        "Key": "Stun",
+        "StateID": 10019,
+        "Duration": 0,
+        "TickInterval": 0,
+        "TickDamage": 0,
+        "BlockInput": true,
+        "Stackable": false
+      },
+      {
+        "ID": 12002,
+        "UnitID": 1001,
+        "Key": "Poison",
+        "StateID": 0,
+        "Duration": 0,
+        "TickInterval": 0,
+        "TickDamage": 0,
+        "BlockInput": false,
+        "Stackable": false
+      },
+      {
+        "ID": 12003,
+        "UnitID": 1001,
+        "Key": "Bleed",
+        "StateID": 0,
+        "Duration": 0,
+        "TickInterval": 0,
+        "TickDamage": 0,
+        "BlockInput": false,
+        "Stackable": true
+      }
+    ]
+  }
+]
