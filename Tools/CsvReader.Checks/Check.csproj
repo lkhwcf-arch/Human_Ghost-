@@ -2,9 +2,22 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="../../Assets/Scripts/Common/Csv/*.cs" />
-    <Compile Include="../../Assets/Scripts/Data/Infrastructure/Utf8CsvFileSource.cs" />
+    <Compile Include="*.cs" />
+    <Compile Include="../../Assets/3.Script/Common/Csv/*.cs" />
+    <Compile Include="../../Assets/3.Script/Common/Text/*.cs" />
+    <Compile Include="../../Assets/3.Script/Common/Json/*.cs" />
+    <Compile Include="../../Assets/3.Script/Data/Infrastructure/Utf8CsvFileSource.cs" />
+    <Compile Include="../../Assets/3.Script/Data/Infrastructure/DataLoadSequence.cs" />
+    <Compile Include="../../Assets/3.Script/Data/Infrastructure/DataBootstrapper.cs" />
+    <Compile Include="../../Assets/3.Script/Data/Infrastructure/BootstrapTableLoader.cs" />
+    <Compile Include="../../Assets/3.Script/Data/Mapping/*.cs" />
+    <Compile Include="../../Assets/3.Script/Data/Storage/*.cs" />
+    <Compile Include="../../Assets/3.Script/Data/*.cs" />
+    <None Include="../../Assets/Data/Csv/*.csv" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../Assets/Data/Json/*.json" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
   </ItemGroup>
 </Project>

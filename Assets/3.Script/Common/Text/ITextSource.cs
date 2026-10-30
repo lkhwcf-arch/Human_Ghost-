@@ -1,9 +1,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace HumanGhost.Data.Csv
+namespace HumanGhost.Data.Text
 {
-    public interface ICsvTextSource
+    public interface ITextSource
     {
         Task<string> ReadTextAsync(string sourceName, CancellationToken token);
     }

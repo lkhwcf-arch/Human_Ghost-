@@ -6,7 +6,7 @@ using HumanGhost.Data.Csv;
 
 namespace HumanGhost.Data.Infrastructure
 {
-    // Unity와 독립적인 데스크톱 파일 어댑터입니다. 디코딩 실패를 조용히 치환하지 않습니다.
+    // 게임 엔진과 독립적인 데스크톱 파일 입력입니다. 문자 해석에 실패하면 오류를 전달합니다.
     public sealed class Utf8CsvFileSource : ICsvTextSource
     {
         public async Task<string> ReadTextAsync(string filePath, CancellationToken token)

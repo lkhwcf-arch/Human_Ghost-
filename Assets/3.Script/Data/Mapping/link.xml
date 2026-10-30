@@ -1,0 +1,6 @@
+<linker>
+  <!-- 생성자와 인자명·프로퍼티를 이용하는 공통 변환기를 위해 데이터 정의를 보존합니다. -->
+  <assembly fullname="Assembly-CSharp">
+    <type fullname="HumanGhost.Data.Definitions.*" preserve="all" />
+  </assembly>
+</linker>

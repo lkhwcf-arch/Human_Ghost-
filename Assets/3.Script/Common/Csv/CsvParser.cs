@@ -4,7 +4,7 @@ using System.Text;
 
 namespace HumanGhost.Data.Csv
 {
-    // TextAsset, Unity, 파일 시스템과 콘텐츠 컬럼을 모르는 CSV 파서입니다.
+    // 텍스트 에셋, 게임 엔진, 파일 시스템과 콘텐츠 항목에 의존하지 않는 표 데이터 해석기입니다.
     public sealed class CsvParser
     {
         private enum FieldState
@@ -16,7 +16,7 @@ namespace HumanGhost.Data.Csv
         public CsvDocument Read(string text, string sourceName = "(memory)")
         {
             if (text == null)
-                throw new ArgumentNullException(nameof(text));
+                throw new ArgumentNullException(nameof(text), "해석할 CSV 문자열이 필요합니다.");
             if (text.Length > 0 && text[0] == '\uFEFF')
                 text = text.Substring(1);
             var state = FieldState.Start;

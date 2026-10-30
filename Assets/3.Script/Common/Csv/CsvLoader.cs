@@ -11,8 +11,8 @@ namespace HumanGhost.Data.Csv
         private readonly CsvParser _parser;
         public CsvLoader(ICsvTextSource source, CsvParser parser)
         {
-            _source = source ?? throw new ArgumentNullException(nameof(source));
-            _parser = parser ?? throw new ArgumentNullException(nameof(parser));
+            _source = source ?? throw new ArgumentNullException(nameof(source), "CSV 입력 공급자가 필요합니다.");
+            _parser = parser ?? throw new ArgumentNullException(nameof(parser), "CSV 해석기가 필요합니다.");
         }
 
         public async Task<CsvDocument> LoadAsync(string sourceName, CancellationToken token)

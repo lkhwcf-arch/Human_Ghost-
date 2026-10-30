@@ -56,6 +56,12 @@ internal static class Program
             catch (OperationCanceledException) { _checks++; }
         }
         finally { File.Delete(path); }
-        Console.WriteLine($"PASS: {_checks} checks");
+        StageMappingChecks.Run(Check);
+        TableMappingChecks.Run(Check);
+        await JsonMappingChecks.RunAsync(Check);
+        await DataLoadSequenceChecks.RunAsync(Check);
+        DataTableChecks.Run(Check);
+        await DataBootstrapperChecks.RunAsync(Check);
+        Console.WriteLine($"검사 {_checks}개 통과");
     }
 }
