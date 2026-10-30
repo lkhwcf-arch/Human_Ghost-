@@ -43,7 +43,18 @@ namespace HumanGhost.Data.Infrastructure
             return table;
         }
 
-        public Task<IReadOnlyDataTable<UnitStateGroup<T>>> LoadGroupsAsync<T>(DataCatalog catalog, CancellationToken token)
-            => LoadJsonAsync(catalog, typeof(T).Name, new JsonTableReader().ReadGroups<T>, group => group.UnitID, token);
+        public Task<IReadOnlyDataTable<UnitStateGroup<T>>> LoadGroupsAsync<T>(DataCatalog catalog, CancellationToken token, string groupColumn = "UnitID")
+            => LoadJsonAsync(catalog, typeof(T).Name, text => new JsonTableReader().ReadGroups<T>(text, groupColumn), group => group.UnitID, token);
+
+        public async Task LoadCharactersAsync<TState, TCharacter>(DataCatalog catalog,
+            Func<UnitStat, IReadOnlyList<TState>, TCharacter> compose, Func<TCharacter, int> selectId,
+            CancellationToken token, string groupColumn = "UnitID")
+        {
+            IReadOnlyDataTable<UnitStateGroup<TState>> groups = await LoadGroupsAsync<TState>(catalog, token, groupColumn);
+            var characters = new List<TCharacter>();
+            foreach (UnitStateGroup<TState> group in groups.All)
+                characters.Add(compose(catalog.GetTable<UnitStat>().Get(group.UnitID), group.States));
+            catalog.Register(new DataTable<TCharacter>(characters, selectId));
+        }
     }
 }

@@ -1,10 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using HumanGhost.Data.Csv;
-using HumanGhost.Data.Definitions;
-using HumanGhost.Data.Mapping;
 using HumanGhost.Data.Storage;
 
 namespace HumanGhost.Data.Infrastructure
@@ -38,39 +35,10 @@ namespace HumanGhost.Data.Infrastructure
             return catalog;
         }
 
-        private async Task<DataCatalog> LoadCsvAsync(CancellationToken token)
-        {
-            var catalog = new DataCatalog();
-            await _tableLoader.LoadCsvAsync<UnitStat>(catalog, row => row.ID, token);
-            await _tableLoader.LoadCsvAsync<Buff>(catalog, row => row.ID, token);
-            await _tableLoader.LoadCsvAsync<Language>(catalog, row => row.ID, token);
-            await _tableLoader.LoadCsvAsync<Skill>(catalog, row => row.ID, token);
-            await _tableLoader.LoadCsvAsync<Stage>(catalog, row => row.ID, token);
-            await _tableLoader.LoadCsvAsync<StageLayer>(catalog, row => row.ID, token);
-            await _tableLoader.LoadCsvAsync<State>(catalog, row => row.ID, token);
-            await _tableLoader.LoadCsvAsync<Player>(catalog, row => row.ID, token);
-            await _tableLoader.LoadCsvAsync<Monster>(catalog, row => row.ID, token);
-            return catalog;
-        }
+        private Task<DataCatalog> LoadCsvAsync(CancellationToken token)
+            => GeneratedDataLoadPlan.LoadCsvAsync(_tableLoader, new DataCatalog(), token);
 
-        private async Task<DataCatalog> LoadJsonAsync(DataCatalog catalog, CancellationToken token)
-        {
-            var reader = new JsonTableReader();
-            await _tableLoader.LoadJsonAsync(catalog, "Item", reader.Read<Item>, row => row.ID, token);
-            await _tableLoader.LoadGroupsAsync<PlayerState>(catalog, token);
-            await LoadCharactersAsync<BossState, Boss>(catalog, (common, states) => new Boss(common, states), row => row.ID, token);
-            await LoadCharactersAsync<EliteState, Elite>(catalog, (common, states) => new Elite(common, states), row => row.ID, token);
-            return catalog;
-        }
-
-        private async Task LoadCharactersAsync<TState, TCharacter>(DataCatalog catalog,
-            Func<UnitStat, IReadOnlyList<TState>, TCharacter> compose, Func<TCharacter, int> selectId, CancellationToken token)
-        {
-            IReadOnlyDataTable<UnitStateGroup<TState>> groups = await _tableLoader.LoadGroupsAsync<TState>(catalog, token);
-            var characters = new List<TCharacter>();
-            foreach (UnitStateGroup<TState> group in groups.All)
-                characters.Add(compose(catalog.GetTable<UnitStat>().Get(group.UnitID), group.States));
-            catalog.Register(new DataTable<TCharacter>(characters, selectId));
-        }
+        private Task<DataCatalog> LoadJsonAsync(DataCatalog catalog, CancellationToken token)
+            => GeneratedDataLoadPlan.LoadJsonAsync(_tableLoader, catalog, token);
     }
 }

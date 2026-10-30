@@ -6,6 +6,7 @@
     "Assets/3.Script/Data/CharacterStat.cs",
     "Assets/3.Script/Data/Elite.cs",
     "Assets/3.Script/Data/EliteState.cs",
+    "Assets/3.Script/Data/Generated/GeneratedDataLoadPlan.cs",
     "Assets/3.Script/Data/Item.cs",
     "Assets/3.Script/Data/Language.cs",
     "Assets/3.Script/Data/Monster.cs",

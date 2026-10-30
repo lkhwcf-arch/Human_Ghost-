@@ -11,10 +11,13 @@ namespace HumanGhost.Data.Mapping
             => ReadRows<T>(ParseArray(text));
 
         public IReadOnlyList<UnitStateGroup<T>> ReadGroups<T>(string text)
+            => ReadGroups<T>(text, "UnitID");
+
+        public IReadOnlyList<UnitStateGroup<T>> ReadGroups<T>(string text, string groupColumn)
         {
             var groups = new List<UnitStateGroup<T>>();
             foreach (JObject group in ParseArray(text))
-                groups.Add(new UnitStateGroup<T>(group.Value<int>("UnitID"), ReadRows<T>((JArray)group["States"])));
+                groups.Add(new UnitStateGroup<T>(group.Value<int>(groupColumn), ReadRows<T>((JArray)group["States"])));
             return groups.AsReadOnly();
         }
 

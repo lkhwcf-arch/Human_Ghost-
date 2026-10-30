@@ -15,6 +15,7 @@
     <Compile Include="../../Assets/3.Script/Data/Infrastructure/BootstrapTableLoader.cs" />
     <Compile Include="../../Assets/3.Script/Data/Mapping/*.cs" />
     <Compile Include="../../Assets/3.Script/Data/Storage/*.cs" />
+    <Compile Include="../../Assets/3.Script/Data/Generated/*.cs" />
     <Compile Include="../../Assets/3.Script/Data/*.cs" />
     <None Include="../../Assets/Data/Csv/*.csv" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../Assets/Data/Json/*.json" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
