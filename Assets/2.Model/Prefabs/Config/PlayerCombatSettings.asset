@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0dab45e3cc4e40e43852599a1c9315e2, type: 3}
+  m_Name: PlayerCombatSettings
+  m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Adapters.PlayerCombatSettings
+  _attacks:
+  - _windup: 120
+    _active: 80
+    _recovery: 250
+    _comboWindow: 200
+    _extraDamage: 0
+    _poiseDamage: 10
+    _staminaCost: 12
+  - _windup: 120
+    _active: 80
+    _recovery: 250
+    _comboWindow: 200
+    _extraDamage: 0
+    _poiseDamage: 10
+    _staminaCost: 12
+  - _windup: 200
+    _active: 100
+    _recovery: 400
+    _comboWindow: 0
+    _extraDamage: 10
+    _poiseDamage: 20
+    _staminaCost: 12
+  - _windup: 100
+    _active: 80
+    _recovery: 200
+    _comboWindow: 0
+    _extraDamage: -2
+    _poiseDamage: 10
+    _staminaCost: 12
