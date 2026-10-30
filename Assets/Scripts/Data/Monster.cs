@@ -1,4 +1,4 @@
-// 자동 생성 데이터 정의입니다. 직접 수정하면 다음 생성 시 덮어씁니다.
+// 자동 생성 파일입니다. 원본 시트를 수정한 뒤 다시 배포하세요.
 namespace HumanGhost.Data.Definitions
 {
     public sealed class Monster : CharacterStat
@@ -16,22 +16,8 @@ namespace HumanGhost.Data.Definitions
         public string AIType { get; }
         public int SightRange { get; }
         public int AttackRange { get; }
-        public Monster(
-            UnitStat common,
-            int id,
-            int unitID,
-            int idleMin,
-            int idleMax,
-            int poiseRegenDelay,
-            int poiseRegen,
-            int exposeTime,
-            string executeType,
-            int executeDamage,
-            bool superArmor,
-            string aIType,
-            int sightRange,
-            int attackRange
-        ) : base(common)
+        public Monster(UnitStat common, int id, int unitID, int idleMin, int idleMax, int poiseRegenDelay, int poiseRegen, int exposeTime, string executeType, int executeDamage, bool superArmor, string aIType, int sightRange, int attackRange)
+            : base(common.HP, common.ATK, common.DEF, common.Dodge, common.Crit, common.CritDamage, common.Poise, common.MoveSpeed, common.ArmorPen)
         {
             ID = id;
             UnitID = unitID;

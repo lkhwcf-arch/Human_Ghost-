@@ -7,7 +7,7 @@
         "UnitID": 1001,
         "Key": "Stun",
         "StateID": 10019,
-        "Duration": 0,
+        "Duration": 1000,
         "TickInterval": 0,
         "TickDamage": 0,
         "BlockInput": true,

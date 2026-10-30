@@ -1,4 +1,4 @@
-// 자동 생성 데이터 정의입니다. 직접 수정하면 다음 생성 시 덮어씁니다.
+// 자동 생성 파일입니다. 원본 시트를 수정한 뒤 다시 배포하세요.
 namespace HumanGhost.Data.Definitions
 {
     public sealed class EliteState
@@ -16,21 +16,7 @@ namespace HumanGhost.Data.Definitions
         public int Phase { get; }
         public string Key { get; }
         public int HPThreshold { get; }
-        public EliteState(
-            int id,
-            int unitID,
-            int idleMin,
-            int idleMax,
-            int poiseRegenDelay,
-            int poiseRegen,
-            int exposeTime,
-            string executeType,
-            int executeDamage,
-            bool superArmor,
-            int phase,
-            string key,
-            int hPThreshold
-        )
+        public EliteState(int id, int unitID, int idleMin, int idleMax, int poiseRegenDelay, int poiseRegen, int exposeTime, string executeType, int executeDamage, bool superArmor, int phase, string key, int hPThreshold)
         {
             ID = id;
             UnitID = unitID;

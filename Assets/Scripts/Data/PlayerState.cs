@@ -1,4 +1,4 @@
-// 자동 생성 데이터 정의입니다. 직접 수정하면 다음 생성 시 덮어씁니다.
+// 자동 생성 파일입니다. 원본 시트를 수정한 뒤 다시 배포하세요.
 namespace HumanGhost.Data.Definitions
 {
     public sealed class PlayerState
@@ -12,17 +12,7 @@ namespace HumanGhost.Data.Definitions
         public int TickDamage { get; }
         public bool BlockInput { get; }
         public bool Stackable { get; }
-        public PlayerState(
-            int id,
-            int unitID,
-            string key,
-            int stateID,
-            int duration,
-            int tickInterval,
-            int tickDamage,
-            bool blockInput,
-            bool stackable
-        )
+        public PlayerState(int id, int unitID, string key, int stateID, int duration, int tickInterval, int tickDamage, bool blockInput, bool stackable)
         {
             ID = id;
             UnitID = unitID;
