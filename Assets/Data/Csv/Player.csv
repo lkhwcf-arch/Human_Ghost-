@@ -1,2 +1,2 @@
 ID,UnitID,StaminaMax,StaminaRegen,StaminaRegenDelay,RollDistance,RollTime,RollIFrame,RollStamina,JumpHeight,HitStunTime,HitIFrame,CritHitStunTime,LandFallHeight,LandTime,HangAuto,InputBuffer,StartWeapon
-2001,1001,100,45,500,300,500,300,20,300,300,600,500,500,200,Y,150,6002
+2001,1001,100,45,500,300,500,300,20,300,300,600,500,500,200,N,150,6002
