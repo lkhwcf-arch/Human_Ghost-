@@ -1,0 +1,87 @@
+name: 디스코드 머지 알림
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [Develop]
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  notify:
+    name: 디스코드 공지 전송
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: 공지 생성 및 웹훅 전송
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          PROJECT_NAME: 클라이언트
+        shell: python
+        run: |
+          import json
+          import os
+          import sys
+          import urllib.error
+          import urllib.parse
+          import urllib.request
+
+          webhook = os.environ.get("DISCORD_WEBHOOK_URL", "").strip()
+          parsed = urllib.parse.urlsplit(webhook)
+          if parsed.scheme != "https" or parsed.hostname != "discord.com" or not parsed.path.startswith("/api/webhooks/"):
+              sys.exit("디스코드 웹훅 비밀값이 없거나 올바른 주소가 아닙니다.")
+
+          with open(os.environ["GITHUB_EVENT_PATH"], encoding="utf-8") as source:
+              event = json.load(source)
+
+          project = os.environ["PROJECT_NAME"]
+          repository = os.environ["GITHUB_REPOSITORY"]
+          server = os.environ["GITHUB_SERVER_URL"]
+          if os.environ["GITHUB_EVENT_NAME"] == "workflow_dispatch":
+              title = f"[{project}] 알림 연결 테스트"
+              description = "GitHub와 디스코드 연결이 완료됐습니다. 이후 지정 브랜치에 PR이 머지되면 공지합니다."
+              url = f"{server}/{repository}/actions/runs/{os.environ['GITHUB_RUN_ID']}"
+              fields = []
+          else:
+              pr = event["pull_request"]
+              if not pr.get("merged"):
+                  sys.exit(0)
+              title = f"[{project}] #{pr['number']} {pr['title']}"
+              description = (pr.get("body") or "").strip() or "상세 설명은 관련 PR에서 확인해주세요."
+              url = pr["html_url"]
+              fields = [
+                  {"name": "반영 브랜치", "value": pr["base"]["ref"][:1024], "inline": True},
+                  {"name": "머지 담당자", "value": pr["merged_by"]["login"][:1024], "inline": True},
+              ]
+
+          # 공지는 한 건으로 제한하고 전체 호출 알림은 사용하지 않습니다.
+          payload = {
+              "allowed_mentions": {"parse": []},
+              "embeds": [{
+                  "title": title[:256],
+                  "description": description[:3000],
+                  "url": url,
+                  "color": 5025616,
+                  "fields": fields,
+                  "footer": {"text": repository[:2048]},
+              }],
+          }
+          query = dict(urllib.parse.parse_qsl(parsed.query))
+          query["wait"] = "true"
+          endpoint = urllib.parse.urlunsplit(parsed._replace(query=urllib.parse.urlencode(query), fragment=""))
+          request = urllib.request.Request(
+              endpoint, data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+              headers={"Content-Type": "application/json", "User-Agent": "HumanGhost-Merge-Notifier"},
+              method="POST",
+          )
+          try:
+              with urllib.request.urlopen(request, timeout=20) as response:
+                  response.read()
+          except urllib.error.HTTPError as error:
+              sys.exit(f"디스코드 전송 실패: 응답 코드 {error.code}. 웹훅 설정과 실행 기록을 확인해주세요.")
+          except (urllib.error.URLError, TimeoutError):
+              sys.exit("디스코드 연결에 실패했습니다. 네트워크 상태를 확인한 뒤 다시 실행해주세요.")
+          print("디스코드 공지를 전송했습니다.")
+
