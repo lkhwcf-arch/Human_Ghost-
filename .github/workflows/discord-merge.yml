@@ -1,8 +1,7 @@
 name: 디스코드 머지 알림
 
 on:
-  pull_request:
-    types: [closed]
+  push:
     branches: [Develop]
   workflow_dispatch:
 
@@ -11,7 +10,7 @@ permissions: {}
 jobs:
   notify:
     name: 디스코드 공지 전송
-    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
+    if: github.event_name == 'workflow_dispatch' || github.event.deleted == false
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
@@ -41,19 +40,26 @@ jobs:
           server = os.environ["GITHUB_SERVER_URL"]
           if os.environ["GITHUB_EVENT_NAME"] == "workflow_dispatch":
               title = f"[{project}] 알림 연결 테스트"
-              description = "GitHub와 디스코드 연결이 완료됐습니다. 이후 지정 브랜치에 PR이 머지되면 공지합니다."
+              description = "GitHub와 디스코드 연결이 완료됐습니다. 이후 지정 브랜치에 푸시되면 공지합니다."
               url = f"{server}/{repository}/actions/runs/{os.environ['GITHUB_RUN_ID']}"
               fields = []
           else:
-              pr = event["pull_request"]
-              if not pr.get("merged"):
+              if event.get("deleted"):
                   sys.exit(0)
-              title = f"[{project}] #{pr['number']} {pr['title']}"
-              description = (pr.get("body") or "").strip() or "상세 설명은 관련 PR에서 확인해주세요."
-              url = pr["html_url"]
+              branch = event["ref"].removeprefix("refs/heads/")
+              commits = event.get("commits", [])
+              title = f"[{project}] {branch} 반영 완료"
+              lines = [
+                  f"- {commit['id'][:7]} {commit['message'].splitlines()[0][:200]}"
+                  for commit in commits[:10]
+              ]
+              if len(commits) > 10:
+                  lines.append(f"외 {len(commits) - 10}건은 변경 내역 링크에서 확인해주세요.")
+              description = "\n".join(lines) or "브랜치 변경 내역은 링크에서 확인해주세요."
+              url = event.get("compare") or f"{server}/{repository}/commit/{event['after']}"
               fields = [
-                  {"name": "반영 브랜치", "value": pr["base"]["ref"][:1024], "inline": True},
-                  {"name": "머지 담당자", "value": pr["merged_by"]["login"][:1024], "inline": True},
+                  {"name": "반영 브랜치", "value": branch[:1024], "inline": True},
+                  {"name": "반영 담당자", "value": os.environ["GITHUB_ACTOR"][:1024], "inline": True},
               ]
 
           # 공지는 한 건으로 제한하고 전체 호출 알림은 사용하지 않습니다.
