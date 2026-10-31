@@ -18,6 +18,7 @@ namespace HumanGhost.Gameplay
         private bool _queued;
         private bool _attackActive;
         private BossPoise _executionTarget;
+        private int _bindPresses;
 
         public Player Definition { get; }
         public ActorStateMachine States { get; }
@@ -25,6 +26,9 @@ namespace HumanGhost.Gameplay
         public PlayerStamina Stamina { get; }
         public int Health { get; private set; }
         public StateKey CurrentState => States.Current;
+        // 현재 이 플레이어를 잡고 있는 일반몹. 구속(Bound) 중에만 값이 있습니다.
+        public MonsterActor BoundBy { get; private set; }
+        public int BindPressesRemaining => BoundBy == null ? 0 : _bindPresses;
         public bool IsDead => Health == 0;
         public bool IsAttacking => _attackIndex >= 0;
         public bool IsAttackActive => _attackActive;
@@ -63,6 +67,12 @@ namespace HumanGhost.Gameplay
         public bool TryAttack()
         {
             if (IsDead) return false;
+            if (CurrentState == StateKey.Bound)
+            {
+                // 구속 중 공격 입력은 연타 해제로만 소비합니다.
+                if (--_bindPresses == 0) EndBind();
+                return true;
+            }
             if (IsAttacking)
             {
                 if (_attackIndex >= 2 || CurrentAttack.ComboWindow == 0) return false;
@@ -97,6 +107,7 @@ namespace HumanGhost.Gameplay
             if (IsDead || IsInvulnerable || damage == 0) return false;
             Health = Math.Max(0, Health - damage);
             ClearAttack();
+            BoundBy = null; _bindPresses = 0;
             _elapsed = 0;
             _invulnerableRemaining = Definition.HitIFrame;
             if (IsDead) States.Change(new DeadState());
@@ -107,6 +118,27 @@ namespace HumanGhost.Gameplay
                 if (_duration == 0) Locomotion.Resume();
             }
             HealthChanged?.Invoke(Health);
+            return true;
+        }
+
+        // 일반몹 잡기. 공격 입력 presses번이면 풀립니다. duration>0이면 그 시간이 지나도 풀리고, 0이면 연타로만 풀립니다.
+        public bool TryBind(MonsterActor by, int duration, int presses)
+        {
+            if (by == null) throw new ArgumentNullException(nameof(by));
+            if (duration < 0 || presses <= 0) throw new ArgumentOutOfRangeException(nameof(duration));
+            if (IsDead || IsInvulnerable || CurrentState == StateKey.Bound) return false;
+            ClearAttack();
+            BoundBy = by; _bindPresses = presses;
+            _elapsed = 0; _duration = duration;
+            States.Call(StateKey.Bound);
+            return true;
+        }
+
+        // 잡은 몬스터의 사망·비활성화·피격 시 호출. 다른 몬스터의 구속은 풀지 않습니다.
+        public bool ReleaseBind(MonsterActor by)
+        {
+            if (by == null || BoundBy != by || CurrentState != StateKey.Bound) return false;
+            EndBind();
             return true;
         }
 
@@ -124,6 +156,15 @@ namespace HumanGhost.Gameplay
             if (target.IsDead || target.IsInvulnerable || !TryRegisterTarget(targetId)) return false;
             if (dodged) return false;
             return target.ReceiveHit(CombatMath.Damage(Definition, target.Definition, CurrentAttack.ExtraDamage, critical), CurrentAttack.PoiseDamage);
+        }
+
+        // 일반몹은 HP만 깎습니다. 지스타 일반몹 체세·해체 없음.
+        public bool TryHitMonster(int targetId, MonsterActor target, bool dodged, bool critical)
+        {
+            if (target == null) throw new ArgumentNullException(nameof(target));
+            if (target.IsDead || !TryRegisterTarget(targetId)) return false;
+            if (dodged) return false;
+            return target.ReceiveHit(CombatMath.Damage(Definition, target.Definition, CurrentAttack.ExtraDamage, critical), critical);
         }
 
         public bool TryExecute(BossPoise target, bool inRange)
@@ -151,7 +192,8 @@ namespace HumanGhost.Gameplay
             if (IsDead || CurrentState == StateKey.Execute) return;
             while (milliseconds > 0)
             {
-                bool timed = IsAttacking || CurrentState == StateKey.Roll || CurrentState == StateKey.Hit || CurrentState == StateKey.CritHit;
+                bool timed = IsAttacking || CurrentState == StateKey.Roll || CurrentState == StateKey.Hit || CurrentState == StateKey.CritHit ||
+                    (CurrentState == StateKey.Bound && _duration > 0);
                 if (!timed) { AdvanceTime(milliseconds); break; }
                 AttackSpec spec = CurrentAttack;
                 int end = IsAttacking ? (_elapsed < spec.Windup ? spec.Windup : _elapsed < spec.Windup + spec.Active ? spec.Windup + spec.Active : spec.TotalTime) : _duration;
@@ -170,8 +212,18 @@ namespace HumanGhost.Gameplay
                         if (!chain || !StartAttack(next)) Locomotion.Resume();
                     }
                 }
-                else if (_elapsed == _duration) Locomotion.Resume();
+                else if (_elapsed == _duration)
+                {
+                    if (CurrentState == StateKey.Bound) EndBind();
+                    else Locomotion.Resume();
+                }
             }
+        }
+
+        private void EndBind()
+        {
+            BoundBy = null; _bindPresses = 0;
+            Locomotion.Resume();
         }
 
         private void AdvanceTime(int milliseconds)

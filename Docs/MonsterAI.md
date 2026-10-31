@@ -1,0 +1,79 @@
+# 일반 몬스터 AI
+
+## 대상과 순서
+
+[일정 간트](https://docs.google.com/spreadsheets/d/16waFKHuXaZGdi2fz76nRUWFxiuQquhZGy6doAVHqBUI/edit)의 나영민 담당 순서는 허수귀 AI·관문 A 통합(간트 19행, 10/31) → 지게귀 AI(20행, 11/2) → 변종·보스 패턴입니다. 간트는 읽기 전용입니다. 기획 기준은 [전투 R2 C08](https://docs.google.com/document/d/1Rb3cszutAFQ7jgRUUXLay5NroVIJaHlV/edit)과 [통합 R2](https://docs.google.com/document/d/1pqjZGqJJqk660I0UNnjUQr4SX-B0-A4F/edit)의 10/30 확정 사항입니다.
+
+허수귀·지게귀 AI 코어와 패턴 설정, 임시 확인 장면 연결을 구현했습니다. 운영 물리·충돌 판정·애니·이펙트·스폰은 아직 연결 대상입니다. 데이터 생산·생성 클래스·조회 저장소·Bootstrapper, 수치 튜닝, 아트/애니 제작·정식 씬 배치·UI 레이아웃은 해당 담당 범위입니다.
+
+## 구성
+
+| 자산/코드 | 역할 |
+| --- | --- |
+| Assets/3.Script/Core/Characters/MonsterActor.cs | 개체별 현재 HP·상태·목표·타이머·판정 창. 관측과 정수 ms만 받는 순수 코어 |
+| Assets/3.Script/Core/Combat/MonsterPattern.cs | 패턴 하나의 사용 거리·선딜/판정/후딜(AttackSpec)·잡기/돌진 인수 |
+| Assets/3.Script/Adapters/MonsterPatternSettings.cs | 몬스터 종류별 패턴 설정 에셋(한글 Inspector) |
+| Assets/2.Model/Prefabs/Config/HusugwiPatterns.asset · JigegwiPatterns.asset | 허수귀·지게귀 패턴 시작값 |
+| Assets/3.Script/Adapters/MonsterRuntime.cs | 제공 Monster 정의 + 패턴 설정으로 MonsterActor 조립, Update에서 정수 ms Tick, 비활성화 시 Release |
+| HusugwiGameplay.prefab · JigegwiGameplay.prefab | 3001·3002 정의와 각 패턴 설정 연결, 임시 사각형·이름표(현재 상태·HP) |
+| Assets/3.Script/Preview/GameplayPreview.cs | 확인 장면 전용 관측·Transform 이동·벽·판정 연결 |
+
+## 수령한 데이터
+
+| 몬스터 ID / UnitID | 종류 | HP / ATK / DEF | 속도 | 시야 / 공격 거리 | 패턴 사이 대기 |
+| --- | --- | --- | --- | --- | --- |
+| 3001 / 1002 | 허수귀 / MELEE | 35 / 20 / 0 | 300 | 800 / 150 | 1000~1500ms |
+| 3002 / 1003 | 지게귀 / CHARGER | 50 / 26 / 2 | 250 | 800 / 600 | 1000~1500ms |
+| 3003 / 1004 | 불붙은 허수귀 / MELEE | 65 / 32 / 4 | 300 | 800 / 150 | 1000~1500ms |
+| 3004 / 1005 | 짐 던지는 지게귀 / CHARGER | 65 / 32 / 4 | 250 | 800 / 600 | 1000~1500ms |
+
+거리 단위는 tile_x100, 속도는 tile_x100/초, 시간은 ms입니다. AI는 catalog.GetTable<Monster>().Get(3001)처럼 조립된 제공 정의를 받습니다. Monster.ID는 콘텐츠/스폰 코드이며 UnitID와 다르고, 판정 중복 방지용 개체 ID도 별도로 공급합니다. 10/30 확정에 따라 일반몹 체세·해체는 없습니다. 변종은 후속 순서입니다.
+
+## 행동 규칙
+
+1. 목표 없음 또는 거리 > SightRange: Idle. 시야 경계(=800)는 포함합니다.
+2. 시야 안: Walk로 목표 방향 추적, 속도 MoveSpeed.
+3. 거리 ≤ AttackRange이고 거리 ≤ 패턴 사용 거리인 패턴이 있으면, 그중 하나를 개체 난수로 골라 시작합니다. 없으면 계속 추적합니다.
+4. 패턴: 선딜 → 판정 → 후딜. 패턴 중에는 방향이 고정되고 목표를 잃어도 끝까지 진행합니다.
+5. 패턴이 끝나면 IdleMin~IdleMax(양끝 포함) 동안 제자리 대기한 뒤 다시 판단합니다.
+6. 피격: Hit(치명 CritHit) 경직 → 끝나면 바로 다시 판단. HP 0이면 Dead가 되며 이후 판단·피격·판정을 모두 거부합니다.
+
+허수귀 잡기(Skill1): 판정 중 닿으면 피해 대신 플레이어를 Bound(구속)로 만듭니다. 구속 중 플레이어는 이동·점프·구르기가 잠기고, 공격 입력은 연타 횟수로만 소비합니다(스태미나 소모 없음). 연타 횟수를 채우면 풀립니다. 구속 상한(BindTime)이 0보다 크면 그 시간이 지나도 풀리고, 0이면 연타로만 풀립니다. 잡는 동안 몬스터 패턴 시간은 멈추고, 풀리면 후딜로 이어집니다. 잡은 몬스터의 사망·비활성화·피격·목표 상실(ClearTarget), 플레이어 피격·비활성화 시에도 구속이 즉시 풀립니다.
+
+지게귀 돌진(Skill1): 판정 구간이 곧 돌진 구간입니다. 이 구간에만 이동 속도가 돌진 속도이고 SuperArmor(Hit 없음, HP는 깎임)가 적용됩니다. 돌진 중 벽 충돌 관측이 들어오면 Stun(허점)으로 바뀌고 슈퍼아머가 꺼집니다. 허점 중 피해는 받지만 허점 시간은 유지됩니다. 벽 없이 끝나면 후딜로 넘어갑니다. 근접 거리에서는 내려찍기(Attack1)와 돌진 중 하나를 고르고, 근접 밖 600 이내에서는 돌진만 고릅니다.
+
+## 패턴 수치
+
+수치 결정·튜닝은 기획 소유입니다. 아래 값은 승인된 임시 시작값입니다. 기획서 표에 있는 값(잡기 예비 500ms·구속 1000ms·벽 충돌 허점 800ms·돌진 +5)은 그대로 썼습니다. 기획 확정이나 데이터 배포 값이 바뀌면 설정 에셋 값만 바꾸며, 다음 런타임 초기화에 반영됩니다.
+
+| 몬스터 | 패턴 | 사용 거리 | 선딜 / 판정 / 후딜 | 추가 데미지 | 그 밖의 값 |
+| --- | --- | --- | --- | --- | --- |
+| 허수귀 | Attack1 팔 휘두르기 | 150 | 400 / 100 / 400 | 0 | — |
+| 허수귀 | Skill1 짚 팔 잡기 | 150 | 500 / 100 / 500 | 피해 없음 | 구속 상한 1000ms(0이면 연타로만 해제), 공격 연타 3회 |
+| 지게귀 | Attack1 지게 내리찍기 | 150 | 500 / 100 / 500 | 0 | — |
+| 지게귀 | Skill1 돌진 | 600 | 600 / 최대 1000 / 400 | +5 | 돌진 속도 900, 벽 충돌 허점 800ms |
+| 공통 | 피격 경직 / 치명타 피격 경직 | — | 300 / 500 | — | — |
+
+피해는 기존 CombatMath(정수 더하기)를 씁니다. 허수귀 팔 휘두르기 → 막손 20, 지게귀 돌진 → 막손 31, 막손 1타 → 허수귀 12입니다.
+
+## 기획 확인이 필요한 해석
+
+- 구속 1000ms는 현재 상한(만료 시 자동 해제)으로 씁니다. "공격 연타로만 빠져나옵니다"로 확정되면 설정의 구속 상한을 0으로 바꾸면 되고 코드 변경은 필요 없습니다. 연타 3회는 임시 시작값입니다.
+- 잡기 성공 시 피해를 주지 않습니다. 기획서 표에 잡기 피해가 없습니다.
+- 배회 이동 범위가 시트·기획서에 없어서, 목표가 없으면 제자리 대기합니다. 순찰이 정해지면 추가합니다.
+- 피격 경직 후 패턴 사이 대기 없이 바로 재판단합니다.
+- 몬스터 회피(Evade 모션)는 제안 상태이므로 상태로 만들지 않았습니다. 회피 판정 결과는 외부 판정자가 dodged로 전달합니다.
+
+## 연결 계약 (어댑터)
+
+- 관측: `Observe(targetId, distance, direction)`에 목표 개체 ID(양수)·거리(tile_x100)·방향(-1/0/1)을 매 프레임 공급합니다. 목표가 사망·이탈하면 `ClearTarget()`을 호출합니다. 벽 충돌은 `NotifyWallHit()`로 전달합니다.
+- 이동: 매 프레임 `Velocity`(tile_x100/초, 부호 포함)를 읽어 실제 이동을 적용합니다. 월드 단위 변환·좌표 권한은 어댑터 책임이며 운영 물리 방식은 아직 정하지 않았습니다.
+- 몬스터 → 플레이어: `IsAttackActive`·`CurrentPattern`·`AttackWindowChanged`로 판정 창을 연결하고, 충돌 판정자가 `TryHitPlayer(targetId, player, dodged, critical)`을 호출합니다. 창마다 같은 대상은 한 번만 맞습니다. 무적(구르기·피격 후)인 대상은 무시합니다.
+- 플레이어 → 몬스터: `PlayerActor.TryHitMonster(targetId, monster, dodged, critical)`. 체세 피해는 적용하지 않습니다.
+- 표시: `CurrentState`·`Health`·`HealthChanged`·`PatternStarted`·`IsSuperArmor`를 애니/이펙트/HUD 데이터 연결에 씁니다. 구속 상태는 `PlayerActor.BoundBy`·`BindPressesRemaining`.
+- 수명: MonsterRuntime 비활성화 시 `Release()`로 구속·판정·돌진·대기를 정리합니다. PlayerRuntime 비활성화 시 남은 구속을 플레이어 쪽에서 정리합니다. HP는 유지되므로 다시 스폰할 때는 새 MonsterRuntime/Actor를 초기화합니다. 풀링 재사용 시 HP 초기화 계약은 스폰 구현 때 정합니다.
+
+## 검증
+
+- 순수 코어 검사 `Tools/Locomotion.Checks/Run-Checks.ps1`에 배포 Monster 3001·3002 CSV를 읽는 몬스터 검사가 포함됩니다. 시야/공격 거리·판정·대기 경계, 큰 Tick/분할 Tick, 목표 없음/상실/사망, 개체 독립, 창당 중복 피해, 잡기·연타 해제·시간 만료·사망/비활성화/피격 해제, 돌진·슈퍼아머·벽 충돌 허점, 설정 오류를 확인합니다.
+- 확인 장면에서 Play 후 허수귀·지게귀의 추적·공격·잡기·돌진·벽 허점과 현재 HP를 육안으로 확인합니다. 장면의 이동·벽·판정은 임시입니다.

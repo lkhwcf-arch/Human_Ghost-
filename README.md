@@ -11,6 +11,8 @@
 | [프로젝트 기본설계](프로젝트%20기본설계.md) | 객체 지향·이벤트·데이터 기반 설계 원칙과 이후 구현 범위 |
 | [데이터 계층 인수인계 가이드](Docs/DataHandoff.md) | 계층도, 초기화 순서, 조회 예시, 이벤트 구독·해제, 확장 방법 |
 | [게임플레이 코어](Docs/GameplayCore.md) | 이동·입력·콤보·자원·피격·보스 체세·프리팹 연결 |
+| [임시 육안 확인](Docs/GameplayPreview.md) | 사각형·텍스트로 기존 프리팹 동작 확인 |
+| [일반 몬스터 AI](Docs/MonsterAI.md) | 허수귀·지게귀 AI 코어·패턴 설정·관측/판정 연결 계약 |
 | [검사 자동화와 오류 경계](Docs/AutomationAndFailures.md) | 통합 검사·GitHub 실행·소비자 오류 분리·향후 방향과 예상 효과 |
 | [기획자용 검사 사용 안내](Docs/PlannerVerificationGuide.md) | 사용 이유·준비·실행 순서·결과 확인·개발자에게 오류 전달 |
 | [CSV 리더기](Docs/CsvReader.md) | 입력 계약, 문자열 해석과 오류 전달 |

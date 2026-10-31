@@ -25,6 +25,7 @@ internal static class Program
             CheckStateLifetime();
             CheckStamina(definition);
             _checks += CombatChecks.Run(definition);
+            _checks += MonsterChecks.Run(args[0], definition);
             Console.WriteLine($"코어 검사 {_checks}개 통과. 플레이어 {definition.ID}, 공통 스탯 {definition.UnitID}");
             return 0;
         }

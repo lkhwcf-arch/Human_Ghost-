@@ -35,7 +35,12 @@ namespace HumanGhost.Gameplay.Adapters
         }
 
         private void OnEnable() { if (Actor != null) _input.enabled = true; }
-        private void OnDisable() { if (_input != null) _input.enabled = false; }
+        private void OnDisable()
+        {
+            if (_input != null) _input.enabled = false;
+            // 비활성화 중 플레이어 Tick이 멈추므로 남은 일반몹 구속을 즉시 정리합니다.
+            if (Actor?.BoundBy != null) Actor.ReleaseBind(Actor.BoundBy);
+        }
         private void Update()
         {
             if (Actor == null) return;

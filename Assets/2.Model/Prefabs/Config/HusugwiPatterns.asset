@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27c9a75d88af4032a20f25e63c30c8ea, type: 3}
+  m_Name: HusugwiPatterns
+  m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Adapters.MonsterPatternSettings
+  _patterns:
+  - _key: 10004
+    _range: 150
+    _windup: 400
+    _active: 100
+    _recovery: 400
+    _extraDamage: 0
+    _bindTime: 0
+    _bindPresses: 0
+    _chargeSpeed: 0
+    _wallStun: 0
+  - _key: 10009
+    _range: 150
+    _windup: 500
+    _active: 100
+    _recovery: 500
+    _extraDamage: 0
+    _bindTime: 1000
+    _bindPresses: 3
+    _chargeSpeed: 0
+    _wallStun: 0
+  _hitStun: 300
+  _critHitStun: 500

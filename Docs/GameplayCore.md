@@ -29,11 +29,18 @@
 
 ## 입력·이동 경계
 
-- 기존 `Assets/10.Input/InputSystem_Actions.inputactions`를 재사용합니다. 방향키/왼쪽 스틱/D-pad, 점프 C/A, 공격 X/X, 구르기 Space/B입니다. 기존 Crouch Action은 실제 구르기 코어 연결을 위해 같은 ID의 Roll로 정리했습니다. UI 맵과 다른 Action은 보존했습니다. 스킬·약초·상호작용·Pause 구현은 아직 없습니다.
+- 기존 `Assets/10.Input/InputSystem_Actions.inputactions`를 재사용합니다. 방향키(WASD 포함), 점프 C, 공격 X, 구르기 Space입니다. 게임패드 작업은 보류하며 현재 연결된 Move/Jump/Attack/Roll의 패드 바인딩(스틱·D-pad·A·X·B)을 제거했습니다. 기존 Crouch Action은 실제 구르기 코어 연결을 위해 같은 ID의 Roll로 정리했습니다. UI 맵과 다른 Action은 보존했습니다. 스킬·약초·상호작용·Pause 구현은 아직 없습니다.
 - 입력 어댑터는 원본 ActionAsset을 개체별 복제합니다. 자신이 소유한 복제본의 Action만 켜고 끄며 원본/다른 어댑터를 비활성화하지 않습니다. 두 입력 소유자에 같은 장치를 연결하면 같은 장치 명령이 둘에 전달되므로 단일 플레이어 프리팹에는 입력 어댑터 하나만 둡니다. 복제 수명 독립과 장치 페어링은 별개입니다.
 - Move의 처리된 x 부호를 -1/0/1로 전달하고 취소·해제 시0을 전달합니다. 데이터 기반 행동 잠금 중에는 방향을 기억하되 실제 이동 요청 속도는0입니다. Jump 한 번 누르기는 한 번 승인되며 공중 재점프를 거부합니다.
 - `JumpAccepted`와 `RollRequested(direction, distance, duration)`는 실제 물리 실행을 담당할 연결 신호입니다. 속도는 tile_x100/초, 거리/높이는 tile_x100 원본 단위입니다. 그리드 한 칸1을 프레임별 좌표 절삭/강제 스냅으로 해석하지 않습니다.
 - 접지 센서는 새 실제 관측을 `PlayerRuntime.SetGrounded`로 전달합니다. 점프 승인 전의 오래된 grounded=true를 재전달하지 않습니다. 실제 Rigidbody 위치/중력·카메라 방식을 임의 확정하지 않았습니다.
+
+## 현재 제외한 기능
+
+- 게임패드 조작·진동·버튼 아이콘·패드 검증은 보류합니다. 미사용 Action/UI 맵의 템플릿 설정은 기존 연결을 보존하며, 플레이어 런타임에서 켜는 네 Action에는 패드 바인딩이 없습니다.
+- [코어 기획서](https://docs.google.com/document/d/1PeoUGJMcHBdtNZ3iUfkn0FfzWJG3fou2/edit)의 Item 메모(전체 시스템 보류, 모션만 사용)와 추가 무기 메모(보류)에 따라 장착·인벤토리·StatJson 스탯 합성·추가 무기/무기 전환은 현재 구현·작업 범위에서 제외합니다. 지스타는 시작 무기 버선칼만 사용하며 쇠메는 보류합니다.
+- 일반 버프·디버프·지속 회복은 지스타 미구현 범위입니다. 약초의 즉시 회복은 별도 기획 범위이며 일반 버프 시스템으로 확장하지 않습니다.
+- 제공 Item/Buff 정의·데이터 테이블·생성 로딩 계획은 공급 계층의 계약입니다. 게임 기능을 제외하기 위해 공급 코드를 삭제하지 않습니다. 버선칼 수치는 기존 UnitStat에 포함된 값을 소비합니다.
 
 ## 전투·해체 연결
 
@@ -57,6 +64,6 @@
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File Tools/Locomotion.Checks/Run-Checks.ps1 -UnityEditorPath 'C:\Program Files\Unity\Hub\Editor\6000.2.8f1\Editor\Unity.exe'
 ```
 
-현재 코어123개 검사(기존60+전투63) 통과. 실제 제공 Bootstrapper·ID 저장소·프리팹·설정 에셋을 사용한 Unity 메모리 입력/연결 검사18개도 통과했습니다. 가상 키보드/패드와 임시 Preview Scene을 사용했고 테스트 후 정리했습니다. Editor 테스트 중 게임용 입력 업데이트를 임시로 허용한 상태와 원래 장치/설정도 복원했습니다. 패키지 testables 변경이나 테스트 씬 저장은 없습니다.
+현재 코어123개 검사(기존60+전투63) 통과. 실제 제공 Bootstrapper·ID 저장소·프리팹·설정 에셋을 사용한 Unity 메모리 입력/연결 검사18개도 통과했습니다. 가상 입력 장치와 임시 Preview Scene을 사용했고 테스트 후 정리했습니다. Editor 테스트 중 게임용 입력 업데이트를 임시로 허용한 상태와 원래 장치/설정도 복원했습니다. 패키지 testables 변경이나 테스트 씬 저장은 없습니다.
 
-실제 물리·카메라·히트박스/애니·연출/HUD·실제 장치 Play·보스 AI·페이즈 전환은 별도 연결/검증 대상입니다.
+실제 물리·카메라·히트박스/애니·연출/HUD·실제 키보드 Play·보스 AI·페이즈 전환은 별도 연결/검증 대상입니다. 패드 개발·검증은 보류합니다.
