@@ -24,16 +24,20 @@ internal static class DataBootstrapperChecks
         var bootstrapper = new DataBootstrapper(source, ResolvePath);
         int notifications = 0;
         IReadOnlyDataCatalog notified = null;
+        bool dataPublishedBeforeNotification = false;
+        bool reentrantCallSharesTask = false;
         bootstrapper.Initialized += data =>
         {
             notifications++;
             notified = data;
-            check(ReferenceEquals(bootstrapper.Data, data));
-            check(ReferenceEquals(bootstrapper.InitializeAsync(CancellationToken.None), bootstrapper.InitializeAsync(CancellationToken.None)));
+            dataPublishedBeforeNotification = ReferenceEquals(bootstrapper.Data, data);
+            reentrantCallSharesTask = ReferenceEquals(bootstrapper.InitializeAsync(CancellationToken.None), bootstrapper.InitializeAsync(CancellationToken.None));
         };
         Task<IReadOnlyDataCatalog> first = bootstrapper.InitializeAsync(CancellationToken.None);
         check(ReferenceEquals(first, bootstrapper.InitializeAsync(CancellationToken.None)));
         IReadOnlyDataCatalog result = await first;
+        check(dataPublishedBeforeNotification);
+        check(reentrantCallSharesTask);
         check(notifications == 1 && ReferenceEquals(result, notified) && ReferenceEquals(result, bootstrapper.Data));
         check(files.Count == 13 && Path.GetFileName(files[0]) == "UnitStat.csv");
         check(files.Take(9).All(path => path.EndsWith(".csv")) && files.Skip(9).All(path => path.EndsWith(".json")));
@@ -67,6 +71,47 @@ internal static class DataBootstrapperChecks
         jsonFailed.Initialized += data => failedNotifications++;
         try { await jsonFailed.InitializeAsync(CancellationToken.None); check(false); }
         catch (IOException) { check(jsonFailed.Data == null && failedNotifications == 0); }
+
+        // 초기화 계층과 씬 전달 계층이 같은 통지 계약을 사용하는지 확인합니다.
+        var consumerFailure = new InvalidOperationException("소비자 실패 검사");
+        var consumerCancellation = new OperationCanceledException("소비자 내부 취소 검사");
+        var reported = new List<Exception>();
+        string reportedConsumer = null;
+        var order = new List<int>();
+        var isolated = new DataBootstrapper(source, ResolvePath, (name, error) =>
+        {
+            reportedConsumer = name;
+            reported.Add(error);
+        });
+        Action<IReadOnlyDataCatalog> sceneConsumers = data => throw consumerFailure;
+        sceneConsumers += data => order.Add(2);
+        isolated.Initialized += data => throw consumerCancellation;
+        isolated.Initialized += data =>
+            DataReadyNotification.Publish(sceneConsumers, data, (name, error) => reported.Add(error));
+        isolated.Initialized += data => order.Add(3);
+        Task<IReadOnlyDataCatalog> isolatedTask = isolated.InitializeAsync(CancellationToken.None);
+        IReadOnlyDataCatalog isolatedData = await isolatedTask;
+        check(!string.IsNullOrEmpty(reportedConsumer));
+        check(isolatedTask.Status == TaskStatus.RanToCompletion);
+        check(ReferenceEquals(isolated.Data, isolatedData));
+        check(order.SequenceEqual(new[] { 2, 3 }));
+        check(reported.Count == 2 && ReferenceEquals(reported[0], consumerCancellation) && ReferenceEquals(reported[1], consumerFailure));
+        await isolated.InitializeAsync(CancellationToken.None);
+        check(reported.Count == 2 && order.Count == 2);
+
+        int afterReportingFailure = 0;
+        Action<int> consumers = value => throw consumerFailure;
+        consumers += value => afterReportingFailure = value;
+        DataReadyNotification.Publish(consumers, 7, (name, error) => throw new IOException("오류 기록 실패 검사"));
+        check(afterReportingFailure == 7);
+        DataReadyNotification.Publish<int>(null, 0, null);
+
+        int preparationReports = 0;
+        var preparationFailed = new DataBootstrapper(new Source((name, token) =>
+            Task.FromException<string>(failure)), ResolvePath, (name, error) => preparationReports++);
+        try { await preparationFailed.InitializeAsync(CancellationToken.None); check(false); }
+        catch (IOException error) { check(ReferenceEquals(error, failure)); }
+        check(preparationFailed.Data == null && preparationReports == 0);
     }
 
     private sealed class Source : ICsvTextSource

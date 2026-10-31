@@ -38,7 +38,7 @@ namespace HumanGhost.Data.Infrastructure
             if (_bootstrapper == null)
             {
                 if (_assets == null) throw new InvalidOperationException("데이터 에셋 목록을 연결해 주세요.");
-                _bootstrapper = new DataBootstrapper(_assets.CreateSource(), path => path);
+                _bootstrapper = new DataBootstrapper(_assets.CreateSource(), path => path, ReportConsumerError);
                 _bootstrapper.Initialized += OnInitialized;
             }
             return _bootstrapper.InitializeAsync(_lifetime.Token);
@@ -47,8 +47,11 @@ namespace HumanGhost.Data.Infrastructure
         private void OnInitialized(IReadOnlyDataCatalog catalog)
         {
             Debug.Log("데이터 초기화가 완료되었습니다.", this);
-            Initialized?.Invoke(catalog);
+            DataReadyNotification.Publish(Initialized, catalog, ReportConsumerError);
         }
+
+        private void ReportConsumerError(string consumer, Exception error)
+            => Debug.LogError($"데이터 준비는 완료됐지만 소비자 처리에 실패했습니다. 소비자: {consumer}\n{error}", this);
 
         private void OnDestroy()
         {

@@ -14,6 +14,9 @@ Fork에서 로컬 머지 후 푸시, 빠른 병합, GitHub PR 머지를 모두 �
 푸시 이벤트만 사용하므로 PR 머지 이벤트와 중복 전송하지 않습니다.
 머지 공지는 빌드·검사·게임 배포 성공을 뜻하지 않습니다.
 
+Develop의 데이터·게임 코어 검사는 별도 [프로젝트 자동 검사](AutomationAndFailures.md)에서 수행합니다.
+코드 반영 공지와 검사 결과는 독립적이며 검사 결과는 GitHub Actions에서 확인합니다.
+
 저장소의 Settings → Secrets and variables → Actions에
 `DISCORD_WEBHOOK_URL` 비밀값을 등록합니다. 웹훅 주소는 코드나 문서에 넣지 않습니다.
 별도 서버나 봇 프로그램은 필요하지 않습니다.

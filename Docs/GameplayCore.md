@@ -46,6 +46,11 @@
 
 ## 검증
 
+검사 자동화는 [검사 자동화와 오류 경계](AutomationAndFailures.md)를 따릅니다.
+데이터·코어를 함께 검사할 때는 `Tools/Verify-Project.ps1`을 실행합니다.
+기존 검사 소스를 .NET 10으로도 실행하며 GitHub에서 같은 명령을 사용합니다.
+아래 명령은 기존 Unity Roslyn·Mono 기반 실행 경로로 유지합니다.
+
 설치된 Unity의 Roslyn/Mono를 사용하며 SDK/패키지 추가 설치는 없습니다.
 
 ```powershell

@@ -1,0 +1,48 @@
+name: 프로젝트 자동 검사
+
+on:
+  push:
+    branches: [Develop]
+  pull_request:
+    branches: [Develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: 데이터·게임 코어 검사
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - name: 검사 대상 코드 받기
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: 검사 실행 환경 준비
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+      - name: 통합 검사 실행
+        shell: pwsh
+        run: ./Tools/Verify-Project.ps1
+      - name: 검사 결과 요약
+        if: always()
+        shell: pwsh
+        env:
+          CHECK_STATUS: ${{ job.status }}
+        run: |
+          $statusText = switch ($env:CHECK_STATUS) {
+              'success' { '성공' }
+              'cancelled' { '취소' }
+              default { '실패' }
+          }
+          @"
+          ## 프로젝트 자동 검사
+          - 실행 결과: $statusText
+          - 검사 대상 커밋: $env:GITHUB_SHA
+          - 범위: 배포된 데이터 읽기·변환·초기화·오류 분리와 순수 게임 코어
+          - 실제 Unity 플레이·플레이어 빌드는 포함하지 않습니다.
+          - 실패한 단계의 실행 기록에서 원인을 확인해주세요.
+          "@ >> $env:GITHUB_STEP_SUMMARY

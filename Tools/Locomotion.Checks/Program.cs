@@ -25,7 +25,7 @@ internal static class Program
             CheckStateLifetime();
             CheckStamina(definition);
             _checks += CombatChecks.Run(definition);
-            Console.WriteLine($"PASS: {_checks} checks; deployed Player {definition.ID}, Unit {definition.UnitID}");
+            Console.WriteLine($"코어 검사 {_checks}개 통과. 플레이어 {definition.ID}, 공통 스탯 {definition.UnitID}");
             return 0;
         }
         catch (Exception error) { Console.Error.WriteLine(error); return 1; }
