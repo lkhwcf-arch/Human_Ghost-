@@ -127,6 +127,106 @@ internal static class BossChecks
         Check(snapshot.Hits[0].ExtraDamage == 6 && !(snapshot.Hits is AttackSpec[]), "타격 목록 읽기 전용 스냅샷");
         Expect<NotSupportedException>(() => ((IList<AttackSpec>)snapshot.Hits)[0] = sourceHits[0]);
 
+        // HP 비율 페이즈 전환: 현재 배포 2행(4001 HP100%·대기1500, 4002 HP50% 이하·대기1000)과 같은 구성.
+        var phase0 = new BossState(4001,1006,1500,1500,2000,15,2000,"DAMAGE",1800,false,0,"Idle",10000);
+        var phase1 = new BossState(4002,1006,1000,1000,2000,15,2000,"DAMAGE",1800,false,1,"Rage",5000);
+        var stat = new UnitStat(1006,0,"Boss",null,420,28,4,300,500,14,120,250,0);
+        BossPoise Phased(BossState start, params BossState[] rows) => new BossPoise(new Boss(stat, rows), start);
+        var log = new List<string>();
+        boss = Phased(phase0, phase1, phase0);
+        boss.PhaseChanged += s => log.Add("phase" + s.ID);
+        boss.Changed += () => log.Add("changed");
+        Check(boss.Phase == phase0, "시작 페이즈 4001");
+        boss.ReceiveHit(209, 0);
+        Check(boss.Health == 211 && boss.Phase == phase0 && log.Count == 1, "HP 50% 초과는 전환 없음(211/420)");
+        log.Clear(); boss.ReceiveHit(1, 0);
+        Check(boss.Health == 210 && boss.Phase == phase1 && string.Join(",", log) == "phase4002,changed", "정확히 50%에서 전환·PhaseChanged가 Changed보다 먼저 1회");
+        log.Clear(); boss.ReceiveHit(10, 0);
+        Check(boss.Phase == phase1 && string.Join(",", log) == "changed", "전환 후 재통지 없음");
+
+        boss = Phased(phase0, phase0, phase1); combat = Combat(boss); p = Target();
+        boss.ReceiveHit(200, 0);
+        Check(combat.TryStart(0), "페이즈1 패턴 시작");
+        combat.Tick(700); boss.ReceiveHit(20, 0);
+        Check(boss.Phase == phase1 && combat.IsAttacking && combat.IsAttackActive && boss.CurrentState == StateKey.Attack1, "패턴 중 전환은 진행 중 패턴을 끊지 않음");
+        combat.Tick(500);
+        Check(combat.IsWaiting && waitMin == 1000 && waitMax == 1001, "전환 뒤 다음 대기는 4002 대기 1000");
+
+        boss = Phased(phase0, phase0, phase1); log.Clear(); boss.PhaseChanged += s => log.Add("phase");
+        boss.ReceiveHit(420, 0);
+        Check(boss.IsDead && boss.Phase == phase0 && log.Count == 0, "사망 타격은 전환하지 않음");
+
+        boss = Phased(phase0, phase0, phase1); log.Clear(); boss.PhaseChanged += s => log.Add("phase");
+        boss.ReceiveHit(160, 120);
+        Check(boss.Health == 260 && boss.IsExposed && boss.Phase == phase0 && boss.TryBeginExecution(), "노출 후 해체 시작");
+        Check(boss.CompleteExecution(false) && boss.Health == 185 && boss.Phase == phase1 && boss.IsExposed && log.Count == 1, "해체 피해 75로 전환·노출 유지");
+
+        var phase2 = new BossState(4003,1006,500,500,2000,15,2000,"DAMAGE",1800,false,2,"Last",2000);
+        boss = Phased(phase0, phase2, phase0, phase1); log.Clear(); boss.PhaseChanged += s => log.Add("phase" + s.ID);
+        boss.ReceiveHit(370, 0);
+        Check(boss.Phase == phase2 && string.Join(",", log) == "phase4003", "여러 기준을 한 번에 넘으면 마지막 행으로 1회 전환(행 순서 무관)");
+        boss = Phased(phase1, phase0, phase1); boss.ReceiveHit(400, 0);
+        Check(boss.Phase == phase1, "뒤 페이즈로 시작하면 이전 행으로 돌아가지 않음");
+        Expect<ArgumentException>(() => Phased(phase0, phase0, new BossState(4002,1006,1000,1000,2000,15,2000,"DAMAGE",1800,false,1,"Rage",10000)));
+        Expect<ArgumentException>(() => Phased(phase0, phase0, phase1, new BossState(4003,1006,1000,1000,2000,15,2000,"DAMAGE",1800,false,1,"Rage",3000)));
+        Expect<ArgumentException>(() => Phased(phase0, phase0, new BossState(4002,1006,1000,1000,2000,15,2000,"DAMAGE",1800,false,1,"Rage",0)));
+        Expect<ArgumentException>(() => Phased(phase0, phase0, phase1, new BossState(4003,1006,500,500,2000,15,2000,"DAMAGE",1800,false,2,"Last",6000)));
+
+        // 페이즈2 문 돌진(C09): 예비 1000·추가 +14·벽 체세 30은 기획 값, 돌진 상한 2000·후딜 400·속도 900은 검사 전용.
+        BossPattern[] ChargePatterns() => new[]
+        {
+            new BossPattern(StateKey.Attack1, new[] { new AttackSpec(700, 100, 400, 0, 6, 0, 0) }),
+            new BossPattern(StateKey.Skill1, new[] { new AttackSpec(1000, 2000, 400, 0, 14, 0, 0) }, 1, 900, 30)
+        };
+        BossCombat ChargeCombat(BossPoise b) => new BossCombat(b, ChargePatterns(), (min, max) => { waitMin = min; waitMax = max; return min; });
+        boss = Phased(phase0, phase0, phase1); combat = ChargeCombat(boss); p = Target();
+        Check(!combat.TryStart(1) && !combat.IsAttacking, "페이즈1에서 문 돌진 거부");
+        boss.ReceiveHit(210, 0);
+        combat.Face(-1);
+        Check(combat.TryStart(1) && boss.CurrentState == StateKey.Skill1 && combat.Velocity == 0 && combat.Facing == -1, "페이즈2 문 돌진 시작·예비 동작 중 정지");
+        combat.Face(1);
+        Check(combat.Facing == -1 && !combat.NotifyWallHit(), "패턴 중 방향 고정·예비 동작 중 벽 무시");
+        combat.Tick(1000);
+        Check(combat.IsCharging && combat.Velocity == -900, "예비 1000 뒤 돌진 속도");
+        Check(combat.TryHitPlayer(2001, p, false, false) && p.Health == 58, "돌진 피해 28+14=42");
+        Check(combat.NotifyWallHit() && !combat.IsAttackActive && combat.Velocity == 0 && boss.Poise == 90 && combat.IsAttacking, "벽 충돌: 돌진 종료·체세 −30·후딜");
+        combat.Tick(400);
+        Check(boss.CurrentState == StateKey.Idle && waitMin == 1000, "벽 충돌 후 후딜 400 뒤 대기 1000");
+        combat.Tick(1000);
+        Check(combat.TryStart(1), "돌진 재시작");
+        combat.Tick(3000);
+        Check(!combat.IsCharging && combat.IsAttacking && boss.Poise == 90, "벽 없이 상한 2000이 지나면 체세 피해 없이 후딜");
+        combat.Tick(400); combat.Tick(1000);
+        boss.ReceiveHit(0, 60);
+        Check(combat.TryStart(1), "체세 30 남은 상태 돌진");
+        combat.Tick(1000);
+        Check(combat.NotifyWallHit() && boss.IsExposed && !combat.IsAttacking && combat.Velocity == 0, "벽 충돌로 체세 0이면 노출이 패턴 정리");
+        // 창 열림 콜백 안 벽 충돌(동기 접촉): 배포 체세 80, 후딜 0/400. 끝난 패턴을 진행하지 않고 체세는 한 번만 깎습니다.
+        var stat80 = new UnitStat(1006,0,"Boss",null,420,28,4,300,500,14,80,250,0);
+        foreach (int recovery in new[] { 0, 400 })
+        foreach (int poiseHit in new[] { 60, 0 })
+        {
+            var b = new BossPoise(new Boss(stat80, new[] { phase0, phase1 }), phase0);
+            b.ReceiveHit(210, poiseHit);
+            var c = new BossCombat(b, new[] { new BossPattern(StateKey.Skill1, new[] { new AttackSpec(1000, 2000, recovery, 0, 14, 0, 0) }, 1, 900, 30) },
+                (min, max) => { waitMin = min; return min; });
+            c.AttackWindowChanged += active => { if (active) c.NotifyWallHit(); };
+            waitMin = -1;
+            Check(c.TryStart(0), "동기 벽 충돌 돌진 시작");
+            c.Tick(1000);
+            bool exposed = poiseHit == 60;
+            Check(b.Health == 210 && b.Poise == (exposed ? 0 : 50) && b.IsExposed == exposed && !c.IsAttackActive && c.Velocity == 0 &&
+                c.IsAttacking == (!exposed && recovery > 0) && (exposed || recovery > 0 || (b.CurrentState == StateKey.Idle && waitMin == 1000)),
+                "동기 벽 충돌 후딜" + recovery + " 노출" + exposed);
+            c.Tick(recovery + 1000);
+            Check(b.IsExposed == exposed && b.Poise == (exposed ? 0 : 50) && !c.IsAttacking, "동기 벽 충돌 이후 Tick 안전·중복 체세 감소 없음");
+        }
+        Expect<ArgumentOutOfRangeException>(() => new BossPattern(StateKey.Skill1, new[] { new AttackSpec(1, 1, 0, 0, 0, 0, 0), new AttackSpec(1, 1, 0, 0, 0, 0, 0) }, 1, 900, 30));
+        Expect<ArgumentOutOfRangeException>(() => new BossPattern(StateKey.Attack1, new[] { new AttackSpec(1, 1, 0, 0, 0, 0, 0) }, 0, 900, 0));
+        Expect<ArgumentOutOfRangeException>(() => new BossPattern(StateKey.Attack1, new[] { new AttackSpec(1, 1, 0, 0, 0, 0, 0) }, 0, 0, 30));
+        Expect<ArgumentOutOfRangeException>(() => new BossPattern(StateKey.Attack1, new[] { new AttackSpec(1, 1, 0, 0, 0, 0, 0) }, -1));
+        Expect<ArgumentOutOfRangeException>(() => combat.Face(0));
+
         // 입력 경계
         Expect<ArgumentOutOfRangeException>(() => new BossPattern(StateKey.Skill1, new[] { new AttackSpec(1, 1, 0, 0, 0, 0, 0) }));
         Expect<ArgumentException>(() => new BossPattern(StateKey.Attack1, new AttackSpec[0]));

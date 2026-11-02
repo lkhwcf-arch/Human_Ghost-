@@ -17,7 +17,7 @@ namespace HumanGhost.Gameplay.Preview
 
         public static void RefreshBoss(BossPoise actor, TextMesh label, SpriteRenderer body, Color color)
         {
-            SetText(label, "보스 " + actor.Definition.ID + "\n" + GetStateLabel(actor.CurrentState) +
+            SetText(label, "보스 " + actor.Definition.ID + " · 페이즈 " + (actor.Phase.Phase + 1) + "\n" + GetStateLabel(actor.CurrentState) +
                 "\n체력 " + actor.Health + "\n체세 " + actor.Poise);
             body.color = actor.IsDead ? Color.gray : actor.IsExposed ?
                 new Color(0.75f, 0.35f, 0.95f) : actor.IsInvulnerable ? Color.yellow : color;
