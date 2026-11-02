@@ -17,7 +17,7 @@ namespace HumanGhost.Gameplay
         // 확률 단위(10000 = 100%). 밸런스 수치가 아닙니다.
         private const int _probabilityScale = 10000;
 
-        // random(minInclusive, maxExclusive): 공격자 개체가 소유한 난수. null이면 호출자가 준 dodged/critical을 그대로 씁니다.
+        // random(minInclusive, maxExclusive): 공격자 개체가 소유한 난수(0 이상 10000 미만). 확률은 0~10000. null이면 호출자가 준 dodged/critical을 그대로 씁니다.
         public static HitOutcome Resolve(AttackWindow window, int targetId, int dodge, int crit, bool blocked, bool canCrit,
             Func<int, int, int> random, bool dodged, bool critical)
         {
