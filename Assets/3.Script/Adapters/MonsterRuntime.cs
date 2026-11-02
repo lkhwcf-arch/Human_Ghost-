@@ -11,11 +11,14 @@ namespace HumanGhost.Gameplay.Adapters
         [SerializeField, Min(1)] private int _monsterId = 3001;
         [SerializeField] private MonsterPatternSettings _patterns = null;
         private System.Random _random;
+        private System.Random _hitRandom;
         private MillisecondClock _clock;
 
         public int MonsterId => _monsterId;
         public Monster Definition { get; private set; }
         public MonsterActor Actor { get; private set; }
+        // 이 몬스터가 공격자일 때의 회피·치명 난수. 패턴/대기 난수열과 분리합니다.
+        public Func<int, int, int> HitRandom { get; private set; }
         public bool IsInitialized => Definition != null;
         public event Action<Monster> Initialized;
 
@@ -27,7 +30,9 @@ namespace HumanGhost.Gameplay.Adapters
             Monster definition = catalog.GetTable<Monster>().Get(_monsterId);
             // 같은 프레임에 생성돼도 개체마다 다른 난수열을 쓰도록 인스턴스 ID를 섞습니다.
             _random = new System.Random(Environment.TickCount ^ GetInstanceID());
+            _hitRandom = new System.Random(Environment.TickCount ^ ~GetInstanceID());
             Actor = new MonsterActor(definition, _patterns.CreatePatterns(), _patterns.HitStun, _patterns.CritHitStun, _random.Next);
+            HitRandom = _hitRandom.Next;
             Definition = definition;
             Initialized?.Invoke(definition);
         }

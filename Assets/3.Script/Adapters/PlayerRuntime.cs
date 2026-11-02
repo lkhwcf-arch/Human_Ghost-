@@ -12,7 +12,10 @@ namespace HumanGhost.Gameplay.Adapters
         [SerializeField] private PlayerCombatSettings _combat = null;
         [SerializeField] private PlayerLocomotionInput _input = null;
         private MillisecondClock _clock;
+        private System.Random _hitRandom;
         public PlayerActor Actor { get; private set; }
+        // 이 플레이어가 공격자일 때의 회피·치명 난수입니다.
+        public Func<int, int, int> HitRandom { get; private set; }
         public event Action<PlayerActor> Initialized;
 
         // GameDataInitializer 완료 소비자가 호출합니다. 공급 초기화/저장소를 중복 생성하지 않습니다.
@@ -23,6 +26,8 @@ namespace HumanGhost.Gameplay.Adapters
             if (_combat == null || _input == null) throw new InvalidOperationException("전투 설정과 입력 어댑터를 연결하세요.");
             var actor = new PlayerActor(catalog.GetTable<Player>().Get(_playerId), _combat.CreateAttacks(), grounded, currentStamina);
             _input.Initialize(actor);
+            _hitRandom = new System.Random(Environment.TickCount ^ GetInstanceID());
+            HitRandom = _hitRandom.Next;
             Actor = actor;
             _input.enabled = isActiveAndEnabled;
             Initialized?.Invoke(actor);

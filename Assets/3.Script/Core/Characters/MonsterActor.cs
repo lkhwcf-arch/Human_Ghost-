@@ -120,20 +120,34 @@ namespace HumanGhost.Gameplay
         // 판정 창마다 대상 ID를 한 번만 허용합니다.
         public bool TryRegisterTarget(int targetId) => _attackWindow.TryRegisterTarget(targetId);
 
-        // 충돌 판정자가 공급한 대상·회피/치명 판정으로 한 번 적용. 잡기는 피해 대신 구속합니다.
+        // 충돌 판정자가 공급한 대상에 플레이어 Dodge·이 몬스터 Crit 확률로 한 번 적용. 잡기는 피해 대신 구속하며 회피만 판정합니다.
+        // random은 패턴/대기용과 분리된 이 몬스터 소유 타격 난수입니다.
+        public HitOutcome TryHitPlayer(int targetId, PlayerActor target, Func<int, int, int> random)
+            => HitPlayer(targetId, target, random ?? throw new ArgumentNullException(nameof(random)), false, false);
+
+        // 검사·제어용: 회피/치명을 호출자가 확정합니다.
         public bool TryHitPlayer(int targetId, PlayerActor target, bool dodged, bool critical)
+            => HitPlayer(targetId, target, null, dodged, critical) >= HitOutcome.Hit;
+
+        private HitOutcome HitPlayer(int targetId, PlayerActor target, Func<int, int, int> random, bool dodged, bool critical)
         {
             if (target == null) throw new ArgumentNullException(nameof(target));
-            if (target.IsDead || target.IsInvulnerable || !TryRegisterTarget(targetId)) return false;
-            if (dodged) return false;
-            if (!_pattern.IsGrab)
-                return target.ReceiveHit(CombatMath.Damage(Definition, target.Definition, _pattern.Attack.ExtraDamage, critical), critical);
-            if (!target.TryBind(this, _pattern.BindTime, _pattern.BindPresses)) return false;
+            bool grab = _pattern != null && _pattern.IsGrab;
+            HitOutcome outcome = HitRoll.Resolve(_attackWindow, targetId, target.Definition.Dodge, Definition.Crit,
+                target.IsDead || target.IsInvulnerable, !grab, random, dodged, critical);
+            if (outcome < HitOutcome.Hit) return outcome;
+            if (!grab)
+            {
+                bool isCritical = outcome == HitOutcome.Critical;
+                int damage = CombatMath.Damage(Definition, target.Definition, _pattern.Attack.ExtraDamage, isCritical);
+                return target.ReceiveHit(damage, isCritical) ? outcome : HitOutcome.None;
+            }
+            if (!target.TryBind(this, _pattern.BindTime, _pattern.BindPresses)) return HitOutcome.None;
             // 잡는 동안 패턴 시간을 멈추고, 플레이어가 풀려나면 후딜로 이어갑니다.
             _holding = target;
             _elapsed = _pattern.Attack.Windup + _pattern.Attack.Active;
             SetAttackActive(false);
-            return true;
+            return outcome;
         }
 
         // 비활성화·풀 반환 시 남은 구속·판정·대기를 정리합니다. HP는 유지합니다.

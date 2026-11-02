@@ -137,23 +137,20 @@ namespace HumanGhost.Gameplay
         // 판정 창마다 대상 ID를 한 번만 허용합니다. 충돌 위치/대상 선택은 외부에서 공급합니다.
         public bool TryRegisterTarget(int targetId) => _attackWindow.TryRegisterTarget(targetId);
 
-        // 충돌 판정자가 공급한 대상과 회피/치명 판정으로 보스 피해를 한 번 적용합니다.
+        // 충돌 판정자가 공급한 대상에 보스 Dodge·플레이어 Crit 확률로 피해를 한 번 적용합니다. random은 이 플레이어 소유 난수입니다.
+        public HitOutcome TryHitBoss(int targetId, BossPoise target, Func<int, int, int> random)
+            => HitBoss(targetId, target, random ?? throw new ArgumentNullException(nameof(random)), false, false);
+
+        // 검사·제어용: 회피/치명을 호출자가 확정합니다.
         public bool TryHitBoss(int targetId, BossPoise target, bool dodged, bool critical)
-        {
-            if (target == null) throw new ArgumentNullException(nameof(target));
-            if (target.IsDead || target.IsInvulnerable || !TryRegisterTarget(targetId)) return false;
-            if (dodged) return false;
-            return target.ReceiveHit(CombatMath.Damage(Definition, target.Definition, CurrentAttack.ExtraDamage, critical), CurrentAttack.PoiseDamage);
-        }
+            => HitBoss(targetId, target, null, dodged, critical) >= HitOutcome.Hit;
 
         // 일반몹은 HP만 깎습니다. 지스타 일반몹 체세·해체 없음.
+        public HitOutcome TryHitMonster(int targetId, MonsterActor target, Func<int, int, int> random)
+            => HitMonster(targetId, target, random ?? throw new ArgumentNullException(nameof(random)), false, false);
+
         public bool TryHitMonster(int targetId, MonsterActor target, bool dodged, bool critical)
-        {
-            if (target == null) throw new ArgumentNullException(nameof(target));
-            if (target.IsDead || !TryRegisterTarget(targetId)) return false;
-            if (dodged) return false;
-            return target.ReceiveHit(CombatMath.Damage(Definition, target.Definition, CurrentAttack.ExtraDamage, critical), critical);
-        }
+            => HitMonster(targetId, target, null, dodged, critical) >= HitOutcome.Hit;
 
         public bool TryExecute(BossPoise target, bool inRange)
         {
@@ -206,6 +203,27 @@ namespace HumanGhost.Gameplay
                     else Locomotion.Resume();
                 }
             }
+        }
+
+        private HitOutcome HitBoss(int targetId, BossPoise target, Func<int, int, int> random, bool dodged, bool critical)
+        {
+            if (target == null) throw new ArgumentNullException(nameof(target));
+            HitOutcome outcome = HitRoll.Resolve(_attackWindow, targetId, target.Definition.Dodge, Definition.Crit,
+                target.IsDead || target.IsInvulnerable, true, random, dodged, critical);
+            if (outcome < HitOutcome.Hit) return outcome;
+            int damage = CombatMath.Damage(Definition, target.Definition, CurrentAttack.ExtraDamage, outcome == HitOutcome.Critical);
+            return target.ReceiveHit(damage, CurrentAttack.PoiseDamage) ? outcome : HitOutcome.None;
+        }
+
+        private HitOutcome HitMonster(int targetId, MonsterActor target, Func<int, int, int> random, bool dodged, bool critical)
+        {
+            if (target == null) throw new ArgumentNullException(nameof(target));
+            HitOutcome outcome = HitRoll.Resolve(_attackWindow, targetId, target.Definition.Dodge, Definition.Crit,
+                target.IsDead, true, random, dodged, critical);
+            if (outcome < HitOutcome.Hit) return outcome;
+            bool isCritical = outcome == HitOutcome.Critical;
+            int damage = CombatMath.Damage(Definition, target.Definition, CurrentAttack.ExtraDamage, isCritical);
+            return target.ReceiveHit(damage, isCritical) ? outcome : HitOutcome.None;
         }
 
         private void EndBind()
