@@ -120,6 +120,13 @@ internal static class BossChecks
         boss = Boss(); combat = Combat(boss); boss.ReceiveHit(0, 120); combat.Release();
         Check(boss.CurrentState == StateKey.Exposed, "노출 중 Release는 상태 유지");
 
+        // 설정 스냅샷은 호출자 배열 변경·형변환 변조에서 보호됩니다.
+        var sourceHits = new[] { new AttackSpec(700, 100, 400, 0, 6, 0, 0) };
+        var snapshot = new BossPattern(StateKey.Attack1, sourceHits);
+        sourceHits[0] = new AttackSpec(1, 1, 0, 0, 999, 0, 0);
+        Check(snapshot.Hits[0].ExtraDamage == 6 && !(snapshot.Hits is AttackSpec[]), "타격 목록 읽기 전용 스냅샷");
+        Expect<NotSupportedException>(() => ((IList<AttackSpec>)snapshot.Hits)[0] = sourceHits[0]);
+
         // 입력 경계
         Expect<ArgumentOutOfRangeException>(() => new BossPattern(StateKey.Skill1, new[] { new AttackSpec(1, 1, 0, 0, 0, 0, 0) }));
         Expect<ArgumentException>(() => new BossPattern(StateKey.Attack1, new AttackSpec[0]));

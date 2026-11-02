@@ -18,7 +18,8 @@ namespace HumanGhost.Gameplay
             var copy = new AttackSpec[hits.Count];
             for (int i = 0; i < copy.Length; i++) copy[i] = hits[i] ?? throw new ArgumentException("빈 타격 설정입니다.", nameof(hits));
             Key = key;
-            Hits = copy;
+            // 배열을 그대로 노출하면 형변환으로 바꿀 수 있어 읽기 전용으로 감쌉니다.
+            Hits = Array.AsReadOnly(copy);
         }
     }
 }

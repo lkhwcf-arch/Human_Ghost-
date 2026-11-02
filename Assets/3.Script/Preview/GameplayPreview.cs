@@ -28,6 +28,10 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField, InspectorName("시작 시 스태미나 최대로")] private bool _startWithFullStamina = true;
         [SerializeField, InspectorName("시작 스태미나"), Min(0)] private int _initialStamina = 0;
         [SerializeField, InspectorName("해체 확인 후 체세 회복")] private bool _restorePoiseAfterPreviewExecution = true;
+        // 장면 내 양수 개체 ID(데이터 ID와 별개). 일반몹은 _firstMonsterTargetId부터 순번. 운영 스폰은 스폰 담당이 할당합니다.
+        private const int _playerTargetId = 1;
+        private const int _bossTargetId = 2;
+        private const int _firstMonsterTargetId = 3;
         private PlayerLocomotionInput _input;
         private PlayerActor _actor;
         private float _groundY;
@@ -69,13 +73,15 @@ namespace HumanGhost.Gameplay.Preview
                     _player.Initialize(catalog, stamina, true);
                 }
                 if (_boss.Actor == null) _boss.Initialize(catalog);
+                DisposeMonsterDrivers();
                 _monsterDrivers = new PreviewMonsterDriver[_monsters.Length];
                 for (int i = 0; i < _monsters.Length; i++)
                 {
                     MonsterRuntime monster = _monsters[i];
                     if (monster == null) throw new InvalidOperationException("일반몹 데이터 수신 참조를 연결하세요.");
                     if (!monster.IsInitialized) monster.Initialize(catalog);
-                    _monsterDrivers[i] = new PreviewMonsterDriver(monster, _player, _playerBody, _attackWindow, i + 1);
+                    _monsterDrivers[i] = new PreviewMonsterDriver(monster, _player, _playerBody, _attackWindow,
+                        _firstMonsterTargetId + i, _playerTargetId, _worldUnitsPerTile);
                 }
                 _actor = _player.Actor;
                 if (_motion == null) _motion = new PreviewPlayerMotion(_player, _groundY);
@@ -83,6 +89,8 @@ namespace HumanGhost.Gameplay.Preview
                 if (_input == null) throw new InvalidOperationException("플레이어 입력 어댑터가 없습니다.");
                 _input.JumpAccepted += OnJump;
                 _actor.RollRequested += OnRoll;
+                // 판정 창이 한 프레임 안에 열리고 닫혀도 열리는 순간 한 번은 접촉을 확인합니다.
+                _actor.AttackWindowChanged += OnPlayerAttackWindowChanged;
                 _subscribed = true;
                 _playerColor = _playerBody.color;
                 _bossColor = _bossBody.color;
@@ -102,9 +110,33 @@ namespace HumanGhost.Gameplay.Preview
             {
                 if (_input != null) _input.JumpAccepted -= OnJump;
                 _actor.RollRequested -= OnRoll;
+                _actor.AttackWindowChanged -= OnPlayerAttackWindowChanged;
             }
+            DisposeMonsterDrivers();
             _subscribed = false;
             if (_attackWindow != null) _attackWindow.enabled = false;
+        }
+
+        private void DisposeMonsterDrivers()
+        {
+            foreach (PreviewMonsterDriver driver in _monsterDrivers) driver?.Dispose();
+            _monsterDrivers = Array.Empty<PreviewMonsterDriver>();
+        }
+
+        private void OnPlayerAttackWindowChanged(bool active)
+        {
+            if (active && _player.isActiveAndEnabled && _boss.isActiveAndEnabled) CheckPlayerHits();
+        }
+
+        // 임시 판정: 공격 범위 사각형과 보스/일반몹 사각형 겹침. 창 열림 순간과 매 프레임 호출하며 중복은 창 등록이 막습니다.
+        private void CheckPlayerHits()
+        {
+            if (_actor.Locomotion.Direction != 0) _facing = _actor.Locomotion.Direction;
+            _attackWindow.transform.localPosition = new Vector3(_facing * 0.95f, 0f, 0.1f);
+            if (!_actor.IsAttackActive) return;
+            if (_attackWindow.bounds.Intersects(_bossBody.bounds))
+                _actor.TryHitBoss(_bossTargetId, _boss.Actor, _player.HitRandom);
+            foreach (PreviewMonsterDriver monster in _monsterDrivers) monster.CheckPlayerHit();
         }
 
         private void OnJump() => _motion.StartJump();
@@ -117,12 +149,11 @@ namespace HumanGhost.Gameplay.Preview
             if (!_subscribed || !_player.isActiveAndEnabled || !_boss.isActiveAndEnabled) return;
             if (_actor.Locomotion.Direction != 0) _facing = _actor.Locomotion.Direction;
             _motion.Move(Time.deltaTime, _worldUnitsPerTile, _jumpSeconds, _stageHalfWidth);
-            _attackWindow.transform.localPosition = new Vector3(_facing * 0.95f, 0f, 0.1f);
             _attackWindow.enabled = _actor.IsAttackActive;
-            if (_actor.IsAttackActive && _attackWindow.bounds.Intersects(_bossBody.bounds))
-                _actor.TryHitBoss(_boss.Actor.Definition.ID, _boss.Actor, _player.HitRandom);
+            // 몬스터 이동 후 플레이어 판정을 확인합니다(기존 순서 유지).
             foreach (PreviewMonsterDriver monster in _monsterDrivers)
-                monster.Step(Time.deltaTime, _worldUnitsPerTile, _stageHalfWidth);
+                monster.Step(Time.deltaTime, _stageHalfWidth);
+            CheckPlayerHits();
             HandlePreviewKeys();
             RefreshLabels();
         }
