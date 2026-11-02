@@ -231,7 +231,9 @@ internal static class MonsterChecks
         Expect<ArgumentOutOfRangeException>(() => new MonsterPattern(StateKey.Skill1, 150, new AttackSpec(1, 1, 0, 0, 0, 0, 0), bindTime: 1000));
         Expect<ArgumentOutOfRangeException>(() => new MonsterPattern(StateKey.Attack3, 150, new AttackSpec(1, 1, 0, 0, 0, 0, 0)));
         Expect<InvalidOperationException>(() => new MonsterActor(husugwi, HusugwiPatterns(), 300, 500, (min, max) => max).Observe(1, 100, 1));
-        return checks;
+        return checks + HitChecks.Run(player, jigegwi,
+            () => new MonsterActor(husugwi, HusugwiPatterns(), 300, 500, (min, max) => min),
+            () => new MonsterActor(husugwi, HusugwiPatterns(), 300, 500, (min, max) => max - 1));
     }
 
     private static Monster ReadMonster(string root, int id)

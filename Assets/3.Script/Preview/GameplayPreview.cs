@@ -120,7 +120,7 @@ namespace HumanGhost.Gameplay.Preview
             _attackWindow.transform.localPosition = new Vector3(_facing * 0.95f, 0f, 0.1f);
             _attackWindow.enabled = _actor.IsAttackActive;
             if (_actor.IsAttackActive && _attackWindow.bounds.Intersects(_bossBody.bounds))
-                _actor.TryHitBoss(_boss.Actor.Definition.ID, _boss.Actor, false, false);
+                _actor.TryHitBoss(_boss.Actor.Definition.ID, _boss.Actor, _player.HitRandom);
             foreach (PreviewMonsterDriver monster in _monsterDrivers)
                 monster.Step(Time.deltaTime, _worldUnitsPerTile, _stageHalfWidth);
             HandlePreviewKeys();

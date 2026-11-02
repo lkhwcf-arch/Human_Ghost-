@@ -54,10 +54,10 @@ namespace HumanGhost.Gameplay.Preview
                 bool sameHeight = target.min.y <= own.max.y && target.max.y >= own.min.y;
                 bool inFront = offset * monster.Facing >= 0f;
                 bool touching = pattern.IsCharge ? own.Intersects(target) : sameHeight && inFront && distance <= pattern.Range;
-                if (touching) monster.TryHitPlayer(actor.Definition.ID, actor, false, false);
+                if (touching) monster.TryHitPlayer(actor.Definition.ID, actor, _runtime.HitRandom);
             }
             if (actor.IsAttackActive && _attackWindow.bounds.Intersects(_body.bounds))
-                actor.TryHitMonster(_targetId, monster, false, false);
+                actor.TryHitMonster(_targetId, monster, _player.HitRandom);
             _body.color = monster.IsDead ? Color.gray : monster.CurrentState == StateKey.Stun ? new Color(0.75f, 0.35f, 0.95f) :
                 monster.IsAttackActive ? new Color(1f, 0.3f, 0.3f) : _color;
         }
