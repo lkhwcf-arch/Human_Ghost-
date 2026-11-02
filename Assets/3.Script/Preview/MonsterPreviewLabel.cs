@@ -37,7 +37,7 @@ namespace HumanGhost.Gameplay.Preview
         private void RefreshLabel(Monster definition)
         {
             MonsterActor actor = _runtime.Actor;
-            string text = _displayName + "\n몬스터 " + definition.ID + "\n" + GameplayPreview.GetStateLabel(actor.CurrentState) +
+            string text = _displayName + "\n몬스터 " + definition.ID + "\n" + PreviewPresentation.GetStateLabel(actor.CurrentState) +
                 (actor.IsSuperArmor ? " (슈퍼아머)" : "") + "\n체력 " + actor.Health;
             if (_label.text != text) _label.text = text;
         }

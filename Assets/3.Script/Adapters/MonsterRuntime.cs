@@ -11,7 +11,7 @@ namespace HumanGhost.Gameplay.Adapters
         [SerializeField, Min(1)] private int _monsterId = 3001;
         [SerializeField] private MonsterPatternSettings _patterns = null;
         private System.Random _random;
-        private double _remainder;
+        private MillisecondClock _clock;
 
         public int MonsterId => _monsterId;
         public Monster Definition { get; private set; }
@@ -38,10 +38,7 @@ namespace HumanGhost.Gameplay.Adapters
         private void Update()
         {
             if (Actor == null) return;
-            double total = _remainder + Time.deltaTime * 1000.0;
-            int milliseconds = (int)Math.Min(int.MaxValue, Math.Floor(total));
-            _remainder = total - milliseconds;
-            Actor.Tick(milliseconds);
+            Actor.Tick(_clock.Advance(Time.deltaTime));
         }
     }
 }

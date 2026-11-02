@@ -136,6 +136,6 @@ internal static class CombatChecks
         Expect<ArgumentOutOfRangeException>(()=>actor.ReceiveHit(-1));
         Expect<ArgumentOutOfRangeException>(()=>actor.TryRegisterTarget(0));
         Expect<ArgumentOutOfRangeException>(()=>boss.Tick(-1));
-        return checks;
+        return checks + ModuleChecks.Run(definition, Specs);
     }
 }

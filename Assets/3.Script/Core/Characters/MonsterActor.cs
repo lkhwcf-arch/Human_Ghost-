@@ -13,7 +13,7 @@ namespace HumanGhost.Gameplay
         private readonly WalkState _walk = new WalkState();
         private readonly MonsterPattern[] _patterns;
         private readonly List<MonsterPattern> _candidates = new List<MonsterPattern>();
-        private readonly HashSet<int> _targets = new HashSet<int>();
+        private readonly AttackWindow _attackWindow = new AttackWindow();
         private readonly Func<int, int, int> _random;
         private readonly int _hitStun;
         private readonly int _critHitStun;
@@ -25,7 +25,6 @@ namespace HumanGhost.Gameplay
         private int _targetId;
         private int _distance;
         private int _direction;
-        private bool _attackActive;
 
         public Monster Definition { get; }
         public ActorStateMachine States { get; }
@@ -34,15 +33,19 @@ namespace HumanGhost.Gameplay
         public bool IsDead => Health == 0;
         public int Facing { get; private set; } = 1;
         public MonsterPattern CurrentPattern => _pattern;
-        public bool IsAttackActive => _attackActive;
-        public bool IsCharging => _attackActive && _pattern.IsCharge;
+        public bool IsAttackActive => _attackWindow.IsActive;
+        public bool IsCharging => IsAttackActive && _pattern.IsCharge;
         // SuperArmor는 돌진 판정 구간에만 적용합니다. 상시 피격 면제가 아닙니다.
         public bool IsSuperArmor => IsCharging && Definition.SuperArmor;
         // tile_x100/초 그대로. 월드 단위 변환·실제 이동은 어댑터 책임입니다.
         public int Velocity => IsCharging ? Facing * _pattern.ChargeSpeed : CurrentState == StateKey.Walk ? Facing * Definition.MoveSpeed : 0;
         public event Action<int> HealthChanged;
         public event Action<MonsterPattern> PatternStarted;
-        public event Action<bool> AttackWindowChanged;
+        public event Action<bool> AttackWindowChanged
+        {
+            add { _attackWindow.Changed += value; }
+            remove { _attackWindow.Changed -= value; }
+        }
 
         // random(minInclusive, maxExclusive): 패턴 선택·대기 시간용 개체별 난수. 전역 난수를 쓰지 않습니다.
         public MonsterActor(Monster definition, IReadOnlyList<MonsterPattern> patterns, int hitStun, int critHitStun, Func<int, int, int> random)
@@ -115,11 +118,7 @@ namespace HumanGhost.Gameplay
         }
 
         // 판정 창마다 대상 ID를 한 번만 허용합니다.
-        public bool TryRegisterTarget(int targetId)
-        {
-            if (targetId <= 0) throw new ArgumentOutOfRangeException(nameof(targetId));
-            return IsAttackActive && _targets.Add(targetId);
-        }
+        public bool TryRegisterTarget(int targetId) => _attackWindow.TryRegisterTarget(targetId);
 
         // 충돌 판정자가 공급한 대상·회피/치명 판정으로 한 번 적용. 잡기는 피해 대신 구속합니다.
         public bool TryHitPlayer(int targetId, PlayerActor target, bool dodged, bool critical)
@@ -199,7 +198,7 @@ namespace HumanGhost.Gameplay
 
         private void StartPattern(MonsterPattern pattern)
         {
-            _pattern = pattern; _elapsed = 0; _targets.Clear();
+            _pattern = pattern; _elapsed = 0; _attackWindow.ClearTargets();
             if (pattern.Key == StateKey.Skill1) States.Call(StateKey.Skill1);
             else States.Change(new AttackState(pattern.Key));
             PatternStarted?.Invoke(pattern);
@@ -229,15 +228,10 @@ namespace HumanGhost.Gameplay
         private void ClearPattern()
         {
             SetAttackActive(false);
-            _pattern = null; _targets.Clear();
+            _pattern = null; _attackWindow.ClearTargets();
             if (_holding != null) { _holding.ReleaseBind(this); _holding = null; }
         }
 
-        private void SetAttackActive(bool active)
-        {
-            if (_attackActive == active) return;
-            _attackActive = active;
-            AttackWindowChanged?.Invoke(active);
-        }
+        private void SetAttackActive(bool active) => _attackWindow.SetActive(active);
     }
 }
