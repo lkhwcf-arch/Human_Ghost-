@@ -8,15 +8,12 @@ namespace HumanGhost.Gameplay
     // 위치·히트박스·입력을 소유하지 않는 플레이어 전투/행동 런타임입니다.
     public sealed class PlayerActor
     {
-        private readonly AttackSpec[] _attacks;
-        private readonly HashSet<int> _targets = new HashSet<int>();
-        private int _attackIndex = -1;
+        private readonly PlayerCombo _combo;
+        private readonly AttackWindow _attackWindow = new AttackWindow();
         private int _elapsed;
         private int _duration;
         private int _invulnerableRemaining;
         private int _facing = 1;
-        private bool _queued;
-        private bool _attackActive;
         private BossPoise _executionTarget;
         private int _bindPresses;
 
@@ -30,14 +27,18 @@ namespace HumanGhost.Gameplay
         public MonsterActor BoundBy { get; private set; }
         public int BindPressesRemaining => BoundBy == null ? 0 : _bindPresses;
         public bool IsDead => Health == 0;
-        public bool IsAttacking => _attackIndex >= 0;
-        public bool IsAttackActive => _attackActive;
-        public AttackSpec CurrentAttack => IsAttacking ? _attacks[_attackIndex] : null;
+        public bool IsAttacking => _combo.Index >= 0;
+        public bool IsAttackActive => _attackWindow.IsActive;
+        public AttackSpec CurrentAttack => _combo.Current;
         public bool IsInvulnerable => CurrentState == StateKey.Execute || _invulnerableRemaining > 0 ||
             (CurrentState == StateKey.Roll && _elapsed < Definition.RollIFrame);
         public event Action<int> HealthChanged;
         public event Action<int> AttackStarted;
-        public event Action<bool> AttackWindowChanged;
+        public event Action<bool> AttackWindowChanged
+        {
+            add { _attackWindow.Changed += value; }
+            remove { _attackWindow.Changed -= value; }
+        }
         public event Action<int, int, int> RollRequested;
 
         // attacks = 지상 1/2/3타, 공중 1타 순서. 초기 자원은 호출자가 명시합니다.
@@ -47,9 +48,7 @@ namespace HumanGhost.Gameplay
             if (definition.HP <= 0 || definition.RollTime < 0 || definition.RollIFrame < 0 || definition.RollIFrame > definition.RollTime ||
                 definition.HitStunTime < 0 || definition.CritHitStunTime < 0 || definition.HitIFrame < 0 || definition.InputBuffer < 0)
                 throw new ArgumentException("플레이어 HP·행동 시간 범위를 확인하세요.", nameof(definition));
-            if (attacks == null || attacks.Count != 4) throw new ArgumentException("지상 3타와 공중 1타 설정이 필요합니다.", nameof(attacks));
-            _attacks = new AttackSpec[4];
-            for (int i = 0; i < 4; i++) _attacks[i] = attacks[i] ?? throw new ArgumentException("빈 공격 설정입니다.", nameof(attacks));
+            _combo = new PlayerCombo(attacks);
             States = new ActorStateMachine(new IdleState());
             Locomotion = new PlayerLocomotion(definition, grounded, States);
             Stamina = new PlayerStamina(definition, currentStamina);
@@ -75,14 +74,7 @@ namespace HumanGhost.Gameplay
             }
             if (IsAttacking)
             {
-                if (_attackIndex >= 2 || CurrentAttack.ComboWindow == 0) return false;
-                AttackSpec spec = CurrentAttack;
-                int start = spec.Windup + spec.Active;
-                // 선입력 보존 시간과 콤보 입력 창은 별개입니다.
-                if ((_elapsed < start && start - _elapsed <= Definition.InputBuffer) ||
-                    (_elapsed >= start && _elapsed < start + spec.ComboWindow))
-                { _queued = true; return true; }
-                return false;
+                return _combo.TryQueue(_elapsed, Definition.InputBuffer);
             }
             if (!Locomotion.CanMove) return false;
             return StartAttack(Locomotion.IsGrounded ? 0 : 3);
@@ -143,11 +135,7 @@ namespace HumanGhost.Gameplay
         }
 
         // 판정 창마다 대상 ID를 한 번만 허용합니다. 충돌 위치/대상 선택은 외부에서 공급합니다.
-        public bool TryRegisterTarget(int targetId)
-        {
-            if (targetId <= 0) throw new ArgumentOutOfRangeException(nameof(targetId));
-            return IsAttackActive && _targets.Add(targetId);
-        }
+        public bool TryRegisterTarget(int targetId) => _attackWindow.TryRegisterTarget(targetId);
 
         // 충돌 판정자가 공급한 대상과 회피/치명 판정으로 보스 피해를 한 번 적용합니다.
         public bool TryHitBoss(int targetId, BossPoise target, bool dodged, bool critical)
@@ -206,8 +194,8 @@ namespace HumanGhost.Gameplay
                     if (_elapsed == spec.Windup + spec.Active) SetAttackActive(false);
                     if (_elapsed == spec.TotalTime)
                     {
-                        int next = _attackIndex + 1;
-                        bool chain = _queued && _attackIndex < 2;
+                        int next = _combo.Index + 1;
+                        bool chain = _combo.Queued && _combo.Index < 2;
                         ClearAttack();
                         if (!chain || !StartAttack(next)) Locomotion.Resume();
                     }
@@ -234,8 +222,8 @@ namespace HumanGhost.Gameplay
 
         private bool StartAttack(int index)
         {
-            if (!Stamina.TryConsume(_attacks[index].StaminaCost)) return false;
-            _attackIndex = index; _elapsed = 0; _queued = false; _targets.Clear();
+            if (!Stamina.TryConsume(_combo.GetAttack(index).StaminaCost)) return false;
+            _combo.Start(index); _elapsed = 0; _attackWindow.ClearTargets();
             States.Change(new AttackState(index == 3 ? StateKey.Attack1 : (index == 0 ? StateKey.Attack1 : index == 1 ? StateKey.Attack2 : StateKey.Attack3)));
             AttackStarted?.Invoke(index);
             return true;
@@ -244,14 +232,9 @@ namespace HumanGhost.Gameplay
         private void ClearAttack()
         {
             SetAttackActive(false);
-            _attackIndex = -1; _queued = false; _targets.Clear();
+            _combo.Clear(); _attackWindow.ClearTargets();
         }
 
-        private void SetAttackActive(bool active)
-        {
-            if (_attackActive == active) return;
-            _attackActive = active;
-            AttackWindowChanged?.Invoke(active);
-        }
+        private void SetAttackActive(bool active) => _attackWindow.SetActive(active);
     }
 }

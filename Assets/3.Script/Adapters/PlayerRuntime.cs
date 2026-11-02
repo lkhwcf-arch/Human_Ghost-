@@ -11,7 +11,7 @@ namespace HumanGhost.Gameplay.Adapters
         [SerializeField] private int _playerId = 2001;
         [SerializeField] private PlayerCombatSettings _combat = null;
         [SerializeField] private PlayerLocomotionInput _input = null;
-        private double _remainder;
+        private MillisecondClock _clock;
         public PlayerActor Actor { get; private set; }
         public event Action<PlayerActor> Initialized;
 
@@ -44,10 +44,7 @@ namespace HumanGhost.Gameplay.Adapters
         private void Update()
         {
             if (Actor == null) return;
-            double total = _remainder + Time.deltaTime * 1000.0;
-            int milliseconds = (int)Math.Min(int.MaxValue, Math.Floor(total));
-            _remainder = total - milliseconds;
-            Actor.Tick(milliseconds);
+            Actor.Tick(_clock.Advance(Time.deltaTime));
         }
     }
 }

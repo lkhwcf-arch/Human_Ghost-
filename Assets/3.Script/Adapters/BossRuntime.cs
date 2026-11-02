@@ -9,7 +9,7 @@ namespace HumanGhost.Gameplay.Adapters
     {
         [SerializeField] private int _bossId = 1006;
         [SerializeField] private int _phase = 0;
-        private double _remainder;
+        private MillisecondClock _clock;
         public BossPoise Actor { get; private set; }
         public event Action<BossPoise> Initialized;
 
@@ -28,10 +28,7 @@ namespace HumanGhost.Gameplay.Adapters
         private void Update()
         {
             if (Actor == null) return;
-            double total = _remainder + Time.deltaTime * 1000.0;
-            int milliseconds = (int)Math.Min(int.MaxValue, Math.Floor(total));
-            _remainder = total - milliseconds;
-            Actor.Tick(milliseconds);
+            Actor.Tick(_clock.Advance(Time.deltaTime));
         }
     }
 }
