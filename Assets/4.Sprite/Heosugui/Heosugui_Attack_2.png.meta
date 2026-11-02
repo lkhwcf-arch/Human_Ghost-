@@ -1,0 +1,832 @@
+fileFormatVersion: 2
+guid: 8d391838ff2ae1447a4ff79cba4a72a6
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 55437460097370947
+    second: Heosugui_Attack_2_0
+  - first:
+      213: -2969711058487075869
+    second: Heosugui_Attack_2_1
+  - first:
+      213: 3837710140743162125
+    second: Heosugui_Attack_2_2
+  - first:
+      213: -1434105426095863860
+    second: Heosugui_Attack_2_3
+  - first:
+      213: -4267968960970595847
+    second: Heosugui_Attack_2_4
+  - first:
+      213: 2508240986870426579
+    second: Heosugui_Attack_2_5
+  - first:
+      213: 7763860452445829526
+    second: Heosugui_Attack_2_6
+  - first:
+      213: 3230058726529516420
+    second: Heosugui_Attack_2_7
+  - first:
+      213: -7398150907670286760
+    second: Heosugui_Attack_2_8
+  - first:
+      213: -6446795017281538848
+    second: Heosugui_Attack_2_9
+  - first:
+      213: 994648500309762161
+    second: Heosugui_Attack_2_10
+  - first:
+      213: 6499040122268756510
+    second: Heosugui_Attack_2_11
+  - first:
+      213: -4427855415185346396
+    second: Heosugui_Attack_2_12
+  - first:
+      213: -1773084002287180202
+    second: Heosugui_Attack_2_13
+  - first:
+      213: -4085311966104342653
+    second: Heosugui_Attack_2_14
+  - first:
+      213: -1041342855140059146
+    second: Heosugui_Attack_2_15
+  - first:
+      213: 3858944480945051022
+    second: Heosugui_Attack_2_16
+  - first:
+      213: -2981360921717558831
+    second: Heosugui_Attack_2_17
+  - first:
+      213: -6018658366638808144
+    second: Heosugui_Attack_2_18
+  - first:
+      213: -3680470930293675055
+    second: Heosugui_Attack_2_19
+  - first:
+      213: -5321808332910728354
+    second: Heosugui_Attack_2_20
+  - first:
+      213: -3859309910361381143
+    second: Heosugui_Attack_2_21
+  - first:
+      213: -8293097064626518691
+    second: Heosugui_Attack_2_22
+  - first:
+      213: -3663973007516583577
+    second: Heosugui_Attack_2_23
+  - first:
+      213: -6695099826290728111
+    second: Heosugui_Attack_2_24
+  - first:
+      213: 5289469042934714566
+    second: Heosugui_Attack_2_25
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Heosugui_Attack_2_0
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 1025
+        width: 251
+        height: 250
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 34b8a548314f4c000800000000000000
+      internalID: 55437460097370947
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Attack_2_1
+      rect:
+        serializedVersion: 2
+        x: 280
+        y: 1031
+        width: 206
+        height: 232
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3eb1459c68779c6d0800000000000000
+      internalID: -2969711058487075869
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Attack_2_2
+      rect:
+        serializedVersion: 2
+        x: 528
+        y: 1031
+        width: 211
+        height: 230
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d0919e93a09424530800000000000000
+      internalID: 3837710140743162125
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Attack_2_3
+      rect:
+        serializedVersion: 2
+        x: 782
+        y: 1031
+        width: 200
+        height: 236
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cc7881396b8091ce0800000000000000
+      internalID: -1434105426095863860
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Attack_2_4
+      rect:
+        serializedVersion: 2
+        x: 1039
+        y: 1032
+        width: 191
+        height: 243
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9f164f8b7d025c4c0800000000000000
+      internalID: -4267968960970595847
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Attack_2_5
+      rect:
+        serializedVersion: 2
+        x: 12
+        y: 776
+        width: 194
+        height: 241
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3dbac7963ef0fc220800000000000000
+      internalID: 2508240986870426579
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Attack_2_6
+      rect:
+        serializedVersion: 2
+        x: 324
+        y: 776
+        width: 172
+        height: 241
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 699bcb162f5cebb60800000000000000
+      internalID: 7763860452445829526
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Attack_2_7
+      rect:
+        serializedVersion: 2
+        x: 600
+        y: 776
+        width: 151
+        height: 241
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 48341765c4973dc20800000000000000
+      internalID: 3230058726529516420
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Attack_2_8
+      rect:
+        serializedVersion: 2
+        x: 856
+        y: 776
+        width: 148
+        height: 241
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 85e249152fc745990800000000000000
+      internalID: -7398150907670286760
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Attack_2_9
+      rect:
+        serializedVersion: 2
+        x: 1112
+        y: 776
+        width: 143
+        height: 241
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0e4fc2f96126886a0800000000000000
+      internalID: -6446795017281538848
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Attack_2_10
+      rect:
+        serializedVersion: 2
+        x: 88
+        y: 520
+        width: 140
+        height: 241
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 170a6598a83bdcd00800000000000000
+      internalID: 994648500309762161
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Attack_2_11
+      rect:
+        serializedVersion: 2
+        x: 344
+        y: 520
+        width: 140
+        height: 241
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e1a27dcce8a313a50800000000000000
+      internalID: 6499040122268756510
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Attack_2_12
+      rect:
+        serializedVersion: 2
+        x: 600
+        y: 520
+        width: 140
+        height: 241
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4a0761da5f81d82c0800000000000000
+      internalID: -4427855415185346396
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Attack_2_13
+      rect:
+        serializedVersion: 2
+        x: 856
+        y: 520
+        width: 140
+        height: 241
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 656aebe7e7db467e0800000000000000
+      internalID: -1773084002287180202
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Attack_2_14
+      rect:
+        serializedVersion: 2
+        x: 1112
+        y: 520
+        width: 132
+        height: 241
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 38fa2b7696e0e47c0800000000000000
+      internalID: -4085311966104342653
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Attack_2_15
+      rect:
+        serializedVersion: 2
+        x: 87
+        y: 264
+        width: 123
+        height: 241
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6f75cf5c0386c81f0800000000000000
+      internalID: -1041342855140059146
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Attack_2_16
+      rect:
+        serializedVersion: 2
+        x: 341
+        y: 264
+        width: 121
+        height: 241
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e851fa25f89bd8530800000000000000
+      internalID: 3858944480945051022
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Attack_2_17
+      rect:
+        serializedVersion: 2
+        x: 596
+        y: 264
+        width: 122
+        height: 240
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1d13bc1a90410a6d0800000000000000
+      internalID: -2981360921717558831
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Attack_2_18
+      rect:
+        serializedVersion: 2
+        x: 831
+        y: 263
+        width: 142
+        height: 240
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0b3af009a1e697ca0800000000000000
+      internalID: -6018658366638808144
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Attack_2_19
+      rect:
+        serializedVersion: 2
+        x: 1039
+        y: 261
+        width: 192
+        height: 253
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1dba1b950375cecc0800000000000000
+      internalID: -3680470930293675055
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Attack_2_20
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 38
+        width: 9
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e5b642274832526b0800000000000000
+      internalID: -5321808332910728354
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Attack_2_21
+      rect:
+        serializedVersion: 2
+        x: 6
+        y: 7
+        width: 201
+        height: 232
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9e6e3c2851af07ac0800000000000000
+      internalID: -3859309910361381143
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Attack_2_22
+      rect:
+        serializedVersion: 2
+        x: 260
+        y: 6
+        width: 210
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d550a1f882009ec80800000000000000
+      internalID: -8293097064626518691
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Attack_2_23
+      rect:
+        serializedVersion: 2
+        x: 511
+        y: 7
+        width: 224
+        height: 233
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 769ba5456f3f62dc0800000000000000
+      internalID: -3663973007516583577
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Attack_2_24
+      rect:
+        serializedVersion: 2
+        x: 783
+        y: 7
+        width: 214
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 153692e1e2a3613a0800000000000000
+      internalID: -6695099826290728111
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Attack_2_25
+      rect:
+        serializedVersion: 2
+        x: 1065
+        y: 7
+        width: 193
+        height: 235
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6c09c8ad118f76940800000000000000
+      internalID: 5289469042934714566
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Heosugui_Attack_2_0: 55437460097370947
+      Heosugui_Attack_2_1: -2969711058487075869
+      Heosugui_Attack_2_10: 994648500309762161
+      Heosugui_Attack_2_11: 6499040122268756510
+      Heosugui_Attack_2_12: -4427855415185346396
+      Heosugui_Attack_2_13: -1773084002287180202
+      Heosugui_Attack_2_14: -4085311966104342653
+      Heosugui_Attack_2_15: -1041342855140059146
+      Heosugui_Attack_2_16: 3858944480945051022
+      Heosugui_Attack_2_17: -2981360921717558831
+      Heosugui_Attack_2_18: -6018658366638808144
+      Heosugui_Attack_2_19: -3680470930293675055
+      Heosugui_Attack_2_2: 3837710140743162125
+      Heosugui_Attack_2_20: -5321808332910728354
+      Heosugui_Attack_2_21: -3859309910361381143
+      Heosugui_Attack_2_22: -8293097064626518691
+      Heosugui_Attack_2_23: -3663973007516583577
+      Heosugui_Attack_2_24: -6695099826290728111
+      Heosugui_Attack_2_25: 5289469042934714566
+      Heosugui_Attack_2_3: -1434105426095863860
+      Heosugui_Attack_2_4: -4267968960970595847
+      Heosugui_Attack_2_5: 2508240986870426579
+      Heosugui_Attack_2_6: 7763860452445829526
+      Heosugui_Attack_2_7: 3230058726529516420
+      Heosugui_Attack_2_8: -7398150907670286760
+      Heosugui_Attack_2_9: -6446795017281538848
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

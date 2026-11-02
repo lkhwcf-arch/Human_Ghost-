@@ -1,0 +1,650 @@
+fileFormatVersion: 2
+guid: e1f093330bf73d1469c443f1a49e6f4a
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 8202977276693823444
+    second: Heosugui_Dead_0
+  - first:
+      213: -7995844131644588293
+    second: Heosugui_Dead_1
+  - first:
+      213: 6061312589253574314
+    second: Heosugui_Dead_2
+  - first:
+      213: 7774254712839610279
+    second: Heosugui_Dead_3
+  - first:
+      213: 8418993426931931650
+    second: Heosugui_Dead_4
+  - first:
+      213: -4074215708348748621
+    second: Heosugui_Dead_5
+  - first:
+      213: -2454585488082864141
+    second: Heosugui_Dead_6
+  - first:
+      213: 7875457067957431590
+    second: Heosugui_Dead_7
+  - first:
+      213: 3817853173643275083
+    second: Heosugui_Dead_8
+  - first:
+      213: -4062068529853844540
+    second: Heosugui_Dead_9
+  - first:
+      213: -4284974693636490924
+    second: Heosugui_Dead_10
+  - first:
+      213: 7743019681069150687
+    second: Heosugui_Dead_11
+  - first:
+      213: 711990628530258278
+    second: Heosugui_Dead_12
+  - first:
+      213: -2972031907600488065
+    second: Heosugui_Dead_13
+  - first:
+      213: -200803855716302615
+    second: Heosugui_Dead_14
+  - first:
+      213: 3301662312507253760
+    second: Heosugui_Dead_15
+  - first:
+      213: 7390925195643699227
+    second: Heosugui_Dead_16
+  - first:
+      213: -2068309801933870067
+    second: Heosugui_Dead_17
+  - first:
+      213: -5331291779587136147
+    second: Heosugui_Dead_18
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Heosugui_Dead_0
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 513
+        width: 239
+        height: 250
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4dfbfe53f54d6d170800000000000000
+      internalID: 8202977276693823444
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Dead_1
+      rect:
+        serializedVersion: 2
+        x: 247
+        y: 513
+        width: 198
+        height: 255
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bfebee5402e090190800000000000000
+      internalID: -7995844131644588293
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Dead_2
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 511
+        width: 186
+        height: 232
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aaeff0b8fab1e1450800000000000000
+      internalID: 6061312589253574314
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Dead_3
+      rect:
+        serializedVersion: 2
+        x: 773
+        y: 546
+        width: 220
+        height: 137
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7af1638b873b3eb60800000000000000
+      internalID: 7774254712839610279
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Dead_4
+      rect:
+        serializedVersion: 2
+        x: 13
+        y: 274
+        width: 232
+        height: 141
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 20a50a28ae546d470800000000000000
+      internalID: 8418993426931931650
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Dead_5
+      rect:
+        serializedVersion: 2
+        x: 262
+        y: 275
+        width: 248
+        height: 112
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3bc6e8d366a7577c0800000000000000
+      internalID: -4074215708348748621
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Dead_6
+      rect:
+        serializedVersion: 2
+        x: 624
+        y: 363
+        width: 8
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3f7fdf7e08f8fedd0800000000000000
+      internalID: -2454585488082864141
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Dead_7
+      rect:
+        serializedVersion: 2
+        x: 638
+        y: 355
+        width: 14
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 62d21733a7e3b4d60800000000000000
+      internalID: 7875457067957431590
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Dead_8
+      rect:
+        serializedVersion: 2
+        x: 886
+        y: 355
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b4bea9bcb3dbbf430800000000000000
+      internalID: 3817853173643275083
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Dead_9
+      rect:
+        serializedVersion: 2
+        x: 513
+        y: 263
+        width: 253
+        height: 86
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4c3b4c0a132a0a7c0800000000000000
+      internalID: -4062068529853844540
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Dead_10
+      rect:
+        serializedVersion: 2
+        x: 661
+        y: 332
+        width: 14
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 459324a0836b884c0800000000000000
+      internalID: -4284974693636490924
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Dead_11
+      rect:
+        serializedVersion: 2
+        x: 903
+        y: 346
+        width: 10
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fd13cfa206bb47b60800000000000000
+      internalID: 7743019681069150687
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Dead_12
+      rect:
+        serializedVersion: 2
+        x: 769
+        y: 257
+        width: 254
+        height: 80
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 66104f054bf71e900800000000000000
+      internalID: 711990628530258278
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Dead_13
+      rect:
+        serializedVersion: 2
+        x: 121
+        y: 81
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f79a85ef9b831c6d0800000000000000
+      internalID: -2972031907600488065
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Dead_14
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 71
+        width: 6
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9e0408605f9963df0800000000000000
+      internalID: -200803855716302615
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Dead_15
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 0
+        width: 254
+        height: 70
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0042a49516cd1dd20800000000000000
+      internalID: 3301662312507253760
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Dead_16
+      rect:
+        serializedVersion: 2
+        x: 257
+        y: 0
+        width: 254
+        height: 65
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b10c3df7e47d19660800000000000000
+      internalID: 7390925195643699227
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Dead_17
+      rect:
+        serializedVersion: 2
+        x: 513
+        y: 0
+        width: 254
+        height: 65
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d0ce54a8133eb43e0800000000000000
+      internalID: -2068309801933870067
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Dead_18
+      rect:
+        serializedVersion: 2
+        x: 769
+        y: 0
+        width: 254
+        height: 65
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d65afb37f527306b0800000000000000
+      internalID: -5331291779587136147
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Heosugui_Dead_0: 8202977276693823444
+      Heosugui_Dead_1: -7995844131644588293
+      Heosugui_Dead_10: -4284974693636490924
+      Heosugui_Dead_11: 7743019681069150687
+      Heosugui_Dead_12: 711990628530258278
+      Heosugui_Dead_13: -2972031907600488065
+      Heosugui_Dead_14: -200803855716302615
+      Heosugui_Dead_15: 3301662312507253760
+      Heosugui_Dead_16: 7390925195643699227
+      Heosugui_Dead_17: -2068309801933870067
+      Heosugui_Dead_18: -5331291779587136147
+      Heosugui_Dead_2: 6061312589253574314
+      Heosugui_Dead_3: 7774254712839610279
+      Heosugui_Dead_4: 8418993426931931650
+      Heosugui_Dead_5: -4074215708348748621
+      Heosugui_Dead_6: -2454585488082864141
+      Heosugui_Dead_7: 7875457067957431590
+      Heosugui_Dead_8: 3817853173643275083
+      Heosugui_Dead_9: -4062068529853844540
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

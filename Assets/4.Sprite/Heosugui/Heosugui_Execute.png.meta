@@ -1,0 +1,2314 @@
+fileFormatVersion: 2
+guid: 8396d911a8abcc54fb948282d4a00219
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -7135024339996854363
+    second: Heosugui_Execute_0
+  - first:
+      213: 1096376719841769671
+    second: Heosugui_Execute_1
+  - first:
+      213: 4019418570008376972
+    second: Heosugui_Execute_2
+  - first:
+      213: 3189917877515256400
+    second: Heosugui_Execute_3
+  - first:
+      213: 1097757362586856596
+    second: Heosugui_Execute_4
+  - first:
+      213: 7731469532079286999
+    second: Heosugui_Execute_5
+  - first:
+      213: 2357631975442467065
+    second: Heosugui_Execute_6
+  - first:
+      213: -3943331387293522831
+    second: Heosugui_Execute_7
+  - first:
+      213: 6707344543120246425
+    second: Heosugui_Execute_8
+  - first:
+      213: -8845257693243609459
+    second: Heosugui_Execute_9
+  - first:
+      213: -1340270468861263961
+    second: Heosugui_Execute_10
+  - first:
+      213: -6010125487188648499
+    second: Heosugui_Execute_11
+  - first:
+      213: -1465869403435194602
+    second: Heosugui_Execute_12
+  - first:
+      213: -7927048318758821428
+    second: Heosugui_Execute_13
+  - first:
+      213: -3265023799298472288
+    second: Heosugui_Execute_14
+  - first:
+      213: -2659867896857592229
+    second: Heosugui_Execute_15
+  - first:
+      213: 4822599802512498373
+    second: Heosugui_Execute_16
+  - first:
+      213: -3254602144923753138
+    second: Heosugui_Execute_17
+  - first:
+      213: -4557875744337307532
+    second: Heosugui_Execute_18
+  - first:
+      213: 857123885480995890
+    second: Heosugui_Execute_19
+  - first:
+      213: -2393084411284999524
+    second: Heosugui_Execute_20
+  - first:
+      213: -6503218933402109243
+    second: Heosugui_Execute_21
+  - first:
+      213: -589785387727716970
+    second: Heosugui_Execute_22
+  - first:
+      213: -1663356486397537305
+    second: Heosugui_Execute_23
+  - first:
+      213: 1636747953940319835
+    second: Heosugui_Execute_24
+  - first:
+      213: -7074322091570614197
+    second: Heosugui_Execute_25
+  - first:
+      213: 5131605231415732718
+    second: Heosugui_Execute_26
+  - first:
+      213: -1641580007614588298
+    second: Heosugui_Execute_27
+  - first:
+      213: -9119673749076068287
+    second: Heosugui_Execute_28
+  - first:
+      213: 2848382834226165078
+    second: Heosugui_Execute_29
+  - first:
+      213: 1961144544361216601
+    second: Heosugui_Execute_30
+  - first:
+      213: -1929030168337482579
+    second: Heosugui_Execute_31
+  - first:
+      213: -3622728466338726850
+    second: Heosugui_Execute_32
+  - first:
+      213: -3131212967694314799
+    second: Heosugui_Execute_33
+  - first:
+      213: -8394144724384564541
+    second: Heosugui_Execute_34
+  - first:
+      213: -6594754118665703859
+    second: Heosugui_Execute_35
+  - first:
+      213: -8263245832584026360
+    second: Heosugui_Execute_36
+  - first:
+      213: -3671206156131208144
+    second: Heosugui_Execute_37
+  - first:
+      213: 4005995185784569959
+    second: Heosugui_Execute_38
+  - first:
+      213: 42149692673073591
+    second: Heosugui_Execute_39
+  - first:
+      213: 6444811193253694141
+    second: Heosugui_Execute_40
+  - first:
+      213: -5670141409049582155
+    second: Heosugui_Execute_41
+  - first:
+      213: -981894404823645702
+    second: Heosugui_Execute_42
+  - first:
+      213: 1466092481371200349
+    second: Heosugui_Execute_43
+  - first:
+      213: 3211298007441054882
+    second: Heosugui_Execute_44
+  - first:
+      213: -2763497589770070682
+    second: Heosugui_Execute_45
+  - first:
+      213: 6471156433828709237
+    second: Heosugui_Execute_46
+  - first:
+      213: -5309029278007455426
+    second: Heosugui_Execute_47
+  - first:
+      213: 296785593391284447
+    second: Heosugui_Execute_48
+  - first:
+      213: -2012616749011292597
+    second: Heosugui_Execute_49
+  - first:
+      213: -1896054729121264431
+    second: Heosugui_Execute_50
+  - first:
+      213: -8409502650586482848
+    second: Heosugui_Execute_51
+  - first:
+      213: -1701097202278037356
+    second: Heosugui_Execute_52
+  - first:
+      213: -7756652471647251854
+    second: Heosugui_Execute_53
+  - first:
+      213: 8231198958738732137
+    second: Heosugui_Execute_54
+  - first:
+      213: -3964043424025857528
+    second: Heosugui_Execute_55
+  - first:
+      213: 6543655077449007060
+    second: Heosugui_Execute_56
+  - first:
+      213: -900715913232571422
+    second: Heosugui_Execute_57
+  - first:
+      213: -2775498045269339376
+    second: Heosugui_Execute_58
+  - first:
+      213: -6086878433225101737
+    second: Heosugui_Execute_59
+  - first:
+      213: 4583395388508279657
+    second: Heosugui_Execute_60
+  - first:
+      213: 5900889549874932845
+    second: Heosugui_Execute_61
+  - first:
+      213: -5900241612965164591
+    second: Heosugui_Execute_62
+  - first:
+      213: -7601065718710580578
+    second: Heosugui_Execute_63
+  - first:
+      213: -849863075862463157
+    second: Heosugui_Execute_64
+  - first:
+      213: 5832399485999758657
+    second: Heosugui_Execute_65
+  - first:
+      213: -5869874878486196228
+    second: Heosugui_Execute_66
+  - first:
+      213: 2366385990681807529
+    second: Heosugui_Execute_67
+  - first:
+      213: -3344088543740712442
+    second: Heosugui_Execute_68
+  - first:
+      213: 6301736711858479729
+    second: Heosugui_Execute_69
+  - first:
+      213: 262677632841227030
+    second: Heosugui_Execute_70
+  - first:
+      213: -2272924774333304143
+    second: Heosugui_Execute_71
+  - first:
+      213: -4302343679835847315
+    second: Heosugui_Execute_72
+  - first:
+      213: -2065485783002139380
+    second: Heosugui_Execute_73
+  - first:
+      213: -8865609200012664984
+    second: Heosugui_Execute_74
+  - first:
+      213: 6232733390716345696
+    second: Heosugui_Execute_75
+  - first:
+      213: 5072548830044623511
+    second: Heosugui_Execute_76
+  - first:
+      213: 3024787120447896187
+    second: Heosugui_Execute_77
+  - first:
+      213: 1653286753025619298
+    second: Heosugui_Execute_78
+  - first:
+      213: -4542209355161443007
+    second: Heosugui_Execute_79
+  - first:
+      213: 2738393853914758294
+    second: Heosugui_Execute_80
+  - first:
+      213: -48413977924074704
+    second: Heosugui_Execute_81
+  - first:
+      213: -8383049144443126427
+    second: Heosugui_Execute_82
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Heosugui_Execute_0
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 511
+        width: 254
+        height: 66
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5a7b8be6a2d4bfc90800000000000000
+      internalID: -7135024339996854363
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_1
+      rect:
+        serializedVersion: 2
+        x: 257
+        y: 511
+        width: 254
+        height: 66
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7c83d2e51dc173f00800000000000000
+      internalID: 1096376719841769671
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_2
+      rect:
+        serializedVersion: 2
+        x: 513
+        y: 514
+        width: 246
+        height: 77
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c8635f4c4e7d7c730800000000000000
+      internalID: 4019418570008376972
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_3
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 262
+        width: 251
+        height: 68
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 05207ff986dd44c20800000000000000
+      internalID: 3189917877515256400
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_4
+      rect:
+        serializedVersion: 2
+        x: 257
+        y: 259
+        width: 253
+        height: 68
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 49c2f8e41840c3f00800000000000000
+      internalID: 1097757362586856596
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_5
+      rect:
+        serializedVersion: 2
+        x: 513
+        y: 255
+        width: 254
+        height: 66
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7da675b8392bb4b60800000000000000
+      internalID: 7731469532079286999
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_6
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 0
+        width: 254
+        height: 65
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9f8c9575acdf7b020800000000000000
+      internalID: 2357631975442467065
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_7
+      rect:
+        serializedVersion: 2
+        x: 269
+        y: 41
+        width: 11
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 174a8b4fef87649c0800000000000000
+      internalID: -3943331387293522831
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_8
+      rect:
+        serializedVersion: 2
+        x: 295
+        y: 23
+        width: 14
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 99646de2356451d50800000000000000
+      internalID: 6707344543120246425
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_9
+      rect:
+        serializedVersion: 2
+        x: 306
+        y: 50
+        width: 14
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d8e6c6ffdf45f3580800000000000000
+      internalID: -8845257693243609459
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_10
+      rect:
+        serializedVersion: 2
+        x: 320
+        y: 27
+        width: 41
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7aff3901c17666de0800000000000000
+      internalID: -1340270468861263961
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_11
+      rect:
+        serializedVersion: 2
+        x: 349
+        y: 36
+        width: 31
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dcd599066beb79ca0800000000000000
+      internalID: -6010125487188648499
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_12
+      rect:
+        serializedVersion: 2
+        x: 370
+        y: 42
+        width: 13
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 617a1294b8f28abe0800000000000000
+      internalID: -1465869403435194602
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_13
+      rect:
+        serializedVersion: 2
+        x: 379
+        y: 48
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cc1e50bad877df190800000000000000
+      internalID: -7927048318758821428
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_14
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 47
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0a64e93472e40b2d0800000000000000
+      internalID: -3265023799298472288
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_15
+      rect:
+        serializedVersion: 2
+        x: 391
+        y: 33
+        width: 38
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b5e765a8d30461bd0800000000000000
+      internalID: -2659867896857592229
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_16
+      rect:
+        serializedVersion: 2
+        x: 411
+        y: 53
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5ce50aa18f05de240800000000000000
+      internalID: 4822599802512498373
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_17
+      rect:
+        serializedVersion: 2
+        x: 418
+        y: 51
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e456892c79455d2d0800000000000000
+      internalID: -3254602144923753138
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_18
+      rect:
+        serializedVersion: 2
+        x: 424
+        y: 53
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 478d760c82c2fb0c0800000000000000
+      internalID: -4557875744337307532
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_19
+      rect:
+        serializedVersion: 2
+        x: 431
+        y: 41
+        width: 15
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 23ce892f1ad15eb00800000000000000
+      internalID: 857123885480995890
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_20
+      rect:
+        serializedVersion: 2
+        x: 443
+        y: 24
+        width: 24
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c9235d3386e0aced0800000000000000
+      internalID: -2393084411284999524
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_21
+      rect:
+        serializedVersion: 2
+        x: 457
+        y: 38
+        width: 19
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5caf8f9e5dcefb5a0800000000000000
+      internalID: -6503218933402109243
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_22
+      rect:
+        serializedVersion: 2
+        x: 473
+        y: 49
+        width: 6
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 69df5ce8059a0d7f0800000000000000
+      internalID: -589785387727716970
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_23
+      rect:
+        serializedVersion: 2
+        x: 480
+        y: 50
+        width: 8
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7e3de65a6129ae8e0800000000000000
+      internalID: -1663356486397537305
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_24
+      rect:
+        serializedVersion: 2
+        x: 628
+        y: 47
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b5ec57d9795e6b610800000000000000
+      internalID: 1636747953940319835
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_25
+      rect:
+        serializedVersion: 2
+        x: 666
+        y: 40
+        width: 21
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b403c310a85f2dd90800000000000000
+      internalID: -7074322091570614197
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_26
+      rect:
+        serializedVersion: 2
+        x: 691
+        y: 15
+        width: 68
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ee9221205cf173740800000000000000
+      internalID: 5131605231415732718
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_27
+      rect:
+        serializedVersion: 2
+        x: 258
+        y: 34
+        width: 8
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 67adfb73eafe739e0800000000000000
+      internalID: -1641580007614588298
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_28
+      rect:
+        serializedVersion: 2
+        x: 265
+        y: 32
+        width: 11
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 148bdd61b09607180800000000000000
+      internalID: -9119673749076068287
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_29
+      rect:
+        serializedVersion: 2
+        x: 279
+        y: 42
+        width: 9
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 655fe5aa81d778720800000000000000
+      internalID: 2848382834226165078
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_30
+      rect:
+        serializedVersion: 2
+        x: 287
+        y: 42
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 95a78df8292673b10800000000000000
+      internalID: 1961144544361216601
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_31
+      rect:
+        serializedVersion: 2
+        x: 307
+        y: 20
+        width: 22
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dac7b374845ba35e0800000000000000
+      internalID: -1929030168337482579
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_32
+      rect:
+        serializedVersion: 2
+        x: 382
+        y: 19
+        width: 15
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e3c3f2667ab79bdc0800000000000000
+      internalID: -3622728466338726850
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_33
+      rect:
+        serializedVersion: 2
+        x: 420
+        y: 40
+        width: 15
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1d2db705562bb84d0800000000000000
+      internalID: -3131212967694314799
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_34
+      rect:
+        serializedVersion: 2
+        x: 474
+        y: 26
+        width: 13
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3cab6d5e8d1028b80800000000000000
+      internalID: -8394144724384564541
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_35
+      rect:
+        serializedVersion: 2
+        x: 489
+        y: 44
+        width: 10
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d4ee2efc11aba74a0800000000000000
+      internalID: -6594754118665703859
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_36
+      rect:
+        serializedVersion: 2
+        x: 497
+        y: 40
+        width: 8
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8072a1122bd035d80800000000000000
+      internalID: -8263245832584026360
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_37
+      rect:
+        serializedVersion: 2
+        x: 526
+        y: 42
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 034729ea3714d0dc0800000000000000
+      internalID: -3671206156131208144
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_38
+      rect:
+        serializedVersion: 2
+        x: 567
+        y: 26
+        width: 16
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7604d949567289730800000000000000
+      internalID: 4005995185784569959
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_39
+      rect:
+        serializedVersion: 2
+        x: 647
+        y: 40
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7b1ab231ceeb59000800000000000000
+      internalID: 42149692673073591
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_40
+      rect:
+        serializedVersion: 2
+        x: 281
+        y: 20
+        width: 18
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dba095a52a1907950800000000000000
+      internalID: 6444811193253694141
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_41
+      rect:
+        serializedVersion: 2
+        x: 326
+        y: 24
+        width: 17
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5b5ed5f1e6c9f41b0800000000000000
+      internalID: -5670141409049582155
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_42
+      rect:
+        serializedVersion: 2
+        x: 351
+        y: 28
+        width: 13
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: af10b89bd3c9f52f0800000000000000
+      internalID: -981894404823645702
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_43
+      rect:
+        serializedVersion: 2
+        x: 356
+        y: 30
+        width: 22
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d5b5008185b985410800000000000000
+      internalID: 1466092481371200349
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_44
+      rect:
+        serializedVersion: 2
+        x: 394
+        y: 32
+        width: 8
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2ac91790682d09c20800000000000000
+      internalID: 3211298007441054882
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_45
+      rect:
+        serializedVersion: 2
+        x: 408
+        y: 30
+        width: 15
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6655b10759516a9d0800000000000000
+      internalID: -2763497589770070682
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_46
+      rect:
+        serializedVersion: 2
+        x: 423
+        y: 29
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 573085cad7a2ec950800000000000000
+      internalID: 6471156433828709237
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_47
+      rect:
+        serializedVersion: 2
+        x: 431
+        y: 22
+        width: 16
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e319736000a8256b0800000000000000
+      internalID: -5309029278007455426
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_48
+      rect:
+        serializedVersion: 2
+        x: 453
+        y: 29
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fd08a8cbce46e1400800000000000000
+      internalID: 296785593391284447
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_49
+      rect:
+        serializedVersion: 2
+        x: 466
+        y: 20
+        width: 11
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b4e2e26eabfb114e0800000000000000
+      internalID: -2012616749011292597
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_50
+      rect:
+        serializedVersion: 2
+        x: 494
+        y: 30
+        width: 12
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1dc0704054cdfa5e0800000000000000
+      internalID: -1896054729121264431
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_51
+      rect:
+        serializedVersion: 2
+        x: 539
+        y: 27
+        width: 9
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 067361e05e17b4b80800000000000000
+      internalID: -8409502650586482848
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_52
+      rect:
+        serializedVersion: 2
+        x: 552
+        y: 35
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4988ec97b1d7468e0800000000000000
+      internalID: -1701097202278037356
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_53
+      rect:
+        serializedVersion: 2
+        x: 639
+        y: 28
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2725f4d6ca5da5490800000000000000
+      internalID: -7756652471647251854
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_54
+      rect:
+        serializedVersion: 2
+        x: 261
+        y: 15
+        width: 14
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 964ff2b97d71b3270800000000000000
+      internalID: 8231198958738732137
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_55
+      rect:
+        serializedVersion: 2
+        x: 262
+        y: 25
+        width: 9
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 80237bc1283ecf8c0800000000000000
+      internalID: -3964043424025857528
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_56
+      rect:
+        serializedVersion: 2
+        x: 272
+        y: 18
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4df77088f9bbfca50800000000000000
+      internalID: 6543655077449007060
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_57
+      rect:
+        serializedVersion: 2
+        x: 365
+        y: 25
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2e32b3c26a30083f0800000000000000
+      internalID: -900715913232571422
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_58
+      rect:
+        serializedVersion: 2
+        x: 370
+        y: 4
+        width: 13
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0131ee8ab337b79d0800000000000000
+      internalID: -2775498045269339376
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_59
+      rect:
+        serializedVersion: 2
+        x: 385
+        y: 12
+        width: 20
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 75ea1ac8050178ba0800000000000000
+      internalID: -6086878433225101737
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_60
+      rect:
+        serializedVersion: 2
+        x: 411
+        y: 23
+        width: 12
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 963133d62dd7b9f30800000000000000
+      internalID: 4583395388508279657
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_61
+      rect:
+        serializedVersion: 2
+        x: 423
+        y: 16
+        width: 16
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d6c2c1708cb24e150800000000000000
+      internalID: 5900889549874932845
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_62
+      rect:
+        serializedVersion: 2
+        x: 457
+        y: 14
+        width: 10
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1d9cb3a83812e1ea0800000000000000
+      internalID: -5900241612965164591
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_63
+      rect:
+        serializedVersion: 2
+        x: 473
+        y: 18
+        width: 13
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e9a4bd14007938690800000000000000
+      internalID: -7601065718710580578
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_64
+      rect:
+        serializedVersion: 2
+        x: 486
+        y: 17
+        width: 10
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b4d3f77090ea434f0800000000000000
+      internalID: -849863075862463157
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_65
+      rect:
+        serializedVersion: 2
+        x: 490
+        y: 21
+        width: 12
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 14dbf2f5e68d0f050800000000000000
+      internalID: 5832399485999758657
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_66
+      rect:
+        serializedVersion: 2
+        x: 521
+        y: 19
+        width: 9
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cff47dfd5e30a8ea0800000000000000
+      internalID: -5869874878486196228
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_67
+      rect:
+        serializedVersion: 2
+        x: 654
+        y: 20
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9aacc08558717d020800000000000000
+      internalID: 2366385990681807529
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_68
+      rect:
+        serializedVersion: 2
+        x: 681
+        y: 26
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 60aa1ecef296791d0800000000000000
+      internalID: -3344088543740712442
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_69
+      rect:
+        serializedVersion: 2
+        x: 303
+        y: 17
+        width: 8
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 172ec52c624447750800000000000000
+      internalID: 6301736711858479729
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_70
+      rect:
+        serializedVersion: 2
+        x: 309
+        y: 11
+        width: 14
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 61b11f35ae735a300800000000000000
+      internalID: 262677632841227030
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_71
+      rect:
+        serializedVersion: 2
+        x: 324
+        y: 10
+        width: 12
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1b2bda0d5f2f470e0800000000000000
+      internalID: -2272924774333304143
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_72
+      rect:
+        serializedVersion: 2
+        x: 340
+        y: 17
+        width: 11
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d65ccbdc7310b44c0800000000000000
+      internalID: -4302343679835847315
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_73
+      rect:
+        serializedVersion: 2
+        x: 343
+        y: 7
+        width: 10
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c05b98faf9be553e0800000000000000
+      internalID: -2065485783002139380
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_74
+      rect:
+        serializedVersion: 2
+        x: 356
+        y: 9
+        width: 17
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 86f5fc3976707f480800000000000000
+      internalID: -8865609200012664984
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_75
+      rect:
+        serializedVersion: 2
+        x: 398
+        y: 14
+        width: 12
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 06d1d551ffd1f7650800000000000000
+      internalID: 6232733390716345696
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_76
+      rect:
+        serializedVersion: 2
+        x: 410
+        y: 14
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 79212a01940556640800000000000000
+      internalID: 5072548830044623511
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_77
+      rect:
+        serializedVersion: 2
+        x: 431
+        y: 13
+        width: 8
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b7a397b2cd33af920800000000000000
+      internalID: 3024787120447896187
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_78
+      rect:
+        serializedVersion: 2
+        x: 442
+        y: 13
+        width: 19
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 26573f9da87a1f610800000000000000
+      internalID: 1653286753025619298
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_79
+      rect:
+        serializedVersion: 2
+        x: 568
+        y: 14
+        width: 9
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 145652a38a4d6f0c0800000000000000
+      internalID: -4542209355161443007
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_80
+      rect:
+        serializedVersion: 2
+        x: 596
+        y: 17
+        width: 8
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 69cb3b593bab00620800000000000000
+      internalID: 2738393853914758294
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_81
+      rect:
+        serializedVersion: 2
+        x: 619
+        y: 17
+        width: 8
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0330cab5ebff35ff0800000000000000
+      internalID: -48413977924074704
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execute_82
+      rect:
+        serializedVersion: 2
+        x: 329
+        y: 6
+        width: 12
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 56d33dae73d69ab80800000000000000
+      internalID: -8383049144443126427
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Heosugui_Execute_0: -7135024339996854363
+      Heosugui_Execute_1: 1096376719841769671
+      Heosugui_Execute_10: -1340270468861263961
+      Heosugui_Execute_11: -6010125487188648499
+      Heosugui_Execute_12: -1465869403435194602
+      Heosugui_Execute_13: -7927048318758821428
+      Heosugui_Execute_14: -3265023799298472288
+      Heosugui_Execute_15: -2659867896857592229
+      Heosugui_Execute_16: 4822599802512498373
+      Heosugui_Execute_17: -3254602144923753138
+      Heosugui_Execute_18: -4557875744337307532
+      Heosugui_Execute_19: 857123885480995890
+      Heosugui_Execute_2: 4019418570008376972
+      Heosugui_Execute_20: -2393084411284999524
+      Heosugui_Execute_21: -6503218933402109243
+      Heosugui_Execute_22: -589785387727716970
+      Heosugui_Execute_23: -1663356486397537305
+      Heosugui_Execute_24: 1636747953940319835
+      Heosugui_Execute_25: -7074322091570614197
+      Heosugui_Execute_26: 5131605231415732718
+      Heosugui_Execute_27: -1641580007614588298
+      Heosugui_Execute_28: -9119673749076068287
+      Heosugui_Execute_29: 2848382834226165078
+      Heosugui_Execute_3: 3189917877515256400
+      Heosugui_Execute_30: 1961144544361216601
+      Heosugui_Execute_31: -1929030168337482579
+      Heosugui_Execute_32: -3622728466338726850
+      Heosugui_Execute_33: -3131212967694314799
+      Heosugui_Execute_34: -8394144724384564541
+      Heosugui_Execute_35: -6594754118665703859
+      Heosugui_Execute_36: -8263245832584026360
+      Heosugui_Execute_37: -3671206156131208144
+      Heosugui_Execute_38: 4005995185784569959
+      Heosugui_Execute_39: 42149692673073591
+      Heosugui_Execute_4: 1097757362586856596
+      Heosugui_Execute_40: 6444811193253694141
+      Heosugui_Execute_41: -5670141409049582155
+      Heosugui_Execute_42: -981894404823645702
+      Heosugui_Execute_43: 1466092481371200349
+      Heosugui_Execute_44: 3211298007441054882
+      Heosugui_Execute_45: -2763497589770070682
+      Heosugui_Execute_46: 6471156433828709237
+      Heosugui_Execute_47: -5309029278007455426
+      Heosugui_Execute_48: 296785593391284447
+      Heosugui_Execute_49: -2012616749011292597
+      Heosugui_Execute_5: 7731469532079286999
+      Heosugui_Execute_50: -1896054729121264431
+      Heosugui_Execute_51: -8409502650586482848
+      Heosugui_Execute_52: -1701097202278037356
+      Heosugui_Execute_53: -7756652471647251854
+      Heosugui_Execute_54: 8231198958738732137
+      Heosugui_Execute_55: -3964043424025857528
+      Heosugui_Execute_56: 6543655077449007060
+      Heosugui_Execute_57: -900715913232571422
+      Heosugui_Execute_58: -2775498045269339376
+      Heosugui_Execute_59: -6086878433225101737
+      Heosugui_Execute_6: 2357631975442467065
+      Heosugui_Execute_60: 4583395388508279657
+      Heosugui_Execute_61: 5900889549874932845
+      Heosugui_Execute_62: -5900241612965164591
+      Heosugui_Execute_63: -7601065718710580578
+      Heosugui_Execute_64: -849863075862463157
+      Heosugui_Execute_65: 5832399485999758657
+      Heosugui_Execute_66: -5869874878486196228
+      Heosugui_Execute_67: 2366385990681807529
+      Heosugui_Execute_68: -3344088543740712442
+      Heosugui_Execute_69: 6301736711858479729
+      Heosugui_Execute_7: -3943331387293522831
+      Heosugui_Execute_70: 262677632841227030
+      Heosugui_Execute_71: -2272924774333304143
+      Heosugui_Execute_72: -4302343679835847315
+      Heosugui_Execute_73: -2065485783002139380
+      Heosugui_Execute_74: -8865609200012664984
+      Heosugui_Execute_75: 6232733390716345696
+      Heosugui_Execute_76: 5072548830044623511
+      Heosugui_Execute_77: 3024787120447896187
+      Heosugui_Execute_78: 1653286753025619298
+      Heosugui_Execute_79: -4542209355161443007
+      Heosugui_Execute_8: 6707344543120246425
+      Heosugui_Execute_80: 2738393853914758294
+      Heosugui_Execute_81: -48413977924074704
+      Heosugui_Execute_82: -8383049144443126427
+      Heosugui_Execute_9: -8845257693243609459
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
