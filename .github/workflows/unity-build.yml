@@ -1,0 +1,103 @@
+name: Windows 게임 빌드
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: 'build: 게임 빌드 / notice-test: 빌드 채널 공지만 확인'
+        type: choice
+        options: [build, notice-test]
+        default: build
+      scene:
+        description: 'preview: 임시 게임플레이 / build-settings: 기존 빌드 설정'
+        type: choice
+        options: [preview, build-settings]
+        default: preview
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-game-build
+  cancel-in-progress: false
+
+jobs:
+  checks:
+    name: 빌드 전 기존 검사
+    if: inputs.operation == 'build'
+    uses: ./.github/workflows/project-checks.yml
+
+  build:
+    name: Windows 빌드와 결과물 보관
+    needs: checks
+    if: inputs.operation == 'build' && needs.checks.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    outputs:
+      artifact-url: ${{ steps.artifact.outputs.artifact-url }}
+    steps:
+      - name: 빌드 대상 코드 받기
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Unity 인증 정보 등록 여부 확인
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        shell: python
+        run: |
+          import os
+          import sys
+          missing = [name for name in ("UNITY_EMAIL", "UNITY_PASSWORD", "UNITY_LICENSE") if not os.environ.get(name, "").strip()]
+          if missing:
+              sys.exit("필요한 GitHub 비밀값이 없습니다: " + ", ".join(missing))
+          print("인증 정보 등록을 확인했습니다. 실제 인증은 Unity 빌드 단계에서 확인합니다.")
+      - name: Unity로 Windows 게임 빌드
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          unityVersion: auto
+          targetPlatform: StandaloneWindows64
+          buildMethod: HumanGhost.Editor.Build.GitHubPlayerBuild.BuildWindows
+          versioning: None
+          customParameters: -humanGhostScene ${{ inputs.scene }} -humanGhostVersion 0.1.${{ github.run_number }}
+      - name: 실행파일 생성 확인
+        shell: python
+        run: |
+          from pathlib import Path
+          if not Path("build/StandaloneWindows64/HumanGhost.exe").is_file():
+              raise SystemExit("빌드 결과에 HumanGhost.exe가 없습니다.")
+          print("게임 실행파일 생성을 확인했습니다.")
+      - name: 게임 파일 보관
+        id: artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: HumanGhost-Windows-${{ github.run_number }}-${{ github.run_attempt }}
+          path: build/StandaloneWindows64/
+          if-no-files-found: error
+          retention-days: 7
+
+  notify:
+    name: 빌드 전용 채널 공지
+    needs: [checks, build]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: 공지 코드 받기
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: 빌드 결과 전송
+        env:
+          DISCORD_BUILD_WEBHOOK_URL: ${{ secrets.DISCORD_BUILD_WEBHOOK_URL }}
+          NOTICE_OPERATION: ${{ inputs.operation }}
+          BUILD_SCENE: ${{ inputs.scene }}
+          CHECK_RESULT: ${{ needs.checks.result }}
+          BUILD_RESULT: ${{ needs.build.result }}
+          BUILD_ARTIFACT_URL: ${{ needs.build.outputs.artifact-url }}
+        run: python -B Tools/Automation/discord_notice.py build
