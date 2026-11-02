@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Data.Infrastructure.GameDataAssets
   _csvFiles:
   - {fileID: 4900000, guid: bccdc58736c432142b118d3171a8355f, type: 3}
+  - {fileID: 4900000, guid: 1ec7d395e745403f8b9c81a3daebb6f6, type: 3}
   - {fileID: 4900000, guid: 4f7887967d2f2914e878c0e0b0c3b831, type: 3}
   - {fileID: 4900000, guid: 06697fd3810c4164e837ee40b5f8da97, type: 3}
   - {fileID: 4900000, guid: 6bc0a141a982f054da8c1645e7e10a87, type: 3}

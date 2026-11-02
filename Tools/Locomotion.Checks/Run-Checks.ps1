@@ -20,6 +20,7 @@ try {
         $sources += Get-ChildItem -LiteralPath (Join-Path $project $folder) -File -Filter '*.cs' -Recurse:$recursive |
             Where-Object { $_.Directory.Name -ne 'Infrastructure' } | Select-Object -ExpandProperty FullName
     }
+    $sources += Join-Path $project 'Assets/3.Script/Presentation/HealthDisplayBinding.cs'
     $arguments = @('/nologo', '/noconfig', '/nostdlib+', '/langversion:9', '/target:exe', "/out:$outputPath")
     foreach ($assembly in @('mscorlib.dll', 'System.dll', 'System.Core.dll')) {
         $arguments += '/reference:' + (Join-Path $references $assembly)

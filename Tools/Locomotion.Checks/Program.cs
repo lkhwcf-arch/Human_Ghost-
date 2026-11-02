@@ -27,6 +27,7 @@ internal static class Program
             _checks += CombatChecks.Run(definition);
             _checks += MonsterChecks.Run(args[0], definition);
             _checks += BossChecks.Run(definition);
+            _checks += HealthDisplayChecks.Run(definition);
             Console.WriteLine($"코어 검사 {_checks}개 통과. 플레이어 {definition.ID}, 공통 스탯 {definition.UnitID}");
             return 0;
         }

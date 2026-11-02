@@ -20,20 +20,27 @@ namespace HumanGhost.Editor.Data
         private static void RefreshWhenReady()
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode) return;
-            Refresh();
+            RefreshAll();
         }
 
         private static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
             if (importedAssets.Concat(deletedAssets).Concat(movedAssets).Concat(movedFromAssetPaths)
-                .Any(path => path.StartsWith("Assets/Data/Csv/", StringComparison.Ordinal) || path.StartsWith("Assets/Data/Json/", StringComparison.Ordinal)))
+                .Any(path => path.StartsWith("Assets/Data/Csv/", StringComparison.Ordinal) || path.StartsWith("Assets/Data/Json/", StringComparison.Ordinal)
+                    || path.StartsWith(HealthDisplayPrefabBuilder.PrefabFolder + "/", StringComparison.Ordinal)))
                 ScheduleRefresh();
         }
 
-        public void OnPreprocessBuild(BuildReport report) => Refresh();
+        public void OnPreprocessBuild(BuildReport report) => RefreshAll();
 
         [MenuItem("인귀/데이터/에셋 목록 갱신")]
-        private static void RefreshFromMenu() => Refresh();
+        private static void RefreshFromMenu() => RefreshAll();
+
+        private static void RefreshAll()
+        {
+            Refresh();
+            HealthDisplayPrefabBuilder.Refresh();
+        }
 
         internal static GameDataAssets Refresh()
         {

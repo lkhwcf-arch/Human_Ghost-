@@ -21,6 +21,8 @@ internal static class DataBootstrapperChecks
             return await new Utf8CsvFileSource().ReadTextAsync(name, token);
         });
         string ResolvePath(string relative) => Path.Combine(AppContext.BaseDirectory, Path.GetFileName(relative));
+        int expectedFiles = Directory.GetFiles(AppContext.BaseDirectory, "*.csv").Length
+            + Directory.GetFiles(AppContext.BaseDirectory, "*.json").Count(path => !path.EndsWith(".deps.json") && !path.EndsWith(".runtimeconfig.json"));
         var bootstrapper = new DataBootstrapper(source, ResolvePath);
         int notifications = 0;
         IReadOnlyDataCatalog notified = null;
@@ -39,14 +41,18 @@ internal static class DataBootstrapperChecks
         check(dataPublishedBeforeNotification);
         check(reentrantCallSharesTask);
         check(notifications == 1 && ReferenceEquals(result, notified) && ReferenceEquals(result, bootstrapper.Data));
-        check(files.Count == 13 && Path.GetFileName(files[0]) == "UnitStat.csv");
-        check(files.Take(9).All(path => path.EndsWith(".csv")) && files.Skip(9).All(path => path.EndsWith(".json")));
+        check(files.Count == expectedFiles && Path.GetFileName(files[0]) == "UnitStat.csv");
+        int firstJson = files.FindIndex(path => path.EndsWith(".json"));
+        check(firstJson >= 0 && files.Take(firstJson).All(path => path.EndsWith(".csv")) && files.Skip(firstJson).All(path => path.EndsWith(".json")));
+        check(result.GetTable<HealthDisplayConfig>().Count == new CsvParser().Read(File.ReadAllText(ResolvePath("HealthDisplayConfig.csv"))).Rows.Count);
+        check(result.GetTable<HealthDisplayConfig>().All.Select(row => row.AnchorName).SequenceEqual(
+            new CsvParser().Read(File.ReadAllText(ResolvePath("HealthDisplayConfig.csv"))).Rows.Select(row => row.Get("AnchorName"))));
         check(result.GetTable<Player>().All.All(player => player.HP == result.GetTable<UnitStat>().Get(player.UnitID).HP));
         check(result.GetTable<Boss>().All.All(boss => boss.States.All(state => state.UnitID == boss.ID)));
         check(result.GetTable<UnitStateGroup<PlayerState>>().Count == 1);
         check(result.GetTable<Elite>().Count == 0 && result.GetTable<UnitStateGroup<EliteState>>().Count == 0);
         await bootstrapper.InitializeAsync(CancellationToken.None);
-        check(files.Count == 13 && notifications == 1);
+        check(files.Count == expectedFiles && notifications == 1);
 
         var failure = new IOException("로딩 실패 검사");
         var failedFiles = new List<string>();
@@ -64,7 +70,7 @@ internal static class DataBootstrapperChecks
         using var cancellation = new CancellationTokenSource(); cancellation.Cancel();
         var cancelled = new DataBootstrapper(source, ResolvePath);
         try { await cancelled.InitializeAsync(cancellation.Token); check(false); }
-        catch (OperationCanceledException) { check(cancelled.Data == null && files.Count == 13); }
+        catch (OperationCanceledException) { check(cancelled.Data == null && files.Count == expectedFiles); }
 
         var jsonFailed = new DataBootstrapper(new Source((name, token) => name.EndsWith(".json")
             ? Task.FromException<string>(failure) : new Utf8CsvFileSource().ReadTextAsync(name, token)), ResolvePath);
