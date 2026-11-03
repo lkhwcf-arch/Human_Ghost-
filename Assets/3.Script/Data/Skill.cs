@@ -12,7 +12,11 @@ namespace HumanGhost.Data.Definitions
         public int Cooldown { get; }
         public string UnlockType { get; }
         public string Effect { get; }
-        public Skill(int id, int textID, int weaponID, int stateID, int damage, int poiseDamage, int cooldown, string unlockType, string effect)
+        public bool ContentEnabled { get; }
+        public int UnlockConditionType { get; }
+        public int UnlockTargetID { get; }
+        public int UnlockRequiredValue { get; }
+        public Skill(int id, int textID, int weaponID, int stateID, int damage, int poiseDamage, int cooldown, string unlockType, string effect, bool contentEnabled, int unlockConditionType, int unlockTargetID, int unlockRequiredValue)
         {
             ID = id;
             TextID = textID;
@@ -23,6 +27,10 @@ namespace HumanGhost.Data.Definitions
             Cooldown = cooldown;
             UnlockType = unlockType;
             Effect = effect;
+            ContentEnabled = contentEnabled;
+            UnlockConditionType = unlockConditionType;
+            UnlockTargetID = unlockTargetID;
+            UnlockRequiredValue = unlockRequiredValue;
         }
     }
 }

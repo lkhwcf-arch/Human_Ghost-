@@ -14,6 +14,7 @@ namespace HumanGhost.Gameplay.Preview
         private readonly SpriteRenderer _playerBody;
         private readonly SpriteRenderer _attackWindow;
         private readonly SpriteRenderer _body;
+        private readonly SpriteRenderer _sprite;
         private readonly Color _color;
         private readonly int _targetId;
         private readonly int _playerTargetId;
@@ -32,6 +33,7 @@ namespace HumanGhost.Gameplay.Preview
             _targetId = targetId; _playerTargetId = playerTargetId; _worldUnitsPerTile = worldUnitsPerTile;
             _body = runtime.GetComponentInChildren<SpriteRenderer>();
             if (_body == null) throw new InvalidOperationException("일반몹 임시 사각형이 없습니다.");
+            _sprite = runtime.transform.Find("PreviewSprite")?.GetComponent<SpriteRenderer>();
             _color = _body.color;
             // 판정 창이 한 프레임 안에 열리고 닫혀도 열리는 순간 한 번은 접촉을 확인합니다.
             _monster.AttackWindowChanged += OnAttackWindowChanged;
@@ -42,6 +44,12 @@ namespace HumanGhost.Gameplay.Preview
         public void Step(float seconds, float stageHalfWidth)
         {
             if (!_runtime.isActiveAndEnabled) return;
+            if (_sprite != null)
+            {
+                _sprite.flipX = _monster.Facing > 0;
+                _sprite.color = _monster.IsDead ? Color.gray : _monster.CurrentState == StateKey.Stun ? new Color(0.75f,0.35f,0.95f) :
+                    _monster.IsAttackActive ? new Color(1f,0.3f,0.3f) : Color.white;
+            }
             if (_monster.IsDead) { _body.color = Color.gray; return; }
             PlayerActor actor = _player.Actor;
             Vector3 position = _runtime.transform.position;

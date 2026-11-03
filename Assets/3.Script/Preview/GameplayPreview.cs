@@ -3,6 +3,7 @@ using HumanGhost.Data.Definitions;
 using HumanGhost.Data.Infrastructure;
 using HumanGhost.Data.Storage;
 using HumanGhost.Gameplay.Adapters;
+using HumanGhost.Gameplay.Presentation;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -28,6 +29,12 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField, InspectorName("시작 시 스태미나 최대로")] private bool _startWithFullStamina = true;
         [SerializeField, InspectorName("시작 스태미나"), Min(0)] private int _initialStamina = 0;
         [SerializeField, InspectorName("해체 확인 후 체세 회복")] private bool _restorePoiseAfterPreviewExecution = true;
+        [SerializeField, InspectorName("플레이어 체력 표시 연결")] private HealthDisplayHost _healthDisplay = null;
+        [SerializeField, InspectorName("체력 표시 프리팹 목록")] private HealthDisplayPrefabs _healthPrefabs = null;
+        [SerializeField, InspectorName("체력 표시 앵커 묶음")] private Transform _healthAnchorRoot = null;
+        [SerializeField, InspectorName("임시 보스 근접 거리 (타일)"), Min(0.01f)] private float _bossRangeTiles = 2.5f;
+        [SerializeField, InspectorName("임시 보스 둘째 타 거리 (타일)"), Min(0.01f)] private float _bossSecondRangeTiles = 3.5f;
+        private PreviewBossDriver _bossDriver;
         // 장면 내 양수 개체 ID(데이터 ID와 별개). 일반몹은 _firstMonsterTargetId부터 순번. 운영 스폰은 스폰 담당이 할당합니다.
         private const int _playerTargetId = 1;
         private const int _bossTargetId = 2;
@@ -83,6 +90,9 @@ namespace HumanGhost.Gameplay.Preview
                     _monsterDrivers[i] = new PreviewMonsterDriver(monster, _player, _playerBody, _attackWindow,
                         _firstMonsterTargetId + i, _playerTargetId, _worldUnitsPerTile);
                 }
+                _bossDriver?.Dispose();
+                _bossDriver = _boss.Combat == null ? null : new PreviewBossDriver(_boss, _player, _bossBody, _playerBody,
+                    _worldUnitsPerTile, _bossRangeTiles, _bossSecondRangeTiles);
                 _actor = _player.Actor;
                 if (_motion == null) _motion = new PreviewPlayerMotion(_player, _groundY);
                 _input = _player.GetComponent<PlayerLocomotionInput>();
@@ -92,6 +102,7 @@ namespace HumanGhost.Gameplay.Preview
                 // 판정 창이 한 프레임 안에 열리고 닫혀도 열리는 순간 한 번은 접촉을 확인합니다.
                 _actor.AttackWindowChanged += OnPlayerAttackWindowChanged;
                 _subscribed = true;
+                if (_healthDisplay != null) _healthDisplay.Connect(catalog, _healthPrefabs, _actor, _healthAnchorRoot);
                 _playerColor = _playerBody.color;
                 _bossColor = _bossBody.color;
                 RefreshLabels();
@@ -112,6 +123,9 @@ namespace HumanGhost.Gameplay.Preview
                 _actor.RollRequested -= OnRoll;
                 _actor.AttackWindowChanged -= OnPlayerAttackWindowChanged;
             }
+            _bossDriver?.Dispose();
+            _bossDriver = null;
+            if (_healthDisplay != null) _healthDisplay.Disconnect();
             DisposeMonsterDrivers();
             _subscribed = false;
             if (_attackWindow != null) _attackWindow.enabled = false;
@@ -153,6 +167,7 @@ namespace HumanGhost.Gameplay.Preview
             // 몬스터 이동 후 플레이어 판정을 확인합니다(기존 순서 유지).
             foreach (PreviewMonsterDriver monster in _monsterDrivers)
                 monster.Step(Time.deltaTime, _stageHalfWidth);
+            _bossDriver?.Step(Time.deltaTime, _stageHalfWidth);
             CheckPlayerHits();
             HandlePreviewKeys();
             RefreshLabels();
@@ -178,6 +193,7 @@ namespace HumanGhost.Gameplay.Preview
         {
             PreviewPresentation.RefreshPlayer(_actor, _playerLabel, _playerBody, _playerColor);
             PreviewPresentation.RefreshBoss(_boss.Actor, _bossLabel, _bossBody, _bossColor);
+            if (_boss.Combat != null && _boss.Combat.IsAttacking) _bossBody.color = new Color(1f, 0.2f, 0.2f);
         }
 
         // 상태 식별자와 동작은 유지하고 화면 표시만 번역합니다.

@@ -28,7 +28,7 @@ MonoBehaviour:
     _windup: 500
     _active: 100
     _recovery: 500
-    _extraDamage: 0
+    _extraDamage: -5
     _bindTime: 1000
     _bindPresses: 3
     _chargeSpeed: 0

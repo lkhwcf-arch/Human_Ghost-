@@ -114,15 +114,24 @@ namespace HumanGhost.Gameplay
         }
 
         // 일반몹 잡기. 공격 입력 presses번이면 풀립니다. duration>0이면 그 시간이 지나도 풀리고, 0이면 연타로만 풀립니다.
-        public bool TryBind(MonsterActor by, int duration, int presses)
+        public bool TryBind(MonsterActor by, int duration, int presses, int damage = 0)
         {
             if (by == null) throw new ArgumentNullException(nameof(by));
-            if (duration < 0 || presses <= 0) throw new ArgumentOutOfRangeException(nameof(duration));
+            if (duration < 0 || presses <= 0 || damage < 0) throw new ArgumentOutOfRangeException(nameof(duration));
             if (IsDead || IsInvulnerable || CurrentState == StateKey.Bound) return false;
             ClearAttack();
+            Health = Math.Max(0, Health - damage);
+            if (damage > 0) _invulnerableRemaining = Definition.HitIFrame;
+            if (IsDead)
+            {
+                States.Change(new DeadState());
+                HealthChanged?.Invoke(Health);
+                return true;
+            }
             BoundBy = by; _bindPresses = presses;
             _elapsed = 0; _duration = duration;
             States.Call(StateKey.Bound);
+            if (damage > 0) HealthChanged?.Invoke(Health);
             return true;
         }
 

@@ -118,8 +118,8 @@ internal static class MonsterChecks
         var rolling = P(); rolling.TryRoll();
         Check(!g.TryHitPlayer(3, rolling, false, false) && rolling.CurrentState == StateKey.Roll, "구르기 무적은 잡기 회피");
         int stamina = bound.Stamina.Current;
-        Check(g.TryHitPlayer(2001, bound, false, false) && bound.CurrentState == StateKey.Bound && bound.BoundBy == g && bound.Health == 100,
-            "잡기는 피해 없이 구속");
+        Check(g.TryHitPlayer(2001, bound, false, false) && bound.CurrentState == StateKey.Bound && bound.BoundBy == g && bound.Health == 80,
+            "잡기 피해와 구속");
         Check(!g.IsAttackActive, "잡기 성공 후 판정 종료");
         bound.SetMove(1);
         Check(bound.Locomotion.HorizontalSpeed == 0 && !bound.TryJump() && !bound.TryRoll(), "구속 중 이동·점프·구르기 잠금");
@@ -155,6 +155,7 @@ internal static class MonsterChecks
         var other = H(); var hitWhileBound = P();
         other.Observe(1, 150, 1); other.Tick(500); other.TryHitPlayer(2001, hitWhileBound, false, false);
         Check(!H().TryHitPlayer(2001, hitWhileBound, false, false), "비판정 몬스터는 대상 등록 없음");
+        hitWhileBound.Tick(player.HitIFrame);
         hitWhileBound.ReceiveHit(5);
         Check(hitWhileBound.CurrentState == StateKey.Hit && hitWhileBound.BoundBy == null, "구속 중 피격은 구속 해제");
         Check(!hitWhileBound.ReleaseBind(other), "이미 풀린 구속 재해제 거부");
@@ -176,6 +177,25 @@ internal static class MonsterChecks
         holder.Tick(500);
         Check(holder.CurrentState == StateKey.Idle && holder.CurrentPattern == null, "플레이어 정리 후 몬스터 후딜 종료·보유 해제");
         Check(disabled.CurrentState != StateKey.Bound, "재활성 시 이전 구속 없음");
+
+        // C08 잡기 추가 피해 -5, 구속과 피해의 원자적 적용·HP 0 우선.
+        MonsterActor Grab() => new MonsterActor(husugwi, new[] {
+            new MonsterPattern(StateKey.Attack2, 150, new AttackSpec(500,100,500,0,-5,0,0), bindTime:1000, bindPresses:3)
+        }, 300, 500, Random);
+        var damagingGrab = Grab(); var grabbedPlayer = P();
+        damagingGrab.Observe(1,150,1); damagingGrab.Tick(500);
+        Check(damagingGrab.TryHitPlayer(1,grabbedPlayer,false,false) && grabbedPlayer.Health == 85 && grabbedPlayer.BoundBy == damagingGrab,
+            "잡기 ATK20-5 피해15와 구속");
+        Check(!damagingGrab.TryHitPlayer(1,grabbedPlayer,false,false) && grabbedPlayer.Health == 85, "잡기 중복 피해 없음");
+        Check(!grabbedPlayer.ReceiveHit(1), "잡기 피해도 피격 무적 적용");
+        var lethalGrab = Grab(); var dyingPlayer = P();
+        dyingPlayer.ReceiveHit(90); dyingPlayer.Tick(player.HitIFrame);
+        lethalGrab.Observe(1,150,1); lethalGrab.Tick(500);
+        Check(lethalGrab.TryHitPlayer(1,dyingPlayer,false,false) && dyingPlayer.IsDead && dyingPlayer.BoundBy == null,
+            "잡기 사망은 구속보다 우선");
+        lethalGrab.Tick(500);
+        Check(lethalGrab.CurrentState == StateKey.Idle, "사망 대상을 잡고 대기하지 않음");
+        Expect<ArgumentOutOfRangeException>(() => P().TryBind(Grab(),1000,3,-1));
 
         // BindTime 0 = 연타로만 해제
         var mashOnly = new MonsterActor(husugwi, new[] { new MonsterPattern(StateKey.Skill1, 150, new AttackSpec(500, 100, 500, 0, 0, 0, 0), bindTime: 0, bindPresses: 3) },
@@ -250,6 +270,7 @@ internal static class MonsterChecks
         var common = new UnitStat(I(u, "ID"), I(u, "TextID"), u.Get("Type"), u.Get("Tier").Length == 0 ? (int?)null : I(u, "Tier"),
             I(u, "HP"), I(u, "ATK"), I(u, "DEF"), I(u, "Dodge"), I(u, "Crit"), I(u, "CritDamage"), I(u, "Poise"), I(u, "MoveSpeed"), I(u, "ArmorPen"));
         return new Monster(common, I(m, "ID"), I(m, "UnitID"), I(m, "IdleMin"), I(m, "IdleMax"), I(m, "PoiseRegenDelay"), I(m, "PoiseRegen"),
-            I(m, "ExposeTime"), m.Get("ExecuteType"), I(m, "ExecuteDamage"), m.Get("SuperArmor") == "Y", m.Get("AIType"), I(m, "SightRange"), I(m, "AttackRange"));
+            I(m, "ExposeTime"), m.Get("ExecuteType"), I(m, "ExecuteDamage"), m.Get("SuperArmor") == "Y", m.Get("AIType"), I(m, "SightRange"), I(m, "AttackRange"),
+            m.Get("ContentEnabled") == "Y");
     }
 }

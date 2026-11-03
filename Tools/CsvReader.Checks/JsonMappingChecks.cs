@@ -46,9 +46,13 @@ internal static class JsonMappingChecks
         check(elites.Count == 1 && elites[0].States.Count == 0 && elites[0].ID == units.Keys.First());
 
         var optional = (JObject)JArray.Parse(itemText)[0].DeepClone();
-        optional["TextID"] = null; optional["SkillID"] = null; optional["StatJson"] = "한글 경로"; optional["InGstar"] = false;
+        optional["TextID"] = null; optional["SkillID"] = null; optional["StatJson"] = "한글 경로";
+        // ContentEnabled를 서로 다른 값으로 읽어 비활성 콘텐츠가 활성화되지 않는지 확인합니다.
+        optional["ContentEnabled"] = true;
         Item mapped = new JsonDefinitionMapper<Item>().Map(optional);
-        check(mapped.TextID == null && mapped.SkillID == null && mapped.StatJson == "한글 경로" && !mapped.InGstar);
+        check(mapped.TextID == null && mapped.SkillID == null && mapped.StatJson == "한글 경로" && mapped.ContentEnabled);
+        optional["ContentEnabled"] = false;
+        check(!new JsonDefinitionMapper<Item>().Map(optional).ContentEnabled);
         check((int)JsonValue.Parse(new JValue(int.MinValue), typeof(int)) == int.MinValue);
         bool failed = false;
         try { JsonValue.Parse(new JValue(1.5), typeof(int)); } catch (FormatException) { failed = true; }
