@@ -20,6 +20,7 @@ try {
         $inputAssembly = Join-Path $projectRoot 'Library/ScriptAssemblies/Unity.InputSystem.dll'
         if (-not (Test-Path -LiteralPath $inputAssembly)) { throw '입력 시스템 참조가 없습니다. Unity에서 패키지 복원과 스크립트 컴파일을 먼저 완료해주세요.' }
         $references += Get-Item -LiteralPath $inputAssembly
+        $references += Get-Item -LiteralPath (Join-Path $projectRoot 'Library/ScriptAssemblies/UnityEngine.UI.dll')
         $items = @()
         foreach ($file in $references) {
             $items += '<Reference Include="' + $file.BaseName + '"><HintPath>' + [Security.SecurityElement]::Escape($file.FullName) + '</HintPath><Private>false</Private></Reference>'
