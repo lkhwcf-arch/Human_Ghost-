@@ -11,7 +11,11 @@ namespace HumanGhost.Data.Definitions
         public string BGM_Battle { get; }
         public string SpawnFile { get; }
         public bool Active { get; }
-        public Stage(int id, int textID, int order, int? nextStage, string bGM_Normal, string bGM_Battle, string spawnFile, bool active)
+        public bool ContentEnabled { get; }
+        public int UnlockConditionType { get; }
+        public int UnlockTargetID { get; }
+        public int UnlockRequiredValue { get; }
+        public Stage(int id, int textID, int order, int? nextStage, string bGM_Normal, string bGM_Battle, string spawnFile, bool active, bool contentEnabled, int unlockConditionType, int unlockTargetID, int unlockRequiredValue)
         {
             ID = id;
             TextID = textID;
@@ -21,6 +25,10 @@ namespace HumanGhost.Data.Definitions
             BGM_Battle = bGM_Battle;
             SpawnFile = spawnFile;
             Active = active;
+            ContentEnabled = contentEnabled;
+            UnlockConditionType = unlockConditionType;
+            UnlockTargetID = unlockTargetID;
+            UnlockRequiredValue = unlockRequiredValue;
         }
     }
 }

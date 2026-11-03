@@ -20,7 +20,7 @@ namespace HumanGhost.Editor.Data
             }
             if (initializer == null)
             {
-                var owner = new GameObject("데이터 초기화");
+                var owner = new GameObject("GameDataInitializer");
                 Undo.RegisterCreatedObjectUndo(owner, "데이터 초기화 객체 추가");
                 initializer = Undo.AddComponent<GameDataInitializer>(owner);
             }

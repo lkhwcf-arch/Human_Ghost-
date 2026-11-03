@@ -12,23 +12,23 @@ namespace HumanGhost.Gameplay.Adapters
         private sealed class PatternSetup
         {
             [SerializeField] private StateKey _key = StateKey.Attack1;
-            [SerializeField] private int _range;
-            [SerializeField] private int _windup;
-            [SerializeField] private int _active;
-            [SerializeField] private int _recovery;
-            [SerializeField] private int _extraDamage;
-            [SerializeField] private int _bindTime;
-            [SerializeField] private int _bindPresses;
-            [SerializeField] private int _chargeSpeed;
-            [SerializeField] private int _wallStun;
+            [SerializeField] private int _range = 0;
+            [SerializeField] private int _windup = 0;
+            [SerializeField] private int _active = 0;
+            [SerializeField] private int _recovery = 0;
+            [SerializeField] private int _extraDamage = 0;
+            [SerializeField] private int _bindTime = 0;
+            [SerializeField] private int _bindPresses = 0;
+            [SerializeField] private int _chargeSpeed = 0;
+            [SerializeField] private int _wallStun = 0;
 
             public MonsterPattern Create() => new MonsterPattern(_key, _range, new AttackSpec(_windup, _active, _recovery, 0, _extraDamage, 0, 0),
                 _bindTime, _bindPresses, _chargeSpeed, _wallStun);
         }
 
         [SerializeField] private PatternSetup[] _patterns = Array.Empty<PatternSetup>();
-        [SerializeField] private int _hitStun;
-        [SerializeField] private int _critHitStun;
+        [SerializeField] private int _hitStun = 0;
+        [SerializeField] private int _critHitStun = 0;
 
         public int HitStun => _hitStun;
         public int CritHitStun => _critHitStun;

@@ -10,7 +10,7 @@ namespace HumanGhost.Gameplay
         // 이 패턴을 고를 수 있는 최대 목표 거리(tile_x100).
         public int Range { get; }
         public AttackSpec Attack { get; }
-        // BindPresses가 0보다 크면 잡기: 판정 성공 시 피해 대신 구속합니다. 공격 연타 BindPresses회로 해제.
+        // BindPresses가 0보다 크면 잡기: 판정 성공 시 비치명 피해와 구속을 적용합니다. 공격 연타 BindPresses회로 해제.
         // BindTime은 구속 상한(ms, 만료 시 자동 해제). 0이면 연타로만 해제. 기획/배포 값 확정 시 값만 교체합니다.
         public int BindTime { get; }
         public int BindPresses { get; }

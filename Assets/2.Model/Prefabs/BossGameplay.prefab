@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3716404103898325213}
   m_Layer: 0
-  m_Name: "\uC784\uC2DC \uC2DC\uAC01\uD654"
+  m_Name: PreviewVisuals
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -80,6 +80,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Adapters.BossRuntime
   _bossId: 1006
   _phase: 0
+  _patterns: {fileID: 11400000, guid: 9f2393e7678b9204596fba1f8818f2eb, type: 2}
 --- !u!1 &4241154001942279107
 GameObject:
   m_ObjectHideFlags: 0
@@ -92,7 +93,7 @@ GameObject:
   - component: {fileID: 2876061253311520173}
   - component: {fileID: 5514020593533217611}
   m_Layer: 0
-  m_Name: "\uC774\uB984\uD45C"
+  m_Name: NameLabel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -194,7 +195,7 @@ GameObject:
   - component: {fileID: 389864918274257771}
   - component: {fileID: 3777643855908687980}
   m_Layer: 0
-  m_Name: "\uC0AC\uAC01\uD615"
+  m_Name: Body
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -4,18 +4,17 @@ using UnityEngine;
 
 namespace HumanGhost.Gameplay.Adapters
 {
-    // C09 보스 패턴(내려찍기·2연타·문 돌진)의 수신 설정. 기획 제안 시작값은 예비 동작·추가 피해·벽 체세 30만 있고
-    // 판정·후딜·2연타 간격·돌진 속도는 미공급입니다. 0으로 남은 판정 시간은 초기화 때 누락으로 거부합니다. 값 결정·튜닝은 기획 소유입니다.
+    // C09 보스 패턴 수신 설정. Config/BossPatterns.asset의 개발 기준값을 다음 초기화에 적용합니다.
     [CreateAssetMenu(menuName = "인귀/보스 패턴 설정")]
     public sealed class BossPatternSettings : ScriptableObject
     {
         [Serializable]
         private sealed class HitSetup
         {
-            [SerializeField] private int _windup;
-            [SerializeField] private int _active;
-            [SerializeField] private int _recovery;
-            [SerializeField] private int _extraDamage;
+            [SerializeField] private int _windup = 0;
+            [SerializeField] private int _active = 0;
+            [SerializeField] private int _recovery = 0;
+            [SerializeField] private int _extraDamage = 0;
 
             public AttackSpec Create(StateKey key, int index)
             {
@@ -31,10 +30,10 @@ namespace HumanGhost.Gameplay.Adapters
             [SerializeField] private StateKey _key = StateKey.Attack1;
             [SerializeField] private HitSetup[] _hits = Array.Empty<HitSetup>();
             // BossState.Phase 기준(0부터). C09 문 돌진은 1(HP 50% 이하).
-            [SerializeField, Min(0)] private int _minPhase;
-            // Skill1 돌진만: 속도(tile_x100/초, 미공급)와 벽 충돌 체세 피해(C09 30). 돌진 판정 시간은 상한입니다.
-            [SerializeField, Min(0)] private int _chargeSpeed;
-            [SerializeField, Min(0)] private int _wallPoiseDamage;
+            [SerializeField, Min(0)] private int _minPhase = 0;
+            // Skill1 돌진만: 속도(tile_x100/초)와 벽 충돌 체세 피해(C09 30). 돌진 판정 시간은 상한입니다.
+            [SerializeField, Min(0)] private int _chargeSpeed = 0;
+            [SerializeField, Min(0)] private int _wallPoiseDamage = 0;
 
             public BossPattern Create()
             {

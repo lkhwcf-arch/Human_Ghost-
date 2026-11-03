@@ -120,7 +120,7 @@ namespace HumanGhost.Gameplay
         // 판정 창마다 대상 ID를 한 번만 허용합니다.
         public bool TryRegisterTarget(int targetId) => _attackWindow.TryRegisterTarget(targetId);
 
-        // 충돌 판정자가 공급한 대상에 플레이어 Dodge·이 몬스터 Crit 확률로 한 번 적용. 잡기는 피해 대신 구속하며 회피만 판정합니다.
+        // 충돌 판정자가 공급한 대상에 플레이어 Dodge·이 몬스터 Crit 확률로 한 번 적용. 잡기는 비치명 피해와 구속을 함께 적용하며 회피만 판정합니다.
         // random은 패턴/대기용과 분리된 이 몬스터 소유 타격 난수입니다.
         public HitOutcome TryHitPlayer(int targetId, PlayerActor target, Func<int, int, int> random)
             => HitPlayer(targetId, target, random ?? throw new ArgumentNullException(nameof(random)), false, false);
@@ -142,9 +142,10 @@ namespace HumanGhost.Gameplay
                 int damage = CombatMath.Damage(Definition, target.Definition, _pattern.Attack.ExtraDamage, isCritical);
                 return target.ReceiveHit(damage, isCritical) ? outcome : HitOutcome.None;
             }
-            if (!target.TryBind(this, _pattern.BindTime, _pattern.BindPresses)) return HitOutcome.None;
-            // 잡는 동안 패턴 시간을 멈추고, 플레이어가 풀려나면 후딜로 이어갑니다.
-            _holding = target;
+            int grabDamage = CombatMath.Damage(Definition, target.Definition, _pattern.Attack.ExtraDamage, false);
+            if (!target.TryBind(this, _pattern.BindTime, _pattern.BindPresses, grabDamage)) return HitOutcome.None;
+            // 잡는 동안 패턴 시간을 멈추고, 플레이어가 풀려나면 후딜로 이어갑니다. 사망 대상은 잡지 않습니다.
+            _holding = target.IsDead ? null : target;
             _elapsed = _pattern.Attack.Windup + _pattern.Attack.Active;
             SetAttackActive(false);
             return outcome;

@@ -31,7 +31,7 @@ namespace HumanGhost.Gameplay.Presentation
                     var anchor = anchors.Get(config.AnchorName) as RectTransform;
                     if (anchor == null)
                         throw new InvalidOperationException($"체력 표시 앵커는 RectTransform이어야 합니다: {config.AnchorName}");
-                    var ownedRoot = new GameObject($"체력 표시 {config.ID}", typeof(RectTransform));
+                    var ownedRoot = new GameObject($"HealthDisplay_{config.ID}", typeof(RectTransform));
                     group._roots.Add(ownedRoot);
                     ownedRoot.SetActive(false);
                     var root = (RectTransform)ownedRoot.transform;

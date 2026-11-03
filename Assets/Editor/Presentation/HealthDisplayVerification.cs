@@ -22,7 +22,7 @@ namespace HumanGhost.Editor.Presentation
         private const string _batchKey = "HumanGhost.HealthVerification.Batch";
         private const string _completeKey = "HumanGhost.HealthVerification.Complete";
         private const string _successKey = "HumanGhost.HealthVerification.Success";
-        private const string _anchorName = "플레이어체력앵커";
+        private const string _anchorName = "PlayerHealthAnchor";
         private static bool _running;
 
         [InitializeOnLoadMethod]
@@ -98,7 +98,7 @@ namespace HumanGhost.Editor.Presentation
                 }, true, definition.StaminaMax);
                 PlayerActor firstPlayer = NewPlayer(), secondPlayer = NewPlayer();
                 var fixture = new HealthCatalog(new HealthDisplayConfig(1, configured.PrefabKey, _anchorName, 333, 22, true));
-                canvasRoot = new GameObject("앵커 검사 전용 화면", typeof(RectTransform), typeof(Canvas));
+                canvasRoot = new GameObject("AnchorVerificationCanvas", typeof(RectTransform), typeof(Canvas));
                 canvasRoot.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
                 var layout = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/2.Model/Prefabs/UI/HealthDisplayAnchorLayout.prefab");
                 GameObject firstParent = Object.Instantiate(layout, canvasRoot.transform, false);
@@ -136,12 +136,12 @@ namespace HumanGhost.Editor.Presentation
                 Check(Mathf.Approximately(Fill(firstView).anchorMax.x, hiddenRatio), "비활성 중 체력 이벤트를 소비했습니다.");
                 firstParent.SetActive(true);
                 Check(Mathf.Approximately(Fill(firstView).anchorMax.x, (float)firstPlayer.Health / definition.HP), "재활성화 시 체력이 갱신되지 않았습니다.");
-                Fails(() => firstAnchors.Get("없는앵커"), "누락 앵커를 허용했습니다.");
+                Fails(() => firstAnchors.Get("MissingAnchor"), "누락 앵커를 허용했습니다.");
                 var duplicate = new GameObject(_anchorName, typeof(RectTransform));
                 duplicate.transform.SetParent(firstParent.transform, false);
                 Fails(() => new SpawnAnchors(firstParent.transform).Get(_anchorName), "중복 앵커를 허용했습니다.");
                 Object.Destroy(duplicate);
-                var nested = new GameObject("중첩 앵커", typeof(RectTransform));
+                var nested = new GameObject("NestedAnchor", typeof(RectTransform));
                 nested.transform.SetParent(firstAnchor, false);
                 Check(new SpawnAnchors(firstParent.transform).Get(nested.name) == nested.transform, "중첩 앵커를 찾지 못했습니다.");
                 Object.Destroy(nested);
@@ -152,14 +152,14 @@ namespace HumanGhost.Editor.Presentation
                 Check(firstView == null && secondView != null && secondView.IsBound, "다른 그룹까지 제거했거나 지연 제거가 완료되지 않았습니다.");
                 var broken = new HealthCatalog(
                     new HealthDisplayConfig(1, configured.PrefabKey, _anchorName, 333, 22, true),
-                    new HealthDisplayConfig(2, configured.PrefabKey, "없는앵커", 333, 22, true));
+                    new HealthDisplayConfig(2, configured.PrefabKey, "MissingAnchor", 333, 22, true));
                 Fails(() => HealthDisplayGroup.Create(broken, prefabs, firstPlayer, new SpawnAnchors(firstParent.transform)),
                     "일부 생성 후 앵커 누락이 실패로 전달되지 않았습니다.");
                 Check(firstParent.GetComponentsInChildren<HealthDisplay>(true).All(view => !view.IsBound && !view.gameObject.activeInHierarchy),
                     "실패한 생성의 객체가 활성 상태이거나 구독이 남았습니다.");
                 await NextFrameAsync();
                 Check(firstParent.GetComponentsInChildren<HealthDisplay>(true).Length == 0, "실패한 생성의 객체가 남았습니다.");
-                var hidden = new HealthCatalog(new HealthDisplayConfig(1, configured.PrefabKey, "없는앵커", 333, 22, false));
+                var hidden = new HealthCatalog(new HealthDisplayConfig(1, configured.PrefabKey, "MissingAnchor", 333, 22, false));
                 using (HealthDisplayGroup.Create(hidden, prefabs, firstPlayer, new SpawnAnchors(firstParent.transform)))
                     Check(firstParent.GetComponentsInChildren<HealthDisplay>(true).Length == 0, "숨긴 행을 생성했습니다.");
                 Transform removedAnchor = secondAnchor;

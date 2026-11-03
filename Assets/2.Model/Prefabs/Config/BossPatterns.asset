@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40771af6c2de56a4a96e927bf85bf99a, type: 3}
+  m_Name: BossPatterns
+  m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Adapters.BossPatternSettings
+  _patterns:
+  - _key: 10004
+    _hits:
+    - _windup: 700
+      _active: 120
+      _recovery: 600
+      _extraDamage: 6
+    _minPhase: 0
+    _chargeSpeed: 0
+    _wallPoiseDamage: 0
+  - _key: 10005
+    _hits:
+    - _windup: 500
+      _active: 100
+      _recovery: 0
+      _extraDamage: 0
+    - _windup: 250
+      _active: 100
+      _recovery: 600
+      _extraDamage: 0
+    _minPhase: 0
+    _chargeSpeed: 0
+    _wallPoiseDamage: 0
+  - _key: 10009
+    _hits:
+    - _windup: 1000
+      _active: 2500
+      _recovery: 800
+      _extraDamage: 14
+    _minPhase: 1
+    _chargeSpeed: 1200
+    _wallPoiseDamage: 30

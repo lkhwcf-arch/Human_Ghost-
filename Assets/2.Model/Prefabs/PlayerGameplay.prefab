@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 853979853906872556}
   - component: {fileID: 1520315625900048984}
   m_Layer: 0
-  m_Name: "\uC0AC\uAC01\uD615"
+  m_Name: Body
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -100,7 +100,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8062797088035293681}
   m_Layer: 0
-  m_Name: "\uC784\uC2DC \uC2DC\uAC01\uD654"
+  m_Name: PreviewVisuals
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -135,7 +135,7 @@ GameObject:
   - component: {fileID: 2709589797029282369}
   - component: {fileID: 1692780280698349806}
   m_Layer: 0
-  m_Name: "\uC774\uB984\uD45C"
+  m_Name: NameLabel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
