@@ -7,7 +7,8 @@
     "InGstar": true,
     "SkillID": 7001,
     "Acquire": "START",
-    "AcquireAnim": "ANIM_ACQ_6002"
+    "AcquireAnim": "ANIM_ACQ_6002",
+    "ContentEnabled": true
   },
   {
     "ID": 6003,
@@ -17,7 +18,8 @@
     "InGstar": false,
     "SkillID": null,
     "Acquire": "STORY",
-    "AcquireAnim": "ANIM_ACQ_6003"
+    "AcquireAnim": "ANIM_ACQ_6003",
+    "ContentEnabled": false
   },
   {
     "ID": 6101,
@@ -27,7 +29,8 @@
     "InGstar": false,
     "SkillID": null,
     "Acquire": "STORY",
-    "AcquireAnim": null
+    "AcquireAnim": null,
+    "ContentEnabled": false
   },
   {
     "ID": 6201,
@@ -37,6 +40,7 @@
     "InGstar": false,
     "SkillID": null,
     "Acquire": "STORY",
-    "AcquireAnim": null
+    "AcquireAnim": null,
+    "ContentEnabled": false
   }
 ]
