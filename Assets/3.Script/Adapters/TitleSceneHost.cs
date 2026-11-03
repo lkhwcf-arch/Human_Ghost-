@@ -12,18 +12,19 @@ namespace HumanGhost.Gameplay.Adapters
     {
         [SerializeField] private GameDataInitializer _initializer = null;
         [SerializeField] private TitleScreen _screen = null;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        [SerializeField] private TitleSaveSelection _saveSelection = null;
+#endif
         [SerializeField] private InputActionAsset _input = null;
         [SerializeField, InspectorName("타이틀 메뉴 설정")] private TitleMenuSettings _settings = null;
         [SerializeField, InspectorName("화면 검사 모드 사용")] private bool _previewMode = true;
         [SerializeField, InspectorName("화면 검사: 임시 저장 있음")] private bool _previewHasSave = false;
         private readonly TaskCompletionSource<bool> _saveReady =
             new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-        private InputActionAsset _ownedInput;
-        private InputAction _navigate, _submit, _cancel;
+        private MenuInput _menuInput;
         private TitleMenu _menu;
         private Func<TitleAction, bool> _execute;
-        private bool _subscribed;
-        private int _vertical;
+        public bool CanOpenSaveSelection => _menu != null && _menu.State == TitleMenuState.Selecting;
 
         // true는 실행 담당이 요청을 인수했음을 뜻합니다. 실패·설정 복귀 후 CompleteRequest를 호출합니다.
         public void ConnectOperations(Func<TitleAction, bool> execute)
@@ -75,52 +76,44 @@ namespace HumanGhost.Gameplay.Adapters
             if (this == null) return;
             _menu = new TitleMenu(hasSave, _settings.ShowQuit, _settings.ConfirmNewGameWithSave, _settings.PreferContinue);
             _screen.Connect(_menu, data);
-            _ownedInput = Instantiate(_input);
-            _ownedInput.Disable();
-            _navigate = _ownedInput.FindAction("UI/Navigate", true);
-            _submit = _ownedInput.FindAction("UI/Submit", true);
-            _submit.AddBinding("<Keyboard>/c");
-            _cancel = _ownedInput.FindAction("UI/Cancel", true);
+            _menuInput = new MenuInput(_input, OnMove, OnSubmit, OnCancel);
             _screen.ShowStatus(_previewMode ? "화면 검사 모드입니다. 실제 저장 조회는 사용하지 않습니다." : "");
             if (isActiveAndEnabled) Subscribe();
         }
 
-        private void Subscribe()
-        {
-            if (_subscribed || _ownedInput == null) return;
-            _subscribed = true;
-            _navigate.performed += OnNavigate;
-            _navigate.canceled += OnNavigate;
-            _submit.performed += OnSubmit;
-            _cancel.performed += OnCancel;
-            _navigate.Enable(); _submit.Enable(); _cancel.Enable();
-        }
+        private void Subscribe() => _menuInput?.Enable();
 
         private void OnDisable()
         {
-            if (!_subscribed) return;
-            _subscribed = false;
-            _navigate.performed -= OnNavigate;
-            _navigate.canceled -= OnNavigate;
-            _submit.performed -= OnSubmit;
-            _cancel.performed -= OnCancel;
-            _ownedInput.Disable();
-            _vertical = 0;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (_saveSelection != null) _saveSelection.Close();
+#endif
+            _menuInput?.Disable();
         }
 
-        private void OnNavigate(InputAction.CallbackContext context)
+        private void OnMove(int direction)
         {
-            float value = context.ReadValue<Vector2>().y;
-            int direction = value > 0.5f ? -1 : value < -0.5f ? 1 : 0;
-            if (direction != 0 && direction != _vertical) _menu.Move(direction);
-            _vertical = direction;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (_saveSelection != null && _saveSelection.IsOpen) _saveSelection.Move(direction);
+            else
+#endif
+                _menu.Move(direction);
         }
 
-        private void OnSubmit(InputAction.CallbackContext context) => Dispatch(
-            _menu.State == TitleMenuState.ConfirmingNewGame ? _menu.AnswerNewGame(true) : _menu.Submit());
-
-        private void OnCancel(InputAction.CallbackContext context)
+        private void OnSubmit()
         {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (_saveSelection != null && _saveSelection.IsOpen) _saveSelection.Submit();
+            else
+#endif
+                Dispatch(_menu.State == TitleMenuState.ConfirmingNewGame ? _menu.AnswerNewGame(true) : _menu.Submit());
+        }
+
+        private void OnCancel()
+        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (_saveSelection != null && _saveSelection.IsOpen) { _saveSelection.Close(); return; }
+#endif
             if (_menu.State == TitleMenuState.ConfirmingNewGame) _menu.AnswerNewGame(false);
             else _menu.Back();
         }
@@ -145,8 +138,8 @@ namespace HumanGhost.Gameplay.Adapters
         {
             OnDisable();
             if (_screen != null) _screen.Disconnect();
-            if (_ownedInput != null) Destroy(_ownedInput);
-            _ownedInput = null;
+            _menuInput?.Dispose();
+            _menuInput = null;
             _menu = null;
         }
 

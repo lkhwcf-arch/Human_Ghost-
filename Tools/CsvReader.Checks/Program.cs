@@ -59,6 +59,7 @@ internal static class Program
         StageMappingChecks.Run(Check);
         TableMappingChecks.Run(Check);
         await JsonMappingChecks.RunAsync(Check);
+        await JsonSaveStoreChecks.RunAsync(Check);
         await DataLoadSequenceChecks.RunAsync(Check);
         DataTableChecks.Run(Check);
         CutsceneMappingChecks.Run(Check);
