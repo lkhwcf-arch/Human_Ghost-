@@ -61,6 +61,7 @@ internal static class Program
         await JsonMappingChecks.RunAsync(Check);
         await DataLoadSequenceChecks.RunAsync(Check);
         DataTableChecks.Run(Check);
+        CutsceneMappingChecks.Run(Check);
         await DataBootstrapperChecks.RunAsync(Check);
         Console.WriteLine($"검사 {_checks}개 통과");
     }

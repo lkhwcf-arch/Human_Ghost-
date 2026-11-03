@@ -14,6 +14,8 @@
     <Compile Include="../../Assets/3.Script/Data/Infrastructure/DataBootstrapper.cs" />
     <Compile Include="../../Assets/3.Script/Data/Infrastructure/BootstrapTableLoader.cs" />
     <Compile Include="../../Assets/3.Script/Data/Mapping/*.cs" />
+    <Compile Include="../../Assets/3.Script/Core/Cutscenes/*.cs" />
+    <Compile Include="../../Assets/3.Script/Adapters/CutsceneSequenceSource.cs" />
     <Compile Include="../../Assets/3.Script/Data/Storage/*.cs" />
     <Compile Include="../../Assets/3.Script/Data/Generated/*.cs" />
     <Compile Include="../../Assets/3.Script/Data/*.cs" />
