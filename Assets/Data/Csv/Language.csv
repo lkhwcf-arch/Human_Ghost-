@@ -68,3 +68,19 @@ ID,KO,EN
 30067,허수귀를 모두 쓰러뜨리세요,Defeat all the Heosugwi
 30068,인귀 소식 받아 보기,Get INGWI News
 30069,플레이해 주셔서 고맙습니다,Thank you for playing
+30101,구르기: 구르는 동안에는 공격을 받지 않는다.,Roll: You cannot be hit while rolling.
+30102,약초: Q를 눌러 체력을 되찾는다. 처음엔 세 개뿐이다.,Herb: Press Q to recover health. You start with three.
+30103,결박 가르기: Z로 쓰는 버선칼 기술. 장부방에서 익힌다.,Bind Cleave: A Beoseonkal skill used with Z. Learned in the Jangbubang.
+30104,해체: 보스가 무너졌을 때 E를 눌러 해체한다.,Carve: Press E to carve a staggered boss.
+30105,서낭당: 바위 협곡을 지나면 깨어나 기록을 남긴다.,Shrine: It awakens past the Rocky Gorge and records your progress.
+30106,허수귀: 허수아비에 깃든 요괴. 느리지만 무리 지어 온다.,"Heosugwi: A spirit in a scarecrow. Slow, but comes in packs."
+30107,지게귀: 지게를 진 요괴. 짐을 던지는 놈도 있다.,Jigegwi: A spirit bearing an A-frame. Some throw their load.
+30108,쇄문아비: 관문을 지키는 요괴. 사슬로 길을 막는다.,"Swaemunabi: A spirit guarding the Gate, barring the way with chains."
+30109,도화골: 막손이 살던 마을. 이제는 불타 버렸다.,"Dohwagol: Makson's village, now burned to the ground."
+30110,장부방: 마을 사람들의 명부를 모아 둔 방.,Jangbubang: The room where the village registry is kept.
+30200,저장하시겠습니까?,Save your progress?
+30201,저장 칸이 가득 찼습니다. 가장 오래된 기록에 덮어쓰시겠습니까?,All save slots are full. Overwrite the oldest record?
+30202,새로 저장하시겠습니까? 가장 오래된 기록은 삭제됩니다.,Save as new? The oldest record will be deleted.
+30203,덮어쓰기,Overwrite
+30204,새로 저장,Save New
+30205,취소,Cancel
