@@ -16,6 +16,7 @@ namespace HumanGhost.Gameplay
         private int _facing = 1;
         private BossPoise _executionTarget;
         private int _bindPresses;
+        private bool _cutsceneDamageBlocked;
 
         public Player Definition { get; }
         public ActorStateMachine States { get; }
@@ -30,7 +31,7 @@ namespace HumanGhost.Gameplay
         public bool IsAttacking => _combo.Index >= 0;
         public bool IsAttackActive => _attackWindow.IsActive;
         public AttackSpec CurrentAttack => _combo.Current;
-        public bool IsInvulnerable => CurrentState == StateKey.Execute || _invulnerableRemaining > 0 ||
+        public bool IsInvulnerable => _cutsceneDamageBlocked || CurrentState == StateKey.Execute || _invulnerableRemaining > 0 ||
             (CurrentState == StateKey.Roll && _elapsed < Definition.RollIFrame);
         public event Action<int> HealthChanged;
         public event Action<int> AttackStarted;
@@ -41,7 +42,7 @@ namespace HumanGhost.Gameplay
         }
         public event Action<int, int, int> RollRequested;
 
-        // attacks = 지상 1/2/3타, 공중 1타 순서. 초기 자원은 호출자가 명시합니다.
+        // attacks = 지상 1/2/3/4타, 공중 1타 순서. 초기 자원은 호출자가 명시합니다.
         public PlayerActor(Player definition, IReadOnlyList<AttackSpec> attacks, bool grounded, int currentStamina)
         {
             Definition = definition ?? throw new ArgumentNullException(nameof(definition));
@@ -77,12 +78,12 @@ namespace HumanGhost.Gameplay
                 return _combo.TryQueue(_elapsed, Definition.InputBuffer);
             }
             if (!Locomotion.CanMove) return false;
-            return StartAttack(Locomotion.IsGrounded ? 0 : 3);
+            return StartAttack(Locomotion.IsGrounded ? 0 : 4);
         }
 
         public bool TryRoll()
         {
-            if (IsDead || (IsAttacking ? _elapsed < CurrentAttack.Windup + CurrentAttack.Active : !Locomotion.CanMove)) return false;
+            if (IsDead || CurrentState == StateKey.Attack4 || (IsAttacking ? _elapsed < CurrentAttack.Windup + CurrentAttack.Active : !Locomotion.CanMove)) return false;
             if (!Stamina.TryConsumeRoll()) return false;
             ClearAttack();
             _elapsed = 0; _duration = Definition.RollTime;
@@ -91,6 +92,9 @@ namespace HumanGhost.Gameplay
             if (_duration == 0) Locomotion.Resume();
             return true;
         }
+
+        // 컷씬 조립자 한 곳이 시작 전 켜고 완료·스킵·취소·실패 때 해제합니다. 입력/시간 잠금은 별도입니다.
+        public void SetCutsceneDamageBlocked(bool blocked) => _cutsceneDamageBlocked = blocked;
 
         // 외부 판정이 확정한 HP 피해를 받습니다. 회피·방어 계산은 CombatMath/판정자 책임입니다.
         public bool ReceiveHit(int damage, bool critical = false)
@@ -201,7 +205,7 @@ namespace HumanGhost.Gameplay
                     if (_elapsed == spec.TotalTime)
                     {
                         int next = _combo.Index + 1;
-                        bool chain = _combo.Queued && _combo.Index < 2;
+                        bool chain = _combo.Queued && _combo.Index < 3;
                         ClearAttack();
                         if (!chain || !StartAttack(next)) Locomotion.Resume();
                     }
@@ -251,7 +255,7 @@ namespace HumanGhost.Gameplay
         {
             if (!Stamina.TryConsume(_combo.GetAttack(index).StaminaCost)) return false;
             _combo.Start(index); _elapsed = 0; _attackWindow.ClearTargets();
-            States.Change(new AttackState(index == 3 ? StateKey.Attack1 : (index == 0 ? StateKey.Attack1 : index == 1 ? StateKey.Attack2 : StateKey.Attack3)));
+            States.Change(new AttackState(index == 4 ? StateKey.Attack1 : index == 0 ? StateKey.Attack1 : index == 1 ? StateKey.Attack2 : index == 2 ? StateKey.Attack3 : StateKey.Attack4));
             AttackStarted?.Invoke(index);
             return true;
         }

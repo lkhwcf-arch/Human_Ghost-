@@ -33,6 +33,7 @@ namespace HumanGhost.Gameplay.Preview
                 case StateKey.Attack1: return "공격 1타";
                 case StateKey.Attack2: return "공격 2타";
                 case StateKey.Attack3: return "공격 3타";
+                case StateKey.Attack4: return "공격 4타";
                 case StateKey.Evade: return "회피";
                 case StateKey.CritHit: return "치명타 피격";
                 case StateKey.Skill1: return "기술 1";

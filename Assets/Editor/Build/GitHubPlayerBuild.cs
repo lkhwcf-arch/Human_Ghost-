@@ -27,12 +27,14 @@ namespace HumanGhost.Editor.Build
 
         private static void BuildWindowsCore()
         {
-            string scene = ReadArgument("-humanGhostScene", "preview");
-            string[] scenes = scene == "preview"
-                ? new[] { "Assets/1.Scene/GameplayPreview.unity" }
-                : scene == "build-settings"
-                    ? EditorBuildSettings.scenes.Where(entry => entry.enabled).Select(entry => entry.path).ToArray()
-                    : throw new BuildFailedException("지원하지 않는 시작 장면 설정입니다.");
+            string scene = ReadArgument("-humanGhostScene", "dohwagol");
+            string[] scenes = scene == "dohwagol"
+                ? new[] { "Assets/1.Scene/MapDohwagolTest.unity" }
+                : scene == "preview"
+                    ? new[] { "Assets/1.Scene/GameplayPreview.unity" }
+                    : scene == "build-settings"
+                        ? EditorBuildSettings.scenes.Where(entry => entry.enabled).Select(entry => entry.path).ToArray()
+                        : throw new BuildFailedException("지원하지 않는 시작 장면 설정입니다.");
             if (scenes.Length == 0 || scenes.Any(path => !File.Exists(path)))
                 throw new BuildFailedException("빌드에 포함할 씬이 없거나 씬 파일을 찾을 수 없습니다.");
 

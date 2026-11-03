@@ -26,19 +26,20 @@ namespace HumanGhost.Gameplay.Adapters
             public AttackSpec Create() => new AttackSpec(_windup, _active, _recovery, _comboWindow, _extraDamage, _poiseDamage, _staminaCost);
         }
 
-        // 전투 R2 C02의 시작값. 기획은 설정 에셋에서 수정하고 다음 런타임 초기화에 반영합니다.
+        // 전투 C02_1의 4타 시작값. 공중 체세는 최신 전달 메모의 8을 사용합니다. 기획은 설정 에셋에서 수정하고 다음 런타임 초기화에 반영합니다.
         [SerializeField] private AttackSetup[] _attacks =
         {
-            new AttackSetup(120, 80, 250, 200, 0, 10, 12),
-            new AttackSetup(120, 80, 250, 200, 0, 10, 12),
-            new AttackSetup(200, 100, 400, 0, 10, 20, 12),
-            new AttackSetup(100, 80, 200, 0, -2, 10, 12)
+            new AttackSetup(120, 80, 250, 200, 0, 8, 12),
+            new AttackSetup(120, 80, 250, 200, 0, 8, 12),
+            new AttackSetup(120, 80, 250, 200, 0, 8, 12),
+            new AttackSetup(200, 100, 400, 0, 10, 16, 12),
+            new AttackSetup(100, 80, 200, 0, -2, 8, 12)
         };
 
         public AttackSpec[] CreateAttacks()
         {
-            if (_attacks == null || _attacks.Length != 4) throw new InvalidOperationException("지상 3타·공중 1타 설정이 필요합니다.");
-            var result = new AttackSpec[4];
+            if (_attacks == null || _attacks.Length != 5) throw new InvalidOperationException("지상 4타·공중 1타 설정이 필요합니다.");
+            var result = new AttackSpec[_attacks.Length];
             for (int i = 0; i < result.Length; i++)
                 result[i] = (_attacks[i] ?? throw new InvalidOperationException("공격 설정이 비어 있습니다.")).Create();
             return result;

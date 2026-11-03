@@ -7,7 +7,7 @@ namespace HumanGhost.Gameplay.States
     {
         public AttackState(StateKey key) : base(key, null, null, null)
         {
-            if (key != StateKey.Attack1 && key != StateKey.Attack2 && key != StateKey.Attack3)
+            if (key != StateKey.Attack1 && key != StateKey.Attack2 && key != StateKey.Attack3 && key != StateKey.Attack4)
                 throw new ArgumentOutOfRangeException(nameof(key));
         }
     }

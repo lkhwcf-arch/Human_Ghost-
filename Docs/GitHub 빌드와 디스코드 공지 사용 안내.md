@@ -89,12 +89,13 @@ Google 로그인 계정의 별도 Unity 비밀번호 설정과 라이선스 계�
 | --- | --- | --- |
 | operation | notice-test | 빌드 채널로 테스트 메시지만 보냄. 게임은 만들지 않음 |
 | operation | build | 검사 후 실제 Windows 게임을 만들고 결과를 공지 |
-| scene | preview | 움직임을 확인할 수 있는 임시 게임플레이 장면. 기본값 |
+| scene | dohwagol | R3c 도화골 전투 테스트(MapDohwagolTest). 기본값 |
+| scene | preview | 독립 게임플레이 검사 장면(GameplayPreview) |
 | scene | build-settings | Unity 빌드 설정에 등록된 활성 씬 사용 |
 
-처음에는 **notice-test**로 채널을 확인한 뒤 **build / preview**로 게임 파일을 만듭니다.
+처음에는 **notice-test**로 채널을 확인한 뒤 **build / dohwagol**로 도화골 전투 게임 파일을 만듭니다.
 notice-test에서는 scene 값이 사용되지 않습니다.
-현재 build-settings에는 데이터 초기화용 SampleScene만 등록돼 있으므로, 화면에서 캐릭터를 확인하려면 preview를 선택합니다.
+현재 build-settings는 MapDohwagolTest 활성·SampleScene 비활성입니다. 명령줄 -humanGhostScene 생략 시에도 dohwagol을 사용하며 기존 preview 선택은 유지합니다. Title은 운영 실행 담당 연결 후 별도 시작 경로로 사용합니다. 실제 빌드는 이후 자동화 시스템에서 검증합니다.
 버튼이나 목록이 없으면 개발자에게 설정의 기본 브랜치 반영과 계정 실행 권한을 확인해달라고 요청합니다.
 
 ## 실행 중에는 무엇을 하나요?

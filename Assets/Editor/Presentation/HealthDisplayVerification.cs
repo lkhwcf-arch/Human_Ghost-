@@ -94,7 +94,7 @@ namespace HumanGhost.Editor.Presentation
                 if (definition == null) throw new InvalidOperationException("배포된 플레이어 데이터에 검사할 행이 없습니다.");
                 PlayerActor NewPlayer() => new PlayerActor(definition, new[] {
                     new AttackSpec(1,1,1,0,0,0,0), new AttackSpec(1,1,1,0,0,0,0),
-                    new AttackSpec(1,1,1,0,0,0,0), new AttackSpec(1,1,1,0,0,0,0)
+                    new AttackSpec(1,1,1,0,0,0,0), new AttackSpec(1,1,1,0,0,0,0), new AttackSpec(1,1,1,0,0,0,0)
                 }, true, definition.StaminaMax);
                 PlayerActor firstPlayer = NewPlayer(), secondPlayer = NewPlayer();
                 var fixture = new HealthCatalog(new HealthDisplayConfig(1, configured.PrefabKey, _anchorName, 333, 22, true));

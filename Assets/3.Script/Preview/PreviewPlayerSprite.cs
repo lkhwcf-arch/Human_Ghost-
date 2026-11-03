@@ -29,11 +29,19 @@ namespace HumanGhost.Gameplay.Preview
             PlayerActor actor = _player != null ? _player.Actor : null;
             if (actor == null || _renderer == null) return;
             if (actor.Locomotion.Direction != 0) _facing = actor.Locomotion.Direction;
-            Sprite sprite = _fallback;
-            foreach (StateFrame frame in _frames)
-                if (frame != null && frame.State == actor.CurrentState && frame.Sprite != null) { sprite = frame.Sprite; break; }
+            Sprite sprite = GetFrame(actor.CurrentState);
+            // 4타 원본 전까지 검사용 이전 마무리 프레임을 재사용합니다. 명시한 4타 프레임이 우선입니다.
+            if (sprite == null && actor.CurrentState == StateKey.Attack4) sprite = GetFrame(StateKey.Attack3);
+            if (sprite == null) sprite = _fallback;
             if (_renderer.sprite != sprite) _renderer.sprite = sprite;
             _renderer.flipX = _sourceFacesLeft ? _facing > 0 : _facing < 0;
+        }
+
+        private Sprite GetFrame(StateKey state)
+        {
+            foreach (StateFrame frame in _frames)
+                if (frame != null && frame.State == state && frame.Sprite != null) return frame.Sprite;
+            return null;
         }
     }
 }

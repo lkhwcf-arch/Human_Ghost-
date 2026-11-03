@@ -35,7 +35,7 @@ internal static class BossChecks
         };
         int waitMin = -1, waitMax = -1;
         BossCombat Combat(BossPoise boss) => new BossCombat(boss, Patterns(), (min, max) => { waitMin = min; waitMax = max; return min; });
-        PlayerActor Target() => new PlayerActor(player, new[] { new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0) }, true, player.StaminaMax);
+        PlayerActor Target() => new PlayerActor(player, new[] { new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0) }, true, player.StaminaMax);
         Check(player.HitIFrame == 600, "배포 피격 무적 600");
 
         // 패턴1 내려찍기: 단일 창, 보스 ATK28 + 6 - DEF0 = 34, 치명 +14.

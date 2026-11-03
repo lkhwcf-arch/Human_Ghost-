@@ -35,10 +35,20 @@ internal static class MonsterChecks
         MonsterActor J() => new MonsterActor(jigegwi, JigegwiPatterns(), 300, 500, Random);
         AttackSpec[] PlayerAttacks() => new[]
         {
-            new AttackSpec(120,80,250,200,0,10,12), new AttackSpec(120,80,250,200,0,10,12),
-            new AttackSpec(200,100,400,0,10,20,12), new AttackSpec(100,80,200,0,-2,10,12)
+            new AttackSpec(120,80,250,200,0,8,12), new AttackSpec(120,80,250,200,0,8,12),
+            new AttackSpec(120,80,250,200,0,8,12), new AttackSpec(200,100,400,0,10,16,12),
+            new AttackSpec(100,80,200,0,-2,8,12)
         };
         PlayerActor P() => new PlayerActor(player, PlayerAttacks(), true, player.StaminaMax);
+
+        var cinematicTarget = P(); cinematicTarget.SetCutsceneDamageBlocked(true);
+        var cinematicAttacker = H(); cinematicAttacker.Observe(1, 150, 1); cinematicAttacker.Tick(400);
+        int cinematicRandomCalls = 0;
+        int CinematicRandom(int min, int max) { cinematicRandomCalls++; return max - 1; }
+        Check(cinematicAttacker.TryHitPlayer(2001, cinematicTarget, CinematicRandom) == HitOutcome.None && cinematicRandomCalls == 0 && cinematicTarget.Health == player.HP, "컷씬 피해 차단은 난수 추첨 전 적용");
+        Check(!cinematicTarget.TryBind(cinematicAttacker, 1000, 3, 15) && cinematicTarget.BoundBy == null && cinematicTarget.Health == player.HP, "컷씬 중 잡기 피해·구속 차단");
+        cinematicTarget.SetCutsceneDamageBlocked(false);
+        Check(cinematicAttacker.TryHitPlayer(2001, cinematicTarget, CinematicRandom) == HitOutcome.Hit && cinematicRandomCalls == 2 && cinematicTarget.Health < player.HP, "컷씬 해제 후 같은 판정 창 정상 피해");
 
         // 배회·발견·공격 거리 경계
         var h = H();

@@ -26,5 +26,6 @@ namespace HumanGhost.Data.Definitions
         Skill3 = 10021,
         Bound = 10022,
         PhaseChange = 10023,
+        Attack4 = 10024,
     }
 }

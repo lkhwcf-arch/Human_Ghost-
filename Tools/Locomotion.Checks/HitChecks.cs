@@ -29,8 +29,9 @@ internal static class HitChecks
         {
             var actor = new PlayerActor(player, new[]
             {
-                new AttackSpec(120,80,250,200,extra,poise,12), new AttackSpec(120,80,250,200,0,10,12),
-                new AttackSpec(200,100,400,0,10,20,12), new AttackSpec(100,80,200,0,-2,10,12)
+                new AttackSpec(120,80,250,200,extra,poise,12), new AttackSpec(120,80,250,200,0,8,12),
+                new AttackSpec(120,80,250,200,0,8,12), new AttackSpec(200,100,400,0,10,16,12),
+                new AttackSpec(100,80,200,0,-2,8,12)
             }, true, player.StaminaMax);
             actor.TryAttack(); actor.Tick(120);
             return actor;
@@ -55,7 +56,7 @@ internal static class HitChecks
         Check(p.TryHitMonster(1, j, Script(399)) == HitOutcome.Dodged && calls == 1 && j.Health == 50 && j.CurrentState == StateKey.Idle, "회피 p-1 성공: 치명 난수 0회·무피해");
         Check(p.TryHitMonster(1, j, Script(9999, 9999)) == HitOutcome.None && calls == 0 && j.Health == 50, "회피한 대상 재접촉은 재추첨 없음");
         Check(p.TryHitMonster(2, j, Script(9999, 9999)) == HitOutcome.Hit && calls == 2 && j.Health == 40, "다른 대상 ID는 같은 창에서 별도 판정");
-        var idle = new PlayerActor(player, new[] { new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0) }, true, player.StaminaMax);
+        var idle = new PlayerActor(player, new[] { new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0) }, true, player.StaminaMax);
         Check(idle.TryHitMonster(1, Jigegwi(), Script()) == HitOutcome.None && calls == 0, "비판정 상태는 난수 0회");
         var dead = Jigegwi(); dead.ReceiveHit(50);
         Check(Attacking().TryHitMonster(1, dead, Script()) == HitOutcome.None && calls == 0, "사망 대상은 난수 0회");
@@ -87,15 +88,15 @@ internal static class HitChecks
 
         // 일반몹→플레이어: 플레이어 Dodge 500, 허수귀 Crit 0 → 치명 불가, 피해 20.
         var h = husugwi(); h.Observe(1, 150, -1); h.Tick(400);
-        var target = new PlayerActor(player, new[] { new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0) }, true, player.StaminaMax);
+        var target = new PlayerActor(player, new[] { new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0) }, true, player.StaminaMax);
         Check(h.IsAttackActive && h.TryHitPlayer(2001, target, Script(500, 0)) == HitOutcome.Hit && calls == 2 && target.Health == 80, "몬스터 공격: 회피 실패·Crit 0은 난수 0에서도 실패");
         var second = husugwi(); second.Observe(1, 150, -1); second.Tick(400);
         Check(target.IsInvulnerable && second.TryHitPlayer(2001, target, Script()) == HitOutcome.None && calls == 0, "피격 무적 중 다른 몬스터 타격은 난수 0회");
         var dodger = husugwi(); dodger.Observe(1, 150, -1); dodger.Tick(400);
-        var fresh = new PlayerActor(player, new[] { new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0) }, true, player.StaminaMax);
+        var fresh = new PlayerActor(player, new[] { new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0) }, true, player.StaminaMax);
         Check(dodger.TryHitPlayer(2001, fresh, Script(499)) == HitOutcome.Dodged && calls == 1 && fresh.Health == 100 && fresh.CurrentState == StateKey.Idle, "플레이어 회피 성공");
         var g = husugwiGrab(); g.Observe(1, 150, 1); g.Tick(500);
-        var grabbed = new PlayerActor(player, new[] { new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0) }, true, player.StaminaMax);
+        var grabbed = new PlayerActor(player, new[] { new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0) }, true, player.StaminaMax);
         Check(g.TryHitPlayer(2001, grabbed, Script(500)) == HitOutcome.Hit && calls == 1 && grabbed.CurrentState == StateKey.Bound, "잡기는 회피만 판정·치명 난수 0회");
         Expect<ArgumentNullException>(() => husugwi().TryHitPlayer(2001, fresh, (Func<int, int, int>)null));
 

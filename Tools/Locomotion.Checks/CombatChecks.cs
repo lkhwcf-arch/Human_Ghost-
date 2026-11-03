@@ -12,8 +12,9 @@ internal static class CombatChecks
         { try { action(); } catch (T) { checks++; return; } throw new Exception("예외 누락 " + typeof(T).Name); }
         AttackSpec[] Specs() => new[]
         {
-            new AttackSpec(120,80,250,200,0,10,12), new AttackSpec(120,80,250,200,0,10,12),
-            new AttackSpec(200,100,400,0,10,20,12), new AttackSpec(100,80,200,0,-2,10,12)
+            new AttackSpec(120,80,250,200,0,8,12), new AttackSpec(120,80,250,200,0,8,12),
+            new AttackSpec(120,80,250,200,0,8,12), new AttackSpec(200,100,400,0,10,16,12),
+            new AttackSpec(100,80,200,0,-2,8,12)
         };
         PlayerActor Actor(int stamina = -1, bool grounded = true) => new PlayerActor(definition, Specs(), grounded, stamina < 0 ? definition.StaminaMax : stamina);
         BossPoise Boss()
@@ -45,8 +46,15 @@ internal static class CombatChecks
         Check(actor.TryAttack(), "2타 콤보 입력");
         actor.Tick(250);
         Check(actor.CurrentState == StateKey.Attack3 && actor.Stamina.Current == start - 36, "3타 연결");
-        Check(!actor.TryAttack(), "3타 뒤 추가 콤보 없음");
-        actor.Tick(700);
+        Check(!actor.TryAttack(), "3타도 선입력 버퍼 밖 입력은 거부");
+        actor.Tick(200);
+        Check(actor.CurrentAttack.ExtraDamage == 0 && actor.TryAttack(), "3타 후딜에서 4타 연결");
+        actor.Tick(250);
+        Check(actor.CurrentState == StateKey.Attack4 && actor.Stamina.Current == start - 48 && actor.CurrentAttack.ExtraDamage == 10, "4타 마무리와 총 소모48");
+        Check(!actor.TryAttack(), "4타 뒤 추가 콤보 없음");
+        actor.Tick(300);
+        Check(!actor.TryRoll() && actor.Stamina.Current == start - 48, "4타 후딜은 구르기 캔슬 불가·소모 없음");
+        actor.Tick(400);
         Check(actor.CurrentState == StateKey.Walk && actor.Locomotion.HorizontalSpeed == -definition.MoveSpeed, "콤보 종료 후 현재 이동 복구");
 
         var expired = Actor(); expired.TryAttack(); expired.Tick(400);
@@ -65,9 +73,23 @@ internal static class CombatChecks
         var poorChain = Actor(17); poorChain.TryAttack(); poorChain.Tick(200); poorChain.TryAttack(); poorChain.Tick(250);
         Check(poorChain.CurrentState == StateKey.Idle && poorChain.Stamina.Current == 5, "다음 타 비용 부족 시 콤보 종료");
         var air = Actor(grounded:false);
-        Check(air.TryAttack() && air.CurrentAttack.ExtraDamage == -2 && !air.TryAttack(), "공중 공격은 1타만");
+        Check(air.TryAttack() && air.CurrentAttack.ExtraDamage == -2 && air.CurrentAttack.PoiseDamage == 8 && !air.TryAttack(), "공중 공격은 1타만");
         air.Tick(380);
         Check(air.CurrentState == StateKey.Jump && !air.TryJump(), "공중 공격 종료도 접지 가정 없음");
+
+        var cinematic = Actor(); int cinematicHealthEvents = 0;
+        cinematic.HealthChanged += value => cinematicHealthEvents++;
+        cinematic.SetCutsceneDamageBlocked(true);
+        Check(cinematic.IsInvulnerable && !cinematic.ReceiveHit(int.MaxValue, true) && cinematic.Health == definition.HP && cinematicHealthEvents == 0, "컷씬 중 치명 피해·사망·HP통지 차단");
+        Check(!Actor().IsInvulnerable, "컷씬 피해 차단은 개체별");
+        Expect<ArgumentOutOfRangeException>(()=>cinematic.ReceiveHit(-1));
+        cinematic.SetCutsceneDamageBlocked(false);
+        Check(cinematic.ReceiveHit(5) && cinematic.Health == definition.HP - 5 && cinematicHealthEvents == 1, "컷씬 해제 뒤 정상 피해");
+        var layered = Actor(); layered.TryRoll();
+        layered.SetCutsceneDamageBlocked(true); layered.SetCutsceneDamageBlocked(false);
+        Check(layered.IsInvulnerable, "컷씬 해제가 기존 구르기 무적을 제거하지 않음");
+        layered.Tick(definition.RollIFrame);
+        Check(!layered.IsInvulnerable, "컷씬 해제 뒤 기존 무적 시간 종료");
 
         var roll = Actor(); roll.TryAttack(); roll.Tick(200); roll.TryAttack();
         int cost = roll.Stamina.Current;
@@ -123,11 +145,49 @@ internal static class CombatChecks
         Check(CombatMath.Damage(definition,target.Definition,6,false)==14, "기획 스킬 추가 피해 예시");
 
         var striker=Actor();var hitTarget=Boss();striker.TryAttack();striker.Tick(120);
-        Check(striker.TryHitBoss(1,hitTarget,false,false) && hitTarget.Health==412 && hitTarget.Poise==110, "공격 창에서 보스 HP·체세 동시 적용");
+        Check(striker.TryHitBoss(1,hitTarget,false,false) && hitTarget.Health==412 && hitTarget.Poise==112, "공격 창에서 보스 HP·체세 동시 적용");
         Check(!striker.TryHitBoss(1,hitTarget,false,true) && hitTarget.Health==412, "같은 공격 창은 중복 치명 피해도 거부");
         var dodgedTarget=Boss();
         Check(!striker.TryHitBoss(2,dodgedTarget,true,true) && dodgedTarget.Health==420 && dodgedTarget.Poise==120, "회피하면 HP·체세 모두 무피해");
 
+        void ReachThird(PlayerActor unit)
+        {
+            if (!unit.TryAttack()) throw new Exception("3타 검사 시작 실패");
+            for (int i = 0; i < 2; i++)
+            {
+                unit.Tick(200);
+                if (!unit.TryAttack()) throw new Exception("3타 검사 연결 실패");
+                unit.Tick(250);
+            }
+        }
+        var thirdCancel = Actor(); ReachThird(thirdCancel); thirdCancel.Tick(200);
+        Check(thirdCancel.TryRoll() && thirdCancel.CurrentState == StateKey.Roll, "3타는 후딜 구르기 캔슬 가능");
+        var thirdExpired = Actor(); ReachThird(thirdExpired); thirdExpired.Tick(400);
+        Check(!thirdExpired.TryAttack(), "3타 다음 타 입력 창 끝도 배타적");
+        thirdExpired.Tick(50);
+        Check(thirdExpired.TryAttack() && thirdExpired.CurrentState == StateKey.Attack1, "3타 입력 창 만료 뒤 1타 복귀");
+        var poorFourth = Actor(47); ReachThird(poorFourth); poorFourth.Tick(200); poorFourth.TryAttack(); poorFourth.Tick(250);
+        Check(!poorFourth.IsAttacking && poorFourth.CurrentState == StateKey.Idle && poorFourth.Stamina.Current == 11, "4타 비용 부족 시 추가 소모 없이 종료");
+        var fullCombo = Actor(); var comboBoss = Boss();
+        int spent = 0, previousStamina = fullCombo.Stamina.Current;
+        fullCombo.Stamina.Changed += current =>
+        {
+            if (current < previousStamina) spent += previousStamina - current;
+            previousStamina = current;
+        };
+        fullCombo.TryAttack();
+        for (int i = 0; i < 4; i++)
+        {
+            AttackSpec hit = fullCombo.CurrentAttack;
+            fullCombo.Tick(hit.Windup);
+            Check(fullCombo.TryHitBoss(99, comboBoss, false, false), "타수별 독립 판정 창");
+            fullCombo.Tick(hit.Active);
+            if (i < 3) Check(fullCombo.TryAttack(), "1~3타 후딜 큐");
+            fullCombo.Tick(hit.Recovery);
+        }
+        Check(comboBoss.Poise == 80 && comboBoss.Health == 378, "실제4타 HP42·체세40 적용");
+        Check(spent == 48 && fullCombo.Stamina.Current >= start - 48, "실제4타 총 소모48·시간 회복은 별도");
+        Expect<ArgumentException>(()=>new PlayerActor(definition,new AttackSpec[4],true,0));
         Expect<ArgumentOutOfRangeException>(()=>new AttackSpec(0,1,0,0,0,0,0));
         Expect<ArgumentOutOfRangeException>(()=>new AttackSpec(1,1,0,1,0,0,0));
         Expect<OverflowException>(()=>new AttackSpec(int.MaxValue,1,0,0,0,0,0));

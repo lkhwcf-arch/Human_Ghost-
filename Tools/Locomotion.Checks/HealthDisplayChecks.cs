@@ -19,7 +19,8 @@ internal static class HealthDisplayChecks
         PlayerActor NewPlayer() => new PlayerActor(definition, new[]
         {
             new AttackSpec(1,1,1,0,0,0,0), new AttackSpec(1,1,1,0,0,0,0),
-            new AttackSpec(1,1,1,0,0,0,0), new AttackSpec(1,1,1,0,0,0,0)
+            new AttackSpec(1,1,1,0,0,0,0), new AttackSpec(1,1,1,0,0,0,0),
+            new AttackSpec(1,1,1,0,0,0,0)
         }, true, definition.StaminaMax);
 
         var shown = new List<(int current, int maximum)>();

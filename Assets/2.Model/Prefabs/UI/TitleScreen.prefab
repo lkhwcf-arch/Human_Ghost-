@@ -1593,6 +1593,7 @@ MonoBehaviour:
     _textId: 30031
     _label: {fileID: 1057}
     _cursor: {fileID: 1058}
+  _newGamePopupId: 15005
   _confirmation: {fileID: 1070}
   _question: {fileID: 1077}
   _answerHint: {fileID: 1081}
