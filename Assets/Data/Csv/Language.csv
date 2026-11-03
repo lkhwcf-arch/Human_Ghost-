@@ -15,7 +15,7 @@ ID,KO,EN
 30014,관문,The Gate
 30015,베기,Slash
 30016,베기,Slash
-30017,내리베기,Downward Slash
+30017,베기,Slash
 30018,공중 베기,Aerial Slash
 30019,해체,Carve
 30020,결박 가르기,Bind Cleave
@@ -84,3 +84,6 @@ ID,KO,EN
 30203,덮어쓰기,Overwrite
 30204,새로 저장,Save New
 30205,취소,Cancel
+30206,내리베기,Downward Slash
+30207,기록 목록,Save Slots
+30208,빈 칸,Empty
