@@ -79,11 +79,7 @@ ID,KO,EN
 30109,도화골: 막손이 살던 마을. 이제는 불타 버렸다.,"Dohwagol: Makson's village, now burned to the ground."
 30110,장부방: 마을 사람들의 명부를 모아 둔 방.,Jangbubang: The room where the village registry is kept.
 30200,저장하시겠습니까?,Save your progress?
-30201,저장 칸이 가득 찼습니다. 가장 오래된 기록에 덮어쓰시겠습니까?,All save slots are full. Overwrite the oldest record?
-30202,새로 저장하시겠습니까? 가장 오래된 기록은 삭제됩니다.,Save as new? The oldest record will be deleted.
-30203,덮어쓰기,Overwrite
-30204,새로 저장,Save New
-30205,취소,Cancel
+30201,이 기록에 덮어쓰시겠습니까?,Overwrite this record?
 30206,내리베기,Downward Slash
 30207,기록 목록,Save Slots
 30208,빈 칸,Empty
