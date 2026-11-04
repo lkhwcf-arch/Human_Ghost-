@@ -38,6 +38,9 @@
     "Assets/Data/Json/BossState.json",
     "Assets/Data/Json/EliteState.json",
     "Assets/Data/Json/Item.json",
-    "Assets/Data/Json/PlayerState.json"
+    "Assets/Data/Json/PlayerState.json",
+    "Assets/Data/Json/spawn/8001.json",
+    "Assets/Data/Json/spawn/8002.json",
+    "Assets/Data/Json/spawn/8003.json"
   ]
 }
