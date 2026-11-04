@@ -28,6 +28,14 @@ namespace HumanGhost.Gameplay.Adapters
             if (_prompt == null && _promptPrefab != null) { _prompt = Instantiate(_promptPrefab, transform); _prompt.gameObject.SetActive(false); }
         }
 
+        // 맵을 런타임에 조립한 뒤 대상 묶음을 전달합니다.
+        public void SetTargetRoot(Transform root)
+        {
+            _targetRoot = root;
+            _targets.Clear();
+            if (root != null) _targets.AddRange(root.GetComponentsInChildren<IInteractable>(true));
+        }
+
         public void Disconnect()
         {
             _context = null; _selected = null;

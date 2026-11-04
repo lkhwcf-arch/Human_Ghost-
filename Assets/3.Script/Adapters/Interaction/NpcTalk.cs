@@ -12,6 +12,12 @@ namespace HumanGhost.Gameplay.Adapters
         [SerializeField, InspectorName("대화 뒤 임시 목표 안내")] private string _objective = "";
         private bool _talked;
 
+        // 맵 표식에 조립자가 붙일 때 씁니다.
+        public void Configure(string speaker, string[] temporaryLines, string objective)
+        {
+            _speaker = speaker; _temporaryLines = temporaryLines; _objective = objective;
+        }
+
         public bool CanInteract => true;
         public Vector2 Position => transform.position;
         public int PromptTextId => 30064;

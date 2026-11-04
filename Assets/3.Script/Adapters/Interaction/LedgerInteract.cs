@@ -11,6 +11,8 @@ namespace HumanGhost.Gameplay.Adapters
         [SerializeField, InspectorName("해금 문구 Language ID")] private int _unlockTextId = 30023;
         [SerializeField, InspectorName("임시 재조사 문구(시나리오 공급 전)")] private string _temporaryRepeatLine = "";
 
+        public void Configure(string temporaryRepeatLine) => _temporaryRepeatLine = temporaryRepeatLine;
+
         public bool CanInteract => true;
         public Vector2 Position => transform.position;
         public int PromptTextId => 30065;

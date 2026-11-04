@@ -15,6 +15,7 @@ namespace HumanGhost.Gameplay.Preview
     public sealed class DataLoadViewer : MonoBehaviour
     {
         [SerializeField, InspectorName("데이터 초기화")] private GameDataInitializer _data = null;
+        [SerializeField, InspectorName("스테이지 리소스 목록 (선택)")] private HumanGhost.Gameplay.Adapters.StageContentSet _content = null;
         private bool _open;
         private string _report = "";
         private string _selected = "";
@@ -56,11 +57,25 @@ namespace HumanGhost.Gameplay.Preview
             text.AppendLine("[Stage.SpawnFile] 스테이지 JSON 공급 여부");
             foreach (Stage stage in catalog.GetTable<Stage>().All)
             {
-                string name = System.IO.Path.GetFileNameWithoutExtension(stage.SpawnFile);
-                TextAsset file = _jsonFiles.Find(item => item.name == name);
-                text.AppendLine("  " + stage.ID + "  " + stage.SpawnFile + "  " + (file != null ? "읽음 " + Describe(file.text) : "미공급"));
+                TextAsset file = _content != null && _content.GetStage(stage.ID) != null ? _content.GetStage(stage.ID).Spawn : null;
+                if (file == null) { text.AppendLine("  " + stage.ID + "  " + stage.SpawnFile + "  미공급"); continue; }
+                if (!_jsonFiles.Contains(file)) _jsonFiles.Add(file);
+                text.AppendLine("  " + stage.ID + "  " + stage.SpawnFile + "  " + DescribeLayout(file.text));
             }
             _report = text.ToString();
+        }
+
+        private static string DescribeLayout(string json)
+        {
+            try
+            {
+                StageLayout layout = HumanGhost.Gameplay.Adapters.StageLayoutReader.Read(json);
+                int monsters = 0;
+                foreach (StagePlacement placement in layout.Placements)
+                    foreach (StageMonsterGroup group in placement.Monsters) monsters += group.MonsterCount;
+                return "플랫폼 " + layout.Placements.Count + "개 / 몬스터 " + monsters + "마리";
+            }
+            catch (Exception error) { return "해석 실패: " + error.Message; }
         }
 
         // 원문을 직접 해석해 파일 자체가 올바른 JSON인지 보여 줍니다.

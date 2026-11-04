@@ -6,6 +6,21 @@ internal static class GameLayerChecks
 {
     public static void Run(Action<bool, string> check)
     {
+        var layout = new StageLayout { FormatVersion = 1, StageID = 8002 };
+        layout.Placements.Add(new StagePlacement { PlacementID = 101, Prefab = "Ground_2", Anchor = "Anchor_Ground_2", Monsters = new System.Collections.Generic.List<StageMonsterGroup> {
+            new StageMonsterGroup { MonsterCode = 3002, MonsterCount = 2, Points = new System.Collections.Generic.List<System.Collections.Generic.List<int>> { new System.Collections.Generic.List<int> { 1750, 0 }, new System.Collections.Generic.List<int> { 6500, 0 } } },
+            new StageMonsterGroup { MonsterCode = 3003, MonsterCount = 2, Points = new System.Collections.Generic.List<System.Collections.Generic.List<int>> { new System.Collections.Generic.List<int> { 4050, 0 } } },
+            new StageMonsterGroup { MonsterCode = 9999, MonsterCount = 1, Points = new System.Collections.Generic.List<System.Collections.Generic.List<int>> { new System.Collections.Generic.List<int> { 1, 0 } } },
+            new StageMonsterGroup { MonsterCode = 3004, MonsterCount = 1, Points = new System.Collections.Generic.List<System.Collections.Generic.List<int>> { new System.Collections.Generic.List<int> { 2, 0 } } } } });
+        layout.Placements.Add(new StagePlacement { PlacementID = 101 });
+        var warnings = new System.Collections.Generic.List<string>();
+        var spawns = StageLayoutRules.ResolveMonsters(layout, c => c < 9000, c => c != 3004, warnings);
+        check(spawns.Count == 2 && spawns[0].Code == 3002 && spawns[0].X == 1750 && spawns[1].Sequence == 2, "JSON 몬스터 해석·순번");
+        check(warnings.Count == 3, "수량 불일치·없는 코드·배치 번호 중복 경고");
+        check(StageExitRules.CanLeave(8001, 3, true) && !StageExitRules.CanLeave(8001, 0, false), "맵 1 출구는 명부 조사 기준");
+        check(StageExitRules.CanLeave(8002, 0, false) && !StageExitRules.CanLeave(8002, 1, true), "다른 맵 출구는 남은 몬스터 기준");
+
+        check(StageLayoutRules.UsesGroundLine("Ground_2") && !StageLayoutRules.UsesGroundLine("Air_Platform_3"), "몬스터 높이 기준: Ground 바닥선, 발판 앵커");
         var speed = new GameSpeedState();
         check(speed.Scale == 1f, "기본 속도 1");
         speed.HitStop(50);

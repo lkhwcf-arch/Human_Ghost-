@@ -12,16 +12,16 @@ namespace HumanGhost.Gameplay.Adapters
         public TextboxScreen Textbox { get; }
         public StageProgress Progress { get; }
         public IReadOnlyDataCatalog Data { get; }
-        // 씬 이름·도착 앵커 이름. 로딩 화면을 거칩니다.
-        public Action<string, string> GoToScene { get; }
+        // 스테이지 ID·도착 앵커 이름. 로딩 화면을 거칩니다.
+        public Action<int, string> GoToStage { get; }
 
-        public InteractionContext(PlayerRuntime player, TextboxScreen textbox, StageProgress progress, IReadOnlyDataCatalog data, Action<string, string> goToScene)
+        public InteractionContext(PlayerRuntime player, TextboxScreen textbox, StageProgress progress, IReadOnlyDataCatalog data, Action<int, string> goToStage)
         {
             Player = player != null ? player : throw new ArgumentNullException(nameof(player));
             Textbox = textbox != null ? textbox : throw new ArgumentNullException(nameof(textbox));
             Progress = progress ?? throw new ArgumentNullException(nameof(progress));
             Data = data ?? throw new ArgumentNullException(nameof(data));
-            GoToScene = goToScene ?? throw new ArgumentNullException(nameof(goToScene));
+            GoToStage = goToStage ?? throw new ArgumentNullException(nameof(goToStage));
         }
 
         public string Text(int id) => Data.GetTable<Language>().Get(id).KO;

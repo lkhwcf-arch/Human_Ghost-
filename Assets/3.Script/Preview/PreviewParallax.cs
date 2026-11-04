@@ -9,48 +9,43 @@ namespace HumanGhost.Gameplay.Preview
     [DefaultExecutionOrder(1001)]
     public sealed class PreviewParallax : MonoBehaviour
     {
-        [System.Serializable]
-        private sealed class Layer
-        {
-            [SerializeField] private string _layerName = "";
-            [SerializeField] private Transform _target = null;
-            public string LayerName => _layerName;
-            public Transform Target => _target;
-        }
-
         [SerializeField, InspectorName("카메라")] private Transform _camera = null;
-        [SerializeField, InspectorName("Stage ID")] private int _stageId = 8001;
-        [SerializeField, InspectorName("레이어")] private Layer[] _layers = new Layer[0];
+        private readonly List<Transform> _targets = new List<Transform>();
         private readonly List<float> _rates = new List<float>();
         private readonly List<Vector3> _bases = new List<Vector3>();
         private Vector3 _cameraBase;
         private bool _ready;
 
-        public void Connect(IReadOnlyDataCatalog data)
+        // 맵 프리팹의 Background 아래 Sky=SKY, Mountains=FAR로 연결합니다.
+        public void Connect(IReadOnlyDataCatalog data, int stageId, Transform map)
         {
-            _rates.Clear(); _bases.Clear();
-            foreach (Layer layer in _layers)
-            {
-                float rate = 1f;
-                foreach (StageLayer row in data.GetTable<StageLayer>().All)
-                    if (row.StageID == _stageId && row.LayerName == layer.LayerName) rate = row.Parallax / 10000f;
-                _rates.Add(rate);
-                _bases.Add(layer.Target.position);
-            }
+            _targets.Clear(); _rates.Clear(); _bases.Clear();
+            Add(data, stageId, map.Find("Background/Sky"), "SKY");
+            Add(data, stageId, map.Find("Background/Mountains"), "FAR");
             _cameraBase = _camera.position;
             _ready = true;
+        }
+
+        private void Add(IReadOnlyDataCatalog data, int stageId, Transform target, string layerName)
+        {
+            if (target == null) return;
+            float rate = 1f;
+            foreach (StageLayer row in data.GetTable<StageLayer>().All)
+                if (row.StageID == stageId && row.LayerName == layerName) rate = row.Parallax / 10000f;
+            _targets.Add(target); _rates.Add(rate); _bases.Add(target.position);
         }
 
         private void LateUpdate()
         {
             if (!_ready) return;
             Vector3 moved = _camera.position - _cameraBase;
-            for (int i = 0; i < _layers.Length; i++)
+            for (int i = 0; i < _targets.Count; i++)
             {
+                if (_targets[i] == null) continue;
                 Vector3 position = _bases[i];
                 position.x += moved.x * (1f - _rates[i]);
                 position.y += moved.y * (1f - _rates[i]);
-                _layers[i].Target.position = position;
+                _targets[i].position = position;
             }
         }
     }

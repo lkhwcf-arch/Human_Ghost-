@@ -80,6 +80,7 @@ namespace HumanGhost.Gameplay.Adapters
             if (!Application.CanStreamedLevelBeLoaded(_newGameScene)) return false;
             Cursor.visible = false;
             if (_data == null || _data.Data == null || _loadingPrefab == null) return false;
+            HumanGhost.Gameplay.Preview.PreviewSession.Reset();
             Instantiate(_loadingPrefab).Begin(_newGameScene, _data.Data);
             return true;
         }

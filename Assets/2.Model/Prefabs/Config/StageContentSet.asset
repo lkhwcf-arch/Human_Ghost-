@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3ac99ee1f97560c9c99a70903ada9d1, type: 3}
+  m_Name: StageContentSet
+  m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Adapters.StageContentSet
+  _stages:
+  - StageId: 8001
+    Map: {fileID: 100001, guid: cbec6813b8f948c59baa03f25043b1b1, type: 3}
+    Spawn: {fileID: 4900000, guid: 91183a64a8fa2a34aa651edbf8b61b36, type: 3}
+    CameraSize: 5.625
+  - StageId: 8002
+    Map: {fileID: 100001, guid: 8a87228f0a6a54ae76ec53f439f27ac8, type: 3}
+    Spawn: {fileID: 4900000, guid: 62722336a89cef1468b60f5ae0f69c59, type: 3}
+    CameraSize: 5.625
+  - StageId: 8003
+    Map: {fileID: 100001, guid: 1a137872c61c417b4930f90c285ca199, type: 3}
+    Spawn: {fileID: 4900000, guid: 2f0c9a561c40fd440b0ab8e18fe599bd, type: 3}
+    CameraSize: 5.625
+  - StageId: 8004
+    Map: {fileID: 100001, guid: fdd5519674abbd2357376b28166685bb, type: 3}
+    Spawn: {fileID: 0}
+    CameraSize: 6.75
+  _platforms:
+  - {fileID: 9109195467246044568, guid: ddc56e26ecb3f4f4daf2d556292e3d67, type: 3}
+  - {fileID: 8349585168332058385, guid: f97501e6f2b51314482953fbdb25dd0b, type: 3}
+  - {fileID: 4742621084726110560, guid: 3524ee4eecb54cd4b8919ed8c76d79eb, type: 3}
+  - {fileID: 2859692741343339187, guid: ed09a6270f1249d5a4cdf3a6289d2242, type: 3}
+  - {fileID: 2484433185737253104, guid: c5f55d84025848e9a97dcb340dccff41, type: 3}
+  - {fileID: 2785467271462758542, guid: cb60175bdca545939bf7b8be3909d961, type: 3}
+  - {fileID: 3620066845938308408, guid: 99bded38e3624c238cfca0e56d78b43f, type: 3}
+  - {fileID: 5379491921416507250, guid: 0c49effcd0e44feba2931e58c6753f49, type: 3}
+  - {fileID: 2397718382560759558, guid: 34c81f35075248a4906446981102e6dc, type: 3}
+  - {fileID: 1241089076614678874, guid: 5e4eaeb6c2f14c078e2776c1792ed306, type: 3}
+  - {fileID: 4893484903893577351, guid: 3e7e41be9e944c4fbc1238375ea9001f, type: 3}
+  - {fileID: 4379492268620315727, guid: 19982ba71cfd4571b03ac3720b7b34d7, type: 3}
+  - {fileID: 527406660237909265, guid: 14df4ec628164bc7bb5324d8c8c5db81, type: 3}
+  - {fileID: 4989139901102594147, guid: f2a86879732744fea3df7214e5eb4ce8, type: 3}
+  - {fileID: 5380454234168463032, guid: 9688c75deda4461ca7184654bf305e44, type: 3}
+  - {fileID: 1042942950421756673, guid: a4b29d0d07684654ad1047a35a390b75, type: 3}
+  _monsters:
+  - Code: 3001
+    Prefab: {fileID: 2212268001790328552, guid: 776d91e27d429634096015e81eee0596, type: 3}
+  - Code: 3002
+    Prefab: {fileID: 8711519359393882842, guid: 2c4eccaa2474f0c4d82c9d847982a3a2, type: 3}
+  - Code: 3003
+    Prefab: {fileID: 171237571685844180, guid: 95715fa05a925ef4eaf28dde4461b79c, type: 3}
+  - Code: 3004
+    Prefab: {fileID: 5889506977236311024, guid: e45afd4f04aa73a48b73cbc7debe1e6a, type: 3}

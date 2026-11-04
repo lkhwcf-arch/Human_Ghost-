@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace HumanGhost.Gameplay.Preview
 {
-    // 호출자가 전달한 표식 묶음의 매달리기 모서리(K04)입니다. HangEdge_L은 왼쪽에서, HangEdge_R은 오른쪽에서 잡습니다.
+    // 호출자가 전달한 표식 묶음의 매달리기 모서리(K04)입니다. 표식 Hang_*을 플레이어가 있는 쪽에서 잡습니다.
     internal sealed class PreviewHangEdges
     {
         private const float _grabReach = 0.45f;
@@ -22,9 +22,9 @@ namespace HumanGhost.Gameplay.Preview
         {
             foreach (Transform marker in _markers)
             {
-                if (marker == null || !marker.name.StartsWith("HangEdge_", StringComparison.Ordinal)) continue;
-                int markerSide = marker.name.StartsWith("HangEdge_R", StringComparison.Ordinal) ? -1 : 1;
+                if (marker == null || !marker.name.StartsWith("Hang_", StringComparison.Ordinal)) continue;
                 Vector3 point = marker.position;
+                int markerSide = position.x <= point.x ? 1 : -1;
                 float front = position.x + markerSide * _halfSize.x;
                 if (Mathf.Abs(front - point.x) > _grabReach || Mathf.Abs(position.y + _halfSize.y - point.y) > _grabHeight) continue;
                 edge = marker; side = markerSide;

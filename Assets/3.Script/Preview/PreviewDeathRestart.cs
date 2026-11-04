@@ -3,8 +3,7 @@ using UnityEngine.SceneManagement;
 
 namespace HumanGhost.Gameplay.Preview
 {
-    // 사망 뒤 암전 재시작(K16add·O09)입니다. 체크포인트는 맵 1 시작 지점이며 같은 맵이라 로딩 없이 씬을 다시 불러옵니다.
-    // 서낭당 체크포인트·보스 처치 유지는 맵 3 연결 때 추가합니다.
+    // 사망 뒤 암전 재시작(K16add·O09)입니다. 세이브 포인트 전이면 맵 1 시작 지점, 지난 뒤면 맵 3 서낭당 앞입니다. 잡몹은 다시 나옵니다.
     internal sealed class PreviewDeathRestart
     {
         // 1500ms를 어두워짐·검은 화면·밝아짐으로 나눕니다. Dead 애니 원본 전까지 보여 줄 시간은 개발 값입니다.
@@ -23,7 +22,12 @@ namespace HumanGhost.Gameplay.Preview
             if (_deadSeconds < _deathAnimationSeconds) return;
             _restarting = true;
             string scene = _scene;
-            PreviewScreenFade.Run(_fadeStepSeconds, _fadeStepSeconds, _fadeStepSeconds, () => SceneManager.LoadScene(scene));
+            PreviewScreenFade.Run(_fadeStepSeconds, _fadeStepSeconds, _fadeStepSeconds, () =>
+            {
+                PreviewSession.CurrentStage = PreviewSession.CheckpointPassed ? 8003 : StageExitRules.VillageStage;
+                PreviewSession.ArrivalAnchor = PreviewSession.CheckpointPassed ? "Respawn_Seonangdang" : null;
+                SceneManager.LoadScene(scene);
+            });
         }
     }
 }

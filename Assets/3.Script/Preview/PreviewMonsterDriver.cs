@@ -25,6 +25,12 @@ namespace HumanGhost.Gameplay.Preview
         public SpriteRenderer Sprite => _sprite != null ? _sprite : _body;
         public Vector3 Position => _runtime.transform.position;
         public bool IsEngaged { get; private set; }
+        public bool IsDead => _monster.IsDead;
+        private bool _hasSpan;
+        private float _spanMin, _spanMax;
+
+        // 조립된 바닥에서 걸을 수 있는 구간입니다. 끝에 닿으면 벽처럼 다룹니다.
+        public void UseWalkableSpan(float min, float max) { _hasSpan = true; _spanMin = min; _spanMax = max; }
 
         // targetId: 이 몬스터의 장면 내 양수 개체 ID, playerTargetId: 플레이어의 개체 ID(데이터 ID와 별개).
         public PreviewMonsterDriver(MonsterRuntime runtime, PlayerRuntime player, SpriteRenderer playerBody, SpriteRenderer attackWindow,
@@ -67,6 +73,7 @@ namespace HumanGhost.Gameplay.Preview
             PlayerActor actor = _player.Actor;
             Vector3 position = _runtime.transform.position;
             position.x += _monster.Velocity / 100f * _worldUnitsPerTile * seconds;
+            if (_hasSpan) { minX = _spanMin; maxX = _spanMax; }
             bool wall = position.x < minX || position.x > maxX;
             position.x = Mathf.Clamp(position.x, minX, maxX);
             _runtime.transform.position = position;

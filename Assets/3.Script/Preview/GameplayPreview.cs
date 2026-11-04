@@ -53,7 +53,10 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField] private PreviewParallax _parallax = null;
         [SerializeField, InspectorName("피드백 글자 프리팹")] private TextMesh _feedbackTextPrefab = null;
         [SerializeField, InspectorName("보스 게이지 표시")] private bool _showBossGauge = true;
-        [SerializeField, InspectorName("Stage ID")] private int _stageId = 8001;
+        [SerializeField, InspectorName("Stage ID (리소스 목록이 없을 때)")] private int _stageId = 8001;
+        [Header("JSON 스테이지 조립 (없으면 씬 배치 사용)")]
+        [SerializeField, InspectorName("스테이지 리소스 목록")] private StageContentSet _content = null;
+        [SerializeField, InspectorName("맵 기준 위치")] private Vector3 _mapOrigin = new Vector3(-10f, -2.2f, 0f);
         [SerializeField, InspectorName("타이틀 씬")] private string _titleScene = "Title";
         [SerializeField, InspectorName("출구 앵커 이름")] private string _exitAnchor = "ExitRight";
         [Header("맵 이동 (맵이 없는 장면은 끔)")]
@@ -79,6 +82,12 @@ namespace HumanGhost.Gameplay.Preview
         private PreviewDeathRestart _deathRestart;
         private PreviewCombatFeedback _feedback;
         private PreviewStageExit _exit;
+        private PreviewStage _stage;
+        private PreviewBindGates _gates;
+        private Transform _markersRoot;
+        private Transform _savePoint;
+        private bool _bossActive = true;
+        private IReadOnlyDataCatalog _catalog;
         private CombatPresence _combat;
         private string _normalMusic, _battleMusic;
         private int _lastHealth;
@@ -115,6 +124,8 @@ namespace HumanGhost.Gameplay.Preview
                     // 이 장면의 사각형은 표시용 바닥 높이에 놓여 있습니다.
                     _player.Initialize(catalog, stamina, true);
                 }
+                _catalog = catalog;
+                BuildStage(catalog);
                 if (_boss.Actor == null) _boss.Initialize(catalog);
                 DisposeMonsterDrivers();
                 _monsterDrivers = new PreviewMonsterDriver[_monsters.Length];
@@ -127,9 +138,10 @@ namespace HumanGhost.Gameplay.Preview
                         _firstMonsterTargetId + i, _playerTargetId, _worldUnitsPerTile);
                 }
                 _bossDriver?.Dispose();
-                _bossDriver = _boss.Combat == null ? null : new PreviewBossDriver(_boss, _player, _bossBody, _playerBody,
+                _bossDriver = !_bossActive || _boss.Combat == null ? null : new PreviewBossDriver(_boss, _player, _bossBody, _playerBody,
                     _worldUnitsPerTile, _bossRangeTiles, _bossSecondRangeTiles, _bossSightTiles);
                 _actor = _player.Actor;
+                ApplyWalkableSpans();
                 if (_motion == null) _motion = new PreviewPlayerMotion(_player, _groundY, _useMapCollision, _playerHalfSize, GetMarkers(),
                     _actor.Definition.JumpHeight / 100f * _worldUnitsPerTile, _jumpSeconds);
                 _input = _player.GetComponent<PlayerLocomotionInput>();
@@ -139,8 +151,9 @@ namespace HumanGhost.Gameplay.Preview
                 _input.InteractPressed += OnInteract;
                 _input.VerticalPressed += OnVertical;
                 ConnectInteraction(catalog);
-                ConnectGameLayer(catalog);
                 MoveToArrival();
+                ConnectStageObjects(catalog);
+                ConnectGameLayer(catalog);
                 _actor.RollRequested += OnRoll;
                 _actor.SkillStarted += OnRoll;
                 if (_skillUnlocked || PreviewSession.Progress.IsCleared(_skillUnlockStageId)) _player.EnableSkill(catalog.GetTable<Skill>().Get(_skillId));
@@ -190,9 +203,9 @@ namespace HumanGhost.Gameplay.Preview
 
         private Transform[] GetMarkers()
         {
-            if (_hangEdgeRoot == null) return Array.Empty<Transform>();
-            var edges = new Transform[_hangEdgeRoot.childCount];
-            for (int i = 0; i < edges.Length; i++) edges[i] = _hangEdgeRoot.GetChild(i);
+            if (_markersRoot == null) return Array.Empty<Transform>();
+            var edges = new Transform[_markersRoot.childCount];
+            for (int i = 0; i < edges.Length; i++) edges[i] = _markersRoot.GetChild(i);
             return edges;
         }
 
@@ -204,7 +217,7 @@ namespace HumanGhost.Gameplay.Preview
 
         private void OnPlayerAttackWindowChanged(bool active)
         {
-            if (active && _player.isActiveAndEnabled && _boss.isActiveAndEnabled) CheckPlayerHits();
+            if (active && _player.isActiveAndEnabled) CheckPlayerHits();
         }
 
         // 임시 판정: 공격 범위 사각형과 보스/일반몹 사각형 겹침. 창 열림 순간과 매 프레임 호출하며 중복은 창 등록이 막습니다.
@@ -213,7 +226,7 @@ namespace HumanGhost.Gameplay.Preview
             if (_actor.Locomotion.Direction != 0) _facing = _actor.Locomotion.Direction;
             _attackWindow.transform.localPosition = new Vector3(_facing * 0.95f, 0f, 0.1f);
             if (!_actor.IsAttackActive) return;
-            if (_attackWindow.bounds.Intersects(_bossBody.bounds))
+            if (_bossActive && _attackWindow.bounds.Intersects(_bossBody.bounds))
                 _feedback?.OnPlayerHit(_actor.TryHitBoss(_bossTargetId, _boss.Actor, _player.HitRandom), null, _boss.transform.position);
             foreach (PreviewMonsterDriver monster in _monsterDrivers)
             {
@@ -243,14 +256,152 @@ namespace HumanGhost.Gameplay.Preview
             _input.AdvancePressed += OnAdvance;
             _textbox.OpenChanged += OnTextboxChanged;
             _actor.HealthChanged += OnPlayerHealthChanged;
-            var context = new InteractionContext(_player, _textbox, PreviewSession.Progress, catalog, (scene, anchor) =>
-            {
-                PreviewSession.ArrivalAnchor = anchor;
-                _input.SetLocked(true);
-                Cursor.visible = false;
-                Instantiate(_loadingPrefab).Begin(scene, catalog);
-            });
+            var context = new InteractionContext(_player, _textbox, PreviewSession.Progress, catalog, GoToStage);
             _interactor.Connect(context, () => _motion.CanGrab, _motion.TryGrab, CanExecute, TryExecute);
+        }
+
+        private bool _leaving;
+
+        private void GoToStage(int stageId, string anchor)
+        {
+            if (_leaving || _loadingPrefab == null) return;
+            _leaving = true;
+            PreviewSession.CurrentStage = stageId;
+            PreviewSession.ArrivalAnchor = anchor;
+            _input.SetLocked(true);
+            Cursor.visible = false;
+            Instantiate(_loadingPrefab).Begin(gameObject.scene.name, _catalog);
+        }
+
+        // 리소스 목록이 있으면 현재 스테이지의 맵·플랫폼·몬스터를 JSON으로 조립합니다.
+        private void BuildStage(IReadOnlyDataCatalog catalog)
+        {
+            _markersRoot = _hangEdgeRoot;
+            if (_content == null) return;
+            _stageId = PreviewSession.CurrentStage;
+            _stage = new PreviewStage(_content, _stageId, catalog, _mapOrigin);
+            _markersRoot = _stage.Markers;
+            _monsters = _stage.Monsters.ToArray();
+            _showBossGauge = _stageId == BossStage;
+            _bossActive = _stageId == BossStage && !PreviewSession.DefeatedBoss.Contains(BossStage);
+            if (_bossActive)
+            {
+                Transform spawn = new SpawnAnchors(_markersRoot).Get("Boss_Spawn");
+                float half = _bossBody.transform.lossyScale.y * 0.5f;
+                _boss.transform.position = new Vector3(spawn.position.x, spawn.position.y + half, _boss.transform.position.z);
+            }
+            _boss.gameObject.SetActive(_bossActive);
+            if (_interactor != null) _interactor.SetTargetRoot(_stage.Interactables);
+            // 몬스터 걷는 구간이 관문에서 끊기도록 먼저 만듭니다.
+            _gates = new PreviewBindGates(_markersRoot, _stageId);
+        }
+
+        private const int BossStage = 8004;
+
+        // 각 몬스터가 선 바닥의 끊기지 않은 구간을 찾습니다.
+        private void ApplyWalkableSpans()
+        {
+            if (_stage == null) return;
+            for (int i = 0; i < _monsters.Length; i++)
+            {
+                SpriteRenderer body = _monsters[i].GetComponentInChildren<SpriteRenderer>(true);
+                float half = body.transform.lossyScale.y * 0.5f;
+                Vector2 feet = (Vector2)_monsters[i].transform.position + Vector2.down * half;
+                _monsterDrivers[i].UseWalkableSpan(FindSpanEnd(feet, half, -1), FindSpanEnd(feet, half, 1));
+            }
+        }
+
+        private static float FindSpanEnd(Vector2 feet, float halfHeight, int direction)
+        {
+            const float step = 0.25f;
+            float x = feet.x;
+            for (int i = 0; i < 800; i++)
+            {
+                float next = x + direction * step;
+                // 앞이 막히거나 발밑이 비면 그 앞에서 멈춥니다.
+                if (IsSolid(new Vector2(next, feet.y + halfHeight)) || !IsSolid(new Vector2(next, feet.y - 0.1f))) break;
+                x = next;
+            }
+            return x;
+        }
+
+        private static bool IsSolid(Vector2 point)
+        {
+            foreach (Collider2D hit in Physics2D.OverlapPointAll(point))
+                if (!hit.isTrigger && hit.GetComponentInParent<MonsterRuntime>() == null && hit.GetComponentInParent<PlayerRuntime>() == null) return true;
+            return false;
+        }
+
+        // 맵 표식에 상호작용·관문·출구를 붙입니다. 표식 이름은 맵 프리팹 기준입니다.
+        private void ConnectStageObjects(IReadOnlyDataCatalog catalog)
+        {
+            if (_stage == null) return;
+            foreach (Transform marker in _markersRoot)
+            {
+                if (marker.name == "NPC_Refugee")
+                    AddTarget<NpcTalk>(marker).Configure("부상당한 피난민", new[] { "(임시) 피난민 대사는 시나리오 공급 뒤 교체합니다." }, "장부방을 살펴보자");
+                else if (marker.name == "Door_Jangbubang")
+                    AddTarget<LedgerInteract>(marker).Configure("(임시) 장부방 맵 공급 전이라 이 자리에서 명부를 조사합니다.");
+                else if (marker.name == "Seonangdang")
+                    _savePoint = AddTarget<ShrineInteract>(marker).transform;
+                else if (marker.name == "Exit_ToBossRoom")
+                    AddTarget<StageDoor>(marker).Configure(BossStage, "Spawn_FromHyeopgok", CanLeaveStage);
+            }
+            if (_interactor != null) _interactor.SetTargetRoot(_stage.Interactables);
+            Stage stage = catalog.GetTable<Stage>().Get(_stageId);
+            int previous = 0;
+            foreach (Stage other in catalog.GetTable<Stage>().All)
+                if (other.NextStage == _stageId && other.ID != StageExitRules.LedgerStage) previous = other.ID;
+            // 맵 3은 문으로만, 보스방은 되돌아갈 수 없습니다(L01).
+            int next = _stageId == 8003 ? 0 : stage.NextStage ?? 0;
+            // K14: ContentEnabled가 N인 맵은 건너뜁니다.
+            while (next != 0 && !catalog.GetTable<Stage>().Get(next).ContentEnabled) next = catalog.GetTable<Stage>().Get(next).NextStage ?? 0;
+            if (_stageId == BossStage) previous = 0;
+            if (_textbox != null)
+                _exit = new PreviewStageExit(_player, _stage.Area, next, previous, StageName(_stageId), CanLeaveStage, GoToStage, _textbox,
+                    _stageId == StageExitRules.VillageStage ? "장부방을 살펴보자" : "남은 요괴가 있다");
+            if (_followCamera != null)
+            {
+                // 보스방은 바닥 아래를 비추지 않게 맵 기준 높이에 고정합니다.
+                if (_stageId == BossStage) _followCamera.SetFixed(new Vector2(_stage.Area.center.x, _stage.MapRoot.position.y + _stage.CameraSize), _stage.CameraSize);
+                else _followCamera.SetArea(_stage.Area.min.x + 1f, _stage.Area.max.x - 1f, _mapOrigin.y + 4f, _stage.CameraSize);
+            }
+        }
+
+        private T AddTarget<T>(Transform marker) where T : Component
+        {
+            var holder = new GameObject(marker.name + "_Target");
+            holder.transform.SetParent(_stage.Interactables, false);
+            holder.transform.position = marker.position + Vector3.up * _playerHalfSize.y;
+            return holder.AddComponent<T>();
+        }
+
+        private bool CanLeaveStage()
+        {
+            int remaining = 0;
+            foreach (PreviewMonsterDriver monster in _monsterDrivers) if (!monster.IsDead) remaining++;
+            return StageExitRules.CanLeave(_stageId, remaining, PreviewSession.Progress.IsCleared(StageExitRules.LedgerStage));
+        }
+
+        private static string StageName(int stageId)
+        {
+            switch (stageId)
+            {
+                case 8001: return "Dohwagol";
+                case 8002: return "Sangil";
+                case 8003: return "Hyeopgok";
+                case 8004: return "BossRoom";
+                default: return "Jangbubang";
+            }
+        }
+
+        // 세이브 포인트(K05_1): 잡몹을 다 잡은 뒤 지나가면 체크포인트가 됩니다. 저장 파일 연결은 저장 담당 작업입니다.
+        private void StepSavePoint()
+        {
+            if (_savePoint == null || PreviewSession.CheckpointPassed) return;
+            if (_player.transform.position.x < _savePoint.position.x || !CanLeaveStage()) return;
+            PreviewSession.CheckpointPassed = true;
+            _savePoint.GetComponent<ShrineInteract>().SetActive(true);
         }
 
         private void DisconnectInteraction()
@@ -261,8 +412,8 @@ namespace HumanGhost.Gameplay.Preview
         }
 
         private bool IsInExecutionRange()
-            => Vector2.Distance(_player.transform.position, _boss.transform.position) <= _executionRangeTiles * _worldUnitsPerTile;
-        private bool CanExecute() => _boss.Actor.IsExposed && IsInExecutionRange() && _actor.Locomotion.IsGrounded;
+            => _bossActive && Vector2.Distance(_player.transform.position, _boss.transform.position) <= _executionRangeTiles * _worldUnitsPerTile;
+        private bool CanExecute() => _bossActive && _boss.Actor.IsExposed && IsInExecutionRange() && _actor.Locomotion.IsGrounded;
         private bool TryExecute()
         {
             if (!_actor.Locomotion.IsGrounded || !_actor.TryExecute(_boss.Actor, IsInExecutionRange())) return false;
@@ -286,14 +437,12 @@ namespace HumanGhost.Gameplay.Preview
             {
                 CanvasGroup healthGroup = _healthAnchorRoot != null ? _healthAnchorRoot.GetComponentInParent<Canvas>().GetComponent<CanvasGroup>() : null;
                 if (healthGroup == null && _healthAnchorRoot != null) healthGroup = _healthAnchorRoot.GetComponentInParent<Canvas>().gameObject.AddComponent<CanvasGroup>();
-                _hud.Connect(_actor, _boss.Actor, catalog.GetTable<Language>().Get(30006).KO, _boss.Actor.Poise, _showBossGauge, healthGroup);
+                _hud.Connect(_actor, _boss.Actor, catalog.GetTable<Language>().Get(30006).KO, _boss.Actor.Poise, _showBossGauge && _bossActive, healthGroup);
                 _actor.StaminaRefused += _hud.FlashStamina;
             }
             _actor.HealthChanged += OnGameLayerHealthChanged;
-            if (_parallax != null) _parallax.Connect(catalog);
+            if (_parallax != null && _stage != null) _parallax.Connect(catalog, _stageId, _stage.MapRoot);
             if (_pause != null) _pause.Connect(catalog, _speed, _audio, settings, CanPause, _input.SetLocked, ReturnToTitle, OnSettingsChanged);
-            if (_textbox != null && _hangEdgeRoot != null && _hangEdgeRoot.Find(_exitAnchor) != null)
-                _exit = new PreviewStageExit(_player, _hangEdgeRoot.Find(_exitAnchor), () => PreviewSession.Progress.IsCleared(_skillUnlockStageId), _textbox, "장부방을 살펴보자", "(임시) 다음 맵 미연결");
         }
 
         private void DisconnectGameLayer()
@@ -345,6 +494,8 @@ namespace HumanGhost.Gameplay.Preview
                 _hud.SetVisible(!PreviewScreenFade.IsActive);
             }
             _exit?.Step();
+            StepSavePoint();
+            _gates?.Step(_actor, _attackWindow.bounds);
             _feedback?.Step(Time.unscaledDeltaTime);
         }
 
@@ -352,8 +503,17 @@ namespace HumanGhost.Gameplay.Preview
         {
             string anchor = PreviewSession.ArrivalAnchor;
             PreviewSession.ArrivalAnchor = null;
-            if (string.IsNullOrEmpty(anchor) || _hangEdgeRoot == null) return;
-            Vector3 point = new SpawnAnchors(_hangEdgeRoot).Get(anchor).position;
+            if (_markersRoot == null) return;
+            if (string.IsNullOrEmpty(anchor))
+            {
+                if (_stage == null) return;
+                anchor = "PlayerStart";
+            }
+            // 도착 앵커가 없는 맵은 시작 지점에 섭니다(L09_1).
+            var anchors = new SpawnAnchors(_markersRoot);
+            Vector3 point;
+            try { point = anchors.Get(anchor).position; }
+            catch (InvalidOperationException) { point = anchors.Get("PlayerStart").position; }
             _player.transform.position = new Vector3(point.x, point.y + _playerHalfSize.y, _player.transform.position.z);
         }
 
@@ -362,7 +522,7 @@ namespace HumanGhost.Gameplay.Preview
 
         private void LateUpdate()
         {
-            if (!_subscribed || !_player.isActiveAndEnabled || !_boss.isActiveAndEnabled) return;
+            if (!_subscribed || !_player.isActiveAndEnabled || (_bossActive && !_boss.isActiveAndEnabled)) return;
             if (_actor.Locomotion.Direction != 0) _facing = _actor.Locomotion.Direction;
             _deathRestart?.Step(_actor, Time.deltaTime);
             // 암전 중 입력은 받지 않습니다(O09).
@@ -387,7 +547,7 @@ namespace HumanGhost.Gameplay.Preview
             Keyboard keyboard = Keyboard.current;
             if (keyboard == null) return;
             if (keyboard.hKey.wasPressedThisFrame)
-                _actor.ReceiveHit(CombatMath.Damage(_boss.Actor.Definition, _actor.Definition, 0, false));
+                { if (_bossActive) _actor.ReceiveHit(CombatMath.Damage(_boss.Actor.Definition, _actor.Definition, 0, false)); }
             // 연출 완료를 수동으로 대신하는 임시 키. 종료 체세 정책은 Inspector에서 명시합니다.
             if (keyboard.rKey.wasPressedThisFrame)
                 _actor.CompleteExecution(_restorePoiseAfterPreviewExecution);
@@ -396,6 +556,7 @@ namespace HumanGhost.Gameplay.Preview
         private void RefreshLabels()
         {
             PreviewPresentation.RefreshPlayer(_actor, _playerLabel, _playerBody, _playerColor);
+            if (!_bossActive) return;
             PreviewPresentation.RefreshBoss(_boss.Actor, _bossLabel, _bossBody, _bossColor);
             if (_boss.Combat != null && _boss.Combat.IsAttacking) _bossBody.color = new Color(1f, 0.2f, 0.2f);
         }
