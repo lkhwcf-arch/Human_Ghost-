@@ -3,4 +3,4 @@ ID,TextID,Order,NextStage,BGM_Normal,BGM_Battle,SpawnFile,Active,ContentEnabled,
 8002,30012,3,8003,BGM_FIELD,BGM_BATTLE,spawn/8002.json,Y,Y,1,8005,1
 8003,30013,4,8004,BGM_FIELD,BGM_BATTLE,spawn/8003.json,Y,Y,0,0,0
 8004,30014,5,,,BGM_BOSS,spawn/8004.json,Y,Y,0,0,0
-8005,30027,2,8002,BGM_VILLAGE,,spawn/8005.json,Y,Y,0,0,0
+8005,30027,2,,BGM_VILLAGE,,spawn/8005.json,Y,Y,0,0,0
