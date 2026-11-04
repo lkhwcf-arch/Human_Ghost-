@@ -26,6 +26,8 @@ namespace HumanGhost.Gameplay.Preview
         public Vector3 Position => _runtime.transform.position;
         public bool IsEngaged { get; private set; }
         public bool IsDead => _monster.IsDead;
+        // 죽으면 불을 남기는 개체를 평소에도 구분합니다. 전용 그림 공급 뒤 지웁니다.
+        private static readonly Color _burningTint = new Color(1f, 0.65f, 0.45f);
         private bool _hasSpan;
         private float _spanMin, _spanMax;
 
@@ -43,7 +45,8 @@ namespace HumanGhost.Gameplay.Preview
             if (targetId <= 0 || playerTargetId <= 0 || targetId == playerTargetId) throw new ArgumentOutOfRangeException(nameof(targetId));
             _monster = runtime.Actor ?? throw new InvalidOperationException("일반몹 초기화가 필요합니다.");
             _targetId = targetId; _playerTargetId = playerTargetId; _worldUnitsPerTile = worldUnitsPerTile;
-            _body = runtime.GetComponentInChildren<SpriteRenderer>();
+            // 매복 몬스터는 꺼진 채 연결합니다.
+            _body = runtime.GetComponentInChildren<SpriteRenderer>(true);
             if (_body == null) throw new InvalidOperationException("일반몹 임시 사각형이 없습니다.");
             _sprite = runtime.transform.Find("PreviewSprite")?.GetComponent<SpriteRenderer>();
             _color = _body.color;
@@ -65,7 +68,7 @@ namespace HumanGhost.Gameplay.Preview
             {
                 _sprite.flipX = _monster.Facing > 0;
                 _sprite.color = _monster.IsDead ? Color.gray : _monster.CurrentState == StateKey.Stun ? new Color(0.75f,0.35f,0.95f) :
-                    _monster.IsAttackActive ? new Color(1f,0.3f,0.3f) : Color.white;
+                    _monster.IsAttackActive ? new Color(1f,0.3f,0.3f) : _runtime.Patterns.LeavesDeathFire ? _burningTint : Color.white;
             }
             StepFire(seconds);
             if (_monster.IsDead) { IsEngaged = false; _body.color = Color.gray; return; }
@@ -122,8 +125,9 @@ namespace HumanGhost.Gameplay.Preview
                 if (fire != null)
                 {
                     float width = _runtime.Patterns.DeathFireHalfWidth / 50f * _worldUnitsPerTile;
-                    SpriteRenderer view = CreateView("PreviewGroundFire", new Color(1f, 0.45f, 0.1f, 0.8f), new Vector3(width, 0.25f, 1f));
-                    view.transform.position = _runtime.transform.position + Vector3.down * (_body.bounds.extents.y - 0.12f);
+                    // 피해 범위가 눈에 보이도록 몸 아래쪽을 덮는 높이로 그립니다.
+                    SpriteRenderer view = CreateView("PreviewGroundFire", new Color(1f, 0.45f, 0.1f, 0.8f), new Vector3(width, 0.6f, 1f));
+                    view.transform.position = _runtime.transform.position + Vector3.down * (_body.bounds.extents.y - 0.3f);
                     _fire = new PreviewGroundFireView(fire, view);
                 }
             }

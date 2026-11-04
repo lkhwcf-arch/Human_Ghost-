@@ -93,6 +93,9 @@ namespace HumanGhost.Gameplay.Preview
         private int _lastHealth;
         private bool _bossHitThisFrame;
         private const int _combatHoldMilliseconds = 3000;
+        // 해체 연출 원본 전까지 쓰는 개발 값입니다. 연출이 붙으면 그 완료 시점으로 교체합니다.
+        private const float _executionSeconds = 0.9f;
+        private float _executionRemaining;
 
         public bool IsReady => _subscribed;
         public PlayerRuntime Player => _player;
@@ -158,6 +161,7 @@ namespace HumanGhost.Gameplay.Preview
                 _actor.SkillStarted += OnRoll;
                 if (_skillUnlocked || PreviewSession.Progress.IsCleared(_skillUnlockStageId)) _player.EnableSkill(catalog.GetTable<Skill>().Get(_skillId));
                 _player.EnableHerbs(catalog.GetTable<Buff>().Get(_herbBuffId));
+                RestoreCarriedVitals();
                 _deathRestart = _restartOnDeath ? new PreviewDeathRestart(gameObject.scene.name) : null;
                 // 판정 창이 한 프레임 안에 열리고 닫혀도 열리는 순간 한 번은 접촉을 확인합니다.
                 _actor.AttackWindowChanged += OnPlayerAttackWindowChanged;
@@ -266,11 +270,24 @@ namespace HumanGhost.Gameplay.Preview
         {
             if (_leaving || _loadingPrefab == null) return;
             _leaving = true;
+            PreviewSession.CarriedHealth = _actor.Health;
+            PreviewSession.CarriedHerbs = _actor.HerbCount;
             PreviewSession.CurrentStage = stageId;
             PreviewSession.ArrivalAnchor = anchor;
             _input.SetLocked(true);
             Cursor.visible = false;
             Instantiate(_loadingPrefab).Begin(gameObject.scene.name, _catalog);
+        }
+
+        // 맵을 옮겨도 HP·약초는 회복되지 않습니다. 표시 연결 전이라 피격 연출도 나가지 않게 기준값을 맞춥니다.
+        private void RestoreCarriedVitals()
+        {
+            if (PreviewSession.CarriedHealth is int health)
+            {
+                _lastHealth = health;
+                _actor.RestoreVitals(health, PreviewSession.CarriedHerbs);
+            }
+            PreviewSession.CarriedHealth = null;
         }
 
         // 리소스 목록이 있으면 현재 스테이지의 맵·플랫폼·몬스터를 JSON으로 조립합니다.
@@ -376,11 +393,23 @@ namespace HumanGhost.Gameplay.Preview
             return holder.AddComponent<T>();
         }
 
-        private bool CanLeaveStage()
+        private int RemainingMonsters()
         {
             int remaining = 0;
             foreach (PreviewMonsterDriver monster in _monsterDrivers) if (!monster.IsDead) remaining++;
-            return StageExitRules.CanLeave(_stageId, remaining, PreviewSession.Progress.IsCleared(StageExitRules.LedgerStage));
+            return remaining;
+        }
+
+        private bool CanLeaveStage() => StageExitRules.CanLeave(_stageId, RemainingMonsters(),
+            PreviewSession.Progress.IsCleared(StageExitRules.LedgerStage), PreviewSession.Progress.IsCleared(_stageId));
+
+        // 잡몹을 다 잡은 맵을 기록합니다. 맵 1은 명부, 보스방은 보스 처치가 기준이라 제외합니다.
+        // 처치한 보스는 사망 재시작·재진입 때 다시 나오지 않습니다(K16add).
+        private void StepStageClear()
+        {
+            if (_bossActive && _boss.Actor.IsDead) PreviewSession.DefeatedBoss.Add(BossStage);
+            if (_stage != null && _stageId != StageExitRules.VillageStage && _stageId != BossStage && RemainingMonsters() == 0)
+                PreviewSession.Progress.Clear(_stageId);
         }
 
         private static string StageName(int stageId)
@@ -418,6 +447,7 @@ namespace HumanGhost.Gameplay.Preview
         {
             if (!_actor.Locomotion.IsGrounded || !_actor.TryExecute(_boss.Actor, IsInExecutionRange())) return false;
             _feedback?.OnExecute();
+            _executionRemaining = _executionSeconds;
             return true;
         }
 
@@ -494,10 +524,14 @@ namespace HumanGhost.Gameplay.Preview
                 _hud.SetVisible(!PreviewScreenFade.IsActive);
             }
             _exit?.Step();
+            _stage?.StepAmbushes(_player.transform.position.x);
+            StepStageClear();
             StepSavePoint();
-            _gates?.Step(_actor, _attackWindow.bounds);
+            _gates?.Step(_actor, _attackWindow.bounds, _playerBody.bounds, ShowGateHint);
             _feedback?.Step(Time.unscaledDeltaTime);
         }
+
+        private void ShowGateHint() { if (_textbox != null) _textbox.ShowObjective("결박이 길을 막고 있다. Z(결박 가르기)로 베어 내자"); }
 
         private void MoveToArrival()
         {
@@ -525,12 +559,15 @@ namespace HumanGhost.Gameplay.Preview
             if (!_subscribed || !_player.isActiveAndEnabled || (_bossActive && !_boss.isActiveAndEnabled)) return;
             if (_actor.Locomotion.Direction != 0) _facing = _actor.Locomotion.Direction;
             _deathRestart?.Step(_actor, Time.deltaTime);
+            StepExecution(Time.deltaTime);
             // 암전 중 입력은 받지 않습니다(O09).
             if (_input.enabled == PreviewScreenFade.IsActive) _input.enabled = !PreviewScreenFade.IsActive;
             float combatMin = _useMapCollision ? _combatMinX : -_stageHalfWidth;
             float combatMax = _useMapCollision ? _combatMaxX : _stageHalfWidth;
-            _motion.Move(Time.deltaTime, _worldUnitsPerTile, _useMapCollision ? float.NegativeInfinity : -_stageHalfWidth,
-                _useMapCollision ? float.PositiveInfinity : _stageHalfWidth);
+            // 출구가 잠겨 있어도 맵 밖으로 나가 떨어지지 않게 맵 끝에서 막습니다.
+            float moveMin = _stage != null ? _stage.Area.min.x + _playerHalfSize.x : _useMapCollision ? float.NegativeInfinity : -_stageHalfWidth;
+            float moveMax = _stage != null ? _stage.Area.max.x - _playerHalfSize.x : _useMapCollision ? float.PositiveInfinity : _stageHalfWidth;
+            _motion.Move(Time.deltaTime, _worldUnitsPerTile, moveMin, moveMax);
             _attackWindow.enabled = _actor.IsAttackActive;
             // 몬스터 이동 후 플레이어 판정을 확인합니다(기존 순서 유지).
             foreach (PreviewMonsterDriver monster in _monsterDrivers)
@@ -542,15 +579,20 @@ namespace HumanGhost.Gameplay.Preview
             StepGameLayer();
         }
 
+        // 해체는 완료 호출 전까지 플레이어·보스를 모두 멈춥니다. 일시정지·히트스톱 동안은 흐르지 않습니다.
+        private void StepExecution(float seconds)
+        {
+            if (_actor.CurrentState != StateKey.Execute) return;
+            _executionRemaining -= seconds;
+            if (_executionRemaining <= 0f) _actor.CompleteExecution(_restorePoiseAfterPreviewExecution);
+        }
+
         private void HandlePreviewKeys()
         {
             Keyboard keyboard = Keyboard.current;
             if (keyboard == null) return;
             if (keyboard.hKey.wasPressedThisFrame)
                 { if (_bossActive) _actor.ReceiveHit(CombatMath.Damage(_boss.Actor.Definition, _actor.Definition, 0, false)); }
-            // 연출 완료를 수동으로 대신하는 임시 키. 종료 체세 정책은 Inspector에서 명시합니다.
-            if (keyboard.rKey.wasPressedThisFrame)
-                _actor.CompleteExecution(_restorePoiseAfterPreviewExecution);
         }
 
         private void RefreshLabels()

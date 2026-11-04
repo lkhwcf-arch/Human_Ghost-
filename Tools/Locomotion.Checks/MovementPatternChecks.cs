@@ -106,6 +106,14 @@ internal static class MovementPatternChecks
         faller.Tick(player.HitIFrame + player.HitStunTime);
         check(faller.Health == 10 && faller.ApplyFall(10) && faller.IsDead && faller.CurrentState == StateKey.Dead, "HP 10 이하 낙사");
 
+        var carried = new PlayerActor(player, Attacks(), true, player.StaminaMax);
+        carried.ConfigureHerbs(40, 800, 3);
+        carried.RestoreVitals(37, 1);
+        check(carried.Health == 37 && carried.HerbCount == 1 && !carried.IsDead && carried.CurrentState == StateKey.Idle, "맵 이동 뒤 HP·약초 유지");
+        bool rejected = false;
+        try { carried.RestoreVitals(0, 1); } catch (System.ArgumentOutOfRangeException) { rejected = true; }
+        check(rejected && carried.Health == 37, "HP 0은 이어받지 않음");
+
         var healer = new PlayerActor(player, Attacks(), true, player.StaminaMax);
         check(!healer.TryUseHerb(), "약초 미연결이면 거부");
         healer.ConfigureHerbs(40, 800, 3);

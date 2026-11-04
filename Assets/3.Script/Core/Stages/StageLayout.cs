@@ -26,15 +26,18 @@ namespace HumanGhost.Gameplay
         public int MonsterCount { get; set; }
         // FormatVersion 2: 그 줄 플랫폼에 붙는 자리, 타일×100입니다. Ground_N은 [앵커 기준 x, 바닥선 기준 높이], Air_Platform_N은 [앵커(왼쪽 끝) 기준 x, 발판 윗면 기준 높이]입니다.
         public List<List<int>> Points { get; set; } = new List<List<int>>();
+        // 매복(K07 trigger): 플레이어가 이 x(맵 기준 타일×100)를 지나면 나옵니다. 없으면 바로 놓습니다.
+        public int? Trigger { get; set; }
     }
 
     // 실제 놓을 몬스터 한 마리입니다. 처치 기록 키는 StageID·PlacementID·Sequence입니다.
     public readonly struct StageMonsterSpawn
     {
         public readonly int PlacementId, Code, Sequence, X, Height;
-        public StageMonsterSpawn(int placementId, int code, int sequence, int x, int height)
+        public readonly int? Trigger;
+        public StageMonsterSpawn(int placementId, int code, int sequence, int x, int height, int? trigger = null)
         {
-            PlacementId = placementId; Code = code; Sequence = sequence; X = x; Height = height;
+            PlacementId = placementId; Code = code; Sequence = sequence; X = x; Height = height; Trigger = trigger;
         }
     }
 
@@ -67,7 +70,7 @@ namespace HumanGhost.Gameplay
                     {
                         sequence++;
                         if (point == null || point.Count != 2) { warnings.Add($"배치 {placement.PlacementID}: 위치 형식이 잘못됐습니다."); continue; }
-                        result.Add(new StageMonsterSpawn(placement.PlacementID, group.MonsterCode, sequence, point[0], point[1]));
+                        result.Add(new StageMonsterSpawn(placement.PlacementID, group.MonsterCode, sequence, point[0], point[1], group.Trigger));
                     }
                 }
             }
@@ -79,7 +82,8 @@ namespace HumanGhost.Gameplay
     public static class StageExitRules
     {
         public const int VillageStage = 8001, LedgerStage = 8005;
-        public static bool CanLeave(int stageId, int remainingMonsters, bool ledgerCleared)
-            => stageId == VillageStage ? ledgerCleared : remainingMonsters == 0;
+        // 한 번 클리어한 맵(K14 clearedStages)은 잡몹이 다시 나와도 출구가 열려 있습니다.
+        public static bool CanLeave(int stageId, int remainingMonsters, bool ledgerCleared, bool stageCleared)
+            => stageId == VillageStage ? ledgerCleared : stageCleared || remainingMonsters == 0;
     }
 }

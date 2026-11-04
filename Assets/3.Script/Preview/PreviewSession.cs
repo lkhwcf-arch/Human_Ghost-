@@ -11,6 +11,9 @@ namespace HumanGhost.Gameplay.Preview
         public static int CurrentStage = StageExitRules.VillageStage;
         public static bool CheckpointPassed;
         public static string ArrivalAnchor;
+        // 맵 이동으로 씬을 다시 불러와도 이어 갈 값입니다. 사망 재시작은 비워서 가득 채웁니다(K16add).
+        public static int? CarriedHealth;
+        public static int CarriedHerbs;
 
         // 새로 시작입니다. 인트로 뒤 맵 1 시작 지점입니다.
         public static void Reset()
@@ -21,6 +24,7 @@ namespace HumanGhost.Gameplay.Preview
             CurrentStage = StageExitRules.VillageStage;
             CheckpointPassed = false;
             ArrivalAnchor = null;
+            CarriedHealth = null;
         }
     }
 }

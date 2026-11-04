@@ -33,11 +33,13 @@ namespace HumanGhost.Gameplay.Preview
                     break;
                 case HitOutcome.Hit:
                     _speed?.State.HitStop(_normalStop);
+                    _camera?.Shake(0.06f, 0.08f);
                     AddFlash(target, Color.white);
                     _audio?.PlayEffect("SFX_HIT");
                     break;
                 case HitOutcome.Critical:
                     _speed?.State.Critical(_criticalStop, _criticalSlow, _criticalSlowRate);
+                    _camera?.Shake(0.14f, 0.14f);
                     AddFlash(target, new Color(1f, 0.15f, 0.15f));
                     _audio?.PlayEffect("SFX_CRIT");
                     break;

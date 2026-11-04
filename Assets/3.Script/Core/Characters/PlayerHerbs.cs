@@ -25,5 +25,11 @@ namespace HumanGhost.Gameplay
         }
 
         public void Refill() => Count = _charges;
+
+        public void Restore(int count)
+        {
+            if (count < 0 || count > _charges) throw new ArgumentOutOfRangeException(nameof(count));
+            Count = count;
+        }
     }
 }
