@@ -2,6 +2,7 @@ using System;
 using HumanGhost.Data.Definitions;
 using HumanGhost.Data.Storage;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace HumanGhost.Gameplay.Presentation
@@ -16,12 +17,23 @@ namespace HumanGhost.Gameplay.Presentation
             [SerializeField] private int _textId = 0;
             [SerializeField] private Text _label = null;
             [SerializeField] private GameObject _cursor = null;
-            public void SetText(IReadOnlyDataTable<Language> language) => _label.text = language.Get(_textId).KO;
+            [SerializeField, InspectorName("글자 이미지(없으면 문구 표시)")] private Image _labelImage = null;
+            public TitleAction Action => _action;
+            public GameObject Root => _label.transform.parent.gameObject;
+            public void SetText(IReadOnlyDataTable<Language> language)
+            {
+                _label.text = language.Get(_textId).KO;
+                // 이미지 항목도 문구를 유지해 이미지를 빼면 언어 표시로 돌아갑니다.
+                bool useImage = _labelImage != null && _labelImage.sprite != null;
+                _label.enabled = !useImage;
+                _label.raycastTarget = !useImage;
+                if (_labelImage != null) _labelImage.enabled = useImage;
+            }
             public void Show(TitleMenu menu)
             {
                 bool visible = false;
                 foreach (TitleAction item in menu.Items) if (item == _action) { visible = true; break; }
-                _label.transform.parent.gameObject.SetActive(visible);
+                Root.SetActive(visible);
                 _cursor.SetActive(visible && menu.Selected == _action);
             }
         }
@@ -33,7 +45,30 @@ namespace HumanGhost.Gameplay.Presentation
         [SerializeField] private Text _question = null;
         [SerializeField] private Text _answerHint = null;
         [SerializeField] private Text _status = null;
+        [SerializeField] private Text _yesLabel = null;
+        [SerializeField] private Text _noLabel = null;
+        [SerializeField] private Text _closeLabel = null;
+        [SerializeField, InspectorName("확인 창 고른 답 색")] private Color _answerSelected = Color.white;
+        [SerializeField, InspectorName("확인 창 안 고른 답 색")] private Color _answerNormal = new Color(0.55f, 0.53f, 0.5f);
         private TitleMenu _menu;
+        private bool _pointerConnected;
+
+        // 표시 소비자는 입력 위치만 알립니다. 메뉴 상태 변경은 호스트가 합니다.
+        public event Action<TitleAction> EntryHovered;
+        public event Action<TitleAction> EntryClicked;
+        public event Action<bool> ConfirmHovered;
+        public event Action<bool> ConfirmClicked;
+        public event Action CloseClicked;
+
+        // 새 게임 확인 창의 처음 커서입니다. 메뉴 생성 전에 호출합니다.
+        public bool ReadConfirmDefaultYes(IReadOnlyDataCatalog data)
+        {
+            if (data == null) throw new ArgumentNullException(nameof(data));
+            var popup = data.GetTable<Popup>().Get(_newGamePopupId);
+            if (popup.Button3TextID != 0 || popup.CancelButton != 2 || (popup.DefaultButton != 1 && popup.DefaultButton != 2))
+                throw new InvalidOperationException("타이틀 확인창은 두 버튼·취소 둘째 버튼·기본 첫째 또는 둘째 버튼 설정을 사용합니다.");
+            return popup.DefaultButton == 1;
+        }
 
         public void Connect(TitleMenu menu, IReadOnlyDataCatalog data)
         {
@@ -42,11 +77,13 @@ namespace HumanGhost.Gameplay.Presentation
             if (data == null) throw new ArgumentNullException(nameof(data));
             var language = data.GetTable<Language>();
             var popup = data.GetTable<Popup>().Get(_newGamePopupId);
-            if (popup.Button3TextID != 0 || popup.DefaultButton != 1 || popup.CancelButton != 2)
-                throw new InvalidOperationException("타이틀 확인창은 두 버튼·기본 첫 버튼·취소 둘째 버튼 설정을 사용합니다.");
+            ReadConfirmDefaultYes(data);
             foreach (Entry entry in _entries) entry.SetText(language);
             _question.text = language.Get(popup.BodyTextID).KO;
-            _answerHint.text = $"Enter / C / 패드 A: {language.Get(popup.Button1TextID).KO}    Esc / 패드 B: {language.Get(popup.Button2TextID).KO}";
+            _yesLabel.text = language.Get(popup.Button1TextID).KO;
+            _noLabel.text = language.Get(popup.Button2TextID).KO;
+            _answerHint.text = $"↑↓ 고르기 · Enter / C / 패드 A 결정 · Esc / 패드 B: {_noLabel.text}";
+            ConnectPointer();
             _menu = menu;
             _menuRoot.SetActive(true);
             Apply();
@@ -58,6 +95,38 @@ namespace HumanGhost.Gameplay.Presentation
             if (_menu != null) _menu.Changed -= Render;
             _menu = null;
             if (_menuRoot != null) _menuRoot.SetActive(false);
+        }
+
+        private void ConnectPointer()
+        {
+            if (_pointerConnected) return;
+            _pointerConnected = true;
+            foreach (Entry entry in _entries)
+            {
+                TitleAction action = entry.Action;
+                AddPointer(entry.Root, () => EntryHovered?.Invoke(action), () => EntryClicked?.Invoke(action));
+            }
+            AddPointer(_yesLabel.gameObject, () => ConfirmHovered?.Invoke(true), () => ConfirmClicked?.Invoke(true));
+            AddPointer(_noLabel.gameObject, () => ConfirmHovered?.Invoke(false), () => ConfirmClicked?.Invoke(false));
+            AddPointer(_closeLabel.gameObject, null, () => CloseClicked?.Invoke());
+        }
+
+        // 왼쪽 버튼만 결정으로 사용합니다. 우클릭·휠·가운데 버튼은 동작이 없습니다.
+        private static void AddPointer(GameObject target, Action hover, Action click)
+        {
+            var trigger = target.AddComponent<EventTrigger>();
+            if (hover != null) AddEntry(trigger, EventTriggerType.PointerEnter, _ => hover());
+            AddEntry(trigger, EventTriggerType.PointerClick, data =>
+            {
+                if (data is PointerEventData pointer && pointer.button == PointerEventData.InputButton.Left) click();
+            });
+        }
+
+        private static void AddEntry(EventTrigger trigger, EventTriggerType type, UnityEngine.Events.UnityAction<BaseEventData> callback)
+        {
+            var entry = new EventTrigger.Entry { eventID = type };
+            entry.callback.AddListener(callback);
+            trigger.triggers.Add(entry);
         }
 
         public void ShowStatus(string message) => _status.text = message;
@@ -83,6 +152,8 @@ namespace HumanGhost.Gameplay.Presentation
         {
             foreach (Entry entry in _entries) entry.Show(_menu);
             _confirmation.SetActive(_menu.State == TitleMenuState.ConfirmingNewGame);
+            _yesLabel.color = _menu.ConfirmYes ? _answerSelected : _answerNormal;
+            _noLabel.color = _menu.ConfirmYes ? _answerNormal : _answerSelected;
         }
     }
 }

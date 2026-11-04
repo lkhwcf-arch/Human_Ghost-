@@ -23,7 +23,7 @@ MonoBehaviour:
     _bindPresses: 0
     _chargeSpeed: 0
     _wallStun: 0
-  - _key: 10009
+  - _key: 10005
     _range: 150
     _windup: 500
     _active: 100

@@ -21,12 +21,12 @@ internal static class MonsterChecks
         MonsterPattern[] HusugwiPatterns() => new[]
         {
             new MonsterPattern(StateKey.Attack1, 150, new AttackSpec(400, 100, 400, 0, 0, 0, 0)),
-            new MonsterPattern(StateKey.Skill1, 150, new AttackSpec(500, 100, 500, 0, 0, 0, 0), bindTime: 1000, bindPresses: 3)
+            new MonsterPattern(StateKey.Attack2, 150, new AttackSpec(500, 100, 500, 0, 0, 0, 0), bindTime: 1000, bindPresses: 3)
         };
         MonsterPattern[] JigegwiPatterns() => new[]
         {
             new MonsterPattern(StateKey.Attack1, 150, new AttackSpec(500, 100, 500, 0, 0, 0, 0)),
-            new MonsterPattern(StateKey.Skill1, 600, new AttackSpec(600, 1000, 400, 0, 5, 0, 0), chargeSpeed: 900, wallStun: 800)
+            new MonsterPattern(StateKey.Attack2, 600, new AttackSpec(600, 1000, 400, 0, 5, 0, 0), chargeSpeed: 900, wallStun: 800)
         };
         bool pickLast = false;
         int lastMin = -1, lastMax = -1;
@@ -123,7 +123,7 @@ internal static class MonsterChecks
         pickLast = true;
         var g = H(); var bound = P();
         g.Observe(1, 150, 1);
-        Check(g.CurrentState == StateKey.Skill1, "잡기 패턴 선택");
+        Check(g.CurrentState == StateKey.Attack2, "잡기 패턴 선택");
         g.Tick(500);
         var rolling = P(); rolling.TryRoll();
         Check(!g.TryHitPlayer(3, rolling, false, false) && rolling.CurrentState == StateKey.Roll, "구르기 무적은 잡기 회피");
@@ -134,12 +134,12 @@ internal static class MonsterChecks
         bound.SetMove(1);
         Check(bound.Locomotion.HorizontalSpeed == 0 && !bound.TryJump() && !bound.TryRoll(), "구속 중 이동·점프·구르기 잠금");
         g.Tick(5000);
-        Check(g.CurrentState == StateKey.Skill1, "구속 유지 동안 몬스터 패턴 정지");
+        Check(g.CurrentState == StateKey.Attack2, "구속 유지 동안 몬스터 패턴 정지");
         Check(bound.TryAttack() && bound.TryAttack() && bound.CurrentState == StateKey.Bound && bound.BindPressesRemaining == 1, "연타 누적");
         Check(bound.TryAttack() && bound.CurrentState == StateKey.Walk && bound.BoundBy == null && bound.Stamina.Current == stamina,
             "연타 해제·스태미나 소모 없음");
         g.Tick(499);
-        Check(g.CurrentState == StateKey.Skill1, "해제 뒤 후딜");
+        Check(g.CurrentState == StateKey.Attack2, "해제 뒤 후딜");
         g.Tick(1);
         Check(g.CurrentState == StateKey.Idle, "후딜 후 대기");
 
@@ -208,7 +208,7 @@ internal static class MonsterChecks
         Expect<ArgumentOutOfRangeException>(() => P().TryBind(Grab(),1000,3,-1));
 
         // BindTime 0 = 연타로만 해제
-        var mashOnly = new MonsterActor(husugwi, new[] { new MonsterPattern(StateKey.Skill1, 150, new AttackSpec(500, 100, 500, 0, 0, 0, 0), bindTime: 0, bindPresses: 3) },
+        var mashOnly = new MonsterActor(husugwi, new[] { new MonsterPattern(StateKey.Attack2, 150, new AttackSpec(500, 100, 500, 0, 0, 0, 0), bindTime: 0, bindPresses: 3) },
             300, 500, Random);
         var mashPlayer = P();
         mashOnly.Observe(1, 150, 1); mashOnly.Tick(500);
@@ -222,10 +222,10 @@ internal static class MonsterChecks
         pickLast = false;
         var j = J(); var victim = P();
         j.Observe(1, 600, 1);
-        Check(j.CurrentState == StateKey.Skill1 && !j.IsSuperArmor && j.Velocity == 0, "AttackRange 안 원거리는 돌진만 선택·선딜 정지");
+        Check(j.CurrentState == StateKey.Attack2 && !j.IsSuperArmor && j.Velocity == 0, "AttackRange 안 원거리는 돌진만 선택·선딜 정지");
         j.Tick(600);
         Check(j.IsCharging && j.IsSuperArmor && j.Velocity == 900, "돌진 판정 중 이동·슈퍼아머");
-        Check(j.ReceiveHit(5) && j.Health == 45 && j.CurrentState == StateKey.Skill1 && j.IsCharging, "슈퍼아머는 HP만 깎이고 Hit 없음");
+        Check(j.ReceiveHit(5) && j.Health == 45 && j.CurrentState == StateKey.Attack2 && j.IsCharging, "슈퍼아머는 HP만 깎이고 Hit 없음");
         Check(j.TryHitPlayer(2001, victim, false, false) && victim.Health == 69, "돌진 피해 26+5");
         Check(!j.TryHitPlayer(2001, victim, false, false), "돌진 창 중복 피해 방지");
         Check(j.NotifyWallHit() && j.CurrentState == StateKey.Stun && j.Velocity == 0 && !j.IsSuperArmor, "벽 충돌 허점·슈퍼아머 해제");
@@ -237,7 +237,7 @@ internal static class MonsterChecks
 
         var miss = J();
         miss.Observe(1, 400, 1); miss.Tick(600 + 1000);
-        Check(miss.CurrentState == StateKey.Skill1 && !miss.IsCharging && miss.Velocity == 0, "벽 없이 돌진 종료 후 후딜");
+        Check(miss.CurrentState == StateKey.Attack2 && !miss.IsCharging && miss.Velocity == 0, "벽 없이 돌진 종료 후 후딜");
         miss.Tick(400);
         Check(miss.CurrentState == StateKey.Idle, "돌진 후딜 종료");
 
@@ -258,7 +258,7 @@ internal static class MonsterChecks
         Expect<ArgumentOutOfRangeException>(() => H().Tick(-1));
         Expect<ArgumentException>(() => new MonsterActor(husugwi, new MonsterPattern[0], 300, 500, Random));
         Expect<ArgumentNullException>(() => new MonsterActor(husugwi, HusugwiPatterns(), 300, 500, null));
-        Expect<ArgumentOutOfRangeException>(() => new MonsterPattern(StateKey.Skill1, 150, new AttackSpec(1, 1, 0, 0, 0, 0, 0), bindTime: 1000));
+        Expect<ArgumentOutOfRangeException>(() => new MonsterPattern(StateKey.Attack2, 150, new AttackSpec(1, 1, 0, 0, 0, 0, 0), bindTime: 1000));
         Expect<ArgumentOutOfRangeException>(() => new MonsterPattern(StateKey.Attack3, 150, new AttackSpec(1, 1, 0, 0, 0, 0, 0)));
         Expect<InvalidOperationException>(() => new MonsterActor(husugwi, HusugwiPatterns(), 300, 500, (min, max) => max).Observe(1, 100, 1));
         return checks + HitChecks.Run(player, jigegwi,

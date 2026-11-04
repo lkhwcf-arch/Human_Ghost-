@@ -33,6 +33,21 @@ namespace HumanGhost.Gameplay.Adapters
             Initialized?.Invoke(actor);
         }
 
+        // 해금 판단은 호출자 책임입니다. 시트 정의와 설정 에셋으로 결박 가르기를 연결합니다.
+        public void EnableSkill(Skill definition)
+        {
+            if (definition == null) throw new ArgumentNullException(nameof(definition));
+            if (Actor == null) throw new InvalidOperationException("플레이어 초기화가 필요합니다.");
+            Actor.ConfigureSkill(_combat.CreateSkill(definition), definition.Cooldown, _combat.SkillDistance);
+        }
+
+        public void EnableHerbs(Buff definition)
+        {
+            if (definition == null) throw new ArgumentNullException(nameof(definition));
+            if (Actor == null) throw new InvalidOperationException("플레이어 초기화가 필요합니다.");
+            Actor.ConfigureHerbs(definition.Value, definition.UseTime, definition.Charges);
+        }
+
         public void SetGrounded(bool grounded)
         {
             if (Actor == null) throw new InvalidOperationException("플레이어 초기화가 필요합니다.");
@@ -45,6 +60,7 @@ namespace HumanGhost.Gameplay.Adapters
             if (_input != null) _input.enabled = false;
             // 비활성화 중 플레이어 Tick이 멈추므로 남은 일반몹 구속을 즉시 정리합니다.
             if (Actor?.BoundBy != null) Actor.ReleaseBind(Actor.BoundBy);
+            Actor?.ReleaseChain();
         }
         private void Update()
         {

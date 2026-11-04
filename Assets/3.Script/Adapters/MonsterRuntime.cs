@@ -15,6 +15,7 @@ namespace HumanGhost.Gameplay.Adapters
         private MillisecondClock _clock;
 
         public int MonsterId => _monsterId;
+        public MonsterPatternSettings Patterns => _patterns;
         public Monster Definition { get; private set; }
         public MonsterActor Actor { get; private set; }
         // 이 몬스터가 공격자일 때의 회피·치명 난수. 패턴/대기 난수열과 분리합니다.

@@ -17,10 +17,20 @@ namespace HumanGhost.Gameplay
         public int ChargeSpeed { get; }
         public int WallPoiseDamage { get; }
         public bool IsCharge => ChargeSpeed > 0;
+        // Attack3 사슬 당기기(C09): 멀리서 잡아 끌어옵니다. Range는 사슬이 닿는 거리(tile_x100), PullSpeed는 끄는 속도입니다.
+        public int Range { get; }
+        public int BindTime { get; }
+        public int BindPresses { get; }
+        public int PullSpeed { get; }
+        public bool IsChain => BindPresses > 0;
 
-        public BossPattern(StateKey key, IReadOnlyList<AttackSpec> hits, int minPhase = 0, int chargeSpeed = 0, int wallPoiseDamage = 0)
+        public BossPattern(StateKey key, IReadOnlyList<AttackSpec> hits, int minPhase = 0, int chargeSpeed = 0, int wallPoiseDamage = 0,
+            int range = 0, int bindTime = 0, int bindPresses = 0, int pullSpeed = 0)
         {
-            if (key != StateKey.Attack1 && key != StateKey.Attack2 && key != StateKey.Skill1) throw new ArgumentOutOfRangeException(nameof(key));
+            if (key != StateKey.Attack1 && key != StateKey.Attack2 && key != StateKey.Attack3 && key != StateKey.Skill1) throw new ArgumentOutOfRangeException(nameof(key));
+            if (range < 0 || bindTime < 0 || bindPresses < 0 || pullSpeed < 0 || (key == StateKey.Attack3) != (bindPresses > 0) ||
+                (bindPresses > 0 && (range == 0 || pullSpeed == 0 || hits == null || hits.Count != 1)))
+                throw new ArgumentOutOfRangeException(nameof(key), "보스 사슬 패턴 설정을 확인하세요.");
             if (hits == null || hits.Count == 0) throw new ArgumentException("타격 설정이 1개 이상 필요합니다.", nameof(hits));
             // 돌진은 Skill1 단일 타격만. 벽 체세 피해는 돌진에만 있습니다.
             if (minPhase < 0 || chargeSpeed < 0 || wallPoiseDamage < 0 || (key == StateKey.Skill1) != (chargeSpeed > 0) ||
@@ -29,6 +39,7 @@ namespace HumanGhost.Gameplay
             var copy = new AttackSpec[hits.Count];
             for (int i = 0; i < copy.Length; i++) copy[i] = hits[i] ?? throw new ArgumentException("빈 타격 설정입니다.", nameof(hits));
             Key = key; MinPhase = minPhase; ChargeSpeed = chargeSpeed; WallPoiseDamage = wallPoiseDamage;
+            Range = range; BindTime = bindTime; BindPresses = bindPresses; PullSpeed = pullSpeed;
             // 배열을 그대로 노출하면 형변환으로 바꿀 수 있어 읽기 전용으로 감쌉니다.
             Hits = Array.AsReadOnly(copy);
         }

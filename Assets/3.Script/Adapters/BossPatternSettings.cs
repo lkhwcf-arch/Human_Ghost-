@@ -34,6 +34,11 @@ namespace HumanGhost.Gameplay.Adapters
             // Skill1 돌진만: 속도(tile_x100/초)와 벽 충돌 체세 피해(C09 30). 돌진 판정 시간은 상한입니다.
             [SerializeField, Min(0)] private int _chargeSpeed = 0;
             [SerializeField, Min(0)] private int _wallPoiseDamage = 0;
+            // Attack3 사슬 당기기만: 닿는 거리·끄는 속도(tile_x100)와 구속 상한(ms)·연타 해제 횟수.
+            [SerializeField, Min(0)] private int _range = 0;
+            [SerializeField, Min(0)] private int _bindTime = 0;
+            [SerializeField, Min(0)] private int _bindPresses = 0;
+            [SerializeField, Min(0)] private int _pullSpeed = 0;
 
             public BossPattern Create()
             {
@@ -42,7 +47,7 @@ namespace HumanGhost.Gameplay.Adapters
                 var hits = new AttackSpec[_hits.Length];
                 for (int i = 0; i < hits.Length; i++)
                     hits[i] = (_hits[i] ?? throw new InvalidOperationException("보스 타격 설정이 비어 있습니다.")).Create(_key, i);
-                return new BossPattern(_key, hits, _minPhase, _chargeSpeed, _wallPoiseDamage);
+                return new BossPattern(_key, hits, _minPhase, _chargeSpeed, _wallPoiseDamage, _range, _bindTime, _bindPresses, _pullSpeed);
             }
         }
 

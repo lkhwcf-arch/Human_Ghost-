@@ -7,7 +7,13 @@ namespace HumanGhost.Gameplay.Presentation
     public sealed class HealthDisplay : MonoBehaviour
     {
         [SerializeField, InspectorName("체력 막대 영역")] private RectTransform _fill = null;
+        [SerializeField, InspectorName("피해 잔상 영역 (선택)")] private RectTransform _ghost = null;
         private HealthDisplayBinding _binding;
+        private float _ghostRatio = 1f;
+        private float _targetRatio = 1f;
+        private float _ghostHold;
+        // 피해 잔상은 500ms 머문 뒤 줄어듭니다(C11·O11). 표시만 하고 회복 기능은 없습니다.
+        private const float _ghostHoldSeconds = 0.5f;
 
         public bool IsBound => _binding != null && _binding.IsBound;
 
@@ -42,6 +48,17 @@ namespace HumanGhost.Gameplay.Presentation
             // 정수 체력은 그대로 유지하고 화면 너비로 전달하는 경계에서만 비율로 변환합니다.
             float ratio = maximum > 0 ? Mathf.Clamp01((float)current / maximum) : 0f;
             _fill.anchorMax = new Vector2(ratio, 1f);
+            if (ratio < _targetRatio) _ghostHold = _ghostHoldSeconds;
+            else if (ratio > _ghostRatio) _ghostRatio = ratio;
+            _targetRatio = ratio;
+        }
+
+        private void Update()
+        {
+            if (_ghost == null) return;
+            if (_ghostHold > 0f) _ghostHold -= Time.unscaledDeltaTime;
+            else _ghostRatio = Mathf.MoveTowards(_ghostRatio, _targetRatio, Time.unscaledDeltaTime);
+            _ghost.anchorMax = new Vector2(_ghostRatio, 1f);
         }
     }
 }

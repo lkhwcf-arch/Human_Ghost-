@@ -36,6 +36,16 @@ namespace HumanGhost.Gameplay.Adapters
             new AttackSetup(100, 80, 200, 0, -2, 8, 12)
         };
 
+        [Header("결박 가르기 C07 개발 값 (피해·체세·쿨타임은 Skill 시트)")]
+        [SerializeField, Min(1)] private int _skillWindup = 150;
+        [SerializeField, Min(1)] private int _skillActive = 120;
+        [SerializeField, Min(0)] private int _skillRecovery = 350;
+        [SerializeField, Min(0)] private int _skillDistance = 200;
+
+        public int SkillDistance => _skillDistance;
+        public AttackSpec CreateSkill(HumanGhost.Data.Definitions.Skill definition)
+            => new AttackSpec(_skillWindup, _skillActive, _skillRecovery, 0, definition.Damage, definition.PoiseDamage, 0);
+
         public AttackSpec[] CreateAttacks()
         {
             if (_attacks == null || _attacks.Length != 5) throw new InvalidOperationException("지상 4타·공중 1타 설정이 필요합니다.");

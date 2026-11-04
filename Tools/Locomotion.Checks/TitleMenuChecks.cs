@@ -49,5 +49,25 @@ internal static class TitleMenuChecks
         booth.CompleteRequest();
         booth.RefreshSave(false);
         check(booth.Items.Count == 2, "부스에서 저장과 종료가 모두 없으면 두 메뉴만 구성");
+        var defaultNo = new TitleMenu(true, true, true, false, false);
+        defaultNo.Submit();
+        check(defaultNo.State == TitleMenuState.ConfirmingNewGame && !defaultNo.ConfirmYes, "Popup 기본 아니오면 확인 창 처음 커서는 아니오");
+        check(defaultNo.AnswerNewGame(defaultNo.ConfirmYes) == null && defaultNo.State == TitleMenuState.Selecting, "기본 아니오에서 바로 결정하면 메뉴로 복귀");
+        defaultNo.Submit();
+        defaultNo.Move(1);
+        check(defaultNo.ConfirmYes, "확인 창 위아래 이동으로 답 전환");
+        check(defaultNo.AnswerNewGame(defaultNo.ConfirmYes) == TitleAction.NewGame, "예를 고른 뒤 결정하면 새 게임 요청");
+        defaultNo.CompleteRequest();
+        defaultNo.Submit();
+        check(!defaultNo.ConfirmYes, "확인 창을 다시 열면 처음 커서로 복귀");
+        defaultNo.AnswerNewGame(false);
+        defaultNo.SelectItem(TitleAction.Settings);
+        check(defaultNo.Selected == TitleAction.Settings, "마우스 올리기로 항목 직접 선택");
+        var hidden = new TitleMenu(false, true, true, true);
+        hidden.SelectItem(TitleAction.Continue);
+        check(hidden.Selected == TitleAction.NewGame, "숨긴 항목은 직접 선택 불가");
+        hidden.Submit();
+        hidden.SelectItem(TitleAction.Quit);
+        check(hidden.Selected == TitleAction.NewGame, "처리 중 직접 선택 차단");
     }
 }

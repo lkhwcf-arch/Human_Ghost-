@@ -49,6 +49,13 @@ namespace HumanGhost.Gameplay.Adapters
 
         private void OnEnable() { if (_menu != null) Subscribe(); }
 
+        // 마지막 입력 장치 기준 마우스 화살표 표시입니다. 메뉴 선택은 키보드와 하나를 같이 씁니다.
+        private void Update()
+        {
+            Mouse mouse = Mouse.current;
+            if (mouse != null && mouse.delta.ReadValue().sqrMagnitude > 0f) Cursor.visible = true;
+        }
+
         private async void Start()
         {
             if (_menu != null) { Subscribe(); return; }
@@ -74,9 +81,16 @@ namespace HumanGhost.Gameplay.Adapters
                 _screen.ShowStatus("저장 조회 결과를 기다리고 있습니다.");
             bool hasSave = _previewMode ? _previewHasSave : await _saveReady.Task;
             if (this == null) return;
-            _menu = new TitleMenu(hasSave, _settings.ShowQuit, _settings.ConfirmNewGameWithSave, _settings.PreferContinue);
+            _menu = new TitleMenu(hasSave, _settings.ShowQuit, _settings.ConfirmNewGameWithSave, _settings.PreferContinue,
+                _screen.ReadConfirmDefaultYes(data));
             _screen.Connect(_menu, data);
-            _menuInput = new MenuInput(_input, OnMove, OnSubmit, OnCancel);
+            _menuInput = new MenuInput(_input, OnKeyMove, OnKeySubmit, OnKeyCancel);
+            _screen.EntryHovered += OnEntryHovered;
+            _screen.EntryClicked += OnEntryClicked;
+            _screen.ConfirmHovered += OnConfirmHovered;
+            _screen.ConfirmClicked += OnConfirmClicked;
+            _screen.CloseClicked += OnCancel;
+            Cursor.visible = true;
             _screen.ShowStatus(_previewMode ? "화면 검사 모드입니다. 실제 저장 조회는 사용하지 않습니다." : "");
             if (isActiveAndEnabled) Subscribe();
         }
@@ -90,6 +104,26 @@ namespace HumanGhost.Gameplay.Adapters
 #endif
             _menuInput?.Disable();
         }
+
+        private void OnKeyMove(int direction) { Cursor.visible = false; OnMove(direction); }
+        private void OnKeySubmit() { Cursor.visible = false; OnSubmit(); }
+        private void OnKeyCancel() { Cursor.visible = false; OnCancel(); }
+        private bool IsPointerBlocked()
+        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (_saveSelection != null && _saveSelection.IsOpen) return true;
+#endif
+            return _menu == null;
+        }
+        private void OnEntryHovered(TitleAction action) { if (!IsPointerBlocked()) _menu.SelectItem(action); }
+        private void OnEntryClicked(TitleAction action)
+        {
+            if (IsPointerBlocked() || _menu.State != TitleMenuState.Selecting) return;
+            _menu.SelectItem(action);
+            Dispatch(_menu.Submit());
+        }
+        private void OnConfirmHovered(bool yes) { if (!IsPointerBlocked()) _menu.SelectConfirm(yes); }
+        private void OnConfirmClicked(bool yes) { if (!IsPointerBlocked()) Dispatch(_menu.AnswerNewGame(yes)); }
 
         private void OnMove(int direction)
         {
@@ -106,7 +140,7 @@ namespace HumanGhost.Gameplay.Adapters
             if (_saveSelection != null && _saveSelection.IsOpen) _saveSelection.Submit();
             else
 #endif
-                Dispatch(_menu.State == TitleMenuState.ConfirmingNewGame ? _menu.AnswerNewGame(true) : _menu.Submit());
+                Dispatch(_menu.State == TitleMenuState.ConfirmingNewGame ? _menu.AnswerNewGame(_menu.ConfirmYes) : _menu.Submit());
         }
 
         private void OnCancel()
@@ -137,7 +171,15 @@ namespace HumanGhost.Gameplay.Adapters
         private void Release()
         {
             OnDisable();
-            if (_screen != null) _screen.Disconnect();
+            if (_screen != null)
+            {
+                _screen.EntryHovered -= OnEntryHovered;
+                _screen.EntryClicked -= OnEntryClicked;
+                _screen.ConfirmHovered -= OnConfirmHovered;
+                _screen.ConfirmClicked -= OnConfirmClicked;
+                _screen.CloseClicked -= OnCancel;
+                _screen.Disconnect();
+            }
             _menuInput?.Dispose();
             _menuInput = null;
             _menu = null;

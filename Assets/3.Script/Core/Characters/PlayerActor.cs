@@ -17,6 +17,9 @@ namespace HumanGhost.Gameplay
         private BossPoise _executionTarget;
         private int _bindPresses;
         private bool _cutsceneDamageBlocked;
+        private PlayerSkill _skill;
+        private PlayerHerbs _herbs;
+        private bool _usingSkill;
 
         public Player Definition { get; }
         public ActorStateMachine States { get; }
@@ -26,11 +29,21 @@ namespace HumanGhost.Gameplay
         public StateKey CurrentState => States.Current;
         // 현재 이 플레이어를 잡고 있는 일반몹. 구속(Bound) 중에만 값이 있습니다.
         public MonsterActor BoundBy { get; private set; }
-        public int BindPressesRemaining => BoundBy == null ? 0 : _bindPresses;
+        public int BindPressesRemaining => CurrentState == StateKey.Bound ? _bindPresses : 0;
+        // 보스 사슬 구속입니다. 일반몹 구속과 달리 잡은 일반몹이 없습니다.
+        public bool IsChained => CurrentState == StateKey.Bound && BoundBy == null;
+        public bool IsHanging => CurrentState == StateKey.Hang;
         public bool IsDead => Health == 0;
         public bool IsAttacking => _combo.Index >= 0;
         public bool IsAttackActive => _attackWindow.IsActive;
-        public AttackSpec CurrentAttack => _combo.Current;
+        public AttackSpec CurrentAttack => _usingSkill ? _skill.Attack : _combo.Current;
+        // 결박 가르기(C07) 해금·연결 여부와 남은 쿨타임(ms)입니다.
+        public bool HasSkill => _skill != null;
+        public int SkillCooldownRemaining => _skill == null ? 0 : _skill.Remaining;
+        public int HerbCount => _herbs == null ? 0 : _herbs.Count;
+        public bool HasHerbs => _herbs != null;
+        // 약초 사용 중 이동 속도(tile_x100/초, 부호 포함). C04의 ‘느려짐’ 비율은 개발 값 절반입니다.
+        public int HealMoveSpeed => CurrentState == StateKey.Heal ? Locomotion.Direction * Definition.MoveSpeed / 2 : 0;
         public bool IsInvulnerable => _cutsceneDamageBlocked || CurrentState == StateKey.Execute || _invulnerableRemaining > 0 ||
             (CurrentState == StateKey.Roll && _elapsed < Definition.RollIFrame);
         public event Action<int> HealthChanged;
@@ -41,6 +54,10 @@ namespace HumanGhost.Gameplay
             remove { _attackWindow.Changed -= value; }
         }
         public event Action<int, int, int> RollRequested;
+        // 스태미나가 모자라 공격·구르기를 못 했을 때입니다(C03 게이지 깜빡임).
+        public event Action StaminaRefused;
+        // 방향·거리(tile_x100)·이동 시간(ms). 위치 이동은 외부가 합니다.
+        public event Action<int, int, int> SkillStarted;
 
         // attacks = 지상 1/2/3/4타, 공중 1타 순서. 초기 자원은 호출자가 명시합니다.
         public PlayerActor(Player definition, IReadOnlyList<AttackSpec> attacks, bool grounded, int currentStamina)
@@ -64,6 +81,83 @@ namespace HumanGhost.Gameplay
 
         public bool TryJump() => !IsDead && Locomotion.TryJump();
 
+        // 공중에서 외부가 모서리를 확인한 뒤 요청합니다. 매달린 동안 공격·구르기·이동은 막히고 스태미나를 쓰지 않습니다.
+        public bool TryHang()
+        {
+            if (IsDead || !Locomotion.CanMove || Locomotion.IsGrounded) return false;
+            States.Call(StateKey.Hang);
+            return true;
+        }
+
+        // 올라가기는 접지 관측을 먼저 전달한 뒤 호출합니다. 놓기는 공중 상태로 돌아갑니다.
+        public bool EndHang()
+        {
+            if (!IsHanging) return false;
+            Locomotion.Resume();
+            return true;
+        }
+
+        // 해금된 뒤 조립자가 한 번 연결합니다. 미연결이면 입력해도 나가지 않습니다.
+        public void ConfigureSkill(AttackSpec attack, int cooldown, int distance)
+        {
+            _skill = new PlayerSkill(attack, cooldown, distance);
+        }
+
+        // 조립자가 Buff 값으로 한 번 연결합니다. 재시작은 새 개체로 다시 채웁니다.
+        public void ConfigureHerbs(int heal, int useTime, int charges) => _herbs = new PlayerHerbs(heal, useTime, charges);
+
+        // 사용 시간 뒤 회복합니다. 그 사이 맞으면 취소되고 개수는 줄어든 채입니다. 체력이 가득하면 쓰지 않습니다.
+        public bool TryUseHerb()
+        {
+            if (_herbs == null || IsDead || !Locomotion.CanMove || Health >= Definition.HP || !_herbs.TryConsume()) return false;
+            _elapsed = 0; _duration = _herbs.UseTime;
+            States.Call(StateKey.Heal);
+            if (_duration == 0) FinishHerb();
+            return true;
+        }
+
+        private void FinishHerb()
+        {
+            Health = Math.Min(Definition.HP, Health + _herbs.Heal);
+            HealthChanged?.Invoke(Health);
+            Locomotion.Resume();
+        }
+
+        // 스태미나를 쓰지 않습니다. 보스 사슬에 잡힌 동안에도 쓸 수 있고 사슬을 끊습니다. 매달리기·일반몹 구속 중에는 쓸 수 없습니다.
+        public bool TryUseSkill()
+        {
+            if (_skill == null || IsDead || !_skill.IsReady || !(Locomotion.CanMove || IsChained)) return false;
+            if (IsChained) EndBind();
+            ClearAttack();
+            _usingSkill = true; _elapsed = 0;
+            _skill.StartCooldown();
+            States.Call(StateKey.Skill1);
+            SkillStarted?.Invoke(_facing, _skill.Distance, _skill.Attack.Windup + _skill.Attack.Active);
+            return true;
+        }
+
+        // 접지 관측을 먼저 전달한 뒤 낙하 높이(tile_x100)와 함께 호출합니다. 낙하 피해는 없고 조건을 넘으면 착지 모션만 재생합니다.
+        public bool NotifyLanded(int fallHeight)
+        {
+            if (IsDead || !Locomotion.CanMove || Definition.LandTime <= 0 || fallHeight < Definition.LandFallHeight) return false;
+            _elapsed = 0; _duration = Definition.LandTime;
+            States.Call(StateKey.Land);
+            return true;
+        }
+
+        // 구덩이 낙하(K04). 무적과 상관없이 고정 피해를 받으며 true면 낙사입니다. 컷씬 차단 중에는 받지 않습니다.
+        public bool ApplyFall(int damage)
+        {
+            if (damage < 0) throw new ArgumentOutOfRangeException(nameof(damage));
+            if (IsDead || _cutsceneDamageBlocked) return IsDead;
+            Health = Math.Max(0, Health - damage);
+            ClearAttack();
+            BoundBy = null; _bindPresses = 0;
+            if (IsDead) States.Change(new DeadState());
+            HealthChanged?.Invoke(Health);
+            return IsDead;
+        }
+
         public bool TryAttack()
         {
             if (IsDead) return false;
@@ -84,7 +178,7 @@ namespace HumanGhost.Gameplay
         public bool TryRoll()
         {
             if (IsDead || CurrentState == StateKey.Attack4 || (IsAttacking ? _elapsed < CurrentAttack.Windup + CurrentAttack.Active : !Locomotion.CanMove)) return false;
-            if (!Stamina.TryConsumeRoll()) return false;
+            if (!Stamina.TryConsumeRoll()) { StaminaRefused?.Invoke(); return false; }
             ClearAttack();
             _elapsed = 0; _duration = Definition.RollTime;
             States.Call(StateKey.Roll);
@@ -121,6 +215,22 @@ namespace HumanGhost.Gameplay
         public bool TryBind(MonsterActor by, int duration, int presses, int damage = 0)
         {
             if (by == null) throw new ArgumentNullException(nameof(by));
+            return Bind(by, duration, presses, damage);
+        }
+
+        // 보스 사슬 구속. 일반몹 잡기와 같은 연타 해제·상한 시간을 씁니다.
+        public bool TryChainBind(int duration, int presses, int damage = 0) => Bind(null, duration, presses, damage);
+
+        // 사슬 패턴이 끝나거나 비활성화될 때 호출합니다.
+        public bool ReleaseChain()
+        {
+            if (!IsChained) return false;
+            EndBind();
+            return true;
+        }
+
+        private bool Bind(MonsterActor by, int duration, int presses, int damage)
+        {
             if (duration < 0 || presses <= 0 || damage < 0) throw new ArgumentOutOfRangeException(nameof(duration));
             if (IsDead || IsInvulnerable || CurrentState == StateKey.Bound) return false;
             ClearAttack();
@@ -190,15 +300,21 @@ namespace HumanGhost.Gameplay
             if (IsDead || CurrentState == StateKey.Execute) return;
             while (milliseconds > 0)
             {
-                bool timed = IsAttacking || CurrentState == StateKey.Roll || CurrentState == StateKey.Hit || CurrentState == StateKey.CritHit ||
+                bool timed = IsAttacking || _usingSkill || CurrentState == StateKey.Heal || CurrentState == StateKey.Land || CurrentState == StateKey.Roll || CurrentState == StateKey.Hit || CurrentState == StateKey.CritHit ||
                     (CurrentState == StateKey.Bound && _duration > 0);
                 if (!timed) { AdvanceTime(milliseconds); break; }
                 AttackSpec spec = CurrentAttack;
-                int end = IsAttacking ? (_elapsed < spec.Windup ? spec.Windup : _elapsed < spec.Windup + spec.Active ? spec.Windup + spec.Active : spec.TotalTime) : _duration;
+                int end = IsAttacking || _usingSkill ? (_elapsed < spec.Windup ? spec.Windup : _elapsed < spec.Windup + spec.Active ? spec.Windup + spec.Active : spec.TotalTime) : _duration;
                 int step = Math.Min(milliseconds, end - _elapsed);
                 AdvanceTime(step);
                 _elapsed += step; milliseconds -= step;
-                if (IsAttacking)
+                if (_usingSkill)
+                {
+                    if (_elapsed == spec.Windup) SetAttackActive(true);
+                    if (_elapsed == spec.Windup + spec.Active) SetAttackActive(false);
+                    if (_elapsed == spec.TotalTime) { ClearAttack(); Locomotion.Resume(); }
+                }
+                else if (IsAttacking)
                 {
                     if (_elapsed == spec.Windup) SetAttackActive(true);
                     if (_elapsed == spec.Windup + spec.Active) SetAttackActive(false);
@@ -213,6 +329,7 @@ namespace HumanGhost.Gameplay
                 else if (_elapsed == _duration)
                 {
                     if (CurrentState == StateKey.Bound) EndBind();
+                    else if (CurrentState == StateKey.Heal) FinishHerb();
                     else Locomotion.Resume();
                 }
             }
@@ -221,8 +338,9 @@ namespace HumanGhost.Gameplay
         private HitOutcome HitBoss(int targetId, BossPoise target, Func<int, int, int> random, bool dodged, bool critical)
         {
             if (target == null) throw new ArgumentNullException(nameof(target));
-            HitOutcome outcome = HitRoll.Resolve(_attackWindow, targetId, target.Definition.Dodge, Definition.Crit,
-                target.IsDead || target.IsInvulnerable, true, random, dodged, critical);
+            // 결박 가르기는 회피 확률을 굴리지 않습니다(C07).
+            HitOutcome outcome = HitRoll.Resolve(_attackWindow, targetId, _usingSkill ? 0 : target.Definition.Dodge, Definition.Crit,
+                target.IsDead || target.IsInvulnerable, true, random, !_usingSkill && dodged, critical);
             if (outcome < HitOutcome.Hit) return outcome;
             int damage = CombatMath.Damage(Definition, target.Definition, CurrentAttack.ExtraDamage, outcome == HitOutcome.Critical);
             return target.ReceiveHit(damage, CurrentAttack.PoiseDamage) ? outcome : HitOutcome.None;
@@ -231,8 +349,8 @@ namespace HumanGhost.Gameplay
         private HitOutcome HitMonster(int targetId, MonsterActor target, Func<int, int, int> random, bool dodged, bool critical)
         {
             if (target == null) throw new ArgumentNullException(nameof(target));
-            HitOutcome outcome = HitRoll.Resolve(_attackWindow, targetId, target.Definition.Dodge, Definition.Crit,
-                target.IsDead, true, random, dodged, critical);
+            HitOutcome outcome = HitRoll.Resolve(_attackWindow, targetId, _usingSkill ? 0 : target.Definition.Dodge, Definition.Crit,
+                target.IsDead, true, random, !_usingSkill && dodged, critical);
             if (outcome < HitOutcome.Hit) return outcome;
             bool isCritical = outcome == HitOutcome.Critical;
             int damage = CombatMath.Damage(Definition, target.Definition, CurrentAttack.ExtraDamage, isCritical);
@@ -249,11 +367,12 @@ namespace HumanGhost.Gameplay
         {
             Stamina.Tick(milliseconds);
             _invulnerableRemaining = Math.Max(0, _invulnerableRemaining - milliseconds);
+            _skill?.Tick(milliseconds);
         }
 
         private bool StartAttack(int index)
         {
-            if (!Stamina.TryConsume(_combo.GetAttack(index).StaminaCost)) return false;
+            if (!Stamina.TryConsume(_combo.GetAttack(index).StaminaCost)) { StaminaRefused?.Invoke(); return false; }
             _combo.Start(index); _elapsed = 0; _attackWindow.ClearTargets();
             States.Change(new AttackState(index == 4 ? StateKey.Attack1 : index == 0 ? StateKey.Attack1 : index == 1 ? StateKey.Attack2 : index == 2 ? StateKey.Attack3 : StateKey.Attack4));
             AttackStarted?.Invoke(index);
@@ -264,6 +383,7 @@ namespace HumanGhost.Gameplay
         {
             SetAttackActive(false);
             _combo.Clear(); _attackWindow.ClearTargets();
+            _usingSkill = false;
         }
 
         private void SetAttackActive(bool active) => _attackWindow.SetActive(active);

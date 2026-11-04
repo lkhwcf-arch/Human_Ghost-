@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace HumanGhost.Gameplay.Preview
 {
-    // 테스트씬 전용 순환 선택·이동·접촉. 운영 AI·물리·사슬 패턴은 담당하지 않습니다.
+    // 테스트씬 전용 순환 선택·이동·접촉·사슬 끌기. 운영 AI·물리는 담당하지 않습니다.
     internal sealed class PreviewBossDriver : IDisposable
     {
         private readonly BossRuntime _runtime;
@@ -14,10 +14,14 @@ namespace HumanGhost.Gameplay.Preview
         private readonly float _worldUnitsPerTile;
         private readonly float _range;
         private readonly float _secondRange;
+        private readonly float _sight;
         private int _nextPattern;
+        public event Action PlayerHit;
+        // 추적 중이거나 패턴을 쓰는 동안입니다. 전투 BGM·HUD에 씁니다.
+        public bool IsEngaged { get; private set; }
 
         public PreviewBossDriver(BossRuntime runtime, PlayerRuntime player, SpriteRenderer body,
-            SpriteRenderer playerBody, float worldUnitsPerTile, float range, float secondRange)
+            SpriteRenderer playerBody, float worldUnitsPerTile, float range, float secondRange, float sight)
         {
             _runtime = runtime != null ? runtime : throw new ArgumentNullException(nameof(runtime));
             _player = player != null ? player : throw new ArgumentNullException(nameof(player));
@@ -28,6 +32,7 @@ namespace HumanGhost.Gameplay.Preview
             _worldUnitsPerTile = worldUnitsPerTile;
             _range = range;
             _secondRange = secondRange;
+            _sight = sight;
             runtime.Combat.AttackWindowChanged += OnAttackWindowChanged;
         }
 
@@ -37,7 +42,7 @@ namespace HumanGhost.Gameplay.Preview
             _runtime.Combat.Release();
         }
 
-        public void Step(float seconds, float stageHalfWidth)
+        public void Step(float seconds, float minX, float maxX)
         {
             BossCombat combat = _runtime.Combat;
             if (!_runtime.isActiveAndEnabled || _runtime.Actor.IsDead || _runtime.Actor.IsExposed || _runtime.Actor.IsInvulnerable) return;
@@ -46,21 +51,43 @@ namespace HumanGhost.Gameplay.Preview
             if (!combat.IsAttacking) combat.Face(offset < 0f ? -1 : 1);
             Vector3 position = _runtime.transform.position;
             float velocity = combat.Velocity;
-            if (!combat.IsAttacking && !combat.IsWaiting && Mathf.Abs(offset) > _range * _worldUnitsPerTile)
+            bool noticed = _sight <= 0f || Mathf.Abs(offset) <= _sight * _worldUnitsPerTile;
+            IsEngaged = noticed;
+            if (noticed && !combat.IsAttacking && !combat.IsWaiting && Mathf.Abs(offset) > _range * _worldUnitsPerTile)
                 velocity = combat.Facing * _runtime.Actor.Definition.MoveSpeed;
             position.x += velocity / 100f * _worldUnitsPerTile * seconds;
-            float limit = Mathf.Max(0f, stageHalfWidth - _body.bounds.extents.x);
-            bool wall = Mathf.Abs(position.x) >= limit;
-            position.x = Mathf.Clamp(position.x, -limit, limit);
+            float extent = _body.bounds.extents.x;
+            bool wall = position.x <= minX + extent || position.x >= maxX - extent;
+            position.x = Mathf.Clamp(position.x, minX + extent, maxX - extent);
             _runtime.transform.position = position;
             if (wall) combat.NotifyWallHit();
-            if (!combat.IsAttacking && !combat.IsWaiting && Mathf.Abs(offset) <= _range * _worldUnitsPerTile)
-                for (int i = 0; i < combat.PatternCount; i++)
-                {
-                    int index = _nextPattern++ % combat.PatternCount;
-                    if (combat.TryStart(index)) break;
-                }
+            if (noticed && !combat.IsAttacking && !combat.IsWaiting) SelectPattern(Mathf.Abs(offset));
             CheckHit();
+            Pull(seconds);
+        }
+
+        // 근접 거리는 사슬 외 패턴을 순환하고, 그 밖에서는 사슬이 닿으면 사슬을 씁니다.
+        private void SelectPattern(float distance)
+        {
+            BossCombat combat = _runtime.Combat;
+            bool melee = distance <= _range * _worldUnitsPerTile;
+            for (int i = 0; i < combat.PatternCount; i++)
+            {
+                int index = _nextPattern++ % combat.PatternCount;
+                BossPattern pattern = combat.GetPattern(index);
+                if (melee ? pattern.IsChain : !pattern.IsChain || distance > pattern.Range / 100f * _worldUnitsPerTile) continue;
+                if (combat.TryStart(index)) return;
+            }
+        }
+
+        private void Pull(float seconds)
+        {
+            int velocity = _runtime.Combat.PullVelocity;
+            if (velocity == 0) return;
+            Vector3 position = _player.transform.position;
+            float stop = _runtime.transform.position.x + _runtime.Combat.Facing * _range * _worldUnitsPerTile * 0.5f;
+            position.x = Mathf.MoveTowards(position.x, stop, Mathf.Abs(velocity) / 100f * _worldUnitsPerTile * seconds);
+            _player.transform.position = position;
         }
 
         private void OnAttackWindowChanged(bool active) { if (active) CheckHit(); }
@@ -71,10 +98,10 @@ namespace HumanGhost.Gameplay.Preview
             if (!_runtime.isActiveAndEnabled || !_player.isActiveAndEnabled || !combat.IsAttackActive) return;
             Bounds own = _body.bounds, target = _playerBody.bounds;
             float offset = _player.transform.position.x - _runtime.transform.position.x;
-            float range = combat.HitIndex > 0 ? _secondRange : _range;
+            float range = combat.CurrentPattern.IsChain ? combat.CurrentPattern.Range / 100f : combat.HitIndex > 0 ? _secondRange : _range;
             bool touching = combat.IsCharging ? own.Intersects(target) :
                 target.min.y <= own.max.y && target.max.y >= own.min.y && offset * combat.Facing >= 0f && Mathf.Abs(offset) <= range * _worldUnitsPerTile;
-            if (touching) combat.TryHitPlayer(1, _player.Actor, _runtime.HitRandom);
+            if (touching && combat.TryHitPlayer(1, _player.Actor, _runtime.HitRandom) >= HitOutcome.Hit) PlayerHit?.Invoke();
         }
     }
 }

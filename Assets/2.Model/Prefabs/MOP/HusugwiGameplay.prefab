@@ -101,6 +101,7 @@ GameObject:
   - component: {fileID: 2588694104025351059}
   - component: {fileID: 2212268001790328552}
   - component: {fileID: 1051700862961071815}
+  - component: {fileID: 604006214194673792}
   m_Layer: 0
   m_Name: HusugwiGameplay
   m_TagString: Untagged
@@ -381,3 +382,37 @@ TextMesh:
   m_Color:
     serializedVersion: 2
     rgba: 4294967295
+--- !u!114 &604006214194673792
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2804006214194673792}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a4d82f6e13b74c59b0e27f91c6d3a805, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  _monster: {fileID: 2212268001790328552}
+  _renderer: {fileID: 5443279662782439812}
+  _fallback: {fileID: 2478190543172875839, guid: 1a42ad625eeb9eb46aa92144fbc8a361, type: 3}
+  _frames:
+  - _state: 10002
+    _sprite: {fileID: 852854943403322650, guid: cdfa558b2eac95e44bbd0cc7b319436e, type: 3}
+  - _state: 10003
+    _sprite: {fileID: -5795420617020302518, guid: 1f83f22b06708f54b8892bd7b99b4514, type: 3}
+  - _state: 10004
+    _sprite: {fileID: -631280861080028621, guid: 8c370e7b2c0353a4197d4fc1cac0a2a8, type: 3}
+  - _state: 10005
+    _sprite: {fileID: 55437460097370947, guid: 8d391838ff2ae1447a4ff79cba4a72a6, type: 3}
+  - _state: 10007
+    _sprite: {fileID: 952818350102794430, guid: 5bec1aacab6f4554db042e376a36ad23, type: 3}
+  - _state: 10008
+    _sprite: {fileID: 7456078196956146284, guid: b2b24e4a44414d343b17a3011b27d194, type: 3}
+  - _state: 10019
+    _sprite: {fileID: 7755199611440857709, guid: a58d16d24ed5b4b4bbb446b69a73d9fc, type: 3}
+  - _state: 10015
+    _sprite: {fileID: 3189917877515256400, guid: 8396d911a8abcc54fb948282d4a00219, type: 3}
+  - _state: 10016
+    _sprite: {fileID: 8202977276693823444, guid: e1f093330bf73d1469c443f1a49e6f4a, type: 3}

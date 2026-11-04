@@ -15,6 +15,7 @@ namespace HumanGhost.Data.Infrastructure
 
         public event Action<IReadOnlyDataCatalog> Initialized;
         public IReadOnlyDataCatalog Data => _bootstrapper?.Data;
+        public GameDataAssets Assets => _assets;
 
         private void Awake()
         {

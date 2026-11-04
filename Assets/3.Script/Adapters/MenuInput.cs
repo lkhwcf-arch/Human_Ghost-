@@ -11,11 +11,15 @@ namespace HumanGhost.Gameplay.Adapters
         private readonly InputAction _navigate, _submit, _cancel;
         private readonly Action<int> _move;
         private readonly Action _accept, _back;
+        private readonly Action<int> _side;
+        private int _horizontal;
         private bool _enabled;
         private int _vertical;
 
-        public MenuInput(InputActionAsset source, Action<int> move, Action accept, Action back)
+        // side는 좌우 값 바꾸기(선택)입니다.
+        public MenuInput(InputActionAsset source, Action<int> move, Action accept, Action back, Action<int> side = null)
         {
+            _side = side;
             if (source == null) throw new ArgumentNullException(nameof(source));
             _move = move ?? throw new ArgumentNullException(nameof(move));
             _accept = accept ?? throw new ArgumentNullException(nameof(accept));
@@ -53,10 +57,15 @@ namespace HumanGhost.Gameplay.Adapters
             _cancel.performed -= OnCancel;
             _owned.Disable();
             _vertical = 0;
+            _horizontal = 0;
         }
 
         private void OnNavigate(InputAction.CallbackContext context)
         {
+            float side = context.ReadValue<Vector2>().x;
+            int sideDirection = side > 0.5f ? 1 : side < -0.5f ? -1 : 0;
+            if (_side != null && sideDirection != 0 && sideDirection != _horizontal) _side(sideDirection);
+            _horizontal = sideDirection;
             float value = context.ReadValue<Vector2>().y;
             int direction = value > 0.5f ? -1 : value < -0.5f ? 1 : 0;
             if (direction != 0 && direction != _vertical) _move(direction);

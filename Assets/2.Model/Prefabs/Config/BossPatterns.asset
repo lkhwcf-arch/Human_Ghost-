@@ -44,3 +44,16 @@ MonoBehaviour:
     _minPhase: 1
     _chargeSpeed: 1200
     _wallPoiseDamage: 30
+  - _key: 10006
+    _hits:
+    - _windup: 900
+      _active: 150
+      _recovery: 900
+      _extraDamage: -6
+    _minPhase: 0
+    _chargeSpeed: 0
+    _wallPoiseDamage: 0
+    _range: 800
+    _bindTime: 900
+    _bindPresses: 3
+    _pullSpeed: 900

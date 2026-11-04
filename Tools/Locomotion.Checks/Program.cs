@@ -30,6 +30,8 @@ internal static class Program
             _checks += HealthDisplayChecks.Run(definition);
             _checks += ContentAccessChecks.Run();
             TitleMenuChecks.Run(Check);
+            MovementPatternChecks.Run(definition, Check);
+            GameLayerChecks.Run(Check);
             CutsceneChecks.Run(Check);
             SaveChecks.Run(Check);
             SaveGameFlowChecks.Run(Check);

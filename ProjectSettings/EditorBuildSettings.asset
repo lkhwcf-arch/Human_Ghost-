@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/1.Scene/Title.unity
+    guid: dac3bf3f8ae619f4f8cef68b367e87fc
+  - enabled: 1
     path: Assets/1.Scene/MapDohwagolTest.unity
     guid: 932c52263656ff14a8950b1d30283f94
   - enabled: 0

@@ -101,6 +101,7 @@ GameObject:
   - component: {fileID: 6981172536859622699}
   - component: {fileID: 8711519359393882842}
   - component: {fileID: 6256955658208690257}
+  - component: {fileID: 695029493892967079}
   m_Layer: 0
   m_Name: JigegwiGameplay
   m_TagString: Untagged
@@ -381,3 +382,37 @@ TextMesh:
   m_Color:
     serializedVersion: 2
     rgba: 4294967295
+--- !u!114 &695029493892967079
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 795029493892967079}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a4d82f6e13b74c59b0e27f91c6d3a805, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  _monster: {fileID: 8711519359393882842}
+  _renderer: {fileID: 8950335773594631280}
+  _fallback: {fileID: 6236005101687474386, guid: 2e3c0cba4c201b5428ba4751b41af62c, type: 3}
+  _frames:
+  - _state: 10002
+    _sprite: {fileID: 7417175290056616329, guid: 3c392b8e0f013804eb7c2614b92eedd5, type: 3}
+  - _state: 10003
+    _sprite: {fileID: 9080713793685899917, guid: 1ef7325ba735113449f4251448596a82, type: 3}
+  - _state: 10004
+    _sprite: {fileID: -6656397734914680408, guid: 9fa93394726796b498ed236eeeadeea3, type: 3}
+  - _state: 10005
+    _sprite: {fileID: -4417927458969681100, guid: 9a344bec9cbccbf40a06a23632cc5763, type: 3}
+  - _state: 10007
+    _sprite: {fileID: 632721284922326892, guid: b8af15d4c94418b42862b5d85d45e73c, type: 3}
+  - _state: 10008
+    _sprite: {fileID: -1595333819904429067, guid: f1f9fbb8f4ecc3f4abac394303bd279d, type: 3}
+  - _state: 10019
+    _sprite: {fileID: 622863530431891585, guid: 0d49f1f159040f840abc57631aa62864, type: 3}
+  - _state: 10015
+    _sprite: {fileID: -1474331857890182176, guid: d57a8b608a427384d959f08cc4fafc0b, type: 3}
+  - _state: 10016
+    _sprite: {fileID: -1589570550855099783, guid: d0019d3639c2bd047ae6f03469aff495, type: 3}

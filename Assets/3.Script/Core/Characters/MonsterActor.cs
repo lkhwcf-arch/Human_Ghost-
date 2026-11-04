@@ -205,7 +205,7 @@ namespace HumanGhost.Gameplay
             if (_distance <= Definition.AttackRange)
             {
                 _candidates.Clear();
-                foreach (MonsterPattern pattern in _patterns) if (_distance <= pattern.Range) _candidates.Add(pattern);
+                foreach (MonsterPattern pattern in _patterns) if (_distance <= pattern.Range && _distance >= pattern.MinRange) _candidates.Add(pattern);
                 if (_candidates.Count > 0) { StartPattern(_candidates[Pick(0, _candidates.Count)]); return; }
             }
             States.Change(_walk);

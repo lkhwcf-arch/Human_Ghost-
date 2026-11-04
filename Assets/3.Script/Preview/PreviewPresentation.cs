@@ -10,7 +10,9 @@ namespace HumanGhost.Gameplay.Preview
         {
             SetText(label, "플레이어 " + actor.Definition.ID + "\n" + GetStateLabel(actor.CurrentState) +
                 "\n체력 " + actor.Health + "\n스태미나 " + actor.Stamina.Current +
-                (actor.BoundBy != null ? "\n공격 연타 " + actor.BindPressesRemaining : ""));
+                (actor.CurrentState == StateKey.Bound ? "\n공격 연타 " + actor.BindPressesRemaining : "") +
+                (actor.HasSkill ? "\n결박 가르기 " + (actor.SkillCooldownRemaining > 0 ? Mathf.CeilToInt(actor.SkillCooldownRemaining / 1000f) + "초" : "가능") : "") +
+                (actor.HasHerbs ? "\n약초 " + actor.HerbCount : ""));
             body.color = actor.IsDead ? Color.gray : actor.IsInvulnerable ?
                 new Color(0.95f, 0.77f, 0.2f) : actor.IsAttackActive ? new Color(1f, 0.55f, 0.2f) : color;
         }
@@ -36,7 +38,7 @@ namespace HumanGhost.Gameplay.Preview
                 case StateKey.Attack4: return "공격 4타";
                 case StateKey.Evade: return "회피";
                 case StateKey.CritHit: return "치명타 피격";
-                case StateKey.Skill1: return "기술 1";
+                case StateKey.Skill1: return "결박 가르기";
                 case StateKey.Hang: return "매달리기";
                 case StateKey.Land: return "착지";
                 case StateKey.Roll: return "구르기";

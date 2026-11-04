@@ -16,6 +16,7 @@ namespace HumanGhost.Gameplay
         private int _hit;
         private int _elapsed;
         private int _waitRemaining;
+        private PlayerActor _chained;
 
         public BossPoise Boss { get; }
         public int PatternCount => _patterns.Length;
@@ -30,6 +31,9 @@ namespace HumanGhost.Gameplay
         public bool IsCharging => _pattern != null && _pattern.IsCharge && _attackWindow.IsActive;
         // 어댑터가 매 프레임 적용할 이동 속도(tile_x100/초, 부호 포함). 돌진 중에만 0이 아닙니다.
         public int Velocity => IsCharging ? Facing * _pattern.ChargeSpeed : 0;
+        // 사슬에 잡힌 플레이어를 끄는 속도(tile_x100/초, 부호 포함). 잡고 있을 때만 0이 아닙니다.
+        public int PullVelocity => _chained != null && _chained.IsChained ? -Facing * _pattern.PullSpeed : 0;
+        public BossPattern GetPattern(int index) => _patterns[index];
         public event Action<BossPattern> PatternStarted;
         public event Action<bool> AttackWindowChanged
         {
@@ -135,6 +139,13 @@ namespace HumanGhost.Gameplay
                 IsBlocked || target.IsDead || target.IsInvulnerable, true, random, dodged, critical);
             if (outcome < HitOutcome.Hit) return outcome;
             bool isCritical = outcome == HitOutcome.Critical;
+            if (_pattern.IsChain)
+            {
+                int chainDamage = CombatMath.Damage(Boss.Definition, target.Definition, _pattern.Hits[_hit].ExtraDamage, false);
+                if (!target.TryChainBind(_pattern.BindTime, _pattern.BindPresses, chainDamage)) return HitOutcome.None;
+                _chained = target.IsDead ? null : target;
+                return outcome;
+            }
             int damage = CombatMath.Damage(Boss.Definition, target.Definition, _pattern.Hits[_hit].ExtraDamage, isCritical);
             return target.ReceiveHit(damage, isCritical) ? outcome : HitOutcome.None;
         }
@@ -156,6 +167,7 @@ namespace HumanGhost.Gameplay
         {
             _attackWindow.SetActive(false);
             _pattern = null; _attackWindow.ClearTargets();
+            if (_chained != null) { _chained.ReleaseChain(); _chained = null; }
         }
     }
 }

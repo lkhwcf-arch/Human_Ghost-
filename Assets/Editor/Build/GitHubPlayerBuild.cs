@@ -27,7 +27,7 @@ namespace HumanGhost.Editor.Build
 
         private static void BuildWindowsCore()
         {
-            string scene = ReadArgument("-humanGhostScene", "dohwagol");
+            string scene = ReadArgument("-humanGhostScene", "build-settings");
             string[] scenes = scene == "dohwagol"
                 ? new[] { "Assets/1.Scene/MapDohwagolTest.unity" }
                 : scene == "preview"

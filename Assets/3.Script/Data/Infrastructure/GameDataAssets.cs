@@ -9,6 +9,9 @@ namespace HumanGhost.Data.Infrastructure
         [SerializeField] private List<TextAsset> _csvFiles = new List<TextAsset>();
         [SerializeField] private List<TextAsset> _jsonFiles = new List<TextAsset>();
 
+        public IReadOnlyList<TextAsset> CsvFiles => _csvFiles;
+        public IReadOnlyList<TextAsset> JsonFiles => _jsonFiles;
+
         public TextAssetCollectionSource CreateSource()
             => new TextAssetCollectionSource(_csvFiles, _jsonFiles);
     }

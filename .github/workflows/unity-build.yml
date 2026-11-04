@@ -9,10 +9,10 @@ on:
         options: [build, notice-test]
         default: build
       scene:
-        description: 'dohwagol: R3c 도화골 전투 / preview: 임시 게임플레이 / build-settings: 기존 빌드 설정'
+        description: 'build-settings: 타이틀부터 도화골까지 / dohwagol: 도화골 전투만 / preview: 임시 게임플레이'
         type: choice
-        options: [dohwagol, preview, build-settings]
-        default: dohwagol
+        options: [build-settings, dohwagol, preview]
+        default: build-settings
 
 permissions:
   contents: read

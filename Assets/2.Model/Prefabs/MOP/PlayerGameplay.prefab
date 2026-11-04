@@ -276,6 +276,9 @@ MonoBehaviour:
   _jump: {fileID: 335763634227698153, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   _attack: {fileID: 1903506563957944628, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   _roll: {fileID: 6337250642381312382, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
+  _interact: {fileID: 1781555164194001046, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
+  _skill: {fileID: 8301633772584797732, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
+  _herb: {fileID: -5362936444787075448, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
 --- !u!114 &5153132205621179426
 MonoBehaviour:
   m_ObjectHideFlags: 0

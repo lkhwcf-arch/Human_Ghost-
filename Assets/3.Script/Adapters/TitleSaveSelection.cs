@@ -14,10 +14,6 @@ namespace HumanGhost.Gameplay.Adapters
         [SerializeField] private TitleSceneHost _host = null;
         [SerializeField] private Button _openButton = null;
         [SerializeField] private SaveSlotScreen _screen = null;
-        [SerializeField] private GameObject _pointerEvents = null;
-#if UNITY_EDITOR
-        [SerializeField] private GraphicRaycaster _testRaycaster = null;
-#endif
         [SerializeField, InspectorName("테스트 저장 하위 폴더")] private string _saveSubdirectory = "Saves/Demo";
         [SerializeField, InspectorName("지원 저장 버전")] private int _saveVersion = 1;
         private Func<SaveRecord, bool> _load;
@@ -38,7 +34,6 @@ namespace HumanGhost.Gameplay.Adapters
         {
             _screen.Hide();
             _openButton.gameObject.SetActive(_enableForTests);
-            _pointerEvents.SetActive(_enableForTests);
         }
         private void OnEnable()
         {
@@ -113,11 +108,10 @@ namespace HumanGhost.Gameplay.Adapters
 #if UNITY_EDITOR
         public void StripFromReleaseBuild()
         {
-            GameObject button = _openButton.gameObject, panel = _screen.gameObject, pointer = _pointerEvents;
-            GraphicRaycaster raycaster = _testRaycaster;
+            // 정규 메뉴 마우스가 쓰는 이벤트 시스템·레이캐스터는 출시 빌드에도 남깁니다.
+            GameObject button = _openButton.gameObject, panel = _screen.gameObject;
             DestroyImmediate(this);
-            DestroyImmediate(button); DestroyImmediate(panel); DestroyImmediate(pointer);
-            if (raycaster != null) DestroyImmediate(raycaster);
+            DestroyImmediate(button); DestroyImmediate(panel);
         }
 #endif
         private bool IsCurrent(int generation) => this != null && isActiveAndEnabled && IsOpen && _generation == generation;

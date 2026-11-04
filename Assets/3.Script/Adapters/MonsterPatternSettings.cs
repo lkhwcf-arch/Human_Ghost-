@@ -21,17 +21,26 @@ namespace HumanGhost.Gameplay.Adapters
             [SerializeField] private int _bindPresses = 0;
             [SerializeField] private int _chargeSpeed = 0;
             [SerializeField] private int _wallStun = 0;
+            [SerializeField] private int _minRange = 0;
+            [SerializeField] private bool _projectile = false;
 
             public MonsterPattern Create() => new MonsterPattern(_key, _range, new AttackSpec(_windup, _active, _recovery, 0, _extraDamage, 0, 0),
-                _bindTime, _bindPresses, _chargeSpeed, _wallStun);
+                _bindTime, _bindPresses, _chargeSpeed, _wallStun, _minRange, _projectile);
         }
 
         [SerializeField] private PatternSetup[] _patterns = Array.Empty<PatternSetup>();
         [SerializeField] private int _hitStun = 0;
         [SerializeField] private int _critHitStun = 0;
+        [Header("죽을 때 남기는 불 (C08 불붙은 허수귀, 0이면 없음)")]
+        [SerializeField, Min(0)] private int _deathFireTime = 0;
+        [SerializeField, Min(0)] private int _deathFireDamage = 0;
+        [SerializeField, Min(0)] private int _deathFireHalfWidth = 0;
 
         public int HitStun => _hitStun;
         public int CritHitStun => _critHitStun;
+        // 불 범위 절반 폭(tile_x100). 시간이 0이면 불을 남기지 않습니다.
+        public int DeathFireHalfWidth => _deathFireHalfWidth;
+        public GroundFire CreateDeathFire() => _deathFireTime > 0 ? new GroundFire(_deathFireTime, _deathFireDamage, 1000) : null;
 
         public MonsterPattern[] CreatePatterns()
         {

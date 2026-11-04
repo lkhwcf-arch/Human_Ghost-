@@ -12,16 +12,20 @@ namespace HumanGhost.Gameplay
         private readonly List<TitleAction> _items = new List<TitleAction>();
         private readonly bool _showQuit;
         private readonly bool _confirmNewGameWithSave;
+        private readonly bool _confirmDefaultYes;
         private bool _hasSave;
         private int _selectedIndex;
 
         public IReadOnlyList<TitleAction> Items { get; }
         public TitleAction Selected => _items[_selectedIndex];
         public TitleMenuState State { get; private set; }
+        // 확인 창에서 현재 고른 답입니다. 처음 위치는 조립자가 Popup 데이터로 전달합니다.
+        public bool ConfirmYes { get; private set; }
         public event Action Changed;
 
-        public TitleMenu(bool hasSave, bool showQuit, bool confirmNewGameWithSave, bool preferContinue)
+        public TitleMenu(bool hasSave, bool showQuit, bool confirmNewGameWithSave, bool preferContinue, bool confirmDefaultYes = true)
         {
+            _confirmDefaultYes = confirmDefaultYes;
             _showQuit = showQuit;
             _confirmNewGameWithSave = confirmNewGameWithSave;
             Items = _items.AsReadOnly();
@@ -33,8 +37,25 @@ namespace HumanGhost.Gameplay
         {
             if (direction != -1 && direction != 1)
                 throw new ArgumentOutOfRangeException(nameof(direction), "선택 이동은 -1 또는 1입니다.");
+            if (State == TitleMenuState.ConfirmingNewGame) { SelectConfirm(!ConfirmYes); return; }
             if (State != TitleMenuState.Selecting) return;
             _selectedIndex = (_selectedIndex + direction + _items.Count) % _items.Count;
+            Changed?.Invoke();
+        }
+
+        // 마우스 올리기 등 직접 지정입니다. 보이지 않는 항목과 선택 상태 밖의 요청은 무시합니다.
+        public void SelectItem(TitleAction action)
+        {
+            int index = _items.IndexOf(action);
+            if (State != TitleMenuState.Selecting || index < 0 || index == _selectedIndex) return;
+            _selectedIndex = index;
+            Changed?.Invoke();
+        }
+
+        public void SelectConfirm(bool yes)
+        {
+            if (State != TitleMenuState.ConfirmingNewGame || ConfirmYes == yes) return;
+            ConfirmYes = yes;
             Changed?.Invoke();
         }
 
@@ -43,6 +64,7 @@ namespace HumanGhost.Gameplay
             if (State != TitleMenuState.Selecting) return null;
             if (Selected == TitleAction.NewGame && _hasSave && _confirmNewGameWithSave)
             {
+                ConfirmYes = _confirmDefaultYes;
                 SetState(TitleMenuState.ConfirmingNewGame);
                 return null;
             }
