@@ -15,15 +15,15 @@ MonoBehaviour:
   _stages:
   - StageId: 8001
     Map: {fileID: 100001, guid: cbec6813b8f948c59baa03f25043b1b1, type: 3}
-    Spawn: {fileID: 4900000, guid: 91183a64a8fa2a34aa651edbf8b61b36, type: 3}
+    Spawn: {fileID: 4900000, guid: c5c3cb20834dbe44486ebc4c47a1bf54, type: 3}
     CameraSize: 5.625
   - StageId: 8002
     Map: {fileID: 100001, guid: 8a87228f0a6a54ae76ec53f439f27ac8, type: 3}
-    Spawn: {fileID: 4900000, guid: 62722336a89cef1468b60f5ae0f69c59, type: 3}
+    Spawn: {fileID: 4900000, guid: 436d1538fc7da474698595c5e3f2d02c, type: 3}
     CameraSize: 5.625
   - StageId: 8003
     Map: {fileID: 100001, guid: 1a137872c61c417b4930f90c285ca199, type: 3}
-    Spawn: {fileID: 4900000, guid: 2f0c9a561c40fd440b0ab8e18fe599bd, type: 3}
+    Spawn: {fileID: 4900000, guid: 4570e4ffc49353947b1b3c51469a4f90, type: 3}
     CameraSize: 5.625
   - StageId: 8004
     Map: {fileID: 100001, guid: fdd5519674abbd2357376b28166685bb, type: 3}
