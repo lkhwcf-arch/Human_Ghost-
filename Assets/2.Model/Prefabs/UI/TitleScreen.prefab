@@ -2447,9 +2447,7 @@ MonoBehaviour:
   _actions: {fileID: 1085}
   _data: {fileID: 1083}
   _loadingPrefab: {fileID: 3761807582481786817, guid: 188d0ad953f19334e8d652c4986defc1, type: 3}
-  _settingsPrefab: {fileID: 2276423292438099812, guid: 3630c8befda035a44bbae39d76ba4328, type: 3}
   _audioPrefab: {fileID: 1639459906164103674, guid: 69e24b7bf4ebe2947a20245cbc4e5b89, type: 3}
-  _input: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   _newGameScene: MapDohwagolTest
   _saveSubdirectory: Saves/Demo
   _saveVersion: 1

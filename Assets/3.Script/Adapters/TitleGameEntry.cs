@@ -1,26 +1,30 @@
 using System;
 using System.IO;
+using System.Collections;
 using HumanGhost.Data.Infrastructure;
 using HumanGhost.Gameplay.Presentation;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Utilities;
+using UnityEngine.UI;
 
 namespace HumanGhost.Gameplay.Adapters
 {
-    // 타이틀의 저장 유무 전달과 새 게임 로딩 화면 진입만 연결합니다. 인트로·이어하기 복원은 소유하지 않습니다.
+    // 타이틀 저장 유무·새 게임 진입·임시 옵션 화면을 연결합니다. 인트로·이어하기 복원은 소유하지 않습니다.
     public sealed class TitleGameEntry : MonoBehaviour
     {
         [SerializeField] private TitleSceneHost _host = null;
         [SerializeField] private TitleSceneActions _actions = null;
         [SerializeField] private GameDataInitializer _data = null;
         [SerializeField, InspectorName("로딩 화면 프리팹")] private LoadingScreen _loadingPrefab = null;
-        [SerializeField, InspectorName("설정 화면")] private SettingsScreen _settingsPrefab = null;
         [SerializeField, InspectorName("소리 프리팹")] private GameAudio _audioPrefab = null;
-        private SettingsScreen _settingsScreen;
         private GameAudio _audio;
-        [SerializeField, InspectorName("입력 에셋")] private InputActionAsset _input = null;
         [SerializeField, InspectorName("타이틀 배경음 키")] private string _musicKey = "BGM_VILLAGE";
-        private MenuInput _settingsInput;
+        private GameObject _settingsCanvas;
+        private IDisposable _settingsDismiss;
+        private int _settingsOpenedFrame;
+        private bool _settingsPending;
+        private Coroutine _settingsReturn;
         [SerializeField, InspectorName("새 게임 시작 씬")] private string _newGameScene = "MapDohwagolTest";
         [SerializeField, InspectorName("저장 하위 폴더")] private string _saveSubdirectory = "Saves/Demo";
         [SerializeField, InspectorName("지원 저장 버전")] private int _saveVersion = 1;
@@ -35,31 +39,63 @@ namespace HumanGhost.Gameplay.Adapters
         {
             _actions.Disconnect(TitleAction.NewGame, StartNewGame);
             _actions.Disconnect(TitleAction.Settings, OpenSettings);
-            _settingsInput?.Dispose();
-            _settingsInput = null;
+            _settingsDismiss?.Dispose();
+            _settingsDismiss = null;
+            if (_settingsReturn != null) StopCoroutine(_settingsReturn);
+            _settingsReturn = null;
+            if (_settingsCanvas != null) _settingsCanvas.SetActive(false);
+            if (_settingsPending && _host != null)
+            {
+                _host.CompleteRequest();
+                _host.enabled = true;
+            }
+            _settingsPending = false;
         }
 
+        // 정식 설정 화면 연결 전의 임시 화면입니다. 진입 입력으로 바로 닫히지 않게 같은 프레임은 무시합니다.
         private bool OpenSettings()
         {
-            if (_data == null || _data.Data == null || _settingsScreen == null) return false;
-            if (_settingsInput == null)
-                _settingsInput = new MenuInput(_input, _settingsScreen.Move, _settingsScreen.Submit, _settingsScreen.Back, _settingsScreen.Adjust);
-            _settingsScreen.Open(_data.Data, GameSettingsStore.Load(), value => { if (_audio != null) _audio.Apply(value); }, OnSettingsClosed);
-            _settingsInput.Enable();
+            if (_settingsPending) return false;
+            if (_settingsCanvas == null)
+            {
+                _settingsCanvas = new GameObject("TitleSettingsPlaceholder", typeof(RectTransform), typeof(Canvas), typeof(Image));
+                _settingsCanvas.SetActive(false);
+                _settingsCanvas.transform.SetParent(transform, false);
+                Canvas canvas = _settingsCanvas.GetComponent<Canvas>();
+                canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                canvas.sortingOrder = 1000;
+                _settingsCanvas.GetComponent<Image>().color = Color.black;
+            }
+            _settingsOpenedFrame = Time.frameCount;
+            _settingsPending = true;
+            _host.enabled = false;
+            _settingsCanvas.SetActive(true);
+            Cursor.visible = true;
+            _settingsDismiss = InputSystem.onAnyButtonPress.Call(_ => DismissSettings());
             return true;
         }
 
-        private void OnSettingsClosed(GameSettings result)
+        private void DismissSettings()
         {
-            GameSettingsStore.Save(result);
-            if (_audio != null) _audio.Apply(result);
-            _settingsInput.Disable();
+            if (!_settingsPending || Time.frameCount <= _settingsOpenedFrame || _settingsReturn != null) return;
+            _settingsDismiss?.Dispose();
+            _settingsDismiss = null;
+            _settingsCanvas.SetActive(false);
+            // 닫는 입력이 같은 프레임에 타이틀 결정으로 다시 전달되지 않도록 다음 프레임에 복귀합니다.
+            _settingsReturn = StartCoroutine(ReturnFromSettings());
+        }
+
+        private IEnumerator ReturnFromSettings()
+        {
+            yield return null;
+            _settingsPending = false;
+            _settingsReturn = null;
             _host.CompleteRequest();
+            _host.enabled = true;
         }
 
         private async void Start()
         {
-            if (_settingsPrefab != null) { _settingsScreen = Instantiate(_settingsPrefab, transform.root); _settingsScreen.gameObject.SetActive(false); }
             if (_audioPrefab != null) _audio = Instantiate(_audioPrefab);
             if (_audio != null) { _audio.Apply(GameSettingsStore.Load()); _audio.PlayMusic(_musicKey); }
             try
