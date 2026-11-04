@@ -171,6 +171,10 @@ PrefabInstance:
       propertyPath: m_LocalScale.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1065, guid: f5c41460008040588417cb34c9bf943b, type: 3}
+      propertyPath: m_Text
+      value: "\u2191\u2193 \uC120\uD0DD \xB7 Enter"
+      objectReference: {fileID: 0}
     - target: {fileID: 1084, guid: f5c41460008040588417cb34c9bf943b, type: 3}
       propertyPath: _previewHasSave
       value: 1
