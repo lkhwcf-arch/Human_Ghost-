@@ -1,0 +1,174 @@
+{
+  "FormatVersion": 2,
+  "StageID": 8002,
+  "Placements": [
+    {
+      "PlacementID": 101,
+      "PlatformCode": 16002,
+      "Prefab": "Ground_2",
+      "Anchor": "Anchor_Ground_2",
+      "Monsters": [
+        {
+          "MonsterCode": 3002,
+          "MonsterCount": 12,
+          "Points": [
+            [
+              1750,
+              0
+            ],
+            [
+              2350,
+              200
+            ],
+            [
+              2650,
+              200
+            ],
+            [
+              3650,
+              0
+            ],
+            [
+              4250,
+              0
+            ],
+            [
+              4750,
+              0
+            ],
+            [
+              5800,
+              400
+            ],
+            [
+              6050,
+              400
+            ],
+            [
+              6500,
+              0
+            ],
+            [
+              7300,
+              0
+            ],
+            [
+              9550,
+              200
+            ],
+            [
+              9950,
+              200
+            ]
+          ]
+        },
+        {
+          "MonsterCode": 3003,
+          "MonsterCount": 18,
+          "Points": [
+            [
+              1450,
+              0
+            ],
+            [
+              2150,
+              200
+            ],
+            [
+              2350,
+              450
+            ],
+            [
+              2550,
+              450
+            ],
+            [
+              2950,
+              0
+            ],
+            [
+              3850,
+              0
+            ],
+            [
+              4050,
+              0
+            ],
+            [
+              4450,
+              0
+            ],
+            [
+              5050,
+              0
+            ],
+            [
+              5150,
+              250
+            ],
+            [
+              5950,
+              650
+            ],
+            [
+              6200,
+              650
+            ],
+            [
+              6450,
+              650
+            ],
+            [
+              6700,
+              0
+            ],
+            [
+              7500,
+              0
+            ],
+            [
+              9350,
+              200
+            ],
+            [
+              9750,
+              200
+            ],
+            [
+              10150,
+              200
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "PlacementID": 201,
+      "PlatformCode": 16503,
+      "Prefab": "Air_Platform_3",
+      "Anchor": "Anchor_Air_Platform_3",
+      "Monsters": []
+    },
+    {
+      "PlacementID": 202,
+      "PlatformCode": 16504,
+      "Prefab": "Air_Platform_4",
+      "Anchor": "Anchor_Air_Platform_4",
+      "Monsters": []
+    },
+    {
+      "PlacementID": 203,
+      "PlatformCode": 16505,
+      "Prefab": "Air_Platform_5",
+      "Anchor": "Anchor_Air_Platform_5",
+      "Monsters": []
+    },
+    {
+      "PlacementID": 204,
+      "PlatformCode": 16506,
+      "Prefab": "Air_Platform_6",
+      "Anchor": "Anchor_Air_Platform_6",
+      "Monsters": []
+    }
+  ]
+}

@@ -23,6 +23,21 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField, InspectorName("상태별 프레임")] private StateFrame[] _frames = Array.Empty<StateFrame>();
         [SerializeField, InspectorName("원본이 왼쪽을 봄")] private bool _sourceFacesLeft = true;
         private int _facing = 1;
+        private float _feetY;
+
+        // 기본 프레임의 발 높이에 다른 프레임의 보이는 맨 아래를 맞춥니다.
+        private void Awake()
+        {
+            if (_renderer != null && _fallback != null) _feetY = _renderer.transform.localPosition.y + PreviewPresentation.VisibleBottom(_fallback) * _renderer.transform.localScale.y;
+        }
+
+        private void AlignFeet(Sprite sprite)
+        {
+            if (_fallback == null) return;
+            Vector3 position = _renderer.transform.localPosition;
+            position.y = _feetY - PreviewPresentation.VisibleBottom(sprite) * _renderer.transform.localScale.y;
+            _renderer.transform.localPosition = position;
+        }
 
         private void LateUpdate()
         {
@@ -33,7 +48,7 @@ namespace HumanGhost.Gameplay.Preview
             // 4타 원본 전까지 검사용 이전 마무리 프레임을 재사용합니다. 명시한 4타 프레임이 우선입니다.
             if (sprite == null && actor.CurrentState == StateKey.Attack4) sprite = GetFrame(StateKey.Attack3);
             if (sprite == null) sprite = _fallback;
-            if (_renderer.sprite != sprite) _renderer.sprite = sprite;
+            if (_renderer.sprite != sprite && sprite != null) { _renderer.sprite = sprite; AlignFeet(sprite); }
             _renderer.flipX = _sourceFacesLeft ? _facing > 0 : _facing < 0;
         }
 

@@ -35,6 +35,6 @@ MonoBehaviour:
     _wallStun: 0
   _hitStun: 300
   _critHitStun: 500
-  _deathFireTime: 3000
+  _deathFireTime: 0
   _deathFireDamage: 5
   _deathFireHalfWidth: 100

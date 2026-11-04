@@ -39,6 +39,7 @@ namespace HumanGhost.Gameplay.Adapters
         public int HitStun => _hitStun;
         public int CritHitStun => _critHitStun;
         // 불 범위 절반 폭(tile_x100). 시간이 0이면 불을 남기지 않습니다.
+        public bool LeavesDeathFire => _deathFireTime > 0;
         public int DeathFireHalfWidth => _deathFireHalfWidth;
         public GroundFire CreateDeathFire() => _deathFireTime > 0 ? new GroundFire(_deathFireTime, _deathFireDamage, 1000) : null;
 

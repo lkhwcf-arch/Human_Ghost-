@@ -6,6 +6,14 @@ namespace HumanGhost.Gameplay.Preview
     // 확인용 문자열·색상만 관리합니다. 상태를 변경하거나 입력·타격을 실행하지 않습니다.
     internal static class PreviewPresentation
     {
+        // 스프라이트의 보이는 맨 아래(피벗 기준)입니다. 프레임마다 다른 아래 여백을 맞출 때 씁니다.
+        public static float VisibleBottom(Sprite sprite)
+        {
+            float bottom = float.PositiveInfinity;
+            foreach (Vector2 vertex in sprite.vertices) bottom = Mathf.Min(bottom, vertex.y);
+            return bottom;
+        }
+
         public static void RefreshPlayer(PlayerActor actor, TextMesh label, SpriteRenderer body, Color color)
         {
             SetText(label, "플레이어 " + actor.Definition.ID + "\n" + GetStateLabel(actor.CurrentState) +

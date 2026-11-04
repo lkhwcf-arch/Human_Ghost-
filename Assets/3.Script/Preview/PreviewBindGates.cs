@@ -7,7 +7,10 @@ namespace HumanGhost.Gameplay.Preview
     internal sealed class PreviewBindGates
     {
         private sealed class Gate { public string Key; public GameObject Blocker; public SpriteRenderer View; public Bounds Bounds; }
+        // 표시는 3타일이지만 점프(3타일)로 넘지 못하게 충돌은 위로 길게 둡니다.
+        private const float _blockerHeightScale = 10f;
         private readonly List<Gate> _gates = new List<Gate>();
+        private bool _touching;
 
         public PreviewBindGates(Transform markers, int stageId)
         {
@@ -25,7 +28,8 @@ namespace HumanGhost.Gameplay.Preview
                 blocker.transform.localPosition = new Vector3(0f, 1.5f, 0f);
                 blocker.transform.localScale = new Vector3(1f, 3f, 1f);
                 var box = blocker.AddComponent<BoxCollider2D>();
-                box.size = Vector2.one;
+                box.size = new Vector2(1f, _blockerHeightScale);
+                box.offset = new Vector2(0f, (_blockerHeightScale - 1f) * 0.5f);
                 var view = blocker.AddComponent<SpriteRenderer>();
                 view.sprite = sprite;
                 view.color = new Color(0.05f, 0.05f, 0.05f, 0.85f);
@@ -35,8 +39,15 @@ namespace HumanGhost.Gameplay.Preview
             Physics2D.SyncTransforms();
         }
 
-        public void Step(PlayerActor actor, Bounds attack)
+        // 관문에 처음 닿을 때 한 번 안내하고, 결박 가르기 판정이 닿은 관문을 엽니다.
+        public void Step(PlayerActor actor, Bounds attack, Bounds player, System.Action onTouch)
         {
+            Bounds near = new Bounds(player.center, player.size + new Vector3(1f, 0f, 10f));
+            bool touching = false;
+            foreach (Gate gate in _gates)
+                touching |= near.Intersects(new Bounds(gate.View.bounds.center, gate.View.bounds.size + Vector3.forward * 10f));
+            if (touching && !_touching) onTouch();
+            _touching = touching;
             if (actor.CurrentState != HumanGhost.Data.Definitions.StateKey.Skill1 || !actor.IsAttackActive) return;
             for (int i = _gates.Count - 1; i >= 0; i--)
             {

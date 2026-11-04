@@ -24,6 +24,7 @@ namespace HumanGhost.Gameplay.Preview
             string scene = _scene;
             PreviewScreenFade.Run(_fadeStepSeconds, _fadeStepSeconds, _fadeStepSeconds, () =>
             {
+                PreviewSession.CarriedHealth = null;
                 PreviewSession.CurrentStage = PreviewSession.CheckpointPassed ? 8003 : StageExitRules.VillageStage;
                 PreviewSession.ArrivalAnchor = PreviewSession.CheckpointPassed ? "Respawn_Seonangdang" : null;
                 SceneManager.LoadScene(scene);

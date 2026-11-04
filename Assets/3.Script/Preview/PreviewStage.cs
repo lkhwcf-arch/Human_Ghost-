@@ -19,6 +19,8 @@ namespace HumanGhost.Gameplay.Preview
         public List<MonsterRuntime> Monsters { get; } = new List<MonsterRuntime>();
         public Bounds Area { get; private set; }
         public float CameraSize { get; }
+        // shortcut: 매복 몬스터를 미리 만들어 꺼 둡니다. 풀링 구현 때 그쪽으로 옮깁니다.
+        private readonly List<KeyValuePair<float, MonsterRuntime>> _ambushes = new List<KeyValuePair<float, MonsterRuntime>>();
 
         public PreviewStage(StageContentSet content, int stageId, IReadOnlyDataCatalog data, Vector3 origin)
         {
@@ -73,10 +75,24 @@ namespace HumanGhost.Gameplay.Preview
             float baseY = StageLayoutRules.UsesGroundLine(placement.Prefab) ? MapRoot.position.y + _groundLine : anchor.position.y;
             float halfHeight = monster.GetComponentInChildren<SpriteRenderer>(true).transform.lossyScale.y * 0.5f;
             monster.transform.position = new Vector3(anchor.position.x + spawn.X / 100f, baseY + spawn.Height / 100f + halfHeight, MapRoot.position.z);
+            // 부모에서 꺼내기 전에 꺼 두어야 Awake가 활성화 시점까지 미뤄집니다.
+            monster.gameObject.SetActive(false);
             monster.transform.SetParent(null, true);
             UnityEngine.Object.Destroy(holder);
-            monster.gameObject.SetActive(true);
+            // 발동 전 몬스터도 목록에 있어 출구 조건의 '스폰 예정'으로 셉니다(K07).
+            if (spawn.Trigger is int trigger) _ambushes.Add(new KeyValuePair<float, MonsterRuntime>(MapRoot.position.x + trigger / 100f, monster));
+            else monster.gameObject.SetActive(true);
             Monsters.Add(monster);
+        }
+
+        public void StepAmbushes(float playerX)
+        {
+            for (int i = _ambushes.Count - 1; i >= 0; i--)
+            {
+                if (playerX < _ambushes[i].Key) continue;
+                _ambushes[i].Value.gameObject.SetActive(true);
+                _ambushes.RemoveAt(i);
+            }
         }
 
         private Bounds FindArea()

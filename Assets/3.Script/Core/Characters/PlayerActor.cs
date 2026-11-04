@@ -106,6 +106,16 @@ namespace HumanGhost.Gameplay
         // 조립자가 Buff 값으로 한 번 연결합니다. 재시작은 새 개체로 다시 채웁니다.
         public void ConfigureHerbs(int heal, int useTime, int charges) => _herbs = new PlayerHerbs(heal, useTime, charges);
 
+        // 맵 이동처럼 같은 진행을 이어 갈 때 HP·약초를 되돌립니다. 살아 있는 값만 받습니다. 약초 연결 뒤 호출합니다.
+        public void RestoreVitals(int health, int herbs)
+        {
+            if (health <= 0 || health > Definition.HP) throw new ArgumentOutOfRangeException(nameof(health));
+            if (_herbs == null) throw new InvalidOperationException("약초 연결이 필요합니다.");
+            _herbs.Restore(herbs);
+            Health = health;
+            HealthChanged?.Invoke(Health);
+        }
+
         // 사용 시간 뒤 회복합니다. 그 사이 맞으면 취소되고 개수는 줄어든 채입니다. 체력이 가득하면 쓰지 않습니다.
         public bool TryUseHerb()
         {

@@ -17,8 +17,15 @@ internal static class GameLayerChecks
         var spawns = StageLayoutRules.ResolveMonsters(layout, c => c < 9000, c => c != 3004, warnings);
         check(spawns.Count == 2 && spawns[0].Code == 3002 && spawns[0].X == 1750 && spawns[1].Sequence == 2, "JSON 몬스터 해석·순번");
         check(warnings.Count == 3, "수량 불일치·없는 코드·배치 번호 중복 경고");
-        check(StageExitRules.CanLeave(8001, 3, true) && !StageExitRules.CanLeave(8001, 0, false), "맵 1 출구는 명부 조사 기준");
-        check(StageExitRules.CanLeave(8002, 0, false) && !StageExitRules.CanLeave(8002, 1, true), "다른 맵 출구는 남은 몬스터 기준");
+        var ambush = new StageLayout();
+        ambush.Placements.Add(new StagePlacement { PlacementID = 1, Monsters = new System.Collections.Generic.List<StageMonsterGroup> {
+            new StageMonsterGroup { MonsterCode = 3003, MonsterCount = 1, Trigger = 6600, Points = new System.Collections.Generic.List<System.Collections.Generic.List<int>> { new System.Collections.Generic.List<int> { 6850, 0 } } },
+            new StageMonsterGroup { MonsterCode = 3003, MonsterCount = 1, Points = new System.Collections.Generic.List<System.Collections.Generic.List<int>> { new System.Collections.Generic.List<int> { 100, 0 } } } } });
+        var ambushSpawns = StageLayoutRules.ResolveMonsters(ambush, c => true, c => true, warnings);
+        check(ambushSpawns[0].Trigger == 6600 && ambushSpawns[1].Trigger == null, "매복 trigger 전달");
+        check(StageExitRules.CanLeave(8001, 3, true, false) && !StageExitRules.CanLeave(8001, 0, false, true), "맵 1 출구는 명부 조사 기준");
+        check(StageExitRules.CanLeave(8002, 0, false, false) && !StageExitRules.CanLeave(8002, 1, true, false), "다른 맵 출구는 남은 몬스터 기준");
+        check(StageExitRules.CanLeave(8003, 4, false, true), "클리어한 맵은 잡몹이 다시 나와도 출구 유지");
 
         check(StageLayoutRules.UsesGroundLine("Ground_2") && !StageLayoutRules.UsesGroundLine("Air_Platform_3"), "몬스터 높이 기준: Ground 바닥선, 발판 앵커");
         var speed = new GameSpeedState();
