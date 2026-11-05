@@ -31,6 +31,15 @@ namespace HumanGhost.Gameplay
 
         public void Select(SettingsRow row) { if (!IsConfirming && Row != row) { Row = row; Changed?.Invoke(); } }
 
+        // 화면의 마스터 조작부는 이 진입점을 사용합니다. 확인 중에는 값을 바꾸지 않습니다.
+        public void SetMaster(int value)
+        {
+            if (IsConfirming) return;
+            int before = Current.Master;
+            Current.SetMaster(value);
+            if (before != Current.Master) Changed?.Invoke();
+        }
+
         public void Adjust(int direction)
         {
             if (IsConfirming) return;

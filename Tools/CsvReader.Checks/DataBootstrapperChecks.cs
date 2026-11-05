@@ -44,6 +44,10 @@ internal static class DataBootstrapperChecks
         check(files.Count == expectedFiles && Path.GetFileName(files[0]) == "UnitStat.csv");
         int firstJson = files.FindIndex(path => path.EndsWith(".json"));
         check(firstJson >= 0 && files.Take(firstJson).All(path => path.EndsWith(".csv")) && files.Skip(firstJson).All(path => path.EndsWith(".json")));
+        // 새 사운드 표가 빈 상태여도 자동 계획에 등록되고 배포 원본과 같은 내용으로 로딩돼야 합니다.
+        CsvDocument sounds = new CsvParser().Read(File.ReadAllText(ResolvePath("Sound.csv")));
+        check(files.Any(path => Path.GetFileName(path) == "Sound.csv") && result.GetTable<Sound>().Count == sounds.Rows.Count);
+        check(result.GetTable<Sound>().All.Select(row => row.Address).SequenceEqual(sounds.Rows.Select(row => row.Get("Address"))));
         check(result.GetTable<HealthDisplayConfig>().Count == new CsvParser().Read(File.ReadAllText(ResolvePath("HealthDisplayConfig.csv"))).Rows.Count);
         check(result.GetTable<HealthDisplayConfig>().All.Select(row => row.AnchorName).SequenceEqual(
             new CsvParser().Read(File.ReadAllText(ResolvePath("HealthDisplayConfig.csv"))).Rows.Select(row => row.Get("AnchorName"))));

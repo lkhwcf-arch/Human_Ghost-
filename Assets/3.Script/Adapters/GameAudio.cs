@@ -32,8 +32,8 @@ namespace HumanGhost.Gameplay.Adapters
 
         public void Apply(GameSettings settings)
         {
-            _musicVolume = settings.Music / (float)GameSettings.MaxVolume;
-            _effects.volume = settings.Effects / (float)GameSettings.MaxVolume;
+            _musicVolume = settings.MusicPercent / 100f;
+            _effects.volume = settings.EffectsPercent / 100f;
             UpdateVolumes();
         }
 

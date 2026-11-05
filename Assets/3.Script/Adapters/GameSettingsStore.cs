@@ -8,7 +8,7 @@ namespace HumanGhost.Gameplay.Adapters
     public static class GameSettingsStore
     {
         [Serializable]
-        private sealed class Payload { public int Music = 8; public int Effects = 8; public bool CameraShake = true; }
+        private sealed class Payload { public int Master = GameSettings.MaxVolume; public int Music = 8; public int Effects = 8; public bool CameraShake = true; }
 
         private static string FilePath => Path.Combine(Application.persistentDataPath, "settings.json");
 
@@ -17,8 +17,10 @@ namespace HumanGhost.Gameplay.Adapters
             try
             {
                 if (!File.Exists(FilePath)) return new GameSettings();
-                Payload data = JsonUtility.FromJson<Payload>(File.ReadAllText(FilePath));
-                return data == null ? new GameSettings() : new GameSettings(data.Music, data.Effects, data.CameraShake);
+                // 이전 파일에 없는 항목은 생성한 기본값을 유지합니다.
+                var data = new Payload();
+                JsonUtility.FromJsonOverwrite(File.ReadAllText(FilePath), data);
+                return new GameSettings(data.Master, data.Music, data.Effects, data.CameraShake);
             }
             catch (Exception error)
             {
@@ -29,7 +31,7 @@ namespace HumanGhost.Gameplay.Adapters
 
         public static void Save(GameSettings settings)
         {
-            var data = new Payload { Music = settings.Music, Effects = settings.Effects, CameraShake = settings.CameraShake };
+            var data = new Payload { Master = settings.Master, Music = settings.Music, Effects = settings.Effects, CameraShake = settings.CameraShake };
             File.WriteAllText(FilePath, JsonUtility.ToJson(data));
         }
     }

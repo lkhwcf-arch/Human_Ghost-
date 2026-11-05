@@ -18,6 +18,7 @@ namespace HumanGhost.Data.Infrastructure
             await loader.LoadCsvAsync<Language>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<Popup>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<Skill>(catalog, row => row.ID, token);
+            await loader.LoadCsvAsync<Sound>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<Stage>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<StageLayer>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<State>(catalog, row => row.ID, token);
