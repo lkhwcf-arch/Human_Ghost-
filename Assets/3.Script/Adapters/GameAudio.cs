@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Threading;
+using HumanGhost.Data.Storage;
 using UnityEngine;
 
 namespace HumanGhost.Gameplay.Adapters
 {
     // 배경음 크로스페이드·효과음 재생(K12)입니다. Stage의 BGM 키를 받아 Inspector 목록에서 찾습니다. 클립은 교체할 수 있습니다.
-    public sealed class GameAudio : MonoBehaviour
+    public class GameAudio : MonoBehaviour
     {
         [Serializable]
         private sealed class Entry
@@ -27,18 +30,48 @@ namespace HumanGhost.Gameplay.Adapters
         private float _fade = 1f;
         private float _musicVolume = 0.8f;
         private float _pauseScale = 1f;
+        private GameSettings _settings = new GameSettings();
+        private TableSoundPlayer _tablePlayer;
 
         private void Awake() { foreach (Entry entry in _clips) if (entry != null && entry.Clip != null) _lookup[entry.Key] = entry.Clip; }
 
         public void Apply(GameSettings settings)
         {
+            _settings = settings.Clone();
             _musicVolume = settings.MusicPercent / 100f;
             _effects.volume = settings.EffectsPercent / 100f;
             UpdateVolumes();
+            if (_tablePlayer != null) _tablePlayer.Apply(_settings);
         }
 
+        // 기존 문자열 호출은 유지하며 새 상황 어댑터는 이 사운드 ID 진입점을 사용합니다.
+        public void ConnectTable(IReadOnlyDataCatalog data)
+        {
+            if (_tablePlayer == null) _tablePlayer = GetComponent<TableSoundPlayer>();
+            if (_tablePlayer == null) _tablePlayer = gameObject.AddComponent<TableSoundPlayer>();
+            _tablePlayer.Connect(data);
+            _tablePlayer.Apply(_settings);
+            _tablePlayer.SetPaused(_pauseScale < 1f);
+        }
+        public Task PrepareAsync(IReadOnlyList<int> soundIds, CancellationToken cancellation = default)
+        {
+            if (_tablePlayer == null) throw new InvalidOperationException("Sound 표를 먼저 연결해 주세요.");
+            return _tablePlayer.PrepareAsync(soundIds, cancellation);
+        }
+        public bool Play(int soundId)
+        {
+            if (_tablePlayer == null) throw new InvalidOperationException("Sound 표를 먼저 연결해 주세요.");
+            return _tablePlayer.Play(soundId);
+        }
+        public void Stop(int soundId) { if (_tablePlayer != null) _tablePlayer.Stop(soundId); }
+
         // 일시정지 중 배경음 50%(O04).
-        public void SetPaused(bool paused) { _pauseScale = paused ? 0.5f : 1f; UpdateVolumes(); }
+        public void SetPaused(bool paused)
+        {
+            _pauseScale = paused ? 0.5f : 1f;
+            UpdateVolumes();
+            if (_tablePlayer != null) _tablePlayer.SetPaused(paused);
+        }
 
         public void PlayMusic(string key)
         {

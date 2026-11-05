@@ -474,6 +474,7 @@ namespace HumanGhost.Gameplay.Preview
         private void ConnectGameLayer(IReadOnlyDataCatalog catalog)
         {
             GameSettings settings = GameSettingsStore.Load();
+            if (_audio != null) _audio.ConnectTable(catalog);
             if (_audio != null) _audio.Apply(settings);
             if (_followCamera != null) _followCamera.ShakeEnabled = settings.CameraShake;
             Stage stage = catalog.GetTable<Stage>().Get(_stageId);

@@ -21,6 +21,14 @@ try {
         if (-not (Test-Path -LiteralPath $inputAssembly)) { throw '입력 시스템 참조가 없습니다. Unity에서 패키지 복원과 스크립트 컴파일을 먼저 완료해주세요.' }
         $references += Get-Item -LiteralPath $inputAssembly
         $references += Get-Item -LiteralPath (Join-Path $projectRoot 'Library/ScriptAssemblies/UnityEngine.UI.dll')
+        foreach ($assembly in @('Unity.Addressables.dll', 'Unity.ResourceManager.dll')) {
+            $path = Join-Path $projectRoot ('Library/ScriptAssemblies/' + $assembly)
+            if (-not (Test-Path -LiteralPath $path)) { throw 'Addressables 참조가 없습니다. Unity에서 패키지 복원·코드 반영을 완료해 주세요.' }
+            $references += Get-Item -LiteralPath $path
+        }
+        if ($env:DefineConstants -match 'UNITY_EDITOR') {
+            $references += Get-Item -LiteralPath (Join-Path $projectRoot 'Library/ScriptAssemblies/Unity.Addressables.Editor.dll')
+        }
         $items = @()
         foreach ($file in $references) {
             $items += '<Reference Include="' + $file.BaseName + '"><HintPath>' + [Security.SecurityElement]::Escape($file.FullName) + '</HintPath><Private>false</Private></Reference>'

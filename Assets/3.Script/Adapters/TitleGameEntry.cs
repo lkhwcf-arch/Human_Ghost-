@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Collections;
 using HumanGhost.Data.Infrastructure;
+using HumanGhost.Data.Storage;
 using HumanGhost.Gameplay.Presentation;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -45,12 +46,15 @@ namespace HumanGhost.Gameplay.Adapters
             _host.Connect(TitleAction.NewGame, StartNewGame);
             _host.Connect(TitleAction.Settings, OpenSettings);
             _host.Connect(TitleAction.Quit, Quit);
+            if (_data != null) _data.Initialized += ConnectAudioData;
+            if (_data != null && _data.Data != null) ConnectAudioData(_data.Data);
             if (_started) RefreshSave();
         }
 
         private void OnDisable()
         {
             ++_saveGeneration;
+            if (_data != null) _data.Initialized -= ConnectAudioData;
             if (_host != null)
             {
                 _host.Disconnect(TitleAction.NewGame, StartNewGame);
@@ -130,6 +134,7 @@ namespace HumanGhost.Gameplay.Adapters
             _settings = GameSettingsStore.Load();
             if (_audioPrefab != null) _audio = Instantiate(_audioPrefab);
             if (_audio != null) { _audio.Apply(_settings); _audio.PlayMusic(_musicKey); }
+            if (_data != null && _data.Data != null) ConnectAudioData(_data.Data);
             _started = true;
             RefreshSave();
         }
@@ -149,6 +154,11 @@ namespace HumanGhost.Gameplay.Adapters
                 // 조회 실패를 저장 없음으로 바꾸지 않습니다. 호스트는 대기 안내를 유지합니다.
                 Debug.LogError($"타이틀 저장 조회에 실패했습니다.\n{error.Message}", this);
             }
+        }
+
+        private void ConnectAudioData(IReadOnlyDataCatalog data)
+        {
+            if (_audio != null) _audio.ConnectTable(data);
         }
 
         private bool StartNewGame()

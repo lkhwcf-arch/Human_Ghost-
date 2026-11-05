@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Threading.Tasks;
 using HumanGhost.Data.Csv;
 using HumanGhost.Data.Definitions;
 using HumanGhost.Gameplay;
@@ -10,7 +11,7 @@ internal static class Program
 {
     private static int _checks;
 
-    private static int Main(string[] args)
+    private static async Task<int> Main(string[] args)
     {
         try
         {
@@ -32,6 +33,8 @@ internal static class Program
             TitleMenuChecks.Run(Check);
             MovementPatternChecks.Run(definition, Check);
             GameLayerChecks.Run(Check);
+            SoundPlaybackChecks.Run(Check);
+            await SoundPreparationChecks.RunAsync(Check);
             UiPrefabChecks.Run(args[0], value => Check(value, "공용 설정·오류 팝업의 표시 배치와 타이틀 연결"));
             CutsceneChecks.Run(Check);
             SaveChecks.Run(Check);
