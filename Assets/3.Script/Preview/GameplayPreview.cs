@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using HumanGhost.Data.Definitions;
 using HumanGhost.Data.Infrastructure;
 using HumanGhost.Data.Storage;
@@ -523,7 +523,14 @@ namespace HumanGhost.Gameplay.Preview
         // 사망·암전·해체·결박 가르기 중에는 열지 않습니다(O04·O04_1). 텍스트박스가 열려 있어도 열 수 있습니다.
         private bool CanPause() => !_modalBlocked && !_leaving && _actor != null && !_actor.IsDead && !PreviewScreenFade.IsActive && _actor.CurrentState != StateKey.Execute && _actor.CurrentState != StateKey.Skill1;
 
-        private void ReturnToTitle() => PreviewScreenFade.Run(0.3f, 0.1f, 0.3f, () => UnityEngine.SceneManagement.SceneManager.LoadScene(_titleScene));
+        private void ReturnToTitle()
+        {
+            if (_leaving) return;
+            if (_loadingPrefab == null) throw new InvalidOperationException("타이틀 복귀에 사용할 씬 이동 화면이 연결되지 않았습니다.");
+            Instantiate(_loadingPrefab).BeginFade(_titleScene);
+            _leaving = true;
+            SetGameInputLocked(true);
+        }
 
         private void OnSettingsChanged(GameSettings value)
         {

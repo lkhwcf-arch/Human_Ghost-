@@ -1,5 +1,4 @@
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using HumanGhost.Data.Definitions;
 using HumanGhost.Data.Storage;
@@ -10,11 +9,11 @@ using UnityEngine.UI;
 namespace HumanGhost.Gameplay.Presentation
 {
     // 씬 이동 동안의 로딩 화면(O07·O07_1·O07_2)입니다. 그림은 Inspector에서 교체합니다. 지금 그림은 임시입니다.
-    public sealed class LoadingScreen : MonoBehaviour
+    public class LoadingScreen : MonoBehaviour
     {
-        private const float _minimumSeconds = 2f;
-        private const float _stampSeconds = 0.15f;
-        private const float _appearSeconds = 0.3f;
+        private const int _minimumMs = 2000;
+        private const int _stampMs = 150;
+        private const int _appearMs = 300;
         private const int _oneLineHeight = 96;
         private const int _twoLineHeight = 141;
         private static int _previousTipId;
@@ -29,25 +28,53 @@ namespace HumanGhost.Gameplay.Presentation
         [SerializeField] private Image _sealFill = null;
         private AsyncOperation _load;
         private bool _begun;
+        private bool _fadeOnly;
+        private string _sceneName;
+        private int _phase;
+        private int _elapsed;
+        private MillisecondClock _clock;
+        private static LoadingScreen _active;
+        public static bool IsActive => _active != null;
+        private Vector2 _boxPosition;
 
-        public void Begin(string sceneName, IReadOnlyDataCatalog data)
+        public void Begin(string sceneName, IReadOnlyDataCatalog data) => BeginInternal(sceneName, data, false);
+
+        // 타이틀 복귀는 같은 이동 경로를 사용하되 로딩 문구·최소 대기 없이 암전만 표시합니다.
+        public void BeginFade(string sceneName) => BeginInternal(sceneName, null, true);
+
+        private void BeginInternal(string sceneName, IReadOnlyDataCatalog data, bool fadeOnly)
         {
             if (_begun) throw new InvalidOperationException("이미 시작된 로딩 화면입니다.");
             try
             {
+                if (IsActive) throw new InvalidOperationException("다른 씬 이동이 이미 진행 중입니다.");
+                if (!isActiveAndEnabled) throw new InvalidOperationException("씬 이동 화면은 활성 상태에서 시작해 주세요.");
                 if (string.IsNullOrEmpty(sceneName)) throw new ArgumentException("이동할 씬이 필요합니다.", nameof(sceneName));
                 if (!Application.CanStreamedLevelBeLoaded(sceneName))
                     throw new InvalidOperationException("이동할 씬이 빌드 목록에 없거나 로딩할 수 없습니다: " + sceneName);
                 if (_group == null || _background == null || _tipBox == null || _tip == null || _seal == null || _sealFill == null)
                     throw new InvalidOperationException("로딩 화면의 표시 참조를 모두 연결해 주세요.");
-                ShowBackground();
-                ShowTip(data);
-                _load = SceneManager.LoadSceneAsync(sceneName);
-                if (_load == null) throw new InvalidOperationException("씬 로딩 작업을 만들지 못했습니다: " + sceneName);
-                _load.allowSceneActivation = false;
+                ScreenVisibility.RequireVisible(_group.GetComponentInParent<Canvas>());
+                _fadeOnly = fadeOnly;
+                _sceneName = sceneName;
+                _phase = 0;
+                _elapsed = 0;
+                _group.alpha = 0f;
+                _group.blocksRaycasts = true;
+                _boxPosition = _tipBox.anchoredPosition;
+                if (fadeOnly)
+                {
+                    _background.enabled = true;
+                    _background.sprite = null;
+                    _background.color = Color.black;
+                    _tipBox.gameObject.SetActive(false);
+                    _seal.gameObject.SetActive(false);
+                }
+                else { ShowBackground(); ShowTip(data); StartLoad(); }
                 _begun = true;
+                _active = this;
                 DontDestroyOnLoad(gameObject);
-                StartCoroutine(Play());
+
             }
             catch { Destroy(gameObject); throw; }
         }
@@ -79,43 +106,70 @@ namespace HumanGhost.Gameplay.Presentation
             _tipBox.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, lines >= 2 ? _twoLineHeight : _oneLineHeight);
         }
 
-        private IEnumerator Play()
+        private void StartLoad()
         {
-            AsyncOperation load = _load;
-            float elapsed = 0f;
-            float progress = 0f;
-            Vector2 boxPosition = _tipBox.anchoredPosition;
-            while (progress < 1f)
+            _load = SceneManager.LoadSceneAsync(_sceneName);
+            if (_load == null) throw new InvalidOperationException("씬 로딩 작업을 만들지 못했습니다: " + _sceneName);
+            _load.allowSceneActivation = false;
+        }
+
+        // 실제 씬 읽기는 Unity 비동기 작업에 맡기고 화면 진행은 한 실행 흐름에서 처리합니다.
+        protected virtual void Update()
+        {
+            if (!_begun) return;
+            try
             {
-                elapsed += Time.unscaledDeltaTime;
-                // AsyncOperation은 활성화 대기 중 0.9에서 멈춥니다.
-                progress = LoadingTip.Progress(load.progress / 0.9f, elapsed, _minimumSeconds);
-                _sealFill.fillAmount = progress;
-                float appear = Mathf.Clamp01(elapsed / _appearSeconds);
-                _group.alpha = appear;
-                _tipBox.anchoredPosition = boxPosition + Vector2.down * (8f * (1f - appear));
-                yield return null;
+                _elapsed += Math.Min(_clock.Advance(Time.unscaledDeltaTime), int.MaxValue - _elapsed);
+                if (_phase == 0)
+                {
+                    float appear = Mathf.Clamp01(_elapsed / (float)_appearMs);
+                    _group.alpha = appear;
+                    if (!_fadeOnly) _tipBox.anchoredPosition = _boxPosition + Vector2.down * (8f * (1f - appear));
+                    if (appear < 1f) return;
+                    if (_fadeOnly) StartLoad();
+                    _phase = 1;
+                }
+                if (_phase == 1)
+                {
+                    float progress = _fadeOnly ? Mathf.Clamp01(_load.progress / 0.9f)
+                        : LoadingTip.Progress(_load.progress / 0.9f, _elapsed / 1000f, _minimumMs / 1000f);
+                    if (!_fadeOnly) _sealFill.fillAmount = progress;
+                    if (progress < 1f) return;
+                    _elapsed = 0;
+                    _phase = 2;
+                }
+                if (_phase == 2)
+                {
+                    if (!_fadeOnly)
+                    {
+                        _seal.localScale = Vector3.one * Mathf.Lerp(1.1f, 1f, Mathf.Clamp01(_elapsed / (float)_stampMs));
+                        if (_elapsed < _stampMs) return;
+                    }
+                    _load.allowSceneActivation = true;
+                    _phase = 3;
+                }
+                if (_phase == 3)
+                {
+                    if (!_load.isDone) return;
+                    _elapsed = 0;
+                    _phase = 4;
+                }
+                if (_phase == 4)
+                {
+                    _group.alpha = 1f - Mathf.Clamp01(_elapsed / (float)_appearMs);
+                    if (_elapsed >= _appearMs) { _begun = false; Destroy(gameObject); }
+                }
             }
-            // 다 차면 도장을 찍듯 한 번 눌린 뒤 장면이 바뀝니다.
-            for (float stamp = 0f; stamp < _stampSeconds; stamp += Time.unscaledDeltaTime)
+            catch (Exception error)
             {
-                _seal.localScale = Vector3.one * Mathf.Lerp(1.1f, 1f, stamp / _stampSeconds);
-                yield return null;
+                Debug.LogException(new InvalidOperationException("씬 이동 화면 처리에 실패했습니다.", error), this);
+                Destroy(gameObject);
             }
-            _seal.localScale = Vector3.one;
-            load.allowSceneActivation = true;
-            while (!load.isDone) yield return null;
-            for (float fade = 0f; fade < _appearSeconds; fade += Time.unscaledDeltaTime)
-            {
-                _group.alpha = 1f - fade / _appearSeconds;
-                yield return null;
-            }
-            Destroy(gameObject);
         }
 
         private void OnDisable()
         {
-            StopAllCoroutines();
+            if (_active == this) _active = null;
             // Unity 씬 로드는 취소할 수 없습니다. 화면 종료가 활성화 대기를 영구 유지하게 하지 않습니다.
             if (_load != null && !_load.isDone) _load.allowSceneActivation = true;
             if (_begun) Destroy(gameObject);
