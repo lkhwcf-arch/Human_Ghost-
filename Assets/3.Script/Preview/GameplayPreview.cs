@@ -10,7 +10,7 @@ using UnityEngine.InputSystem;
 namespace HumanGhost.Gameplay.Preview
 {
     // 임시 육안 확인 장면 전용. 운영 물리·카메라·스폰/해체 종료 정책을 결정하지 않습니다.
-    public sealed class GameplayPreview : MonoBehaviour
+    public sealed class GameplayPreview : MonoBehaviour, IModalInputTarget
     {
         [SerializeField, InspectorName("데이터 초기화")] private GameDataInitializer _data = null;
         [SerializeField, InspectorName("플레이어 런타임")] private PlayerRuntime _player = null;
@@ -96,6 +96,12 @@ namespace HumanGhost.Gameplay.Preview
         // 해체 연출 원본 전까지 쓰는 개발 값입니다. 연출이 붙으면 그 완료 시점으로 교체합니다.
         private const float _executionSeconds = 0.9f;
         private float _executionRemaining;
+
+        public void SetModalBlocked(bool blocked)
+        {
+            _input?.SetModalBlocked(blocked);
+            if (_pause != null) _pause.SetModalBlocked(blocked);
+        }
 
         public bool IsReady => _subscribed;
         public PlayerRuntime Player => _player;

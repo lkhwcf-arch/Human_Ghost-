@@ -51,6 +51,19 @@ internal static class GameLayerChecks
         speed.Tick(150);
         check(speed.Scale == 1f, "해체는 치명 슬로를 겹치지 않음");
 
+        speed.SetPaused(true);
+        speed.SetModalPaused(true);
+        speed.SetModalPaused(false);
+        check(speed.IsPaused && speed.Scale == 0f, "오류 팝업을 닫아도 기존 일시정지는 유지");
+        speed.SetModalPaused(true);
+        speed.SetPaused(false);
+        check(speed.IsPaused && speed.Scale == 0f, "기존 일시정지를 풀어도 오류 팝업 잠금은 유지");
+        speed.HitStop(50);
+        speed.Tick(1000);
+        speed.SetModalPaused(false);
+        check(!speed.IsPaused && speed.Scale == 0f, "오류 팝업 동안 히트스톱 시간 보존");
+        speed.Tick(50);
+        check(speed.Scale == 1f, "모든 잠금과 연출 종료 뒤 정상 속도 복귀");
         var combat = new CombatPresence(3000);
         check(!combat.InCombat, "처음은 탐색");
         combat.Engage();

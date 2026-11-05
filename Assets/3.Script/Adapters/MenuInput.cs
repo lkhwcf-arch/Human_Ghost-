@@ -14,6 +14,8 @@ namespace HumanGhost.Gameplay.Adapters
         private readonly Action<int> _side;
         private int _horizontal;
         private bool _enabled;
+        private bool _blocked;
+        private bool _requested;
         private int _vertical;
 
         // side는 좌우 값 바꾸기(선택)입니다.
@@ -38,6 +40,8 @@ namespace HumanGhost.Gameplay.Adapters
 
         public void Enable()
         {
+            _requested = true;
+            if (_blocked) return;
             if (_enabled) return;
             _enabled = true;
             _navigate.performed += OnNavigate;
@@ -49,6 +53,7 @@ namespace HumanGhost.Gameplay.Adapters
 
         public void Disable()
         {
+            _requested = false;
             if (!_enabled) return;
             _enabled = false;
             _navigate.performed -= OnNavigate;
@@ -58,6 +63,15 @@ namespace HumanGhost.Gameplay.Adapters
             _owned.Disable();
             _vertical = 0;
             _horizontal = 0;
+        }
+
+        public void SetBlocked(bool blocked)
+        {
+            bool requested = _requested;
+            _blocked = blocked;
+            if (blocked) Disable();
+            _requested = requested;
+            if (!blocked && requested) Enable();
         }
 
         private void OnNavigate(InputAction.CallbackContext context)

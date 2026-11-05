@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 namespace HumanGhost.Gameplay.Adapters
 {
     // 입력 에셋을 개체별 복제해 활성 수명과 구독을 독립적으로 소유합니다.
-    public sealed class PlayerLocomotionInput : MonoBehaviour
+    public sealed class PlayerLocomotionInput : MonoBehaviour, IModalInputTarget
     {
         [SerializeField] private InputActionReference _move = null;
         [SerializeField] private InputActionReference _jump = null;
@@ -29,13 +29,21 @@ namespace HumanGhost.Gameplay.Adapters
         // 잠긴 동안의 공격 입력입니다. 텍스트박스 줄 넘김에 쓰고 공격은 나가지 않습니다.
         public event Action AdvancePressed;
         private bool _locked;
+        private bool _modalBlocked;
+        private bool IsBlocked => _locked || _modalBlocked;
+        public void SetModalBlocked(bool blocked)
+        {
+            _modalBlocked = blocked;
+            _vertical = 0;
+            if (_locomotion != null) SetDirection(IsBlocked || !_subscribed ? 0 : Math.Sign(_moveAction.ReadValue<Vector2>().x));
+        }
 
         // 대화·로딩 중 이동·전투·상호작용 입력을 막습니다.
         public void SetLocked(bool locked)
         {
             if (this == null || _locked == locked) return;
             _locked = locked;
-            SetDirection(locked || !_subscribed ? 0 : Math.Sign(_moveAction.ReadValue<Vector2>().x));
+            SetDirection(IsBlocked || !_subscribed ? 0 : Math.Sign(_moveAction.ReadValue<Vector2>().x));
         }
 
         public void Initialize(PlayerLocomotion locomotion) => InitializeCore(locomotion, null);
@@ -115,7 +123,7 @@ namespace HumanGhost.Gameplay.Adapters
                 if (_herbAction != null) { _herbAction.performed += OnHerb; _herbAction.Enable(); }
             }
             _moveAction.Enable(); _jumpAction.Enable();
-            SetDirection(Math.Sign(_moveAction.ReadValue<Vector2>().x));
+            SetDirection(IsBlocked ? 0 : Math.Sign(_moveAction.ReadValue<Vector2>().x));
         }
 
         private void SetDirection(int direction)
@@ -124,23 +132,23 @@ namespace HumanGhost.Gameplay.Adapters
         }
         private void OnMove(InputAction.CallbackContext context)
         {
-            if (_locked) return;
+            if (IsBlocked) return;
             Vector2 value = context.canceled ? Vector2.zero : context.ReadValue<Vector2>();
             SetDirection(Math.Sign(value.x));
             int vertical = value.y > 0.5f ? 1 : value.y < -0.5f ? -1 : 0;
             if (vertical != 0 && vertical != _vertical) VerticalPressed?.Invoke(vertical);
             _vertical = vertical;
         }
-        private void OnInteract(InputAction.CallbackContext context) { if (!_locked) InteractPressed?.Invoke(); }
-        private void OnSkill(InputAction.CallbackContext context) { if (!_locked) _actor.TryUseSkill(); }
-        private void OnHerb(InputAction.CallbackContext context) { if (!_locked) _actor.TryUseHerb(); }
+        private void OnInteract(InputAction.CallbackContext context) { if (!IsBlocked) InteractPressed?.Invoke(); }
+        private void OnSkill(InputAction.CallbackContext context) { if (!IsBlocked) _actor.TryUseSkill(); }
+        private void OnHerb(InputAction.CallbackContext context) { if (!IsBlocked) _actor.TryUseHerb(); }
         private void OnJump(InputAction.CallbackContext context)
         {
-            if (_locked) return;
+            if (IsBlocked) return;
             if (_actor != null ? _actor.TryJump() : _locomotion.TryJump()) JumpAccepted?.Invoke();
             else JumpRejected?.Invoke();
         }
-        private void OnAttack(InputAction.CallbackContext context) { if (_locked) AdvancePressed?.Invoke(); else _actor.TryAttack(); }
-        private void OnRoll(InputAction.CallbackContext context) { if (!_locked) _actor.TryRoll(); }
+        private void OnAttack(InputAction.CallbackContext context) { if (_modalBlocked) return; if (_locked) AdvancePressed?.Invoke(); else _actor.TryAttack(); }
+        private void OnRoll(InputAction.CallbackContext context) { if (!IsBlocked) _actor.TryRoll(); }
     }
 }

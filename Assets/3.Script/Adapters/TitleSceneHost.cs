@@ -8,7 +8,7 @@ using UnityEngine.InputSystem;
 namespace HumanGhost.Gameplay.Adapters
 {
     // 데이터 준비 뒤 메뉴·화면·입력을 조립합니다. 실행 담당은 외부에서 명시적으로 연결합니다.
-    public sealed class TitleSceneHost : MonoBehaviour
+    public sealed class TitleSceneHost : MonoBehaviour, IModalInputTarget
     {
         [SerializeField] private GameDataInitializer _initializer = null;
         [SerializeField] private TitleScreen _screen = null;
@@ -21,10 +21,16 @@ namespace HumanGhost.Gameplay.Adapters
         [SerializeField, InspectorName("화면 검사: 임시 저장 있음")] private bool _previewHasSave = false;
         private readonly TaskCompletionSource<bool> _saveReady =
             new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        private bool _modalBlocked;
+        public void SetModalBlocked(bool blocked)
+        {
+            _modalBlocked = blocked;
+            _menuInput?.SetBlocked(blocked);
+        }
         private MenuInput _menuInput;
         private TitleMenu _menu;
         private Func<TitleAction, bool> _execute;
-        public bool CanOpenSaveSelection => _menu != null && _menu.State == TitleMenuState.Selecting;
+        public bool CanOpenSaveSelection => !_modalBlocked && _menu != null && _menu.State == TitleMenuState.Selecting;
 
         // true는 실행 담당이 요청을 인수했음을 뜻합니다. 실패·설정 복귀 후 CompleteRequest를 호출합니다.
         public void ConnectOperations(Func<TitleAction, bool> execute)
@@ -95,7 +101,11 @@ namespace HumanGhost.Gameplay.Adapters
             if (isActiveAndEnabled) Subscribe();
         }
 
-        private void Subscribe() => _menuInput?.Enable();
+        private void Subscribe()
+        {
+            _menuInput?.SetBlocked(_modalBlocked);
+            _menuInput?.Enable();
+        }
 
         private void OnDisable()
         {
@@ -113,7 +123,7 @@ namespace HumanGhost.Gameplay.Adapters
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             if (_saveSelection != null && _saveSelection.IsOpen) return true;
 #endif
-            return _menu == null;
+            return _modalBlocked || _menu == null;
         }
         private void OnEntryHovered(TitleAction action) { if (!IsPointerBlocked()) _menu.SelectItem(action); }
         private void OnEntryClicked(TitleAction action)
@@ -145,6 +155,7 @@ namespace HumanGhost.Gameplay.Adapters
 
         private void OnCancel()
         {
+            if (_modalBlocked) return;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             if (_saveSelection != null && _saveSelection.IsOpen) { _saveSelection.Close(); return; }
 #endif

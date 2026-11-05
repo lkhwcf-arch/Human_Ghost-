@@ -7,11 +7,17 @@ using UnityEngine.InputSystem;
 namespace HumanGhost.Gameplay.Adapters
 {
     // 일시정지 흐름(O04·O04_1·O05_1)을 조립합니다. 열 수 있는지와 타이틀 이동은 조립자가 전달합니다.
-    public sealed class PauseMenuHost : MonoBehaviour
+    public sealed class PauseMenuHost : MonoBehaviour, IModalInputTarget
     {
         [SerializeField] private PauseScreen _screen = null;
         [SerializeField] private SettingsScreen _settingsScreen = null;
         [SerializeField] private InputActionAsset _input = null;
+        private bool _modalBlocked;
+        public void SetModalBlocked(bool blocked)
+        {
+            _modalBlocked = blocked;
+            _menuInput?.SetBlocked(blocked);
+        }
         private MenuInput _menuInput;
         private PauseMenu _menu;
         private IReadOnlyDataCatalog _data;
@@ -37,6 +43,7 @@ namespace HumanGhost.Gameplay.Adapters
             _screen.gameObject.SetActive(false);
             _settingsScreen.gameObject.SetActive(false);
             _menuInput = new MenuInput(_input, OnMove, OnSubmit, OnBack, OnSide);
+            _menuInput.SetBlocked(_modalBlocked);
         }
 
         public void Disconnect()
@@ -51,7 +58,7 @@ namespace HumanGhost.Gameplay.Adapters
 
         private void Update()
         {
-            if (_data == null) return;
+            if (_data == null || _modalBlocked) return;
             if (_unlockNextFrame) { _unlockNextFrame = false; _setGameInputLocked(false); }
             Keyboard keyboard = Keyboard.current;
             Gamepad pad = Gamepad.current;
@@ -111,6 +118,7 @@ namespace HumanGhost.Gameplay.Adapters
 
         private void OnBack()
         {
+            if (_modalBlocked) return;
             if (_settingsScreen.IsOpen) { _settingsScreen.Back(); return; }
             if (_menu != null) Handle(_menu.Back());
         }
@@ -141,9 +149,9 @@ namespace HumanGhost.Gameplay.Adapters
         }
 
         private void OnHover(PauseItem item) => _menu?.Select(item);
-        private void OnClick(PauseItem item) { if (_menu == null || _settingsScreen.IsOpen) return; _menu.Select(item); Handle(_menu.Submit()); }
+        private void OnClick(PauseItem item) { if (_modalBlocked || _menu == null || _settingsScreen.IsOpen) return; _menu.Select(item); Handle(_menu.Submit()); }
         private void OnConfirmHover(bool yes) => _menu?.SelectConfirm(yes);
-        private void OnConfirmClick(bool yes) { if (_menu == null) return; _menu.SelectConfirm(yes); Handle(_menu.Submit()); }
+        private void OnConfirmClick(bool yes) { if (_modalBlocked || _menu == null) return; _menu.SelectConfirm(yes); Handle(_menu.Submit()); }
 
         private void OnDestroy() => Disconnect();
     }

@@ -6,14 +6,17 @@ namespace HumanGhost.Gameplay
     public sealed class GameSpeedState
     {
         private bool _paused;
+        private bool _modalPaused;
         private int _hitStop;
         private int _slow;
         private float _slowRate = 1f;
         private int _queuedSlow;
         private float _queuedRate = 1f;
 
-        public float Scale => _paused || _hitStop > 0 ? 0f : _slow > 0 ? _slowRate : 1f;
-        public bool IsPaused => _paused;
+        public float Scale => IsPaused || _hitStop > 0 ? 0f : _slow > 0 ? _slowRate : 1f;
+        public bool IsPaused => _paused || _modalPaused;
+
+        public void SetModalPaused(bool paused) => _modalPaused = paused;
 
         public void SetPaused(bool paused) => _paused = paused;
 
@@ -37,7 +40,7 @@ namespace HumanGhost.Gameplay
         public void Tick(int milliseconds)
         {
             if (milliseconds < 0) throw new ArgumentOutOfRangeException(nameof(milliseconds));
-            if (_paused) return;
+            if (IsPaused) return;
             if (_hitStop > 0)
             {
                 int used = Math.Min(_hitStop, milliseconds);
