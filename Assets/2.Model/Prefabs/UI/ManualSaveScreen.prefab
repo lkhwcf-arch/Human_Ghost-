@@ -220,5 +220,5 @@ MonoBehaviour:
   _confirmationPopupId: 15001
   _titleTextId: 30207
   _emptyTextId: 30208
-  _overwriteTextId: 30203
+  _overwritePopupId: 15002
   _successTextId: 30024

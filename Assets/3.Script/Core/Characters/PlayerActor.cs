@@ -168,6 +168,9 @@ namespace HumanGhost.Gameplay
             return IsDead;
         }
 
+        // 메뉴 전환은 다음 타수 선입력만 지우며 현재 공격은 유지합니다.
+        public void DiscardBufferedInput() => _combo.DiscardBufferedInput();
+
         public bool TryAttack()
         {
             if (IsDead) return false;

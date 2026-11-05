@@ -22,6 +22,9 @@ namespace HumanGhost.Gameplay.Presentation
         private Action<GameSettings> _preview;
         private Action<GameSettings> _closed;
         private bool _connected;
+        private bool _inputBlocked;
+
+        public void SetInputBlocked(bool blocked) => _inputBlocked = blocked;
 
         public bool IsOpen => _menu != null;
 
@@ -44,44 +47,51 @@ namespace HumanGhost.Gameplay.Presentation
         {
             if (_connected) return;
             _connected = true;
-            MenuText.Connect(_music.gameObject, () => _menu?.Select(SettingsRow.Music), () => _menu?.Select(SettingsRow.Music));
-            MenuText.Connect(_effects.gameObject, () => _menu?.Select(SettingsRow.Effects), () => _menu?.Select(SettingsRow.Effects));
-            MenuText.Connect(_shake.gameObject, () => _menu?.Select(SettingsRow.CameraShake), () => { _menu?.Select(SettingsRow.CameraShake); Adjust(1); });
-            MenuText.Connect(_musicLeft.gameObject, null, () => { _menu?.Select(SettingsRow.Music); Adjust(-1); });
-            MenuText.Connect(_musicRight.gameObject, null, () => { _menu?.Select(SettingsRow.Music); Adjust(1); });
-            MenuText.Connect(_effectsLeft.gameObject, null, () => { _menu?.Select(SettingsRow.Effects); Adjust(-1); });
-            MenuText.Connect(_effectsRight.gameObject, null, () => { _menu?.Select(SettingsRow.Effects); Adjust(1); });
+            MenuText.Connect(_music.gameObject, () => Select(SettingsRow.Music), () => Select(SettingsRow.Music));
+            MenuText.Connect(_effects.gameObject, () => Select(SettingsRow.Effects), () => Select(SettingsRow.Effects));
+            MenuText.Connect(_shake.gameObject, () => Select(SettingsRow.CameraShake), () => { Select(SettingsRow.CameraShake); Adjust(1); });
+            MenuText.Connect(_musicLeft.gameObject, null, () => { Select(SettingsRow.Music); Adjust(-1); });
+            MenuText.Connect(_musicRight.gameObject, null, () => { Select(SettingsRow.Music); Adjust(1); });
+            MenuText.Connect(_effectsLeft.gameObject, null, () => { Select(SettingsRow.Effects); Adjust(-1); });
+            MenuText.Connect(_effectsRight.gameObject, null, () => { Select(SettingsRow.Effects); Adjust(1); });
             MenuText.Connect(_close.gameObject, null, Back);
             MenuText.Connect(_confirmYes.gameObject, null, () => Answer(true));
             MenuText.Connect(_confirmNo.gameObject, null, () => Answer(false));
         }
 
-        public void Move(int direction) => _menu?.Move(direction);
+        private void Select(SettingsRow row) { if (!_inputBlocked) _menu?.Select(row); }
+
+        public void Move(int direction) { if (!_inputBlocked) _menu?.Move(direction); }
 
         public void Adjust(int direction)
         {
-            if (_menu == null) return;
+            if (_inputBlocked || _menu == null) return;
             _menu.Adjust(direction);
             _preview?.Invoke(_menu.Current);
         }
 
         public void Submit()
         {
-            if (_menu == null) return;
+            if (_inputBlocked || _menu == null) return;
             if (_menu.IsConfirming) Answer(_menu.ConfirmYes);
             else if (_menu.Row == SettingsRow.CameraShake) Adjust(1);
         }
 
         public void Back()
         {
-            if (_menu == null) return;
+            if (_inputBlocked || _menu == null) return;
             if (_menu.IsConfirming) { Answer(false); return; }
             if (_menu.RequestClose()) Finish(_menu.Current);
         }
 
+        public void Cancel()
+        {
+            if (_menu != null) Finish(_menu.Answer(false));
+        }
+
         private void Answer(bool apply)
         {
-            if (_menu == null || !_menu.IsConfirming) return;
+            if (_inputBlocked || _menu == null || !_menu.IsConfirming) return;
             Finish(_menu.Answer(apply));
         }
 

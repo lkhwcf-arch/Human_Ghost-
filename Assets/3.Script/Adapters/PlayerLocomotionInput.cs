@@ -30,20 +30,37 @@ namespace HumanGhost.Gameplay.Adapters
         public event Action AdvancePressed;
         private bool _locked;
         private bool _modalBlocked;
-        private bool IsBlocked => _locked || _modalBlocked;
+        private int _unlockFrame = -1;
+        private bool IsBlocked => _locked || _modalBlocked || Time.frameCount <= _unlockFrame;
+
         public void SetModalBlocked(bool blocked)
         {
+            if (this == null || _modalBlocked == blocked) return;
             _modalBlocked = blocked;
-            _vertical = 0;
-            if (_locomotion != null) SetDirection(IsBlocked || !_subscribed ? 0 : Math.Sign(_moveAction.ReadValue<Vector2>().x));
+            DiscardBufferedInput();
         }
 
-        // 대화·로딩 중 이동·전투·상호작용 입력을 막습니다.
+        // 대화/일시정지 잠금과 오류 모달 잠금은 독립적으로 유지합니다.
         public void SetLocked(bool locked)
         {
             if (this == null || _locked == locked) return;
             _locked = locked;
-            SetDirection(IsBlocked || !_subscribed ? 0 : Math.Sign(_moveAction.ReadValue<Vector2>().x));
+            DiscardBufferedInput();
+        }
+
+        public void DiscardBufferedInput()
+        {
+            _vertical = 0;
+            _unlockFrame = Time.frameCount;
+            _actor?.DiscardBufferedInput();
+            if (_locomotion != null) SetDirection(0);
+        }
+
+        private void Update()
+        {
+            if (_locked || _modalBlocked || _unlockFrame < 0 || Time.frameCount <= _unlockFrame) return;
+            _unlockFrame = -1;
+            SetDirection(_subscribed ? Math.Sign(_moveAction.ReadValue<Vector2>().x) : 0);
         }
 
         public void Initialize(PlayerLocomotion locomotion) => InitializeCore(locomotion, null);
@@ -96,6 +113,7 @@ namespace HumanGhost.Gameplay.Adapters
             _subscribed = false;
             _vertical = 0;
             _ownedAsset.Disable();
+            _actor?.DiscardBufferedInput();
             if (_actor != null) _actor.SetMove(0); else _locomotion.SetMove(0);
         }
 
@@ -148,7 +166,7 @@ namespace HumanGhost.Gameplay.Adapters
             if (_actor != null ? _actor.TryJump() : _locomotion.TryJump()) JumpAccepted?.Invoke();
             else JumpRejected?.Invoke();
         }
-        private void OnAttack(InputAction.CallbackContext context) { if (_modalBlocked) return; if (_locked) AdvancePressed?.Invoke(); else _actor.TryAttack(); }
+        private void OnAttack(InputAction.CallbackContext context) { if (_modalBlocked || Time.frameCount <= _unlockFrame) return; if (_locked) AdvancePressed?.Invoke(); else _actor.TryAttack(); }
         private void OnRoll(InputAction.CallbackContext context) { if (!IsBlocked) _actor.TryRoll(); }
     }
 }
