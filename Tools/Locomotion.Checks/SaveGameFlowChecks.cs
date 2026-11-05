@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -18,6 +18,7 @@ internal static class SaveGameFlowChecks
         var session = new SaveSession(SaveBuildMode.Demo, 1, store, () => 2000,
             new[] { new SaveRecord(1, 7, 1000, snapshot) });
         var flow = new SaveGameFlow(session, runtime);
+        check(!flow.ResumePrepared(), "현재 슬롯 없이 맵 이동 재개 거부" );
         int ready = 0;
         flow.Ready += state => ready++;
         check(!await flow.SaveManualAsync(1, false) && runtime.Captures == 0, "복원 준비 전에는 상태 수집과 저장을 실행하지 않음");
@@ -33,6 +34,12 @@ internal static class SaveGameFlowChecks
         check(runtime.Order.SequenceEqual(new[] { "진행 차단", "준비", "적용", "진행 허용" })
             && ReferenceEquals(runtime.Applied, snapshot), "맵 없이도 상태 사본과 복원 순서를 검사 가능");
         runtime.Pending = null;
+        var nextRuntime = new TestRuntime(snapshot);
+        var nextFlow = new SaveGameFlow(session, nextRuntime);
+        check(nextFlow.ResumePrepared() && nextFlow.IsPlayable && nextRuntime.Applies == 0
+            && nextRuntime.Captures == 0 && session.CurrentSlot == 7,
+            "일반 맵 이동은 마지막 저장 위치를 재적용하거나 새 기록을 쓰지 않음");
+        check(session.PendingWrite.IsCompleted, "저장 전에는 대기할 파일 기록 작업이 없음");
         check(await flow.SaveManualAsync(4, false) && runtime.Captures == 1 && session.CurrentSlot == 4,
             "수동 저장은 주입한 수집 담당과 기존 슬롯 정책 사용");
         check(await flow.SaveAutomaticAsync(9002) && runtime.Captures == 2 && session.CurrentSlot == 4,

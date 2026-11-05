@@ -1983,6 +1983,7 @@ MonoBehaviour:
   _hangEdgeRoot: {fileID: 0}
   _combatMinX: -8.5
   _combatMaxX: 34
+  _manualSavePrefab: {fileID: 90020, guid: c9dc5f691d6f4673b88d6a19b085f970, type: 3}
 --- !u!4 &1213176966
 Transform:
   m_ObjectHideFlags: 0

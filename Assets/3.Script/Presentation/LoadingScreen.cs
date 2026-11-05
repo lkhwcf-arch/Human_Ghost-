@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using HumanGhost.Data.Definitions;
 using HumanGhost.Data.Storage;
@@ -27,6 +28,7 @@ namespace HumanGhost.Gameplay.Presentation
         [SerializeField] private RectTransform _seal = null;
         [SerializeField] private Image _sealFill = null;
         private AsyncOperation _load;
+        private Task<bool> _ready;
         private bool _begun;
         private bool _fadeOnly;
         private string _sceneName;
@@ -37,7 +39,8 @@ namespace HumanGhost.Gameplay.Presentation
         public static bool IsActive => _active != null;
         private Vector2 _boxPosition;
 
-        public void Begin(string sceneName, IReadOnlyDataCatalog data) => BeginInternal(sceneName, data, false);
+        public void Begin(string sceneName, IReadOnlyDataCatalog data, Task<bool> ready = null)
+        { _ready = ready; BeginInternal(sceneName, data, false); }
 
         // 타이틀 복귀는 같은 이동 경로를 사용하되 로딩 문구·최소 대기 없이 암전만 표시합니다.
         public void BeginFade(string sceneName) => BeginInternal(sceneName, null, true);
@@ -151,6 +154,12 @@ namespace HumanGhost.Gameplay.Presentation
                 if (_phase == 3)
                 {
                     if (!_load.isDone) return;
+                    if (_ready != null)
+                    {
+                        if (!_ready.IsCompleted) return;
+                        if (_ready.IsCanceled || _ready.IsFaulted || !_ready.Result)
+                            throw new InvalidOperationException("이동한 공간의 게임 상태 준비·복원이 완료되지 않았습니다.");
+                    }
                     _elapsed = 0;
                     _phase = 4;
                 }

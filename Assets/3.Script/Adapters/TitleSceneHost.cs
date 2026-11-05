@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HumanGhost.Data.Infrastructure;
@@ -34,6 +34,18 @@ namespace HumanGhost.Gameplay.Adapters
         private MenuInput _menuInput;
         private TitleMenu _menu;
         private readonly Dictionary<TitleAction, Func<bool>> _commands = new Dictionary<TitleAction, Func<bool>>();
+        public void ConnectSaveLoadHandler(Func<SaveRecord, bool> handler)
+        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (_saveSelection != null) _saveSelection.ConnectLoadHandler(handler);
+#endif
+        }
+        public void DisconnectSaveLoadHandler(Func<SaveRecord, bool> handler)
+        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (_saveSelection != null) _saveSelection.DisconnectLoadHandler(handler);
+#endif
+        }
         public bool CanOpenSaveSelection => !_modalBlocked && _menu != null && _menu.State == TitleMenuState.Selecting;
 
         public void ReportError(Exception error, string state)

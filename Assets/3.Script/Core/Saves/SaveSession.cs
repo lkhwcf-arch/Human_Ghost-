@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -29,6 +29,7 @@ namespace HumanGhost.Gameplay
         public bool ManualSaveEnabled => _mode == SaveBuildMode.Demo;
         public int? CurrentSlot { get; private set; }
         public bool IsSaving { get; private set; }
+        public Task PendingWrite { get; private set; } = Task.CompletedTask;
         public event Action<SaveRecord, SaveKind> Saved;
 
         public SaveSession(SaveBuildMode mode, int version, ISaveStore store, Func<long> utcNowMs,
@@ -101,7 +102,14 @@ namespace HumanGhost.Gameplay
             return WriteAsync(CurrentSlot.Value, snapshot.WithSavePoints(_usedSavePoints.Concat(new[] { savePointId })), SaveKind.Automatic);
         }
 
-        private async Task<bool> WriteAsync(int slot, SaveSnapshot snapshot, SaveKind kind)
+        private Task<bool> WriteAsync(int slot, SaveSnapshot snapshot, SaveKind kind)
+        {
+            Task<bool> operation = WriteCoreAsync(slot, snapshot, kind);
+            PendingWrite = operation;
+            return operation;
+        }
+
+        private async Task<bool> WriteCoreAsync(int slot, SaveSnapshot snapshot, SaveKind kind)
         {
             IsSaving = true;
             try

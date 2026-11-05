@@ -10,7 +10,7 @@ using UnityEngine.InputSystem;
 namespace HumanGhost.Gameplay.Preview
 {
     // 임시 육안 확인 장면 전용. 운영 물리·카메라·스폰/해체 종료 정책을 결정하지 않습니다.
-    public sealed class GameplayPreview : MonoBehaviour, IModalInputTarget
+    public sealed partial class GameplayPreview : MonoBehaviour, IModalInputTarget, ISaveGameRuntime
     {
         [SerializeField, InspectorName("데이터 초기화")] private GameDataInitializer _data = null;
         [SerializeField, InspectorName("플레이어 런타임")] private PlayerRuntime _player = null;
@@ -137,6 +137,7 @@ namespace HumanGhost.Gameplay.Preview
                     _player.Initialize(catalog, stamina, true);
                 }
                 _catalog = catalog;
+                ImportEntryProgress();
                 BuildStage(catalog);
                 if (_boss.Actor == null) _boss.Initialize(catalog);
                 DisposeMonsterDrivers();
@@ -166,6 +167,7 @@ namespace HumanGhost.Gameplay.Preview
                 ConnectInteraction(catalog);
                 MoveToArrival();
                 ConnectStageObjects(catalog);
+                if (_savePoint != null) _savePoint.GetComponent<ShrineInteract>().SetActive(PreviewSession.ActiveShrines.Contains(_stageId));
                 ConnectGameLayer(catalog);
                 _actor.RollRequested += OnRoll;
                 _actor.SkillStarted += OnRoll;
@@ -180,9 +182,11 @@ namespace HumanGhost.Gameplay.Preview
                 _playerColor = _playerBody.color;
                 _bossColor = _bossBody.color;
                 RefreshLabels();
+                ConnectSaves();
             }
             catch (Exception error)
             {
+                GameSaveContext.Current?.CompleteScene(false);
                 Debug.LogException(error, this);
                 enabled = false;
             }
@@ -190,6 +194,7 @@ namespace HumanGhost.Gameplay.Preview
 
         private void OnDisable()
         {
+            DisconnectSaves();
             if (_data != null) _data.Initialized -= OnDataReady;
             // 초기화 도중 실패해도 이미 연결한 소비자는 반드시 해제합니다.
             if (_input != null)
@@ -268,7 +273,7 @@ namespace HumanGhost.Gameplay.Preview
         {
             _motion?.DiscardBufferedInput();
             _input.DiscardBufferedInput();
-            _input.SetLocked(locked || _leaving || _actor.IsDead || (_textbox != null && _textbox.IsOpen) || (_pause != null && _pause.IsOpen));
+            _input.SetLocked(locked || _saveLocked || _leaving || _actor.IsDead || (_textbox != null && _textbox.IsOpen) || (_pause != null && _pause.IsOpen));
         }
         private void OnPlayerHealthChanged(int health) { if (_textbox != null) _textbox.Close(); }
 
@@ -288,7 +293,7 @@ namespace HumanGhost.Gameplay.Preview
         {
             if (_leaving || _loadingPrefab == null) return;
             // 로딩 준비 실패 시 기존 임시 상태와 입력을 먼저 망가뜨리지 않습니다.
-            try { Instantiate(_loadingPrefab).Begin(gameObject.scene.name, _catalog); }
+            try { Instantiate(_loadingPrefab).Begin(gameObject.scene.name, _catalog, GameSaveContext.Current?.BeginScene()); }
             catch (Exception error) { Debug.LogException(error, this); return; }
             _leaving = true;
             PreviewSession.CarriedHealth = _actor.Health;
@@ -304,10 +309,16 @@ namespace HumanGhost.Gameplay.Preview
         {
             if (PreviewSession.CarriedHealth is int health)
             {
-                _lastHealth = health;
-                _actor.RestoreVitals(health, PreviewSession.CarriedHerbs);
+                RestorePlayerVitals(health, PreviewSession.CarriedHerbs);
             }
             PreviewSession.CarriedHealth = null;
+        }
+
+        // 복원을 피해로 표시하지 않도록 표시 기준을 먼저 맞춥니다.
+        private void RestorePlayerVitals(int health, int herbs)
+        {
+            _lastHealth = health;
+            _actor.RestoreVitals(health, herbs);
         }
 
         // 리소스 목록이 있으면 현재 스테이지의 맵·플랫폼·몬스터를 JSON으로 조립합니다.
@@ -330,7 +341,7 @@ namespace HumanGhost.Gameplay.Preview
             _boss.gameObject.SetActive(_bossActive);
             if (_interactor != null) _interactor.SetTargetRoot(_stage.Interactables);
             // 몬스터 걷는 구간이 관문에서 끊기도록 먼저 만듭니다.
-            _gates = new PreviewBindGates(_markersRoot, _stageId);
+            _gates = new PreviewBindGates(_markersRoot, _stageId, catalog);
         }
 
         private const int BossStage = 8004;
@@ -444,13 +455,18 @@ namespace HumanGhost.Gameplay.Preview
             }
         }
 
-        // 세이브 포인트(K05_1): 잡몹을 다 잡은 뒤 지나가면 체크포인트가 됩니다. 저장 파일 연결은 저장 담당 작업입니다.
+        // 기존 지점의 체크포인트 활성과 자동 저장 요청입니다. 파일 성공 여부는 저장 세션이 소유합니다.
+        private bool _savePointPassedHere;
         private void StepSavePoint()
         {
-            if (_savePoint == null || PreviewSession.CheckpointPassed) return;
+            if (_savePoint == null || _savePointPassedHere || _actor.IsDead || _saveFlow == null || !_saveFlow.IsPlayable) return;
             if (_player.transform.position.x < _savePoint.position.x || !CanLeaveStage()) return;
+            _savePointPassedHere = true;
             PreviewSession.CheckpointPassed = true;
+            PreviewSession.ShrineId = _stageId;
+            PreviewSession.ActiveShrines.Add(_stageId);
             _savePoint.GetComponent<ShrineInteract>().SetActive(true);
+            SaveAtPoint(_stageId);
         }
 
         private void DisconnectInteraction()
@@ -521,7 +537,7 @@ namespace HumanGhost.Gameplay.Preview
         }
 
         // 사망·암전·해체·결박 가르기 중에는 열지 않습니다(O04·O04_1). 텍스트박스가 열려 있어도 열 수 있습니다.
-        private bool CanPause() => !_modalBlocked && !_leaving && _actor != null && !_actor.IsDead && !PreviewScreenFade.IsActive && _actor.CurrentState != StateKey.Execute && _actor.CurrentState != StateKey.Skill1;
+        private bool CanPause() => (!_saveLocked || _saveFailed) && !_modalBlocked && !_leaving && _actor != null && !_actor.IsDead && !PreviewScreenFade.IsActive && _actor.CurrentState != StateKey.Execute && _actor.CurrentState != StateKey.Skill1;
 
         private void ReturnToTitle()
         {
@@ -584,7 +600,7 @@ namespace HumanGhost.Gameplay.Preview
 
         private void LateUpdate()
         {
-            if (!_subscribed || !_player.isActiveAndEnabled || (_bossActive && !_boss.isActiveAndEnabled)) return;
+            if (_saveLocked || !_subscribed || !_player.isActiveAndEnabled || (_bossActive && !_boss.isActiveAndEnabled)) return;
             if (_actor.Locomotion.Direction != 0) _facing = _actor.Locomotion.Direction;
             _deathRestart?.Step(_actor, Time.deltaTime);
             StepExecution(Time.deltaTime);

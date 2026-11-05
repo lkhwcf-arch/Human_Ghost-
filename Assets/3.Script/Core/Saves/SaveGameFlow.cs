@@ -54,6 +54,15 @@ namespace HumanGhost.Gameplay
             _runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
         }
 
+        // 저장을 다시 읽지 않는 일반 맵 이동입니다. 준비와 임시 상태 전달은 호출자가 마칩니다.
+        public bool ResumePrepared()
+        {
+            if (IsBusy || IsManualSaveOpen || !_session.CurrentSlot.HasValue) return false;
+            _runtime.SetPlayable(true);
+            IsPlayable = true;
+            return true;
+        }
+
         public Task<bool> NewGameAsync(SaveSnapshot initial, CancellationToken cancellation = default)
         {
             if (initial == null) throw new ArgumentNullException(nameof(initial));

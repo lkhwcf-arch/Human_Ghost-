@@ -1,4 +1,7 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
+using HumanGhost.Data.Definitions;
+using HumanGhost.Data.Storage;
 using UnityEngine;
 
 namespace HumanGhost.Gameplay.Preview
@@ -6,22 +9,25 @@ namespace HumanGhost.Gameplay.Preview
     // 결박 관문(L08·C07): 표식 BindGate_*에 막는 충돌을 만들고, 결박 가르기 판정이 닿으면 열립니다. 다른 공격으로는 열리지 않습니다.
     internal sealed class PreviewBindGates
     {
-        private sealed class Gate { public string Key; public GameObject Blocker; public SpriteRenderer View; public Bounds Bounds; }
+        private sealed class Gate { public int Id; public GameObject Blocker; public SpriteRenderer View; public Bounds Bounds; }
         // 표시는 3타일이지만 점프(3타일)로 넘지 못하게 충돌은 위로 길게 둡니다.
         private const float _blockerHeightScale = 10f;
         private readonly List<Gate> _gates = new List<Gate>();
         private bool _touching;
 
-        public PreviewBindGates(Transform markers, int stageId)
+        public PreviewBindGates(Transform markers, int stageId, IReadOnlyDataCatalog data)
         {
             // 임시 표시용 1×1 사각형입니다. 그림 공급 뒤 교체합니다.
             Texture2D texture = Texture2D.whiteTexture;
             Sprite sprite = Sprite.Create(texture, new Rect(0f, 0f, texture.width, texture.height), new Vector2(0.5f, 0.5f), texture.width);
+            var ids = data.GetTable<GateConfig>().All.Where(row => row.StageID == stageId)
+                .ToDictionary(row => row.AnchorName, row => row.ID, System.StringComparer.Ordinal);
             foreach (Transform marker in markers)
             {
                 if (!marker.name.StartsWith("BindGate_", System.StringComparison.Ordinal)) continue;
-                string key = stageId + "_" + marker.name;
-                if (PreviewSession.OpenedGates.Contains(key)) continue;
+                if (!ids.TryGetValue(marker.name, out int id))
+                    throw new System.InvalidOperationException($"관문 ID 연결이 없습니다. GateConfig에서 스테이지 {stageId}, 앵커 {marker.name}을 연결해 주세요.");
+                if (PreviewSession.OpenedGates.Contains(id)) continue;
                 // 폭 1·높이 3타일(L08).
                 var blocker = new GameObject("Blocker");
                 blocker.transform.SetParent(marker, false);
@@ -34,7 +40,7 @@ namespace HumanGhost.Gameplay.Preview
                 view.sprite = sprite;
                 view.color = new Color(0.05f, 0.05f, 0.05f, 0.85f);
                 view.sortingOrder = 50;
-                _gates.Add(new Gate { Key = key, Blocker = blocker, View = view, Bounds = box.bounds });
+                _gates.Add(new Gate { Id = id, Blocker = blocker, View = view, Bounds = box.bounds });
             }
             Physics2D.SyncTransforms();
         }
@@ -54,7 +60,7 @@ namespace HumanGhost.Gameplay.Preview
                 Gate gate = _gates[i];
                 Bounds area = new Bounds(gate.View.bounds.center, gate.View.bounds.size + Vector3.forward * 10f);
                 if (!area.Intersects(new Bounds(attack.center, attack.size + Vector3.forward * 10f))) continue;
-                PreviewSession.OpenedGates.Add(gate.Key);
+                PreviewSession.OpenedGates.Add(gate.Id);
                 Object.Destroy(gate.Blocker);
                 _gates.RemoveAt(i);
             }

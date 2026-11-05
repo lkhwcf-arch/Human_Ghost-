@@ -1,5 +1,7 @@
-using System;
+﻿using System;
 using System.IO;
+using System.Collections.Generic;
+using System.Linq;
 using System.Collections;
 using HumanGhost.Data.Infrastructure;
 using HumanGhost.Data.Storage;
@@ -27,6 +29,8 @@ namespace HumanGhost.Gameplay.Adapters
         private bool _modalBlocked;
         private bool _started;
         private int _saveGeneration;
+        private IReadOnlyList<SaveRecord> _records;
+        private JsonSaveStore _saveStore;
         private bool _settingsPending;
         private Coroutine _settingsReturn;
         [SerializeField, InspectorName("새 게임 시작 씬")] private string _newGameScene = "MapDohwagolTest";
@@ -44,6 +48,8 @@ namespace HumanGhost.Gameplay.Adapters
         {
             if (_host == null) throw new InvalidOperationException("타이틀 실행 담당의 메뉴 호스트를 연결해 주세요.");
             _host.Connect(TitleAction.NewGame, StartNewGame);
+            _host.Connect(TitleAction.Continue, ContinueGame);
+            _host.ConnectSaveLoadHandler(LoadRecord);
             _host.Connect(TitleAction.Settings, OpenSettings);
             _host.Connect(TitleAction.Quit, Quit);
             if (_data != null) _data.Initialized += ConnectAudioData;
@@ -58,6 +64,8 @@ namespace HumanGhost.Gameplay.Adapters
             if (_host != null)
             {
                 _host.Disconnect(TitleAction.NewGame, StartNewGame);
+                _host.Disconnect(TitleAction.Continue, ContinueGame);
+                _host.DisconnectSaveLoadHandler(LoadRecord);
                 _host.Disconnect(TitleAction.Settings, OpenSettings);
                 _host.Disconnect(TitleAction.Quit, Quit);
             }
@@ -144,9 +152,12 @@ namespace HumanGhost.Gameplay.Adapters
             int generation = ++_saveGeneration;
             try
             {
-                string root = Path.GetFullPath(Application.persistentDataPath);
-                var records = await new JsonSaveStore(Path.Combine(root, _saveSubdirectory), _saveVersion).ReadAsync();
-                if (this != null && isActiveAndEnabled && generation == _saveGeneration && _host != null) _host.RefreshSave(records.Count > 0);
+                var store = new JsonSaveStore(GameSaveContext.DirectoryPath(_saveSubdirectory), _saveVersion);
+                var records = await store.ReadAsync();
+                if (this == null || !isActiveAndEnabled || generation != _saveGeneration || _host == null) return;
+                _saveStore = store;
+                _records = records;
+                _host.RefreshSave(records.Count > 0);
             }
             catch (Exception error)
             {
@@ -161,12 +172,28 @@ namespace HumanGhost.Gameplay.Adapters
             if (_audio != null) _audio.ConnectTable(data);
         }
 
-        private bool StartNewGame()
+        private bool StartNewGame() => EnterGame(null);
+        private bool ContinueGame()
         {
-            if (!Application.CanStreamedLevelBeLoaded(_newGameScene)) return false;
+            SaveRecord record = _records?.OrderByDescending(row => row.SavedAtUnixMs).ThenByDescending(row => row.SaveOrder).FirstOrDefault();
+            return record != null && EnterGame(record);
+        }
+        private bool LoadRecord(SaveRecord record) => EnterGame(record);
+        private bool EnterGame(SaveRecord record)
+        {
+            if (_modalBlocked || _records == null || _saveStore == null) return false;
             if (_data == null || _data.Data == null || _loadingPrefab == null) return false;
-            Instantiate(_loadingPrefab).Begin(_newGameScene, _data.Data);
+            var records = record == null ? _records : _records.Where(row => row.Slot != record.Slot).Append(record).ToArray();
+            var context = GameSaveContext.Create(records, _saveStore, _saveVersion, record);
+            if (record != null)
+            {
+                if (record.Snapshot.Hp <= 0) throw new InvalidOperationException("사망 상태의 저장 기록으로는 이어하기를 시작할 수 없습니다.");
+                _data.Data.GetTable<HumanGhost.Data.Definitions.Stage>().Get(record.Snapshot.StageId);
+                foreach (int id in record.Snapshot.OpenedGates) _data.Data.GetTable<HumanGhost.Data.Definitions.GateConfig>().Get(id);
+            }
+            Instantiate(_loadingPrefab).Begin(_newGameScene, _data.Data, context.SceneReady);
             HumanGhost.Gameplay.Preview.PreviewSession.Reset();
+            GameSaveContext.Set(context);
             Cursor.visible = false;
             return true;
         }
