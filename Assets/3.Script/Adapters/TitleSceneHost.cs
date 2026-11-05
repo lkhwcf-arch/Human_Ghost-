@@ -115,15 +115,15 @@ namespace HumanGhost.Gameplay.Adapters
             _menuInput?.Disable();
         }
 
-        private void OnKeyMove(int direction) { Cursor.visible = false; OnMove(direction); }
-        private void OnKeySubmit() { Cursor.visible = false; OnSubmit(); }
-        private void OnKeyCancel() { Cursor.visible = false; OnCancel(); }
+        private void OnKeyMove(int direction) { if (_modalBlocked || !isActiveAndEnabled) return; Cursor.visible = false; OnMove(direction); }
+        private void OnKeySubmit() { if (_modalBlocked || !isActiveAndEnabled) return; Cursor.visible = false; OnSubmit(); }
+        private void OnKeyCancel() { if (_modalBlocked || !isActiveAndEnabled) return; Cursor.visible = false; OnCancel(); }
         private bool IsPointerBlocked()
         {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             if (_saveSelection != null && _saveSelection.IsOpen) return true;
 #endif
-            return _modalBlocked || _menu == null;
+            return !isActiveAndEnabled || _modalBlocked || _menu == null;
         }
         private void OnEntryHovered(TitleAction action) { if (!IsPointerBlocked()) _menu.SelectItem(action); }
         private void OnEntryClicked(TitleAction action)

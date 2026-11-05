@@ -15,15 +15,15 @@ namespace HumanGhost.Gameplay.Adapters
         [SerializeField] private InputActionAsset _input = null;
         [SerializeField] private GameObject _pointerEvents = null;
         [SerializeField, InspectorName("저장 확인 팝업 ID")] private int _confirmationPopupId = 15001;
+        [SerializeField, InspectorName("덮어쓰기 팝업 ID")] private int _overwritePopupId = 15002;
         [SerializeField, InspectorName("목록 제목 문구 ID")] private int _titleTextId = 30207;
         [SerializeField, InspectorName("빈 칸 문구 ID")] private int _emptyTextId = 30208;
-        [SerializeField, InspectorName("덮어쓰기 제목 문구 ID")] private int _overwriteTextId = 30203;
         [SerializeField, InspectorName("저장 성공 문구 ID")] private int _successTextId = 30024;
         private SaveGameFlow _flow;
         private Func<bool> _canOpen;
         private MenuInput _menuInput;
         private InputAction _open;
-        private Popup _popup;
+        private Popup _savePopup, _overwritePopup;
         private IReadOnlyDataTable<Language> _language;
         private int _generation;
         private bool _saving;
@@ -33,22 +33,29 @@ namespace HumanGhost.Gameplay.Adapters
         {
             if (_flow != null) throw new InvalidOperationException("수동 저장 실행 담당이 이미 연결되어 있습니다.");
             if (flow == null || data == null || canOpen == null) throw new ArgumentNullException(nameof(flow));
-            Popup popup = data.GetTable<Popup>().Get(_confirmationPopupId);
-            if (popup.Button3TextID != 0 || popup.DefaultButton < 1 || popup.DefaultButton > 2
-                || popup.CancelButton < 1 || popup.CancelButton > 2)
-                throw new InvalidOperationException("수동 저장 확인은 두 버튼 팝업을 연결해야 합니다.");
             var language = data.GetTable<Language>();
-            // 표시 필수 연결은 입력을 켜기 전에 확인합니다.
-            foreach (int id in new[] { _titleTextId, _emptyTextId, _overwriteTextId, _successTextId,
-                popup.BodyTextID, popup.Button1TextID, popup.Button2TextID }) language.Get(id);
+            Popup savePopup = ReadPopup(data, language, _confirmationPopupId, false);
+            Popup overwritePopup = ReadPopup(data, language, _overwritePopupId, true);
+            foreach (int id in new[] { _titleTextId, _emptyTextId, _successTextId }) language.Get(id);
             _menuInput = new MenuInput(_input, _screen.Move, _screen.Submit, _screen.Cancel);
             _open = new InputAction("ManualSave", InputActionType.Button, "<Keyboard>/f5");
             _open.performed += OnOpen;
-            _popup = popup;
+            _savePopup = savePopup;
+            _overwritePopup = overwritePopup;
             _language = language;
             _canOpen = canOpen;
             _flow = flow;
             if (isActiveAndEnabled && flow.ManualSaveEnabled) _open.Enable();
+        }
+
+        private static Popup ReadPopup(IReadOnlyDataCatalog data, IReadOnlyDataTable<Language> language, int id, bool overwrite)
+        {
+            Popup popup = data.GetTable<Popup>().Get(id);
+            if (popup.Button3TextID != 0 || popup.DefaultButton < 1 || popup.DefaultButton > 2 || popup.CancelButton != 2
+                || (overwrite && popup.DefaultButton != 2))
+                throw new InvalidOperationException("수동 저장은 예·아니오 두 버튼과 취소=아니오, 덮어쓰기 기본=아니오가 필요합니다.");
+            foreach (int textId in new[] { popup.BodyTextID, popup.Button1TextID, popup.Button2TextID }) language.Get(textId);
+            return popup;
         }
 
         public void Disconnect(SaveGameFlow owner)
@@ -108,11 +115,12 @@ namespace HumanGhost.Gameplay.Adapters
         {
             if (!IsOpen || _saving) return;
             SaveSlotEntry entry = _flow.GetSlots(true)[index];
-            if (entry.Record == null) { Save(entry.Slot, false); return; }
-            string question = _language.Get(_overwriteTextId).KO + "\n" + SaveSlotScreen.FormatDate(entry.Record)
-                + "\n" + _language.Get(_popup.BodyTextID).KO;
-            _screen.Confirm(question, _language.Get(_popup.Button1TextID).KO, _language.Get(_popup.Button2TextID).KO,
-                _popup.DefaultButton == 1, _popup.CancelButton == 1, accepted => { if (accepted) Save(entry.Slot, true); });
+            bool overwrite = entry.Record != null;
+            Popup popup = overwrite ? _overwritePopup : _savePopup;
+            string question = _language.Get(popup.BodyTextID).KO;
+            if (overwrite) question += "\n" + SaveSlotScreen.FormatDate(entry.Record);
+            _screen.Confirm(question, _language.Get(popup.Button1TextID).KO, _language.Get(popup.Button2TextID).KO,
+                popup.DefaultButton == 1, false, accepted => { if (accepted) Save(entry.Slot, overwrite); });
         }
 
         private async void Save(int slot, bool overwriteConfirmed)

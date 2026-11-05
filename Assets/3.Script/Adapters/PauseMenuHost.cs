@@ -17,6 +17,7 @@ namespace HumanGhost.Gameplay.Adapters
         {
             _modalBlocked = blocked;
             _menuInput?.SetBlocked(blocked);
+            if (_settingsScreen != null) _settingsScreen.SetInputBlocked(blocked);
         }
         private MenuInput _menuInput;
         private PauseMenu _menu;
@@ -42,6 +43,7 @@ namespace HumanGhost.Gameplay.Adapters
             _screen.ConfirmHovered += OnConfirmHover; _screen.ConfirmClicked += OnConfirmClick; _screen.CloseClicked += OnBack;
             _screen.gameObject.SetActive(false);
             _settingsScreen.gameObject.SetActive(false);
+            _settingsScreen.SetInputBlocked(_modalBlocked);
             _menuInput = new MenuInput(_input, OnMove, OnSubmit, OnBack, OnSide);
             _menuInput.SetBlocked(_modalBlocked);
         }
@@ -56,6 +58,20 @@ namespace HumanGhost.Gameplay.Adapters
             _menuInput = null; _data = null;
         }
 
+        private void OnEnable() => InputSystem.onDeviceChange += OnDeviceChange;
+        private void OnDisable() => InputSystem.onDeviceChange -= OnDeviceChange;
+        private void OnApplicationFocus(bool focused) { if (!focused) TryOpen(); }
+
+        private void OnDeviceChange(InputDevice device, InputDeviceChange change)
+        {
+            if (device is Gamepad && (change == InputDeviceChange.Disconnected || change == InputDeviceChange.Removed)) TryOpen();
+        }
+
+        private void TryOpen()
+        {
+            if (isActiveAndEnabled && !_modalBlocked && _data != null && !IsOpen && _canOpen()) Open();
+        }
+
         private void Update()
         {
             if (_data == null || _modalBlocked) return;
@@ -64,7 +80,7 @@ namespace HumanGhost.Gameplay.Adapters
             Gamepad pad = Gamepad.current;
             bool escape = keyboard != null && keyboard.escapeKey.wasPressedThisFrame;
             bool start = pad != null && pad.startButton.wasPressedThisFrame;
-            if (!IsOpen) { if ((escape || start) && _canOpen()) Open(); return; }
+            if (!IsOpen) { if (escape || start) TryOpen(); return; }
             // 패드 Start는 어느 단계에서든 통째로 닫습니다. 바꾼 설정이 있으면 확인을 먼저 받습니다.
             if (start)
             {
@@ -99,6 +115,7 @@ namespace HumanGhost.Gameplay.Adapters
         // 씬 종료·Play 중지 때는 화면이 먼저 파괴됐을 수 있어 살아 있는 대상만 정리합니다. 게임 속도는 컨트롤러가 복구합니다.
         private void Teardown()
         {
+            if (_settingsScreen != null) _settingsScreen.Cancel();
             if (_screen != null) _screen.Hide();
             _menu = null;
             _menuInput?.Disable();
@@ -107,11 +124,12 @@ namespace HumanGhost.Gameplay.Adapters
             _setGameInputLocked?.Invoke(false);
         }
 
-        private void OnMove(int direction) { if (_settingsScreen.IsOpen) _settingsScreen.Move(direction); else _menu?.Move(direction); }
-        private void OnSide(int direction) { if (_settingsScreen.IsOpen) _settingsScreen.Adjust(direction); }
+        private void OnMove(int direction) { if (_modalBlocked) return; if (_settingsScreen.IsOpen) _settingsScreen.Move(direction); else _menu?.Move(direction); }
+        private void OnSide(int direction) { if (_modalBlocked) return; if (_settingsScreen.IsOpen) _settingsScreen.Adjust(direction); }
 
         private void OnSubmit()
         {
+            if (_modalBlocked) return;
             if (_settingsScreen.IsOpen) { _settingsScreen.Submit(); return; }
             if (_menu != null) Handle(_menu.Submit());
         }
@@ -143,14 +161,19 @@ namespace HumanGhost.Gameplay.Adapters
 
         private void OnSettingsClosed(GameSettings result)
         {
+            bool changed = !_settings.SameAs(result);
             _settings = result;
-            GameSettingsStore.Save(result);
+            if (changed)
+            {
+                try { GameSettingsStore.Save(result); }
+                catch (Exception error) { Debug.LogError($"설정을 저장하지 못했습니다.\n{error.Message}", this); }
+            }
             _settingsChanged?.Invoke(result);
         }
 
-        private void OnHover(PauseItem item) => _menu?.Select(item);
+        private void OnHover(PauseItem item) { if (!_modalBlocked) _menu?.Select(item); }
         private void OnClick(PauseItem item) { if (_modalBlocked || _menu == null || _settingsScreen.IsOpen) return; _menu.Select(item); Handle(_menu.Submit()); }
-        private void OnConfirmHover(bool yes) => _menu?.SelectConfirm(yes);
+        private void OnConfirmHover(bool yes) { if (!_modalBlocked) _menu?.SelectConfirm(yes); }
         private void OnConfirmClick(bool yes) { if (_modalBlocked || _menu == null) return; _menu.SelectConfirm(yes); Handle(_menu.Submit()); }
 
         private void OnDestroy() => Disconnect();
