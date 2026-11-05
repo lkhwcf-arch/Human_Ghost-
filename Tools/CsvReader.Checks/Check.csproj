@@ -18,6 +18,9 @@
     <Compile Include="../../Assets/3.Script/Core/Saves/*.cs" />
     <Compile Include="../../Assets/3.Script/Adapters/JsonSaveStore.cs" />
     <Compile Include="../../Assets/3.Script/Adapters/CutsceneSequenceSource.cs" />
+    <Compile Include="../../Assets/3.Script/Adapters/LanguageTextSource.cs" />
+    <Compile Include="../../Assets/3.Script/Core/Settings/LanguageCode.cs" />
+    <Compile Include="../../Assets/3.Script/Core/Feedback/ErrorPopupDetails.cs" />
     <Compile Include="../../Assets/3.Script/Data/Storage/*.cs" />
     <Compile Include="../../Assets/3.Script/Data/Generated/*.cs" />
     <Compile Include="../../Assets/3.Script/Data/*.cs" />

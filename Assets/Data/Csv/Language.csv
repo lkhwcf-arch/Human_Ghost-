@@ -28,8 +28,8 @@ ID,KO,EN
 30027,장부방,Jangbubang
 30028,새로 시작,New Game
 30029,이어하기,Continue
-30030,설정,Settings
-30031,종료,Quit
+30030,옵션,Options
+30031,나가기,Exit
 30032,멈춤,Paused
 30033,계속하기,Resume
 30034,조작 안내,Controls
@@ -44,7 +44,7 @@ ID,KO,EN
 30043,언어,Language
 30044,길게 눌러 건너뛰기,Hold to skip
 30045,곧 처음 화면으로 돌아갑니다,Returning to title soon
-30046,바꾼 설정을 적용할까요?,Apply changes?
+30046,바꾼 옵션을 적용할까요?,Apply changes?
 30047,켜기,On
 30048,끄기,Off
 30049,GSTAR 2026 데모,GSTAR 2026 Demo
@@ -83,3 +83,9 @@ ID,KO,EN
 30206,내리베기,Downward Slash
 30207,기록 목록,Save Slots
 30208,빈 칸,Empty
+30209,오류가 발생했습니다,An error occurred
+30210,복사,Copy
+30211,닫기,Close
+30212,기록 파일,Log file
+30213,버그 기록을 남겼습니다,Bug report saved
+30214,복사했습니다,Copied
