@@ -9,7 +9,7 @@ using HumanGhost.Data.Definitions;
 
 namespace HumanGhost.Gameplay.Adapters
 {
-    // 명시적으로 전달받은 오류만 기록·표시합니다. 전역 로그를 다시 구독하지 않습니다.
+    // 명시적 보고와 초기화 뒤 수집한 Unity 오류를 같은 화면 진입점으로 처리합니다.
     public class ErrorPopupHost : MonoBehaviour
     {
         [SerializeField] private ErrorPopupScreen _prefab = null;
@@ -28,10 +28,16 @@ namespace HumanGhost.Gameplay.Adapters
         private int _errorCount;
         private Coroutine _copyFeedback;
         private int _openedFrame;
+        [SerializeField, InspectorName("테스트 환경 Unity 오류 자동 수집")] private bool _captureUnityErrors = true;
+        private UnityErrorLogCollector _collector;
+        private Func<string> _readState;
+        [ThreadStatic] private static int _reportDepth;
+        internal static bool IsWritingReport => _reportDepth > 0;
         public bool IsOpen => _ownsInput;
+        public bool IsCapturing => _collector != null && _collector.IsActive;
 
         // 콜백은 이 팝업의 입력 잠금만 소유합니다. 실패한 작업의 재시도·게임 시간은 호출자가 결정합니다.
-        public virtual void Initialize(EventSystem events, Action<bool> setModalInput, IReadOnlyDataCatalog data, LanguageCode languageCode = LanguageCode.Korean)
+        public virtual void Initialize(EventSystem events, Action<bool> setModalInput, IReadOnlyDataCatalog data, LanguageCode languageCode = LanguageCode.Korean, Func<string> readState = null)
         {
             if (_menuInput != null) throw new InvalidOperationException("이미 초기화된 에러 팝업입니다.");
             if (events == null || setModalInput == null) throw new ArgumentNullException(nameof(events));
@@ -40,6 +46,8 @@ namespace HumanGhost.Gameplay.Adapters
             _events = events;
             _setModalInput = setModalInput;
             _menuInput = new MenuInput(_input, Move, Submit, Cancel);
+            _readState = readState;
+            BeginCapture();
         }
 
         // Popup의 버튼·본문 참조와 공용 언어 조회를 한 번 연결합니다.
@@ -64,10 +72,17 @@ namespace HumanGhost.Gameplay.Adapters
         public virtual bool Report(Exception error, Action dismissed = null, UnityEngine.Object context = null, string state = "")
         {
             if (error == null) throw new ArgumentNullException(nameof(error));
-            Debug.LogException(error, context);
+            _reportDepth++;
+            try { Debug.LogException(error, context); }
+            finally { _reportDepth--; }
             _errorCount++;
             if (_popup == null) throw new InvalidOperationException("Popup·Language 데이터를 먼저 연결해 주세요.");
             _details = ErrorPopupDetails.Format(error, _errorCount, ResolveScene(context), state, DateTimeOffset.Now, _logLabel, Application.consoleLogPath);
+            return Present(dismissed);
+        }
+
+        private bool Present(Action dismissed)
+        {
             if (_ownsInput)
             {
                 if (_return == null) Render();
@@ -93,6 +108,40 @@ namespace HumanGhost.Gameplay.Adapters
                 throw;
             }
         }
+
+        // 원본은 Unity가 이미 기록했으므로 여기서는 다시 로그를 쓰지 않습니다.
+        private void PresentCaptured(ErrorLogMessage message)
+        {
+            _errorCount += message.Count;
+            _details = ErrorPopupDetails.Format(message.Kind, message.Message, message.Stack, _errorCount,
+                gameObject.scene.name, _readState?.Invoke() ?? "", message.Time, _logLabel, Application.consoleLogPath);
+            Present(null);
+        }
+
+        private void BeginCapture()
+        {
+            if (!_captureUnityErrors) return;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if ( _collector == null && _menuInput != null && isActiveAndEnabled)
+                _collector = new UnityErrorLogCollector(PresentCaptured);
+#endif
+        }
+
+        protected virtual void OnEnable() => BeginCapture();
+
+#if UNITY_EDITOR
+        [ContextMenu("테스트/자동 오류 수집 확인")]
+        protected virtual void EmitCaptureTest()
+        {
+            if (!Application.isPlaying || !IsCapturing)
+            {
+                Debug.LogWarning("Play 중 데이터·팝업 초기화와 자동 오류 수집 연결을 먼저 완료해 주세요.", this);
+                return;
+            }
+            Debug.LogError("자동 오류 수집 확인용 오류입니다. 실제 게임 오류가 아닙니다.", this);
+        }
+#endif
+
 
         private void EnsureScreen()
         {
@@ -173,6 +222,8 @@ namespace HumanGhost.Gameplay.Adapters
 
         protected virtual void OnDisable()
         {
+            _collector?.Dispose();
+            _collector = null;
             if (_return != null) StopCoroutine(_return);
             Release();
         }

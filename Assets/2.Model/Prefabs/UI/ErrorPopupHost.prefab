@@ -41,3 +41,4 @@ MonoBehaviour:
   _prefab: {fileID: 205, guid: 434961edcac2480e8194a9ce8b7ab609, type: 3}
   _input: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   _popupId: 15007
+  _captureUnityErrors: 1

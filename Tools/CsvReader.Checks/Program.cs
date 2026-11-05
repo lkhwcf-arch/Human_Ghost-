@@ -64,6 +64,7 @@ internal static class Program
         DataTableChecks.Run(Check);
         CutsceneMappingChecks.Run(Check);
         ErrorPopupDataChecks.Run(Check);
+        ErrorLogDispatchChecks.Run(Check);
         await DataBootstrapperChecks.RunAsync(Check);
         Console.WriteLine($"검사 {_checks}개 통과");
     }
