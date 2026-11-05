@@ -39,6 +39,8 @@ namespace HumanGhost.Gameplay
             return false;
         }
 
+        public void DiscardBufferedInput() => Queued = false;
+
         public void Clear()
         {
             Index = -1;

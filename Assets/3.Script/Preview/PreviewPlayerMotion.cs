@@ -45,6 +45,8 @@ namespace HumanGhost.Gameplay.Preview
 
         public bool IsHanging => _hangEdge != null;
 
+        public void DiscardBufferedInput() => _jumpBufferRemaining = 0f;
+
         public void StartJump()
         {
             _verticalSpeed = _jumpSpeed;

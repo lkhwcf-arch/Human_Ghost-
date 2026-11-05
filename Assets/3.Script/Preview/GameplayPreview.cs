@@ -58,7 +58,6 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField, InspectorName("스테이지 리소스 목록")] private StageContentSet _content = null;
         [SerializeField, InspectorName("맵 기준 위치")] private Vector3 _mapOrigin = new Vector3(-10f, -2.2f, 0f);
         [SerializeField, InspectorName("타이틀 씬")] private string _titleScene = "Title";
-        [SerializeField, InspectorName("출구 앵커 이름")] private string _exitAnchor = "ExitRight";
         [Header("맵 이동 (맵이 없는 장면은 끔)")]
         [SerializeField, InspectorName("맵 충돌 사용")] private bool _useMapCollision = false;
         [SerializeField, InspectorName("플레이어 충돌 절반 크기")] private Vector2 _playerHalfSize = new Vector2(0.3f, 0.65f);
@@ -97,8 +96,12 @@ namespace HumanGhost.Gameplay.Preview
         private const float _executionSeconds = 0.9f;
         private float _executionRemaining;
 
+        private bool _modalBlocked;
+
         public void SetModalBlocked(bool blocked)
         {
+            _modalBlocked = blocked;
+            _motion?.DiscardBufferedInput();
             _input?.SetModalBlocked(blocked);
             if (_pause != null) _pause.SetModalBlocked(blocked);
         }
@@ -155,6 +158,7 @@ namespace HumanGhost.Gameplay.Preview
                     _actor.Definition.JumpHeight / 100f * _worldUnitsPerTile, _jumpSeconds);
                 _input = _player.GetComponent<PlayerLocomotionInput>();
                 if (_input == null) throw new InvalidOperationException("플레이어 입력 어댑터가 없습니다.");
+                _input.SetModalBlocked(_modalBlocked);
                 _input.JumpAccepted += OnJump;
                 _input.JumpRejected += _motion.OnJumpRejected;
                 _input.InteractPressed += OnInteract;
@@ -257,7 +261,14 @@ namespace HumanGhost.Gameplay.Preview
         }
 
         private void OnAdvance() { if (_pause == null || !_pause.IsOpen) _textbox.Advance(); }
-        private void OnTextboxChanged(bool open) => _input.SetLocked(open);
+        private void OnTextboxChanged(bool open) => SetGameInputLocked(open);
+
+        private void SetGameInputLocked(bool locked)
+        {
+            _motion?.DiscardBufferedInput();
+            _input.DiscardBufferedInput();
+            _input.SetLocked(locked || _leaving || _actor.IsDead || (_textbox != null && _textbox.IsOpen) || (_pause != null && _pause.IsOpen));
+        }
         private void OnPlayerHealthChanged(int health) { if (_textbox != null) _textbox.Close(); }
 
         private void ConnectInteraction(IReadOnlyDataCatalog catalog)
@@ -280,7 +291,7 @@ namespace HumanGhost.Gameplay.Preview
             PreviewSession.CarriedHerbs = _actor.HerbCount;
             PreviewSession.CurrentStage = stageId;
             PreviewSession.ArrivalAnchor = anchor;
-            _input.SetLocked(true);
+            SetGameInputLocked(true);
             Cursor.visible = false;
             Instantiate(_loadingPrefab).Begin(gameObject.scene.name, _catalog);
         }
@@ -478,7 +489,7 @@ namespace HumanGhost.Gameplay.Preview
             }
             _actor.HealthChanged += OnGameLayerHealthChanged;
             if (_parallax != null && _stage != null) _parallax.Connect(catalog, _stageId, _stage.MapRoot);
-            if (_pause != null) _pause.Connect(catalog, _speed, _audio, settings, CanPause, _input.SetLocked, ReturnToTitle, OnSettingsChanged);
+            if (_pause != null) _pause.Connect(catalog, _speed, _audio, settings, CanPause, SetGameInputLocked, ReturnToTitle, OnSettingsChanged);
         }
 
         private void DisconnectGameLayer()
@@ -506,7 +517,7 @@ namespace HumanGhost.Gameplay.Preview
         }
 
         // 사망·암전·해체·결박 가르기 중에는 열지 않습니다(O04·O04_1). 텍스트박스가 열려 있어도 열 수 있습니다.
-        private bool CanPause() => !_actor.IsDead && !PreviewScreenFade.IsActive && _actor.CurrentState != StateKey.Execute && _actor.CurrentState != StateKey.Skill1;
+        private bool CanPause() => !_modalBlocked && !_leaving && _actor != null && !_actor.IsDead && !PreviewScreenFade.IsActive && _actor.CurrentState != StateKey.Execute && _actor.CurrentState != StateKey.Skill1;
 
         private void ReturnToTitle() => PreviewScreenFade.Run(0.3f, 0.1f, 0.3f, () => UnityEngine.SceneManagement.SceneManager.LoadScene(_titleScene));
 

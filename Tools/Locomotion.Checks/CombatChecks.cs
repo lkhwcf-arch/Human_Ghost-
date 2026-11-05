@@ -68,6 +68,18 @@ internal static class CombatChecks
         buffered.Tick(400);
         Check(buffered.CurrentState == StateKey.Attack2, "유효 선입력이 다음 타로 연결");
 
+        var discarded = Actor(); discarded.TryAttack(); discarded.Tick(50);
+        Check(discarded.TryAttack(), "UI 전 150ms 선입력 준비");
+        discarded.DiscardBufferedInput();
+        Check(discarded.IsAttacking && discarded.CurrentState == StateKey.Attack1, "버퍼 폐기는 진행 중 공격 유지");
+        discarded.Tick(70);
+        Check(discarded.IsAttackActive, "버퍼 폐기 뒤 현재 공격 판정 유지");
+        discarded.Tick(330);
+        Check(!discarded.IsAttacking && discarded.Stamina.Current == definition.StaminaMax - 12, "폐기한 선입력은 후속타·소모 없음");
+        Check(discarded.TryAttack(), "UI 복귀 뒤 새 입력 허용");
+        discarded.Tick(200);
+        Check(discarded.TryAttack(), "복귀 뒤 새 콤보 입력 허용");
+
         var poor = Actor(11);
         Check(!poor.TryAttack() && poor.Stamina.Current == 11 && poor.CurrentState == StateKey.Idle, "부족한 공격 입력은 무변화");
         var poorChain = Actor(17); poorChain.TryAttack(); poorChain.Tick(200); poorChain.TryAttack(); poorChain.Tick(250);
