@@ -2,14 +2,14 @@ using System;
 
 namespace HumanGhost.Gameplay
 {
-    public enum SettingsRow { Music, Effects, CameraShake }
+    public enum SettingsRow { Music = 0, Effects = 1, CameraShake = 2, Master = 3 }
 
     // 설정 화면 규칙(O05_1)입니다. 값은 바로 미리 적용하고, 바꾼 채 나가면 확인을 받습니다. 예=저장, 아니오=원래 값.
-    public sealed class SettingsMenu
+    public class SettingsMenu
     {
         private readonly GameSettings _original;
         public GameSettings Current { get; }
-        public SettingsRow Row { get; private set; }
+        public SettingsRow Row { get; private set; } = SettingsRow.Master;
         public bool IsConfirming { get; private set; }
         public bool ConfirmYes { get; private set; }
         public bool IsDirty => !Current.SameAs(_original);
@@ -43,6 +43,7 @@ namespace HumanGhost.Gameplay
         public void Adjust(int direction)
         {
             if (IsConfirming) return;
+            if (Row == SettingsRow.Master) { SetMaster(Current.Master + direction); return; }
             if (Row == SettingsRow.Music) Current.SetMusic(Current.Music + direction);
             else if (Row == SettingsRow.Effects) Current.SetEffects(Current.Effects + direction);
             else Current.SetCameraShake(!Current.CameraShake);

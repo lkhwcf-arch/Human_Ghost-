@@ -22,6 +22,7 @@ namespace HumanGhost.Gameplay.Presentation
             _events = events;
             _previousSelection = events.currentSelectedGameObject;
             gameObject.SetActive(true);
+            ScreenVisibility.RequireVisible(GetComponent<Canvas>());
             events.SetSelectedGameObject((defaultButton == 2 ? CloseButton : PrimaryButton).gameObject);
         }
 

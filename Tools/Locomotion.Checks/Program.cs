@@ -32,6 +32,7 @@ internal static class Program
             TitleMenuChecks.Run(Check);
             MovementPatternChecks.Run(definition, Check);
             GameLayerChecks.Run(Check);
+            UiPrefabChecks.Run(args[0], value => Check(value, "공용 설정·오류 팝업의 표시 배치와 타이틀 연결"));
             CutsceneChecks.Run(Check);
             SaveChecks.Run(Check);
             SaveGameFlowChecks.Run(Check);

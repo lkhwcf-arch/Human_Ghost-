@@ -25,6 +25,7 @@ namespace HumanGhost.Gameplay.Adapters
         private GameSpeedController _speed;
         private GameAudio _audio;
         private GameSettings _settings;
+        private SettingsApplication _settingsApplication;
         private Func<bool> _canOpen;
         private Action<bool> _setGameInputLocked;
         private Action _returnToTitle;
@@ -35,31 +36,52 @@ namespace HumanGhost.Gameplay.Adapters
         public void Connect(IReadOnlyDataCatalog data, GameSpeedController speed, GameAudio audio, GameSettings settings,
             Func<bool> canOpen, Action<bool> setGameInputLocked, Action returnToTitle, Action<GameSettings> settingsChanged)
         {
+            if (_data != null) throw new InvalidOperationException("이미 연결된 일시정지 메뉴입니다. 먼저 Disconnect를 호출해 주세요.");
+            if (_screen == null || _settingsScreen == null || _input == null || speed == null || canOpen == null || setGameInputLocked == null)
+                throw new InvalidOperationException("일시정지의 화면·설정 화면·입력·게임 속도·호출 계약을 연결해 주세요.");
             _data = data ?? throw new ArgumentNullException(nameof(data));
             _speed = speed; _audio = audio; _settings = settings;
             _canOpen = canOpen; _setGameInputLocked = setGameInputLocked; _returnToTitle = returnToTitle; _settingsChanged = settingsChanged;
-            _screen.Prepare(data);
-            _screen.ItemHovered += OnHover; _screen.ItemClicked += OnClick;
-            _screen.ConfirmHovered += OnConfirmHover; _screen.ConfirmClicked += OnConfirmClick; _screen.CloseClicked += OnBack;
-            _screen.gameObject.SetActive(false);
-            _settingsScreen.gameObject.SetActive(false);
-            _settingsScreen.SetInputBlocked(_modalBlocked);
-            _menuInput = new MenuInput(_input, OnMove, OnSubmit, OnBack, OnSide);
-            _menuInput.SetBlocked(_modalBlocked);
+            _settingsApplication = new SettingsApplication(Preview, GameSettingsStore.Save, error => Debug.LogException(error, this));
+            try
+            {
+                _screen.Prepare(data);
+                _screen.ItemHovered += OnHover; _screen.ItemClicked += OnClick;
+                _screen.ConfirmHovered += OnConfirmHover; _screen.ConfirmClicked += OnConfirmClick; _screen.CloseClicked += OnBack;
+                _screen.gameObject.SetActive(false);
+                _settingsScreen.gameObject.SetActive(false);
+                _settingsScreen.SetInputBlocked(_modalBlocked);
+                _menuInput = new MenuInput(_input, OnMove, OnSubmit, OnBack, OnSide);
+                _menuInput.SetBlocked(_modalBlocked);
+            }
+            catch { Disconnect(); throw; }
         }
 
         public void Disconnect()
         {
             if (IsOpen) Teardown();
             if (_data == null) return;
-            _screen.ItemHovered -= OnHover; _screen.ItemClicked -= OnClick;
-            _screen.ConfirmHovered -= OnConfirmHover; _screen.ConfirmClicked -= OnConfirmClick; _screen.CloseClicked -= OnBack;
+            if (_screen != null)
+            {
+                _screen.ItemHovered -= OnHover; _screen.ItemClicked -= OnClick;
+                _screen.ConfirmHovered -= OnConfirmHover; _screen.ConfirmClicked -= OnConfirmClick; _screen.CloseClicked -= OnBack;
+            }
             _menuInput?.Dispose();
             _menuInput = null; _data = null;
+            _canOpen = null; _setGameInputLocked = null; _returnToTitle = null; _settingsChanged = null;
+            _settingsApplication = null; _speed = null; _audio = null;
+            _unlockNextFrame = false;
         }
 
         private void OnEnable() => InputSystem.onDeviceChange += OnDeviceChange;
-        private void OnDisable() => InputSystem.onDeviceChange -= OnDeviceChange;
+        private void OnDisable()
+        {
+            InputSystem.onDeviceChange -= OnDeviceChange;
+            if (IsOpen) Teardown();
+            _menuInput?.Disable();
+            if (_unlockNextFrame) _setGameInputLocked?.Invoke(false);
+            _unlockNextFrame = false;
+        }
         private void OnApplicationFocus(bool focused) { if (!focused) TryOpen(); }
 
         private void OnDeviceChange(InputDevice device, InputDeviceChange change)
@@ -161,14 +183,7 @@ namespace HumanGhost.Gameplay.Adapters
 
         private void OnSettingsClosed(GameSettings result)
         {
-            bool changed = !_settings.SameAs(result);
-            _settings = result;
-            if (changed)
-            {
-                try { GameSettingsStore.Save(result); }
-                catch (Exception error) { Debug.LogError($"설정을 저장하지 못했습니다.\n{error.Message}", this); }
-            }
-            _settingsChanged?.Invoke(result);
+            if (_settingsApplication.Complete(_settings, result)) _settings = result;
         }
 
         private void OnHover(PauseItem item) { if (!_modalBlocked) _menu?.Select(item); }

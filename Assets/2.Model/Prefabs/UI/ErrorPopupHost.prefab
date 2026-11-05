@@ -14,8 +14,8 @@ GameObject:
   m_Name: ErrorPopupHost
   m_TagString: Untagged
   m_IsActive: 1
---- !u!4 &301
-Transform:
+--- !u!224 &301
+RectTransform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -26,6 +26,11 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &302
 MonoBehaviour:
   m_ObjectHideFlags: 0

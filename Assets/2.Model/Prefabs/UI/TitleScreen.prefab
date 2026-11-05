@@ -15,7 +15,6 @@ GameObject:
   - component: {fileID: 1082}
   - component: {fileID: 1083}
   - component: {fileID: 1084}
-  - component: {fileID: 1085}
   - component: {fileID: 2077}
   - component: {fileID: 2078}
   - component: {fileID: 3200}
@@ -1640,6 +1639,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c32e970c08b43799a8909086dc2a07a, type: 3}
   m_Name:
   m_EditorClassIdentifier:
+  _errors: {fileID: 880009001}
   _initializer: {fileID: 1083}
   _screen: {fileID: 1082}
   _input: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
@@ -1647,19 +1647,6 @@ MonoBehaviour:
   _previewMode: 0
   _previewHasSave: 0
   _saveSelection: {fileID: 2078}
---- !u!114 &1085
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 403ece9a47584e1391dfa849e077264d, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
-  _host: {fileID: 1084}
 --- !u!1 &2001
 GameObject:
   m_ObjectHideFlags: 0
@@ -2445,7 +2432,6 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier:
   _host: {fileID: 1084}
-  _actions: {fileID: 1085}
   _data: {fileID: 1083}
   _loadingPrefab: {fileID: 3761807582481786817, guid: 188d0ad953f19334e8d652c4986defc1, type: 3}
   _audioPrefab: {fileID: 1639459906164103674, guid: 69e24b7bf4ebe2947a20245cbc4e5b89, type: 3}

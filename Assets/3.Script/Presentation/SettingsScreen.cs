@@ -7,9 +7,12 @@ using UnityEngine.UI;
 namespace HumanGhost.Gameplay.Presentation
 {
     // 설정 패널(O05·O05_1)입니다. 타이틀과 일시정지가 같은 프리팹을 씁니다. 그림은 공급 뒤 교체합니다.
-    public sealed class SettingsScreen : MonoBehaviour
+    public class SettingsScreen : MonoBehaviour
     {
         private const int _musicText = 30040, _effectsText = 30041, _shakeText = 30042, _onText = 30047, _offText = 30048, _confirmPopup = 15006;
+        [SerializeField] private Text _master = null, _masterLeft = null, _masterRight = null;
+        [SerializeField, InspectorName("마스터 임시 문구")] private string _masterTitle = "마스터 음량";
+        [SerializeField, InspectorName("마스터 문구 ID (0=임시 문구)")] private int _masterTextId = 0;
         [SerializeField] private Text _music = null;
         [SerializeField] private Text _effects = null;
         [SerializeField] private Text _shake = null;
@@ -23,6 +26,8 @@ namespace HumanGhost.Gameplay.Presentation
         private Action<GameSettings> _closed;
         private bool _connected;
         private bool _inputBlocked;
+        private int _openedFrame;
+        private bool CanInteract => !_inputBlocked && Time.frameCount > _openedFrame;
 
         public void SetInputBlocked(bool blocked) => _inputBlocked = blocked;
 
@@ -30,56 +35,78 @@ namespace HumanGhost.Gameplay.Presentation
 
         public void Open(IReadOnlyDataCatalog data, GameSettings settings, Action<GameSettings> preview, Action<GameSettings> closed)
         {
-            _language = data.GetTable<Language>();
-            Popup popup = data.GetTable<Popup>().Get(_confirmPopup);
-            _confirmBody.text = _language.Get(popup.BodyTextID).KO;
-            _confirmYes.text = _language.Get(popup.Button1TextID).KO;
-            _confirmNo.text = _language.Get(popup.Button2TextID).KO;
-            _preview = preview; _closed = closed;
-            _menu = new SettingsMenu(settings);
-            _menu.Changed += Render;
-            ConnectPointer();
-            gameObject.SetActive(true);
-            Render();
+            if (IsOpen) throw new InvalidOperationException("이미 열린 설정 화면입니다.");
+            RequireReferences();
+            try
+            {
+                _language = data.GetTable<Language>();
+                Popup popup = data.GetTable<Popup>().Get(_confirmPopup);
+                _confirmBody.text = _language.Get(popup.BodyTextID).KO;
+                _confirmYes.text = _language.Get(popup.Button1TextID).KO;
+                _confirmNo.text = _language.Get(popup.Button2TextID).KO;
+                _preview = preview; _closed = closed;
+                _openedFrame = Time.frameCount;
+                _menu = new SettingsMenu(settings);
+                _menu.Changed += Render;
+                ConnectPointer();
+                gameObject.SetActive(true);
+                Render();
+                ScreenVisibility.RequireVisible(GetComponent<Canvas>());
+            }
+            catch { Release(); throw; }
+        }
+
+        private void RequireReferences()
+        {
+            foreach (var item in new[] { (_master, "마스터 문구"), (_masterLeft, "마스터 왼쪽 화살표"), (_masterRight, "마스터 오른쪽 화살표"),
+                (_music, "배경음 문구"), (_musicLeft, "배경음 왼쪽 화살표"), (_musicRight, "배경음 오른쪽 화살표"),
+                (_effects, "효과음 문구"), (_effectsLeft, "효과음 왼쪽 화살표"), (_effectsRight, "효과음 오른쪽 화살표"),
+                (_shake, "카메라 흔들림 문구"), (_close, "닫기"), (_confirmBody, "확인창 본문"), (_confirmYes, "확인창 예"), (_confirmNo, "확인창 아니오") })
+                if (item.Item1 == null) throw new InvalidOperationException($"설정 화면의 {item.Item2} 참조가 없습니다. SettingsScreen 프리팹 연결을 확인해 주세요.");
+            if (_confirm == null) throw new InvalidOperationException("설정 화면의 확인창 오브젝트가 연결되지 않았습니다.");
         }
 
         private void ConnectPointer()
         {
             if (_connected) return;
             _connected = true;
-            MenuText.Connect(_music.gameObject, () => Select(SettingsRow.Music), () => Select(SettingsRow.Music));
-            MenuText.Connect(_effects.gameObject, () => Select(SettingsRow.Effects), () => Select(SettingsRow.Effects));
+            ConnectVolume(_master, _masterLeft, _masterRight, SettingsRow.Master);
+            ConnectVolume(_music, _musicLeft, _musicRight, SettingsRow.Music);
+            ConnectVolume(_effects, _effectsLeft, _effectsRight, SettingsRow.Effects);
             MenuText.Connect(_shake.gameObject, () => Select(SettingsRow.CameraShake), () => { Select(SettingsRow.CameraShake); Adjust(1); });
-            MenuText.Connect(_musicLeft.gameObject, null, () => { Select(SettingsRow.Music); Adjust(-1); });
-            MenuText.Connect(_musicRight.gameObject, null, () => { Select(SettingsRow.Music); Adjust(1); });
-            MenuText.Connect(_effectsLeft.gameObject, null, () => { Select(SettingsRow.Effects); Adjust(-1); });
-            MenuText.Connect(_effectsRight.gameObject, null, () => { Select(SettingsRow.Effects); Adjust(1); });
             MenuText.Connect(_close.gameObject, null, Back);
             MenuText.Connect(_confirmYes.gameObject, null, () => Answer(true));
             MenuText.Connect(_confirmNo.gameObject, null, () => Answer(false));
         }
 
-        private void Select(SettingsRow row) { if (!_inputBlocked) _menu?.Select(row); }
+        private void ConnectVolume(Text label, Text left, Text right, SettingsRow row)
+        {
+            MenuText.Connect(label.gameObject, () => Select(row), () => Select(row));
+            MenuText.Connect(left.gameObject, null, () => { Select(row); Adjust(-1); });
+            MenuText.Connect(right.gameObject, null, () => { Select(row); Adjust(1); });
+        }
 
-        public void Move(int direction) { if (!_inputBlocked) _menu?.Move(direction); }
+        private void Select(SettingsRow row) { if (CanInteract) _menu?.Select(row); }
+
+        public void Move(int direction) { if (CanInteract) _menu?.Move(direction); }
 
         public void Adjust(int direction)
         {
-            if (_inputBlocked || _menu == null) return;
+            if (!CanInteract || _menu == null) return;
             _menu.Adjust(direction);
-            _preview?.Invoke(_menu.Current);
+            _preview?.Invoke(_menu.Current.Clone());
         }
 
         public void Submit()
         {
-            if (_inputBlocked || _menu == null) return;
+            if (!CanInteract || _menu == null) return;
             if (_menu.IsConfirming) Answer(_menu.ConfirmYes);
             else if (_menu.Row == SettingsRow.CameraShake) Adjust(1);
         }
 
         public void Back()
         {
-            if (_inputBlocked || _menu == null) return;
+            if (!CanInteract || _menu == null) return;
             if (_menu.IsConfirming) { Answer(false); return; }
             if (_menu.RequestClose()) Finish(_menu.Current);
         }
@@ -91,32 +118,45 @@ namespace HumanGhost.Gameplay.Presentation
 
         private void Answer(bool apply)
         {
-            if (_inputBlocked || _menu == null || !_menu.IsConfirming) return;
+            if (!CanInteract || _menu == null || !_menu.IsConfirming) return;
             Finish(_menu.Answer(apply));
         }
 
         private void Finish(GameSettings result)
         {
-            _menu.Changed -= Render;
-            _menu = null;
-            gameObject.SetActive(false);
             Action<GameSettings> closed = _closed;
-            _closed = null;
+            Release();
             closed?.Invoke(result);
         }
+
+        private void Release()
+        {
+            if (_menu != null) _menu.Changed -= Render;
+            _menu = null;
+            _closed = null;
+            _preview = null;
+            gameObject.SetActive(false);
+        }
+
+        protected virtual void OnDisable() => Cancel();
 
         private void Render()
         {
             GameSettings value = _menu.Current;
-            _music.text = _language.Get(_musicText).KO + "  " + Dots(value.Music);
-            _effects.text = _language.Get(_effectsText).KO + "  " + Dots(value.Effects);
+            RenderVolume(_master, _masterTextId == 0 ? _masterTitle : _language.Get(_masterTextId).KO, value.Master, SettingsRow.Master);
+            RenderVolume(_music, _language.Get(_musicText).KO, value.Music, SettingsRow.Music);
+            RenderVolume(_effects, _language.Get(_effectsText).KO, value.Effects, SettingsRow.Effects);
             _shake.text = _language.Get(_shakeText).KO + "  " + _language.Get(value.CameraShake ? _onText : _offText).KO;
-            MenuText.SetSelected(_music, _menu.Row == SettingsRow.Music);
-            MenuText.SetSelected(_effects, _menu.Row == SettingsRow.Effects);
             MenuText.SetSelected(_shake, _menu.Row == SettingsRow.CameraShake);
             _confirm.SetActive(_menu.IsConfirming);
             MenuText.SetSelected(_confirmYes, _menu.ConfirmYes);
             MenuText.SetSelected(_confirmNo, !_menu.ConfirmYes);
+        }
+
+        private void RenderVolume(Text label, string title, int value, SettingsRow row)
+        {
+            label.text = title + "  " + Dots(value);
+            MenuText.SetSelected(label, _menu.Row == row);
         }
 
         private static string Dots(int value)

@@ -43,9 +43,12 @@ namespace HumanGhost.Gameplay.Adapters
         }
         private void OnDisable()
         {
-            _openButton.onClick.RemoveListener(Open);
-            _screen.SelectionRequested -= Select;
-            _screen.CloseRequested -= Close;
+            if (_openButton != null) _openButton.onClick.RemoveListener(Open);
+            if (_screen != null)
+            {
+                _screen.SelectionRequested -= Select;
+                _screen.CloseRequested -= Close;
+            }
             Close();
         }
 
@@ -114,7 +117,7 @@ namespace HumanGhost.Gameplay.Adapters
             DestroyImmediate(button); DestroyImmediate(panel);
         }
 #endif
-        private bool IsCurrent(int generation) => this != null && isActiveAndEnabled && IsOpen && _generation == generation;
+        private bool IsCurrent(int generation) => this != null && isActiveAndEnabled && _screen != null && IsOpen && _generation == generation;
         private string GetSaveDirectory()
         {
             string root = Path.GetFullPath(Application.persistentDataPath) + Path.DirectorySeparatorChar;

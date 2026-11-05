@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using HumanGhost.Data.Infrastructure;
 using HumanGhost.Gameplay.Presentation;
@@ -12,6 +13,7 @@ namespace HumanGhost.Gameplay.Adapters
     {
         [SerializeField] private GameDataInitializer _initializer = null;
         [SerializeField] private TitleScreen _screen = null;
+        [SerializeField, InspectorName("에러 팝업 연결")] private ErrorPopupSceneBinding _errors = null;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         [SerializeField] private TitleSaveSelection _saveSelection = null;
 #endif
@@ -22,6 +24,8 @@ namespace HumanGhost.Gameplay.Adapters
         private readonly TaskCompletionSource<bool> _saveReady =
             new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         private bool _modalBlocked;
+        private bool _started;
+        private int _generation;
         public void SetModalBlocked(bool blocked)
         {
             _modalBlocked = blocked;
@@ -29,21 +33,27 @@ namespace HumanGhost.Gameplay.Adapters
         }
         private MenuInput _menuInput;
         private TitleMenu _menu;
-        private Func<TitleAction, bool> _execute;
+        private readonly Dictionary<TitleAction, Func<bool>> _commands = new Dictionary<TitleAction, Func<bool>>();
         public bool CanOpenSaveSelection => !_modalBlocked && _menu != null && _menu.State == TitleMenuState.Selecting;
 
-        // true는 실행 담당이 요청을 인수했음을 뜻합니다. 실패·설정 복귀 후 CompleteRequest를 호출합니다.
-        public void ConnectOperations(Func<TitleAction, bool> execute)
+        public void ReportError(Exception error, string state)
         {
-            if (execute == null) throw new ArgumentNullException(nameof(execute));
-            if (_execute != null && _execute != execute)
-                throw new InvalidOperationException("타이틀 실행 담당이 이미 연결되어 있습니다.");
-            _execute = execute;
+            if (_errors != null) _errors.Report(error, this, state);
+            else Debug.LogException(error, this);
         }
 
-        public void DisconnectOperations(Func<TitleAction, bool> execute)
+        // true는 실행 담당이 요청을 인수했음을 뜻합니다. 실패·설정 복귀 후 CompleteRequest를 호출합니다.
+        public void Connect(TitleAction action, Func<bool> execute)
         {
-            if (_execute == execute) _execute = null;
+            if (execute == null) throw new ArgumentNullException(nameof(execute));
+            if (!Enum.IsDefined(typeof(TitleAction), action)) throw new ArgumentOutOfRangeException(nameof(action));
+            if (_commands.ContainsKey(action)) throw new InvalidOperationException("이미 실행 담당이 연결된 타이틀 요청입니다: " + action);
+            _commands.Add(action, execute);
+        }
+
+        public void Disconnect(TitleAction action, Func<bool> execute)
+        {
+            if (_commands.TryGetValue(action, out Func<bool> current) && current == execute) _commands.Remove(action);
         }
         public void RefreshSave(bool hasSave)
         {
@@ -53,7 +63,7 @@ namespace HumanGhost.Gameplay.Adapters
         }
         public void CompleteRequest() => _menu?.CompleteRequest();
 
-        private void OnEnable() { if (_menu != null) Subscribe(); }
+        private void OnEnable() { if (_menu != null) Subscribe(); else if (_started) Prepare(); }
 
         // 마지막 입력 장치 기준 마우스 화살표 표시입니다. 메뉴 선택은 키보드와 하나를 같이 씁니다.
         private void Update()
@@ -62,14 +72,19 @@ namespace HumanGhost.Gameplay.Adapters
             if (mouse != null && mouse.delta.ReadValue().sqrMagnitude > 0f) Cursor.visible = true;
         }
 
-        private async void Start()
+        private void Start() { _started = true; Prepare(); }
+
+        private bool IsCurrent(int generation) => this != null && isActiveAndEnabled && _generation == generation;
+
+        private async void Prepare()
         {
+            int generation = ++_generation;
             if (_menu != null) { Subscribe(); return; }
-            try { await InitializeAsync(); }
+            try { await InitializeAsync(generation); }
             catch (OperationCanceledException) { }
             catch (Exception error)
             {
-                if (this != null)
+                if (IsCurrent(generation))
                 {
                     Release();
                     if (_screen != null) _screen.ShowStatus("타이틀 준비에 실패했습니다. 콘솔을 확인해 주세요.");
@@ -78,15 +93,15 @@ namespace HumanGhost.Gameplay.Adapters
             }
         }
 
-        private async Task InitializeAsync()
+        private async Task InitializeAsync(int generation)
         {
             if (_settings == null) throw new InvalidOperationException("타이틀 메뉴 설정 에셋을 연결해 주세요.");
             var data = await _initializer.InitializeAsync();
-            if (this == null) return;
+            if (!IsCurrent(generation)) return;
             if (!_previewMode && !_saveReady.Task.IsCompleted)
                 _screen.ShowStatus("저장 조회 결과를 기다리고 있습니다.");
             bool hasSave = _previewMode ? _previewHasSave : await _saveReady.Task;
-            if (this == null) return;
+            if (!IsCurrent(generation)) return;
             _menu = new TitleMenu(hasSave, _settings.ShowQuit, _settings.ConfirmNewGameWithSave, _settings.PreferContinue,
                 _screen.ReadConfirmDefaultYes(data));
             _screen.Connect(_menu, data);
@@ -109,6 +124,7 @@ namespace HumanGhost.Gameplay.Adapters
 
         private void OnDisable()
         {
+            ++_generation;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             if (_saveSelection != null) _saveSelection.Close();
 #endif
@@ -168,15 +184,16 @@ namespace HumanGhost.Gameplay.Adapters
             if (!request.HasValue) return;
             try
             {
-                if (_execute != null && _execute(request.Value)) return;
-                _screen.ShowStatus("선택한 기능의 실행 담당이 아직 연결되지 않았습니다.");
+                if (_commands.TryGetValue(request.Value, out Func<bool> execute) && execute()) return;
+                throw new InvalidOperationException("선택한 타이틀 기능의 실행 담당이 없거나 요청을 처리하지 못했습니다. 요청: " + request.Value);
             }
             catch (Exception error)
             {
-                _screen.ShowStatus("기능 실행에 실패했습니다. 콘솔을 확인해 주세요.");
-                Debug.LogError($"타이틀 요청 처리에 실패했습니다.\n{error.Message}", this);
+                if (_screen != null) _screen.ShowStatus("기능 실행에 실패했습니다. 콘솔을 확인해 주세요.");
+                _menu?.CompleteRequest();
+                ReportError(error, "타이틀 요청: " + request.Value);
+                return;
             }
-            _menu.CompleteRequest();
         }
 
         private void Release()
@@ -200,7 +217,7 @@ namespace HumanGhost.Gameplay.Adapters
         {
             _saveReady.TrySetCanceled();
             Release();
-            _execute = null;
+            _commands.Clear();
         }
     }
 }

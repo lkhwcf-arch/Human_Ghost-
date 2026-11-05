@@ -27,14 +27,29 @@ namespace HumanGhost.Gameplay.Presentation
         [SerializeField] private Text _tip = null;
         [SerializeField] private RectTransform _seal = null;
         [SerializeField] private Image _sealFill = null;
+        private AsyncOperation _load;
+        private bool _begun;
 
         public void Begin(string sceneName, IReadOnlyDataCatalog data)
         {
-            if (string.IsNullOrEmpty(sceneName)) throw new ArgumentException("이동할 씬이 필요합니다.", nameof(sceneName));
-            DontDestroyOnLoad(gameObject);
-            ShowBackground();
-            ShowTip(data);
-            StartCoroutine(Play(sceneName));
+            if (_begun) throw new InvalidOperationException("이미 시작된 로딩 화면입니다.");
+            try
+            {
+                if (string.IsNullOrEmpty(sceneName)) throw new ArgumentException("이동할 씬이 필요합니다.", nameof(sceneName));
+                if (!Application.CanStreamedLevelBeLoaded(sceneName))
+                    throw new InvalidOperationException("이동할 씬이 빌드 목록에 없거나 로딩할 수 없습니다: " + sceneName);
+                if (_group == null || _background == null || _tipBox == null || _tip == null || _seal == null || _sealFill == null)
+                    throw new InvalidOperationException("로딩 화면의 표시 참조를 모두 연결해 주세요.");
+                ShowBackground();
+                ShowTip(data);
+                _load = SceneManager.LoadSceneAsync(sceneName);
+                if (_load == null) throw new InvalidOperationException("씬 로딩 작업을 만들지 못했습니다: " + sceneName);
+                _load.allowSceneActivation = false;
+                _begun = true;
+                DontDestroyOnLoad(gameObject);
+                StartCoroutine(Play());
+            }
+            catch { Destroy(gameObject); throw; }
         }
 
         private void ShowBackground()
@@ -64,10 +79,9 @@ namespace HumanGhost.Gameplay.Presentation
             _tipBox.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, lines >= 2 ? _twoLineHeight : _oneLineHeight);
         }
 
-        private IEnumerator Play(string sceneName)
+        private IEnumerator Play()
         {
-            AsyncOperation load = SceneManager.LoadSceneAsync(sceneName);
-            load.allowSceneActivation = false;
+            AsyncOperation load = _load;
             float elapsed = 0f;
             float progress = 0f;
             Vector2 boxPosition = _tipBox.anchoredPosition;
@@ -97,6 +111,14 @@ namespace HumanGhost.Gameplay.Presentation
                 yield return null;
             }
             Destroy(gameObject);
+        }
+
+        private void OnDisable()
+        {
+            StopAllCoroutines();
+            // Unity 씬 로드는 취소할 수 없습니다. 화면 종료가 활성화 대기를 영구 유지하게 하지 않습니다.
+            if (_load != null && !_load.isDone) _load.allowSceneActivation = true;
+            if (_begun) Destroy(gameObject);
         }
     }
 }

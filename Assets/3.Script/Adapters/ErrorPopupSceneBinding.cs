@@ -17,6 +17,19 @@ namespace HumanGhost.Gameplay.Adapters
         [SerializeField, InspectorName("게임 속도 (타이틀은 비움)")] private GameSpeedController _speed = null;
         private ErrorPopupHost _host;
 
+        // 호출 경계의 실패는 자동 로그 수집을 기다리지 않고 상세 상태와 함께 보고합니다.
+        public virtual void Report(Exception error, UnityEngine.Object context = null, string state = "")
+        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (_host != null && _host.isActiveAndEnabled)
+            {
+                _host.Report(error, context: context, state: state);
+                return;
+            }
+#endif
+            Debug.LogException(error, context);
+        }
+
         protected virtual void OnEnable()
         {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -34,9 +47,14 @@ namespace HumanGhost.Gameplay.Adapters
         {
             if (_host != null || !isActiveAndEnabled) return;
             // 비활성 부모 아래에서 복제·초기화를 마치고 활성화합니다.
-            var holder = new GameObject("ErrorPopupScope");
+            var holder = new GameObject("ErrorPopupScope", typeof(RectTransform));
             holder.SetActive(false);
             holder.transform.SetParent(transform, false);
+            var rect = (RectTransform)holder.transform;
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
             try
             {
                 _host = Instantiate(_prefab, holder.transform);

@@ -191,16 +191,17 @@ namespace HumanGhost.Gameplay.Preview
         private void OnDisable()
         {
             if (_data != null) _data.Initialized -= OnDataReady;
-            if (_subscribed)
+            // 초기화 도중 실패해도 이미 연결한 소비자는 반드시 해제합니다.
+            if (_input != null)
             {
-                if (_input != null)
-                {
-                    _input.JumpAccepted -= OnJump;
-                    _input.JumpRejected -= _motion.OnJumpRejected;
-                    _input.InteractPressed -= OnInteract;
-                    _input.VerticalPressed -= OnVertical;
-                    _input.AdvancePressed -= OnAdvance;
-                }
+                _input.JumpAccepted -= OnJump;
+                if (_motion != null) _input.JumpRejected -= _motion.OnJumpRejected;
+                _input.InteractPressed -= OnInteract;
+                _input.VerticalPressed -= OnVertical;
+                _input.AdvancePressed -= OnAdvance;
+            }
+            if (_actor != null)
+            {
                 _actor.RollRequested -= OnRoll;
                 _actor.SkillStarted -= OnRoll;
                 _actor.AttackWindowChanged -= OnPlayerAttackWindowChanged;
@@ -286,6 +287,9 @@ namespace HumanGhost.Gameplay.Preview
         private void GoToStage(int stageId, string anchor)
         {
             if (_leaving || _loadingPrefab == null) return;
+            // 로딩 준비 실패 시 기존 임시 상태와 입력을 먼저 망가뜨리지 않습니다.
+            try { Instantiate(_loadingPrefab).Begin(gameObject.scene.name, _catalog); }
+            catch (Exception error) { Debug.LogException(error, this); return; }
             _leaving = true;
             PreviewSession.CarriedHealth = _actor.Health;
             PreviewSession.CarriedHerbs = _actor.HerbCount;
@@ -293,7 +297,6 @@ namespace HumanGhost.Gameplay.Preview
             PreviewSession.ArrivalAnchor = anchor;
             SetGameInputLocked(true);
             Cursor.visible = false;
-            Instantiate(_loadingPrefab).Begin(gameObject.scene.name, _catalog);
         }
 
         // 맵을 옮겨도 HP·약초는 회복되지 않습니다. 표시 연결 전이라 피격 연출도 나가지 않게 기준값을 맞춥니다.

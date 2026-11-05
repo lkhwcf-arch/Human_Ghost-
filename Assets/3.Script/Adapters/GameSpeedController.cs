@@ -6,16 +6,13 @@ namespace HumanGhost.Gameplay.Adapters
     [DefaultExecutionOrder(-100)]
     public sealed class GameSpeedController : MonoBehaviour
     {
-        private float _pendingMs;
+        private MillisecondClock _clock;
         public GameSpeedState State { get; } = new GameSpeedState();
 
         private void Update()
         {
-            _pendingMs += Time.unscaledDeltaTime * 1000f;
-            int whole = (int)_pendingMs;
-            _pendingMs -= whole;
-            State.Tick(whole);
-            Time.timeScale = State.Scale;
+            State.Tick(_clock.Advance(Time.unscaledDeltaTime));
+            if (Time.timeScale != State.Scale) Time.timeScale = State.Scale;
         }
 
         private void OnDisable() => Time.timeScale = 1f;

@@ -2,7 +2,6 @@ using System;
 using HumanGhost.Data.Definitions;
 using HumanGhost.Data.Storage;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace HumanGhost.Gameplay.Presentation
@@ -104,29 +103,11 @@ namespace HumanGhost.Gameplay.Presentation
             foreach (Entry entry in _entries)
             {
                 TitleAction action = entry.Action;
-                AddPointer(entry.Root, () => EntryHovered?.Invoke(action), () => EntryClicked?.Invoke(action));
+                MenuText.Connect(entry.Root, () => EntryHovered?.Invoke(action), () => EntryClicked?.Invoke(action));
             }
-            AddPointer(_yesLabel.gameObject, () => ConfirmHovered?.Invoke(true), () => ConfirmClicked?.Invoke(true));
-            AddPointer(_noLabel.gameObject, () => ConfirmHovered?.Invoke(false), () => ConfirmClicked?.Invoke(false));
-            AddPointer(_closeLabel.gameObject, null, () => CloseClicked?.Invoke());
-        }
-
-        // 왼쪽 버튼만 결정으로 사용합니다. 우클릭·휠·가운데 버튼은 동작이 없습니다.
-        private static void AddPointer(GameObject target, Action hover, Action click)
-        {
-            var trigger = target.AddComponent<EventTrigger>();
-            if (hover != null) AddEntry(trigger, EventTriggerType.PointerEnter, _ => hover());
-            AddEntry(trigger, EventTriggerType.PointerClick, data =>
-            {
-                if (data is PointerEventData pointer && pointer.button == PointerEventData.InputButton.Left) click();
-            });
-        }
-
-        private static void AddEntry(EventTrigger trigger, EventTriggerType type, UnityEngine.Events.UnityAction<BaseEventData> callback)
-        {
-            var entry = new EventTrigger.Entry { eventID = type };
-            entry.callback.AddListener(callback);
-            trigger.triggers.Add(entry);
+            MenuText.Connect(_yesLabel.gameObject, () => ConfirmHovered?.Invoke(true), () => ConfirmClicked?.Invoke(true));
+            MenuText.Connect(_noLabel.gameObject, () => ConfirmHovered?.Invoke(false), () => ConfirmClicked?.Invoke(false));
+            MenuText.Connect(_closeLabel.gameObject, null, () => CloseClicked?.Invoke());
         }
 
         public void ShowStatus(string message) => _status.text = message;

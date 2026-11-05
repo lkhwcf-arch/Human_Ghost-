@@ -21,7 +21,10 @@ namespace HumanGhost.Gameplay.Presentation
         [SerializeField] private Text _noticeText = null;
         private TextboxPlayback _playback;
         private Action _closed;
-        private float _objectiveRemaining, _noticeRemaining, _pendingMs;
+        private float _objectiveRemaining, _noticeRemaining;
+        private MillisecondClock _clock;
+        private string _shownLine;
+        private int _shownCharacters = -1;
 
         public bool IsOpen => _playback != null;
         public event Action<bool> OpenChanged;
@@ -35,7 +38,8 @@ namespace HumanGhost.Gameplay.Presentation
         {
             if (IsOpen) return;
             _playback = new TextboxPlayback(lines, _millisecondsPerCharacter);
-            _closed = closed; _pendingMs = 0f;
+            _closed = closed; _clock = default;
+            _shownLine = null; _shownCharacters = -1;
             _speaker.text = speaker;
             _box.SetActive(true);
             Refresh();
@@ -80,16 +84,15 @@ namespace HumanGhost.Gameplay.Presentation
             if (_notice.activeSelf && (_noticeRemaining -= Time.unscaledDeltaTime) <= 0f) _notice.SetActive(false);
             if (_playback == null) return;
             // 글자 출력은 일시정지 중 멈춥니다(O01_2 #6). 히트스톱과 같은 시간을 씁니다.
-            _pendingMs += Time.deltaTime * 1000f;
-            int whole = (int)_pendingMs;
-            _pendingMs -= whole;
-            _playback.Tick(whole);
+            _playback.Tick(_clock.Advance(Time.deltaTime));
             Refresh();
         }
 
         private void Refresh()
         {
             string line = _playback.CurrentLine;
+            if (line == _shownLine && _shownCharacters == _playback.VisibleCharacters) return;
+            _shownLine = line; _shownCharacters = _playback.VisibleCharacters;
             _body.text = line.Substring(0, _playback.VisibleCharacters);
             _nextHint.SetActive(_playback.IsLineComplete);
         }

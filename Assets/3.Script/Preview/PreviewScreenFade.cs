@@ -10,7 +10,8 @@ namespace HumanGhost.Gameplay.Preview
     {
         private static readonly Color _ink = new Color(0.04f, 0.04f, 0.05f, 1f);
         private Image _image;
-        public static bool IsActive { get; private set; }
+        private static PreviewScreenFade _active;
+        public static bool IsActive => _active != null;
 
         // onBlack은 완전히 어두워졌을 때 한 번 호출합니다.
         public static void Run(float fadeOut, float hold, float fadeIn, Action onBlack)
@@ -28,14 +29,22 @@ namespace HumanGhost.Gameplay.Preview
             var fade = root.AddComponent<PreviewScreenFade>();
             fade._image = view.AddComponent<Image>();
             fade._image.raycastTarget = false;
-            IsActive = true;
+            _active = fade;
             fade.StartCoroutine(fade.Play(fadeOut, hold, fadeIn, onBlack));
         }
 
         private IEnumerator Play(float fadeOut, float hold, float fadeIn, Action onBlack)
         {
             yield return Tween(0f, 1f, fadeOut);
-            onBlack?.Invoke();
+            bool failed = false;
+            try { onBlack?.Invoke(); }
+            catch (Exception error)
+            {
+                Debug.LogException(error, this);
+                Destroy(gameObject);
+                failed = true;
+            }
+            if (failed) yield break;
             yield return new WaitForSecondsRealtime(hold);
             yield return Tween(1f, 0f, fadeIn);
             Destroy(gameObject);
@@ -57,6 +66,12 @@ namespace HumanGhost.Gameplay.Preview
             _image.color = color;
         }
 
-        private void OnDestroy() => IsActive = false;
+        private void OnDestroy() { if (_active == this) _active = null; }
+        private void OnDisable()
+        {
+            StopAllCoroutines();
+            if (_active == this) _active = null;
+            Destroy(gameObject);
+        }
     }
 }
