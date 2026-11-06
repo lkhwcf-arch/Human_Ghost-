@@ -43,6 +43,7 @@ namespace HumanGhost.Gameplay.Preview
         [Header("상호작용 (K15)")]
         [SerializeField, InspectorName("상호작용")] private PlayerInteractor _interactor = null;
         [SerializeField, InspectorName("텍스트박스")] private TextboxScreen _textbox = null;
+        [SerializeField, InspectorName("피난민 대사")] private NpcDialogue _refugeeDialogue = null;
         [SerializeField, InspectorName("로딩 화면 프리팹")] private LoadingScreen _loadingPrefab = null;
         [SerializeField, InspectorName("해금 맵 ID"), Min(1)] private int _skillUnlockStageId = 8005;
         [Header("피드백·HUD·일시정지 (없으면 끔)")]
@@ -384,6 +385,7 @@ namespace HumanGhost.Gameplay.Preview
         }
 
         private const int BossStage = 8004;
+        private const string LedgerArrival = "Spawn_FromDohwagol";
 
         // 각 몬스터가 선 바닥의 끊기지 않은 구간을 찾습니다.
         private void ApplyWalkableSpans()
@@ -426,9 +428,16 @@ namespace HumanGhost.Gameplay.Preview
             foreach (Transform marker in _markersRoot)
             {
                 if (marker.name == "NPC_Refugee")
-                    AddTarget<NpcTalk>(marker).Configure("부상당한 피난민", new[] { "(임시) 피난민 대사는 시나리오 공급 뒤 교체합니다." }, "장부방을 살펴보자");
+                {
+                    if (_refugeeDialogue == null) throw new InvalidOperationException("피난민 대사 에셋을 연결해 주세요.");
+                    AddTarget<NpcTalk>(marker).Configure(_refugeeDialogue.Speaker, _refugeeDialogue.Lines, _refugeeDialogue.Objective);
+                }
                 else if (marker.name == "Door_Jangbubang")
-                    AddTarget<LedgerInteract>(marker).Configure("(임시) 장부방 맵 공급 전이라 이 자리에서 명부를 조사합니다.",
+                    AddTarget<StageDoor>(marker).Configure(StageExitRules.LedgerStage, LedgerArrival, null);
+                else if (marker.name == "Door_ToDohwagol")
+                    AddTarget<StageDoor>(marker).Configure(StageExitRules.VillageStage, "Spawn_FromJangbubang", null);
+                else if (marker.name == "Myeongbu")
+                    AddTarget<LedgerInteract>(marker).Configure("(임시) 이미 살펴본 명부다.",
                         _ledgerCutsceneId == 0 ? null : PlayLedger);
                 else if (marker.name == "Seonangdang")
                 {
@@ -456,7 +465,7 @@ namespace HumanGhost.Gameplay.Preview
             {
                 // 보스방은 바닥 아래를 비추지 않게 맵 기준 높이에 고정합니다.
                 if (_stageId == BossStage) _followCamera.SetFixed(new Vector2(_stage.Area.center.x, _stage.MapRoot.position.y + _stage.CameraSize), _stage.CameraSize);
-                else _followCamera.SetArea(_stage.Area.min.x + 1f, _stage.Area.max.x - 1f, _mapOrigin.y + 4f, _stage.CameraSize);
+                else _followCamera.SetArea(_stage.Area.min.x + 1f, _stage.Area.max.x - 1f, _stage.MapRoot.position.y + 4f, _stage.CameraSize);
             }
         }
 
@@ -484,7 +493,7 @@ namespace HumanGhost.Gameplay.Preview
         {
             if (_bossActive && _boss.Actor.IsDead) PreviewSession.DefeatedBoss.Add(BossStage);
             TryStartEnding();
-            if (_stage != null && _stageId != StageExitRules.VillageStage && _stageId != BossStage && RemainingMonsters() == 0)
+            if (_stage != null && _stageId != StageExitRules.VillageStage && _stageId != StageExitRules.LedgerStage && _stageId != BossStage && RemainingMonsters() == 0)
                 PreviewSession.Progress.Clear(_stageId);
         }
 
@@ -628,7 +637,8 @@ namespace HumanGhost.Gameplay.Preview
             if (string.IsNullOrEmpty(anchor))
             {
                 if (_stage == null) return;
-                anchor = "PlayerStart";
+                // 장부방은 PlayerStart 없이 문 앞 표식만 둡니다.
+                anchor = _stageId == StageExitRules.LedgerStage ? LedgerArrival : "PlayerStart";
             }
             // 도착 앵커가 없는 맵은 시작 지점에 섭니다(L09_1).
             var anchors = new SpawnAnchors(_markersRoot);
