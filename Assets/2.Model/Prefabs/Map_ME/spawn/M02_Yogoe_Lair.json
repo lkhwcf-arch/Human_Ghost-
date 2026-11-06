@@ -1,0 +1,130 @@
+{
+  "FormatVersion": 2,
+  "StageID": 0,
+  "Level": "M02_Yogoe_Lair",
+  "Placements": [
+    {
+      "PlacementID": 101,
+      "PlatformCode": 16010,
+      "Prefab": "Ground_10",
+      "Anchor": "Anchor_Ground_10",
+      "Monsters": [
+        {
+          "MonsterCode": 3004,
+          "MonsterCount": 5,
+          "Points": [
+            [
+              800,
+              1500
+            ],
+            [
+              1200,
+              800
+            ],
+            [
+              5100,
+              800
+            ],
+            [
+              5800,
+              100
+            ],
+            [
+              8400,
+              100
+            ]
+          ]
+        },
+        {
+          "MonsterCode": 3003,
+          "MonsterCount": 7,
+          "Points": [
+            [
+              1400,
+              1500
+            ],
+            [
+              2800,
+              800
+            ],
+            [
+              3200,
+              100
+            ],
+            [
+              4200,
+              1500
+            ],
+            [
+              4800,
+              100
+            ],
+            [
+              5800,
+              800
+            ],
+            [
+              7800,
+              100
+            ]
+          ]
+        },
+        {
+          "MonsterCode": 3002,
+          "MonsterCount": 5,
+          "Points": [
+            [
+              2400,
+              800
+            ],
+            [
+              3200,
+              800
+            ],
+            [
+              3600,
+              100
+            ],
+            [
+              6400,
+              800
+            ],
+            [
+              7400,
+              100
+            ]
+          ]
+        },
+        {
+          "MonsterCode": 3003,
+          "MonsterCount": 2,
+          "Points": [
+            [
+              6400,
+              100
+            ],
+            [
+              7000,
+              100
+            ]
+          ],
+          "Trigger": 31000
+        }
+      ]
+    },
+    {
+      "PlacementID": 201,
+      "PlatformCode": 16531,
+      "Prefab": "Air_Platform_31",
+      "Anchor": "Anchor_Air_Platform_31",
+      "Monsters": []
+    },
+    {
+      "PlacementID": 202,
+      "PlatformCode": 16532,
+      "Prefab": "Air_Platform_32",
+      "Anchor": "Anchor_Air_Platform_32",
+      "Monsters": []
+    }
+  ]
+}

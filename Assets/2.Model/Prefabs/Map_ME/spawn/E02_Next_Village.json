@@ -1,0 +1,21 @@
+{
+  "FormatVersion": 2,
+  "StageID": 0,
+  "Level": "E02_Next_Village",
+  "Placements": [
+    {
+      "PlacementID": 101,
+      "PlatformCode": 16008,
+      "Prefab": "Ground_8",
+      "Anchor": "Anchor_Ground_8",
+      "Monsters": []
+    },
+    {
+      "PlacementID": 201,
+      "PlatformCode": 16530,
+      "Prefab": "Air_Platform_30",
+      "Anchor": "Anchor_Air_Platform_30",
+      "Monsters": []
+    }
+  ]
+}

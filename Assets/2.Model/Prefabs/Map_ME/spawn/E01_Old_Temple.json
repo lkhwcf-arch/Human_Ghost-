@@ -1,0 +1,139 @@
+{
+  "FormatVersion": 2,
+  "StageID": 0,
+  "Level": "E01_Old_Temple",
+  "Placements": [
+    {
+      "PlacementID": 101,
+      "PlatformCode": 16007,
+      "Prefab": "Ground_7",
+      "Anchor": "Anchor_Ground_7",
+      "Monsters": [
+        {
+          "MonsterCode": 3001,
+          "MonsterCount": 4,
+          "Points": [
+            [
+              1600,
+              1100
+            ],
+            [
+              5300,
+              300
+            ],
+            [
+              7500,
+              700
+            ],
+            [
+              13900,
+              1500
+            ]
+          ]
+        },
+        {
+          "MonsterCode": 3002,
+          "MonsterCount": 7,
+          "Points": [
+            [
+              2000,
+              1100
+            ],
+            [
+              2800,
+              700
+            ],
+            [
+              4000,
+              300
+            ],
+            [
+              6200,
+              300
+            ],
+            [
+              8000,
+              1000
+            ],
+            [
+              11300,
+              1700
+            ],
+            [
+              13500,
+              1500
+            ]
+          ]
+        },
+        {
+          "MonsterCode": 3003,
+          "MonsterCount": 5,
+          "Points": [
+            [
+              3300,
+              700
+            ],
+            [
+              4600,
+              300
+            ],
+            [
+              8600,
+              1000
+            ],
+            [
+              9700,
+              1500
+            ],
+            [
+              11800,
+              1700
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "PlacementID": 201,
+      "PlatformCode": 16524,
+      "Prefab": "Air_Platform_24",
+      "Anchor": "Anchor_Air_Platform_24",
+      "Monsters": []
+    },
+    {
+      "PlacementID": 202,
+      "PlatformCode": 16525,
+      "Prefab": "Air_Platform_25",
+      "Anchor": "Anchor_Air_Platform_25",
+      "Monsters": []
+    },
+    {
+      "PlacementID": 203,
+      "PlatformCode": 16526,
+      "Prefab": "Air_Platform_26",
+      "Anchor": "Anchor_Air_Platform_26",
+      "Monsters": []
+    },
+    {
+      "PlacementID": 204,
+      "PlatformCode": 16527,
+      "Prefab": "Air_Platform_27",
+      "Anchor": "Anchor_Air_Platform_27",
+      "Monsters": []
+    },
+    {
+      "PlacementID": 205,
+      "PlatformCode": 16528,
+      "Prefab": "Air_Platform_28",
+      "Anchor": "Anchor_Air_Platform_28",
+      "Monsters": []
+    },
+    {
+      "PlacementID": 206,
+      "PlatformCode": 16529,
+      "Prefab": "Air_Platform_29",
+      "Anchor": "Anchor_Air_Platform_29",
+      "Monsters": []
+    }
+  ]
+}

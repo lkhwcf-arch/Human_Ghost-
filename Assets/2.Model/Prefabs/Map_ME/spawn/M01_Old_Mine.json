@@ -1,0 +1,92 @@
+{
+  "FormatVersion": 2,
+  "StageID": 0,
+  "Level": "M01_Old_Mine",
+  "Placements": [
+    {
+      "PlacementID": 101,
+      "PlatformCode": 16009,
+      "Prefab": "Ground_9",
+      "Anchor": "Anchor_Ground_9",
+      "Monsters": [
+        {
+          "MonsterCode": 3003,
+          "MonsterCount": 4,
+          "Points": [
+            [
+              1200,
+              2200
+            ],
+            [
+              2000,
+              -600
+            ],
+            [
+              3000,
+              1500
+            ],
+            [
+              3400,
+              800
+            ]
+          ]
+        },
+        {
+          "MonsterCode": 3002,
+          "MonsterCount": 3,
+          "Points": [
+            [
+              1400,
+              1500
+            ],
+            [
+              1800,
+              2200
+            ],
+            [
+              2800,
+              800
+            ]
+          ]
+        },
+        {
+          "MonsterCode": 3004,
+          "MonsterCount": 4,
+          "Points": [
+            [
+              1600,
+              800
+            ],
+            [
+              2400,
+              1500
+            ],
+            [
+              2400,
+              100
+            ],
+            [
+              3300,
+              2200
+            ]
+          ]
+        },
+        {
+          "MonsterCode": 3003,
+          "MonsterCount": 2,
+          "Points": [
+            [
+              3400,
+              100
+            ],
+            [
+              4500,
+              100
+            ]
+          ],
+          "Trigger": 23000
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "FormatVersion": 2,
+  "StageID": 8004,
+  "Level": "L8004_BossRoom",
+  "Placements": [
+    {
+      "PlacementID": 101,
+      "PlatformCode": 16004,
+      "Prefab": "Ground_4",
+      "Anchor": "Anchor_Ground_4",
+      "Monsters": []
+    },
+    {
+      "PlacementID": 201,
+      "PlatformCode": 16519,
+      "Prefab": "Air_Platform_19",
+      "Anchor": "Anchor_Air_Platform_19",
+      "Monsters": []
+    },
+    {
+      "PlacementID": 202,
+      "PlatformCode": 16520,
+      "Prefab": "Air_Platform_20",
+      "Anchor": "Anchor_Air_Platform_20",
+      "Monsters": []
+    },
+    {
+      "PlacementID": 203,
+      "PlatformCode": 16521,
+      "Prefab": "Air_Platform_21",
+      "Anchor": "Anchor_Air_Platform_21",
+      "Monsters": []
+    },
+    {
+      "PlacementID": 204,
+      "PlatformCode": 16522,
+      "Prefab": "Air_Platform_22",
+      "Anchor": "Anchor_Air_Platform_22",
+      "Monsters": []
+    }
+  ]
+}
