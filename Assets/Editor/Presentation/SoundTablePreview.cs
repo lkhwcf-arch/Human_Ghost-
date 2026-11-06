@@ -18,7 +18,21 @@ namespace HumanGhost.EditorTools
     public class SoundTablePreview : EditorWindow
     {
         private IReadOnlyList<Sound> _rows = Array.Empty<Sound>();
-        private DataCatalog _catalog;
+        private sealed class PreviewCatalog : IReadOnlyDataCatalog
+        {
+            private readonly DataTable<Sound> _sounds;
+
+            public PreviewCatalog(IReadOnlyList<Sound> rows)
+                => _sounds = new DataTable<Sound>(rows, row => row.ID);
+
+            public IReadOnlyDataTable<T> GetTable<T>()
+            {
+                if (_sounds is IReadOnlyDataTable<T> table) return table;
+                throw new KeyNotFoundException($"Sound preview has no table for {typeof(T).Name}.");
+            }
+        }
+
+        private IReadOnlyDataCatalog _catalog;
         private TableSoundPlayer _player;
         private Vector2 _scroll;
         private string _status = "표를 갱신한 뒤 Play 중 소리를 선택해 주세요.";
@@ -50,8 +64,7 @@ namespace HumanGhost.EditorTools
             var file = AssetDatabase.LoadAssetAtPath<TextAsset>("Assets/Data/Csv/Sound.csv");
             if (file == null) throw new InvalidOperationException("배포된 Sound.csv가 없습니다. DataSheet에서 먼저 배포해 주세요.");
             _rows = new CsvTableMapper<Sound>(new CsvDefinitionMapper<Sound>()).Map(new CsvParser().Read(file.text));
-            _catalog = new DataCatalog();
-            _catalog.Register(new DataTable<Sound>(_rows, row => row.ID));
+            _catalog = new PreviewCatalog(_rows);
             _status = _rows.Count == 0 ? "Sound 표가 비어 있습니다. 원본 엑셀 7행부터 작성·배포해 주세요." : $"사운드 {_rows.Count}개를 읽었습니다.";
         }
         private void EnsurePlayer()
