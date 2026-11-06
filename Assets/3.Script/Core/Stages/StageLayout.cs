@@ -78,12 +78,11 @@ namespace HumanGhost.Gameplay
         }
     }
 
-    // 스테이지 출구 규칙(L01·L03·K14)입니다. 맵 1은 명부 조사, 나머지는 남은 몬스터 0일 때 열립니다.
+    // 출구 통과와 전멸 기록은 별개입니다. 목적지 잠금은 ContentAccess가 판단합니다.
     public static class StageExitRules
     {
         public const int VillageStage = 8001, LedgerStage = 8005;
-        // 한 번 클리어한 맵(K14 clearedStages)은 잡몹이 다시 나와도 출구가 열려 있습니다.
-        public static bool CanLeave(int stageId, int remainingMonsters, bool ledgerCleared, bool stageCleared)
-            => stageId == VillageStage ? ledgerCleared : stageCleared || remainingMonsters == 0;
+        public static bool CanLeave(int stageId, bool ledgerCleared)
+            => stageId != VillageStage || ledgerCleared;
     }
 }

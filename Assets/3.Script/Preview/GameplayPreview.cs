@@ -325,6 +325,8 @@ namespace HumanGhost.Gameplay.Preview
         private void GoToStage(int stageId, string anchor)
         {
             if (_modalBlocked || _saveLocked || _leaving || _loadingPrefab == null) return;
+            var access = new ContentAccess(PreviewSession.Progress.IsCleared);
+            if (access.Evaluate(_catalog.GetTable<Stage>().Get(stageId)) != ContentAccessResult.Allowed) return;
             // 로딩 준비 실패 시 기존 임시 상태와 입력을 먼저 망가뜨리지 않습니다.
             try { Instantiate(_loadingPrefab).Begin(gameObject.scene.name, _catalog, GameSaveContext.Current?.BeginScene()); }
             catch (Exception error) { Debug.LogException(error, this); return; }
@@ -464,8 +466,13 @@ namespace HumanGhost.Gameplay.Preview
             return remaining;
         }
 
-        private bool CanLeaveStage() => StageExitRules.CanLeave(_stageId, RemainingMonsters(),
-            PreviewSession.Progress.IsCleared(StageExitRules.LedgerStage), PreviewSession.Progress.IsCleared(_stageId));
+        private bool CanLeaveStage() => StageExitRules.CanLeave(_stageId,
+            PreviewSession.Progress.IsCleared(StageExitRules.LedgerStage));
+
+        // 출구 조건 변경으로 임시 저장 지점의 기록 시점까지 바뀌지 않도록 분리합니다.
+        private bool CanActivateSavePoint() => _stageId == StageExitRules.VillageStage
+            ? PreviewSession.Progress.IsCleared(StageExitRules.LedgerStage)
+            : PreviewSession.Progress.IsCleared(_stageId) || RemainingMonsters() == 0;
 
         // 잡몹을 다 잡은 맵을 기록합니다. 맵 1은 명부, 보스방은 보스 처치가 기준이라 제외합니다.
         // 처치한 보스는 사망 재시작·재진입 때 다시 나오지 않습니다(K16add).
@@ -493,7 +500,7 @@ namespace HumanGhost.Gameplay.Preview
         private void StepSavePoint()
         {
             if (_savePoint == null || _savePointPassedHere || _actor.IsDead || _saveFlow == null || !_saveFlow.IsPlayable) return;
-            if (_player.transform.position.x < _savePoint.position.x || !CanLeaveStage()) return;
+            if (_player.transform.position.x < _savePoint.position.x || !CanActivateSavePoint()) return;
             _savePointPassedHere = true;
             PreviewSession.CheckpointPassed = true;
             PreviewSession.ShrineId = _stageId;
