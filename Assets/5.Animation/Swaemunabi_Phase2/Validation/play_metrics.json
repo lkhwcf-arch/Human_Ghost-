@@ -1,0 +1,536 @@
+{
+  "playing": true,
+  "startedNormalized": 0.00833333,
+  "finishedNormalized": 2.20839334,
+  "cyclesObserved": 2.20006,
+  "elapsedSeconds": 4.9740155999998024,
+  "sampleCount": 975,
+  "bodyRisePixels": 1.79998875,
+  "maxHandBoneDriftPixels": 0.00017441361,
+  "maxRigidHandVertexDriftPixels": 0.00022262655,
+  "maxEdgeStretchRatio": 1.11318612,
+  "minSignedTriangleArea": 8.738997E-05,
+  "triangleChecks": 2188030,
+  "samples": [
+    {
+      "normalizedTime": 0.182806224,
+      "bodyLocalY": 1.035312,
+      "leftX": -2.47999978,
+      "leftY": 0.14999938,
+      "rightX": -0.6599999,
+      "rightY": 0.129999816
+    },
+    {
+      "normalizedTime": 0.211939,
+      "bodyLocalY": 1.0368681,
+      "leftX": -2.48000026,
+      "leftY": 0.149999976,
+      "rightX": -0.659999669,
+      "rightY": 0.129999936
+    },
+    {
+      "normalizedTime": 0.2386424,
+      "bodyLocalY": 1.03835821,
+      "leftX": -2.4800005,
+      "leftY": 0.149999738,
+      "rightX": -0.659999669,
+      "rightY": 0.130000174
+    },
+    {
+      "normalizedTime": 0.282207221,
+      "bodyLocalY": 1.0408088,
+      "leftX": -2.48,
+      "leftY": 0.149999738,
+      "rightX": -0.659999669,
+      "rightY": 0.130000055
+    },
+    {
+      "normalizedTime": 0.310808629,
+      "bodyLocalY": 1.04235554,
+      "leftX": -2.47999954,
+      "leftY": 0.149999261,
+      "rightX": -0.6599998,
+      "rightY": 0.129999816
+    },
+    {
+      "normalizedTime": 0.3412357,
+      "bodyLocalY": 1.0438813,
+      "leftX": -2.48,
+      "leftY": 0.149999619,
+      "rightX": -0.6599998,
+      "rightY": 0.129999936
+    },
+    {
+      "normalizedTime": 0.369533449,
+      "bodyLocalY": 1.0451417,
+      "leftX": -2.47999954,
+      "leftY": 0.149999261,
+      "rightX": -0.659999549,
+      "rightY": 0.130000055
+    },
+    {
+      "normalizedTime": 0.400361478,
+      "bodyLocalY": 1.04629326,
+      "leftX": -2.48,
+      "leftY": 0.1499995,
+      "rightX": -0.6599998,
+      "rightY": 0.129999816
+    },
+    {
+      "normalizedTime": 0.4279171,
+      "bodyLocalY": 1.04709268,
+      "leftX": -2.48,
+      "leftY": 0.149999738,
+      "rightX": -0.659999669,
+      "rightY": 0.129999936
+    },
+    {
+      "normalizedTime": 0.4566326,
+      "bodyLocalY": 1.047668,
+      "leftX": -2.47999954,
+      "leftY": 0.149999022,
+      "rightX": -0.659999669,
+      "rightY": 0.129999936
+    },
+    {
+      "normalizedTime": 0.4855877,
+      "bodyLocalY": 1.04796314,
+      "leftX": -2.47999954,
+      "leftY": 0.1499989,
+      "rightX": -0.6599998,
+      "rightY": 0.130000055
+    },
+    {
+      "normalizedTime": 0.515009165,
+      "bodyLocalY": 1.04796,
+      "leftX": -2.47999978,
+      "leftY": 0.149999619,
+      "rightX": -0.659999669,
+      "rightY": 0.129999936
+    },
+    {
+      "normalizedTime": 0.544415534,
+      "bodyLocalY": 1.04765189,
+      "leftX": -2.47999978,
+      "leftY": 0.149999857,
+      "rightX": -0.6599998,
+      "rightY": 0.129999936
+    },
+    {
+      "normalizedTime": 0.5735982,
+      "bodyLocalY": 1.04705477,
+      "leftX": -2.48,
+      "leftY": 0.1499995,
+      "rightX": -0.659999669,
+      "rightY": 0.129999936
+    },
+    {
+      "normalizedTime": 0.6103837,
+      "bodyLocalY": 1.04592073,
+      "leftX": -2.47999978,
+      "leftY": 0.14999938,
+      "rightX": -0.659999549,
+      "rightY": 0.129999936
+    },
+    {
+      "normalizedTime": 0.640239656,
+      "bodyLocalY": 1.04472649,
+      "leftX": -2.47999954,
+      "leftY": 0.14999938,
+      "rightX": -0.659999549,
+      "rightY": 0.129999936
+    },
+    {
+      "normalizedTime": 0.6697519,
+      "bodyLocalY": 1.04334807,
+      "leftX": -2.48,
+      "leftY": 0.1499995,
+      "rightX": -0.65999943,
+      "rightY": 0.129999936
+    },
+    {
+      "normalizedTime": 0.6985732,
+      "bodyLocalY": 1.04185784,
+      "leftX": -2.47999954,
+      "leftY": 0.14999938,
+      "rightX": -0.659999549,
+      "rightY": 0.129999936
+    },
+    {
+      "normalizedTime": 0.72792834,
+      "bodyLocalY": 1.04024422,
+      "leftX": -2.47999978,
+      "leftY": 0.149999261,
+      "rightX": -0.6599998,
+      "rightY": 0.130000174
+    },
+    {
+      "normalizedTime": 0.7573392,
+      "bodyLocalY": 1.03858519,
+      "leftX": -2.47999978,
+      "leftY": 0.149999619,
+      "rightX": -0.65999943,
+      "rightY": 0.130000174
+    },
+    {
+      "normalizedTime": 0.785795748,
+      "bodyLocalY": 1.03699279,
+      "leftX": -2.48,
+      "leftY": 0.14999938,
+      "rightX": -0.6599998,
+      "rightY": 0.130000055
+    },
+    {
+      "normalizedTime": 0.813759863,
+      "bodyLocalY": 1.03549,
+      "leftX": -2.48,
+      "leftY": 0.1499995,
+      "rightX": -0.6599998,
+      "rightY": 0.129999816
+    },
+    {
+      "normalizedTime": 0.8413888,
+      "bodyLocalY": 1.03411138,
+      "leftX": -2.47999978,
+      "leftY": 0.14999938,
+      "rightX": -0.659999669,
+      "rightY": 0.130000055
+    },
+    {
+      "normalizedTime": 0.8704121,
+      "bodyLocalY": 1.032822,
+      "leftX": -2.48,
+      "leftY": 0.1499995,
+      "rightX": -0.659999669,
+      "rightY": 0.129999816
+    },
+    {
+      "normalizedTime": 0.89866364,
+      "bodyLocalY": 1.03176343,
+      "leftX": -2.47999978,
+      "leftY": 0.14999938,
+      "rightX": -0.6599998,
+      "rightY": 0.129999936
+    },
+    {
+      "normalizedTime": 0.9348138,
+      "bodyLocalY": 1.03074443,
+      "leftX": -2.48000026,
+      "leftY": 0.149999857,
+      "rightX": -0.66,
+      "rightY": 0.129999936
+    },
+    {
+      "normalizedTime": 0.9646456,
+      "bodyLocalY": 1.0302211,
+      "leftX": -2.48,
+      "leftY": 0.1499995,
+      "rightX": -0.659999669,
+      "rightY": 0.129999816
+    },
+    {
+      "normalizedTime": 0.9942766,
+      "bodyLocalY": 1.03000581,
+      "leftX": -2.48,
+      "leftY": 0.149999619,
+      "rightX": -0.659999549,
+      "rightY": 0.130000174
+    },
+    {
+      "normalizedTime": 1.02456331,
+      "bodyLocalY": 1.030107,
+      "leftX": -2.48000026,
+      "leftY": 0.149999619,
+      "rightX": -0.659999669,
+      "rightY": 0.1299997
+    },
+    {
+      "normalizedTime": 1.05543828,
+      "bodyLocalY": 1.03054047,
+      "leftX": -2.48000026,
+      "leftY": 0.149999738,
+      "rightX": -0.65999943,
+      "rightY": 0.129999936
+    },
+    {
+      "normalizedTime": 1.08599615,
+      "bodyLocalY": 1.03128207,
+      "leftX": -2.48,
+      "leftY": 0.149999619,
+      "rightX": -0.65999943,
+      "rightY": 0.130000055
+    },
+    {
+      "normalizedTime": 1.11691082,
+      "bodyLocalY": 1.03232086,
+      "leftX": -2.48,
+      "leftY": 0.14999938,
+      "rightX": -0.6599999,
+      "rightY": 0.129999816
+    },
+    {
+      "normalizedTime": 1.14815772,
+      "bodyLocalY": 1.03362608,
+      "leftX": -2.47999954,
+      "leftY": 0.14999938,
+      "rightX": -0.6599999,
+      "rightY": 0.1299997
+    },
+    {
+      "normalizedTime": 1.17908752,
+      "bodyLocalY": 1.03512144,
+      "leftX": -2.48,
+      "leftY": 0.149999619,
+      "rightX": -0.6599999,
+      "rightY": 0.1299997
+    },
+    {
+      "normalizedTime": 1.208996,
+      "bodyLocalY": 1.03670692,
+      "leftX": -2.48,
+      "leftY": 0.1499995,
+      "rightX": -0.6599998,
+      "rightY": 0.130000055
+    },
+    {
+      "normalizedTime": 1.23939693,
+      "bodyLocalY": 1.03840077,
+      "leftX": -2.48,
+      "leftY": 0.149999619,
+      "rightX": -0.65999943,
+      "rightY": 0.130000055
+    },
+    {
+      "normalizedTime": 1.28015327,
+      "bodyLocalY": 1.04069483,
+      "leftX": -2.47999954,
+      "leftY": 0.14999938,
+      "rightX": -0.6599999,
+      "rightY": 0.129999816
+    },
+    {
+      "normalizedTime": 1.32219279,
+      "bodyLocalY": 1.04294372,
+      "leftX": -2.48,
+      "leftY": 0.1499995,
+      "rightX": -0.659999669,
+      "rightY": 0.129999936
+    },
+    {
+      "normalizedTime": 1.35375738,
+      "bodyLocalY": 1.04446042,
+      "leftX": -2.48,
+      "leftY": 0.14999938,
+      "rightX": -0.6599998,
+      "rightY": 0.129999936
+    },
+    {
+      "normalizedTime": 1.38472092,
+      "bodyLocalY": 1.0457406,
+      "leftX": -2.47999954,
+      "leftY": 0.149999261,
+      "rightX": -0.65999943,
+      "rightY": 0.129999936
+    },
+    {
+      "normalizedTime": 1.41502368,
+      "bodyLocalY": 1.04674733,
+      "leftX": -2.47999954,
+      "leftY": 0.149999022,
+      "rightX": -0.659999669,
+      "rightY": 0.129999816
+    },
+    {
+      "normalizedTime": 1.44547343,
+      "bodyLocalY": 1.04747689,
+      "leftX": -2.48000026,
+      "leftY": 0.149999619,
+      "rightX": -0.659999669,
+      "rightY": 0.129999816
+    },
+    {
+      "normalizedTime": 1.47382092,
+      "bodyLocalY": 1.0478785,
+      "leftX": -2.48,
+      "leftY": 0.1499995,
+      "rightX": -0.6599998,
+      "rightY": 0.129999816
+    },
+    {
+      "normalizedTime": 1.50302958,
+      "bodyLocalY": 1.04799831,
+      "leftX": -2.48000026,
+      "leftY": 0.149999857,
+      "rightX": -0.6599998,
+      "rightY": 0.130000174
+    },
+    {
+      "normalizedTime": 1.53174329,
+      "bodyLocalY": 1.04782164,
+      "leftX": -2.48,
+      "leftY": 0.1499995,
+      "rightX": -0.659999669,
+      "rightY": 0.129999816
+    },
+    {
+      "normalizedTime": 1.56039429,
+      "bodyLocalY": 1.04735982,
+      "leftX": -2.48,
+      "leftY": 0.149999619,
+      "rightX": -0.659999549,
+      "rightY": 0.130000174
+    },
+    {
+      "normalizedTime": 1.59105146,
+      "bodyLocalY": 1.04656684,
+      "leftX": -2.48,
+      "leftY": 0.149999619,
+      "rightX": -0.659999549,
+      "rightY": 0.129999936
+    },
+    {
+      "normalizedTime": 1.62878788,
+      "bodyLocalY": 1.04521072,
+      "leftX": -2.47999954,
+      "leftY": 0.14999938,
+      "rightX": -0.659999549,
+      "rightY": 0.129999936
+    },
+    {
+      "normalizedTime": 1.65905285,
+      "bodyLocalY": 1.04386759,
+      "leftX": -2.47999978,
+      "leftY": 0.1499995,
+      "rightX": -0.659999549,
+      "rightY": 0.129999816
+    },
+    {
+      "normalizedTime": 1.68937528,
+      "bodyLocalY": 1.04234588,
+      "leftX": -2.47999954,
+      "leftY": 0.149999142,
+      "rightX": -0.660000145,
+      "rightY": 0.129999816
+    },
+    {
+      "normalizedTime": 1.72076166,
+      "bodyLocalY": 1.040644,
+      "leftX": -2.47999954,
+      "leftY": 0.149999261,
+      "rightX": -0.659999669,
+      "rightY": 0.129999816
+    },
+    {
+      "normalizedTime": 1.75185084,
+      "bodyLocalY": 1.03889549,
+      "leftX": -2.48,
+      "leftY": 0.14999938,
+      "rightX": -0.6599999,
+      "rightY": 0.130000055
+    },
+    {
+      "normalizedTime": 1.78260839,
+      "bodyLocalY": 1.037169,
+      "leftX": -2.48,
+      "leftY": 0.149999738,
+      "rightX": -0.66,
+      "rightY": 0.129999816
+    },
+    {
+      "normalizedTime": 1.811968,
+      "bodyLocalY": 1.03558362,
+      "leftX": -2.48,
+      "leftY": 0.149999142,
+      "rightX": -0.6599998,
+      "rightY": 0.1299997
+    },
+    {
+      "normalizedTime": 1.83960319,
+      "bodyLocalY": 1.0341965,
+      "leftX": -2.47999978,
+      "leftY": 0.14999938,
+      "rightX": -0.659999669,
+      "rightY": 0.129999816
+    },
+    {
+      "normalizedTime": 1.86770928,
+      "bodyLocalY": 1.03293419,
+      "leftX": -2.48000026,
+      "leftY": 0.149999738,
+      "rightX": -0.659999669,
+      "rightY": 0.129999936
+    },
+    {
+      "normalizedTime": 1.89518893,
+      "bodyLocalY": 1.031882,
+      "leftX": -2.47999954,
+      "leftY": 0.149998784,
+      "rightX": -0.659999669,
+      "rightY": 0.129999936
+    },
+    {
+      "normalizedTime": 1.92341,
+      "bodyLocalY": 1.03102219,
+      "leftX": -2.48,
+      "leftY": 0.14999938,
+      "rightX": -0.659999669,
+      "rightY": 0.129999816
+    },
+    {
+      "normalizedTime": 1.97436738,
+      "bodyLocalY": 1.03011644,
+      "leftX": -2.48,
+      "leftY": 0.149999619,
+      "rightX": -0.6599999,
+      "rightY": 0.129999816
+    },
+    {
+      "normalizedTime": 2.053603,
+      "bodyLocalY": 1.03050566,
+      "leftX": -2.47999954,
+      "leftY": 0.1499995,
+      "rightX": -0.659999669,
+      "rightY": 0.1299997
+    },
+    {
+      "normalizedTime": 2.09600925,
+      "bodyLocalY": 1.03158855,
+      "leftX": -2.47999978,
+      "leftY": 0.1499995,
+      "rightX": -0.6599998,
+      "rightY": 0.129999816
+    },
+    {
+      "normalizedTime": 2.124615,
+      "bodyLocalY": 1.03262067,
+      "leftX": -2.48000026,
+      "leftY": 0.1499995,
+      "rightX": -0.659999669,
+      "rightY": 0.130000174
+    },
+    {
+      "normalizedTime": 2.15331054,
+      "bodyLocalY": 1.03386247,
+      "leftX": -2.48,
+      "leftY": 0.149999619,
+      "rightX": -0.6599998,
+      "rightY": 0.1299997
+    },
+    {
+      "normalizedTime": 2.18053937,
+      "bodyLocalY": 1.03519559,
+      "leftX": -2.47999954,
+      "leftY": 0.149999261,
+      "rightX": -0.659999549,
+      "rightY": 0.129999816
+    },
+    {
+      "normalizedTime": 2.20839334,
+      "bodyLocalY": 1.0366739,
+      "leftX": -2.48,
+      "leftY": 0.14999938,
+      "rightX": -0.660000145,
+      "rightY": 0.129999816
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "finished": true,
+  "rightCycles": 3.49461651,
+  "leftCycles": 3.49827766,
+  "idleReturns": 2,
+  "contactChecks": 1692,
+  "stepSlipSourcePixels": 0.000180630974,
+  "stanceSlipSourcePixels": 0.000456134585,
+  "meshSamples": 86,
+  "triangleChecks": 2894932,
+  "invertedTriangleObservations": 0,
+  "minSignedArea": 2.33032733E-05,
+  "maxObservedFirstEdgeRatio": 1.43439865,
+  "screenshots": 4,
+  "numericalDeformationPassed": true,
+  "maximumAllEdgesRatio": 1.74624693,
+  "contactVertices": 65,
+  "contactVertexChecks": 2772,
+  "contactVertexDriftSourcePixels": 0.0004457772,
+  "seamPairs": 81,
+  "seamGapSourcePixels": 0.0
+}

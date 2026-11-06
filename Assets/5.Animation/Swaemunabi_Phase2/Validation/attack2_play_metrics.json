@@ -1,0 +1,169 @@
+{
+  "finished": true,
+  "attack2Runs": 8,
+  "attack1Runs": 2,
+  "attack2StagesNearEnd": [
+    1,
+    2,
+    5,
+    7,
+    11,
+    12,
+    15,
+    17
+  ],
+  "metrics": [
+    {
+      "state": "Attack2",
+      "samples": 323,
+      "triangleChecks": 11153836,
+      "invertedObservations": 0,
+      "maxAllEdgesRatio": 1.39516747,
+      "minimumSignedArea": 5.40469737E-05
+    },
+    {
+      "state": "Attack1",
+      "samples": 73,
+      "triangleChecks": 2520836,
+      "invertedObservations": 0,
+      "maxAllEdgesRatio": 1.450385,
+      "minimumSignedArea": 3.58394464E-05
+    },
+    {
+      "state": "Idle",
+      "samples": 133,
+      "triangleChecks": 4592756,
+      "invertedObservations": 0,
+      "maxAllEdgesRatio": 1.06780279,
+      "minimumSignedArea": 8.95438352E-05
+    },
+    {
+      "state": "Walk",
+      "samples": 259,
+      "triangleChecks": 8943788,
+      "invertedObservations": 0,
+      "maxAllEdgesRatio": 1.74631119,
+      "minimumSignedArea": 2.329496E-05
+    },
+    {
+      "state": "Transition",
+      "samples": 37,
+      "triangleChecks": 1277684,
+      "invertedObservations": 0,
+      "maxAllEdgesRatio": 1.65617383,
+      "minimumSignedArea": 3.34250471E-05
+    }
+  ],
+  "attack2Parts": [
+    {
+      "part": "Body",
+      "invertedObservations": 0,
+      "maxAllEdgesRatio": 1.13040268
+    },
+    {
+      "part": "LeftArm",
+      "invertedObservations": 0,
+      "maxAllEdgesRatio": 1.39516747
+    },
+    {
+      "part": "RightArm",
+      "invertedObservations": 0,
+      "maxAllEdgesRatio": 1.00004053
+    }
+  ],
+  "transitionStages": [
+    3,
+    4,
+    8,
+    9,
+    13,
+    14,
+    18,
+    19
+  ],
+  "supportHandDriftPixels": 0.000145276776,
+  "rootLocalDisplacement": 0.0,
+  "attackParentMotion": 0.0,
+  "returnSamples": 428,
+  "bodyResetAngleError": 0.0,
+  "returnBoneAngleError": 6.10351563E-05,
+  "returnBonePositionErrorPixels": 1.1920929E-05,
+  "finalRightArmSortingOrder": 2,
+  "captures": [
+    {
+      "file": "Assets/5.Animation/Swaemunabi_Phase2/Validation/attack2_right_windup.png",
+      "time": 0.2625976,
+      "index": 4,
+      "source": "attack2_04"
+    },
+    {
+      "file": "Assets/5.Animation/Swaemunabi_Phase2/Validation/attack2_right_hit1.png",
+      "time": 0.511648357,
+      "index": 8,
+      "source": "attack2_08"
+    },
+    {
+      "file": "Assets/5.Animation/Swaemunabi_Phase2/Validation/attack2_right_hit2_window.png",
+      "time": 0.8837474,
+      "index": 14,
+      "source": "attack5_01"
+    },
+    {
+      "file": "Assets/5.Animation/Swaemunabi_Phase2/Validation/attack2_right_cross_body.png",
+      "time": 1.021365,
+      "index": 17,
+      "source": "attack5_04"
+    },
+    {
+      "file": "Assets/5.Animation/Swaemunabi_Phase2/Validation/attack2_right_late_sweep.png",
+      "time": 1.34257412,
+      "index": 22,
+      "source": "attack5_09"
+    },
+    {
+      "file": "Assets/5.Animation/Swaemunabi_Phase2/Validation/attack2_right_recover.png",
+      "time": 1.51842546,
+      "index": 25,
+      "source": "attack5_12"
+    },
+    {
+      "file": "Assets/5.Animation/Swaemunabi_Phase2/Validation/attack2_left_windup.png",
+      "time": 0.267941266,
+      "index": 4,
+      "source": "attack2_04"
+    },
+    {
+      "file": "Assets/5.Animation/Swaemunabi_Phase2/Validation/attack2_left_hit1.png",
+      "time": 0.5193169,
+      "index": 8,
+      "source": "attack2_08"
+    },
+    {
+      "file": "Assets/5.Animation/Swaemunabi_Phase2/Validation/attack2_left_hit2_window.png",
+      "time": 0.8718634,
+      "index": 14,
+      "source": "attack5_01"
+    },
+    {
+      "file": "Assets/5.Animation/Swaemunabi_Phase2/Validation/attack2_left_cross_body.png",
+      "time": 1.0465852,
+      "index": 17,
+      "source": "attack5_04"
+    },
+    {
+      "file": "Assets/5.Animation/Swaemunabi_Phase2/Validation/attack2_left_late_sweep.png",
+      "time": 1.32753623,
+      "index": 22,
+      "source": "attack5_09"
+    },
+    {
+      "file": "Assets/5.Animation/Swaemunabi_Phase2/Validation/attack2_left_recover.png",
+      "time": 1.5222621,
+      "index": 25,
+      "source": "attack5_12"
+    }
+  ],
+  "meshDeformationPassed": true,
+  "visualMatchApproved": false,
+  "existingTimingMismatch": "Second active window 0.85-0.95 uses attack5_01-02; later sweeps remain at existing frame times."
+}

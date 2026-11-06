@@ -1,0 +1,84 @@
+{
+  "finished": true,
+  "completedAttacks": 6,
+  "attackStageNormalizedTimes": {
+    "1": 0.9794761,
+    "3": 0.9582475,
+    "5": 0.993999541,
+    "9": 0.9600773,
+    "11": 0.940032,
+    "13": 0.978786
+  },
+  "meshSamples": 102,
+  "triangleChecks": 3433524,
+  "invertedTriangleObservations": 5721,
+  "minSignedArea": -0.000168164261,
+  "maximumAllEdgesRatio": 3.08084273,
+  "parts": [
+    {
+      "name": "Body",
+      "invertedObservations": 2079,
+      "maxEdgeRatio": 2.73943329
+    },
+    {
+      "name": "LeftArm",
+      "invertedObservations": 0,
+      "maxEdgeRatio": 1.44702327
+    },
+    {
+      "name": "RightArm",
+      "invertedObservations": 3642,
+      "maxEdgeRatio": 3.08084273
+    }
+  ],
+  "supportHandDriftPixels": 0.000387716631,
+  "seamPairs": 81,
+  "seamGapPixels": 0.0,
+  "returnSamples": 169,
+  "bodyResetAngleError": 0.0,
+  "returnBoneAngleError": 6.10351563E-05,
+  "returnBonePositionErrorPixels": 1.1920929E-05,
+  "screenshots": [
+    {
+      "file": "Assets/5.Animation/Swaemunabi_Phase2/Validation/attack1_study_right_raise.png",
+      "time": 0.3835662,
+      "frame": 3
+    },
+    {
+      "file": "Assets/5.Animation/Swaemunabi_Phase2/Validation/attack1_study_right_fold.png",
+      "time": 0.464005828,
+      "frame": 4
+    },
+    {
+      "file": "Assets/5.Animation/Swaemunabi_Phase2/Validation/attack1_study_right_strike.png",
+      "time": 0.71138376,
+      "frame": 6
+    },
+    {
+      "file": "Assets/5.Animation/Swaemunabi_Phase2/Validation/attack1_study_right_recover.png",
+      "time": 1.04366267,
+      "frame": 9
+    },
+    {
+      "file": "Assets/5.Animation/Swaemunabi_Phase2/Validation/attack1_study_left_raise.png",
+      "time": 0.369742334,
+      "frame": 3
+    },
+    {
+      "file": "Assets/5.Animation/Swaemunabi_Phase2/Validation/attack1_study_left_fold.png",
+      "time": 0.448235035,
+      "frame": 4
+    },
+    {
+      "file": "Assets/5.Animation/Swaemunabi_Phase2/Validation/attack1_study_left_strike.png",
+      "time": 0.776735663,
+      "frame": 7
+    },
+    {
+      "file": "Assets/5.Animation/Swaemunabi_Phase2/Validation/attack1_study_left_recover.png",
+      "time": 1.02945328,
+      "frame": 9
+    }
+  ],
+  "qualityPassed": false
+}

@@ -1,0 +1,16 @@
+{
+  "finished": true,
+  "rightCycles": 3.49474335,
+  "leftCycles": 3.49624419,
+  "idleReturns": 2,
+  "contactChecks": 1578,
+  "stepSlipSourcePixels": 0.000168746657,
+  "stanceSlipSourcePixels": 0.0004975692,
+  "meshSamples": 84,
+  "triangleChecks": 2827608,
+  "invertedTriangleObservations": 21532,
+  "minSignedArea": -0.000239667352,
+  "maxObservedFirstEdgeRatio": 3.22786522,
+  "screenshots": 4,
+  "visualQualityPassed": false
+}

@@ -1,0 +1,30 @@
+[
+  {
+    "state": "Attack1",
+    "sampleCount": 58,
+    "minimumOverlappingGridSamples": [
+      130,
+      249
+    ],
+    "worstTimes": [
+      0.24912280701754383,
+      0.24912280701754383
+    ],
+    "gridSpacingSourcePixels": 1,
+    "searchRadiusSourcePixels": 25
+  },
+  {
+    "state": "Walk",
+    "sampleCount": 53,
+    "minimumOverlappingGridSamples": [
+      103,
+      250
+    ],
+    "worstTimes": [
+      0.125,
+      0.075
+    ],
+    "gridSpacingSourcePixels": 1,
+    "searchRadiusSourcePixels": 25
+  }
+]

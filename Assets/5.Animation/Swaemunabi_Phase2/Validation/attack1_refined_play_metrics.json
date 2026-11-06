@@ -1,0 +1,101 @@
+{
+  "finished": true,
+  "completedAttacks": 6,
+  "attackStageNormalizedTimes": {
+    "1": 0.9736305,
+    "3": 0.956019759,
+    "5": 0.980678856,
+    "9": 0.9491061,
+    "11": 0.9668855,
+    "13": 0.988140047
+  },
+  "meshSamples": 99,
+  "triangleChecks": 3418668,
+  "invertedTriangleObservations": 0,
+  "minSignedArea": 3.56855E-05,
+  "maximumAllEdgesRatio": 1.45153129,
+  "parts": [
+    {
+      "name": "Body",
+      "invertedObservations": 0,
+      "maxEdgeRatio": 1.13539147
+    },
+    {
+      "name": "LeftArm",
+      "invertedObservations": 0,
+      "maxEdgeRatio": 1.45153129
+    },
+    {
+      "name": "RightArm",
+      "invertedObservations": 0,
+      "maxEdgeRatio": 1.00003672
+    }
+  ],
+  "supportHandDriftPixels": 0.000395555,
+  "seamPairs": 63,
+  "seamGapPixels": 0.0,
+  "returnSamples": 168,
+  "bodyResetAngleError": 0.0,
+  "returnBoneAngleError": 6.10351563E-05,
+  "returnBonePositionErrorPixels": 1.1920929E-05,
+  "screenshots": [
+    {
+      "file": "Assets/5.Animation/Swaemunabi_Phase2/Validation/attack1_refined_right_raise.png",
+      "time": 0.3861183,
+      "frame": 3
+    },
+    {
+      "file": "Assets/5.Animation/Swaemunabi_Phase2/Validation/attack1_refined_right_fold.png",
+      "time": 0.466837883,
+      "frame": 4
+    },
+    {
+      "file": "Assets/5.Animation/Swaemunabi_Phase2/Validation/attack1_refined_right_strike.png",
+      "time": 0.7217067,
+      "frame": 6
+    },
+    {
+      "file": "Assets/5.Animation/Swaemunabi_Phase2/Validation/attack1_refined_right_recover.png",
+      "time": 1.04950631,
+      "frame": 9
+    },
+    {
+      "file": "Assets/5.Animation/Swaemunabi_Phase2/Validation/attack1_refined_left_raise.png",
+      "time": 0.3533389,
+      "frame": 3
+    },
+    {
+      "file": "Assets/5.Animation/Swaemunabi_Phase2/Validation/attack1_refined_left_fold.png",
+      "time": 0.520557761,
+      "frame": 4
+    },
+    {
+      "file": "Assets/5.Animation/Swaemunabi_Phase2/Validation/attack1_refined_left_strike.png",
+      "time": 0.7637029,
+      "frame": 6
+    },
+    {
+      "file": "Assets/5.Animation/Swaemunabi_Phase2/Validation/attack1_refined_left_recover.png",
+      "time": 1.01557362,
+      "frame": 9
+    }
+  ],
+  "otherStates": [
+    {
+      "state": "Idle",
+      "triangleChecks": 1968324,
+      "inverted": 0,
+      "maxEdge": 1.06746745
+    },
+    {
+      "state": "Walk",
+      "triangleChecks": 3833052,
+      "inverted": 0,
+      "maxEdge": 1.745888
+    }
+  ],
+  "meshDeformationPassed": true,
+  "visualMatchApproved": false,
+  "finalBodyResetDegrees": 90.0,
+  "finalRightArmSortingOrder": 2
+}

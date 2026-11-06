@@ -1,0 +1,41 @@
+[
+  {
+    "part": "Swaemunabi_Phase2_Body",
+    "maxStretch": 2.732121167508433,
+    "minSignedArea": -0.0001411638682946597,
+    "invertedTrianglesAcrossSamples": 478,
+    "worstPixel": [
+      203.0,
+      137.0,
+      204.0,
+      137.0,
+      0.5325
+    ]
+  },
+  {
+    "part": "Swaemunabi_Phase2_LeftArm",
+    "maxStretch": 1.4508862756957785,
+    "minSignedArea": 3.577235778239424e-05,
+    "invertedTrianglesAcrossSamples": 0,
+    "worstPixel": [
+      88.0,
+      102.0,
+      89.0,
+      102.0,
+      0.7691666666666667
+    ]
+  },
+  {
+    "part": "Swaemunabi_Phase2_RightArm",
+    "maxStretch": 3.071109505899175,
+    "minSignedArea": -0.00016810672317265458,
+    "invertedTrianglesAcrossSamples": 842,
+    "worstPixel": [
+      214.0,
+      140.0,
+      213.0,
+      140.0,
+      0.5325
+    ]
+  }
+]
