@@ -26,6 +26,12 @@ namespace HumanGhost.Gameplay.Adapters
         private GameSettings _settings = new GameSettings();
         private MillisecondClock _clock;
         private bool _paused;
+        private bool _muted;
+        public void SetMuted(bool muted)
+        {
+            _muted = muted;
+            foreach (Voice voice in _voices) voice.Source.mute = muted;
+        }
         public int PlayingCount => _voices.Count;
         public event Action<int> Started;
         public event Action<int> Finished;
@@ -72,6 +78,7 @@ namespace HumanGhost.Gameplay.Adapters
             if (!_prepared.TryGet(definition.Address, out AudioClip clip) || clip == null)
                 throw new InvalidOperationException($"사운드 {soundId}가 준비되지 않았습니다. 준비 단계에서 PrepareAsync를 완료해 주세요. 주소: {definition.Address}");
             AudioSource channel = AcquireChannel();
+            channel.mute = _muted;
             try
             {
                 var voice = new Voice { Definition = definition, Source = channel,

@@ -7,6 +7,12 @@ namespace HumanGhost.Gameplay
     public enum CutscenePlaybackState { Idle, Preparing, Playing, Ended }
     public enum CutsceneEndReason { Completed, Skipped, Cancelled, Failed }
 
+    public static class CutsceneResults
+    {
+        public static bool AllowsProgress(this CutsceneEndReason reason)
+            => reason == CutsceneEndReason.Completed || reason == CutsceneEndReason.Skipped;
+    }
+
     // 정의는 리소스 주소와 재생 설정만 소유합니다. Unity 참조와 현재 재생 시간은 포함하지 않습니다.
     public sealed class CutsceneStep
     {

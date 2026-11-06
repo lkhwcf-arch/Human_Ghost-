@@ -5,6 +5,9 @@ internal static class CutsceneChecks
 {
     public static void Run(Action<bool, string> check)
     {
+        check(CutsceneEndReason.Completed.AllowsProgress() && CutsceneEndReason.Skipped.AllowsProgress()
+            && !CutsceneEndReason.Cancelled.AllowsProgress() && !CutsceneEndReason.Failed.AllowsProgress(),
+            "컷씬 완료·건너뛰기만 다음 진행을 허용하고 취소·실패는 진행하지 않음");
         var steps = new[] {
             new CutsceneStep(CutsceneMedia.Image, "Ledger01", 4000),
             new CutsceneStep(CutsceneMedia.Image, "EndingCard", 3000, 30025, false)

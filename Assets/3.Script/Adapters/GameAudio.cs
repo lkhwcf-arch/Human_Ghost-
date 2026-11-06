@@ -32,6 +32,15 @@ namespace HumanGhost.Gameplay.Adapters
         private float _pauseScale = 1f;
         private GameSettings _settings = new GameSettings();
         private TableSoundPlayer _tablePlayer;
+        private readonly HashSet<object> _cutsceneOwners = new HashSet<object>();
+        public void SetCutsceneOwner(object owner, bool muted)
+        {
+            if (owner == null) throw new ArgumentNullException(nameof(owner));
+            if (muted) _cutsceneOwners.Add(owner); else _cutsceneOwners.Remove(owner);
+            bool blocked = _cutsceneOwners.Count > 0;
+            _musicA.mute = _musicB.mute = _effects.mute = blocked;
+            if (_tablePlayer != null) _tablePlayer.SetMuted(blocked);
+        }
 
         private void Awake() { foreach (Entry entry in _clips) if (entry != null && entry.Clip != null) _lookup[entry.Key] = entry.Clip; }
 
@@ -52,6 +61,7 @@ namespace HumanGhost.Gameplay.Adapters
             _tablePlayer.Connect(data);
             _tablePlayer.Apply(_settings);
             _tablePlayer.SetPaused(_pauseScale < 1f);
+            _tablePlayer.SetMuted(_cutsceneOwners.Count > 0);
         }
         public Task PrepareAsync(IReadOnlyList<int> soundIds, CancellationToken cancellation = default)
         {

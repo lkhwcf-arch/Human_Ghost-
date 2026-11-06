@@ -36,6 +36,9 @@ namespace HumanGhost.Gameplay.Adapters
         [SerializeField, InspectorName("새 게임 시작 씬")] private string _newGameScene = "MapDohwagolTest";
         [SerializeField, InspectorName("저장 하위 폴더")] private string _saveSubdirectory = "Saves/Demo";
         [SerializeField, InspectorName("지원 저장 버전")] private int _saveVersion = 1;
+        [SerializeField, InspectorName("공용 컷씬 실행 담당")] private CutsceneHost _cutscenes = null;
+        private int _introCutsceneId;
+        private bool _introPending;
 
         public void SetModalBlocked(bool blocked)
         {
@@ -59,6 +62,13 @@ namespace HumanGhost.Gameplay.Adapters
 
         private void OnDisable()
         {
+            if (_introPending)
+            {
+                _cutscenes?.Cancel();
+                if (_cutscenes != null) _cutscenes.TryTakeResult(out _);
+                _introPending = false;
+                _host?.CompleteRequest();
+            }
             ++_saveGeneration;
             if (_data != null) _data.Initialized -= ConnectAudioData;
             if (_host != null)
@@ -172,7 +182,30 @@ namespace HumanGhost.Gameplay.Adapters
             if (_audio != null) _audio.ConnectTable(data);
         }
 
-        private bool StartNewGame() => EnterGame(null);
+        private bool StartNewGame()
+        {
+            if (_data == null || _data.Data == null) return false;
+            _introCutsceneId = CutsceneSequenceSource.FindId(_data.Data, CutsceneSequenceSource.IntroKey);
+            if (_introCutsceneId == 0) return EnterGame(null);
+            if (_modalBlocked || _introPending || _records == null || _saveStore == null) return false;
+            if (_cutscenes == null || _data == null || _data.Data == null)
+                throw new InvalidOperationException("인트로의 공용 실행 담당과 초기화가 완료된 데이터를 연결해 주세요.");
+            if (!_cutscenes.TryPlay(_data.Data, _introCutsceneId, _audio)) return false;
+            _introPending = true;
+            return true;
+        }
+
+        private void LateUpdate()
+        {
+            if (!_introPending || _cutscenes == null || !_cutscenes.TryTakeResult(out CutsceneEndReason reason)) return;
+            _introPending = false;
+            try
+            {
+                if (!reason.AllowsProgress() || !EnterGame(null)) _host.CompleteRequest();
+                else HumanGhost.Gameplay.Preview.PreviewSession.ViewedCutscenes.Add(_introCutsceneId);
+            }
+            catch (Exception error) { _host.CompleteRequest(); _host.ReportError(error, "인트로 종료 후 새 게임 진입"); }
+        }
         private bool ContinueGame()
         {
             SaveRecord record = _records == null ? null : SaveRecord.LatestFirst(_records).FirstOrDefault();

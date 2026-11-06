@@ -10,13 +10,25 @@ namespace HumanGhost.Gameplay.Adapters
         [SerializeField, InspectorName("해금 Skill ID")] private int _skillId = 7001;
         [SerializeField, InspectorName("해금 문구 Language ID")] private int _unlockTextId = 30023;
         [SerializeField, InspectorName("임시 재조사 문구(시나리오 공급 전)")] private string _temporaryRepeatLine = "";
+        private System.Func<System.Action, bool> _playCutscene;
 
-        public void Configure(string temporaryRepeatLine) { _temporaryRepeatLine = temporaryRepeatLine; NotifyChanged(); }
+        public void Configure(string temporaryRepeatLine, System.Func<System.Action, bool> playCutscene = null)
+        { _temporaryRepeatLine = temporaryRepeatLine; _playCutscene = playCutscene; NotifyChanged(); }
 
         public override bool CanInteract => true;
         public override int PromptTextId => 30065;
 
         public override void Interact(InteractionContext context)
+        {
+            if (!context.Progress.IsCleared(_stageId) && _playCutscene != null)
+            {
+                _playCutscene(() => CompleteInvestigation(context));
+                return;
+            }
+            CompleteInvestigation(context);
+        }
+
+        private void CompleteInvestigation(InteractionContext context)
         {
             if (context.Progress.Clear(_stageId))
             {
@@ -26,5 +38,6 @@ namespace HumanGhost.Gameplay.Adapters
             }
             context.Textbox.Open("", new[] { _temporaryRepeatLine }, null);
         }
+        protected override void OnDisable() { _playCutscene = null; base.OnDisable(); }
     }
 }

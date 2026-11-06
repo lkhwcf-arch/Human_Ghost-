@@ -12,11 +12,23 @@ namespace HumanGhost.Gameplay.Adapters
         [SerializeField, InspectorName("다음 장 입력")] private InputActionReference _advance = null;
         [SerializeField, InspectorName("건너뛰기 유지 입력")] private InputActionReference _skip = null;
         private InputAction _ownedAdvance, _ownedSkip;
-
-        protected virtual void OnEnable()
+        private bool _blocked;
+        public CutsceneScreen Screen => _screen;
+        public bool IsReady => _ownedAdvance != null && _ownedSkip != null;
+        public void Validate()
         {
             if (_screen == null || _advance == null || _skip == null || _advance.action == null || _skip.action == null)
                 throw new InvalidOperationException("컷씬 화면·다음 장·건너뛰기 입력을 연결해 주세요.");
+        }
+        public void SetBlocked(bool blocked)
+        {
+            _blocked = blocked;
+            if (blocked && _screen != null) _screen.SetSkipHeld(false);
+        }
+
+        protected virtual void OnEnable()
+        {
+            Validate();
             try
             {
                 _ownedAdvance = _advance.action.Clone();
@@ -32,11 +44,11 @@ namespace HumanGhost.Gameplay.Adapters
 
         private void OnAdvance(InputAction.CallbackContext context)
         {
-            if (_screen != null && _screen.IsRunning) _screen.Advance();
+            if (!_blocked && _screen != null && _screen.IsRunning) _screen.Advance();
         }
         private void OnSkip(InputAction.CallbackContext context)
         {
-            if (_screen != null && _screen.IsRunning) _screen.SetSkipHeld(context.ReadValueAsButton());
+            if (!_blocked && _screen != null && _screen.IsRunning) _screen.SetSkipHeld(context.ReadValueAsButton());
         }
         protected virtual void OnDisable() => Release();
         private void Release()

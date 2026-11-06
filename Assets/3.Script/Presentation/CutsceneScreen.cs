@@ -31,6 +31,7 @@ namespace HumanGhost.Gameplay.Presentation
         private bool _videoReady, _videoEnded;
         private string _videoError;
         private CutsceneEndReason? _finished;
+        private bool _paused;
         public bool IsRunning => _playback.IsRunning;
         public event Action<CutsceneEndReason> Finished;
 
@@ -100,24 +101,39 @@ namespace HumanGhost.Gameplay.Presentation
         public void Advance() => _playback.Advance();
         public void SetSkipHeld(bool held) => _playback.SetSkipHeld(held);
         public void Cancel() { _playback.Cancel(); CompleteIfEnded(); }
+        public void SetPaused(bool paused)
+        {
+            if (_paused == paused) return;
+            _paused = paused;
+            _clock = default;
+            if (_video != null && _playback.State == CutscenePlaybackState.Playing)
+            {
+                if (paused) _video.Pause(); else _video.Play();
+            }
+        }
+
+        public void Disconnect()
+        {
+            Cancel();
+            ReleaseDisplay();
+            _images?.Dispose(); _images = null;
+            _videos?.Dispose(); _videos = null;
+            _text = null;
+            _paused = false;
+            if (_group != null) { _group.alpha = 0f; _group.blocksRaycasts = false; }
+        }
 
         protected virtual void OnEnable() => _playback.Finished += OnFinished;
         private void OnFinished(CutsceneEndReason reason) => _finished = reason;
         protected virtual void OnDisable()
         {
-            _playback.Cancel();
+            Disconnect();
             _playback.Finished -= OnFinished;
-            ReleaseDisplay();
-            _images?.Dispose();
-            _videos?.Dispose();
-            _images = null;
-            _videos = null;
-            CompleteIfEnded();
         }
 
         protected virtual void Update()
         {
-            if (!IsRunning && !_finished.HasValue) return;
+            if (_paused || (!IsRunning && !_finished.HasValue)) return;
             int elapsed = _clock.Advance(Time.unscaledDeltaTime);
             try
             {

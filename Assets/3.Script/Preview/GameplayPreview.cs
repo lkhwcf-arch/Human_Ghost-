@@ -172,6 +172,7 @@ namespace HumanGhost.Gameplay.Preview
                 _input.VerticalPressed += OnVertical;
                 ConnectInteraction(catalog);
                 MoveToArrival();
+                ConnectCutsceneData();
                 ConnectStageObjects(catalog);
                 if (_savePoint != null) _savePoint.GetComponent<ShrineInteract>().SetActive(PreviewSession.ActiveShrines.Contains(_stageId));
                 ConnectGameLayer(catalog);
@@ -200,6 +201,7 @@ namespace HumanGhost.Gameplay.Preview
 
         private void OnDisable()
         {
+            DisconnectCutscenes();
             _deathRestart?.Dispose(); _deathRestart = null;
             _presentation.Reset();
             _feedback?.Dispose();
@@ -426,7 +428,8 @@ namespace HumanGhost.Gameplay.Preview
                 if (marker.name == "NPC_Refugee")
                     AddTarget<NpcTalk>(marker).Configure("부상당한 피난민", new[] { "(임시) 피난민 대사는 시나리오 공급 뒤 교체합니다." }, "장부방을 살펴보자");
                 else if (marker.name == "Door_Jangbubang")
-                    AddTarget<LedgerInteract>(marker).Configure("(임시) 장부방 맵 공급 전이라 이 자리에서 명부를 조사합니다.");
+                    AddTarget<LedgerInteract>(marker).Configure("(임시) 장부방 맵 공급 전이라 이 자리에서 명부를 조사합니다.",
+                        _ledgerCutsceneId == 0 ? null : PlayLedger);
                 else if (marker.name == "Seonangdang")
                 {
                     ShrineInteract shrine = AddTarget<ShrineInteract>(marker);
@@ -480,6 +483,7 @@ namespace HumanGhost.Gameplay.Preview
         private void StepStageClear()
         {
             if (_bossActive && _boss.Actor.IsDead) PreviewSession.DefeatedBoss.Add(BossStage);
+            TryStartEnding();
             if (_stage != null && _stageId != StageExitRules.VillageStage && _stageId != BossStage && RemainingMonsters() == 0)
                 PreviewSession.Progress.Clear(_stageId);
         }
@@ -639,6 +643,7 @@ namespace HumanGhost.Gameplay.Preview
 
         private void LateUpdate()
         {
+            StepCutsceneFlow();
             if (_modalBlocked || _saveLocked || !_subscribed || !_player.isActiveAndEnabled || (_bossActive && !_boss.isActiveAndEnabled)) return;
             if (_actor.Locomotion.Direction != 0) _facing = _actor.Locomotion.Direction;
             _deathRestart?.Step(_actor, Time.deltaTime);

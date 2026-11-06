@@ -16,6 +16,9 @@ internal static class CutsceneMappingChecks
             new Step(19003, 18002, 1, "Image", "Cutscene/Other/01", 4000, null, true)
         }, row => row.ID));
         var sequence = CutsceneSequenceSource.Create(catalog, 18001);
+        check(CutsceneSequenceSource.FindId(catalog, CutsceneSequenceSource.IntroKey) == 18001);
+        check(CutsceneSequenceSource.FindId(catalog, CutsceneSequenceSource.LedgerKey) == 0
+            && CutsceneSequenceSource.FindId(catalog, CutsceneSequenceSource.EndingKey) == 0);
         check(sequence.Key == "Intro" && sequence.SkipHoldMs == 2000 && sequence.Steps.Count == 2);
         check(sequence.Steps[0].ResourceAddress == "Cutscene/Intro/Main" && sequence.Steps[0].TextId == 0);
         check(sequence.Steps[1].TextId == 30025 && sequence.Steps[1].DurationMs == 3000 && !sequence.Steps[1].CanAdvance);
