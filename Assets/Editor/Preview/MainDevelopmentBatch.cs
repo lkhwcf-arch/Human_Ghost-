@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Linq;
 using HumanGhost.Gameplay.Adapters;
 using HumanGhost.Gameplay.Preview;
 using UnityEditor;
@@ -43,8 +42,8 @@ namespace HumanGhost.EditorTools
 
         private static void BindDropPolicy(int number)
         {
-            string[] ids = AssetDatabase.FindAssets("Air_Platform_" + number + " t:Prefab");
-            string path = ids.Select(AssetDatabase.GUIDToAssetPath).First(p => Path.GetFileNameWithoutExtension(p) == "Air_Platform_" + number);
+            // 같은 이름이 Map_ME에도 있어 StageContentSet이 쓰는 Map 폴더만 지정합니다.
+            string path = "Assets/2.Model/Prefabs/Map/Air_Platform_" + number + ".prefab";
             GameObject root = PrefabUtility.LoadPrefabContents(path);
             try
             {
