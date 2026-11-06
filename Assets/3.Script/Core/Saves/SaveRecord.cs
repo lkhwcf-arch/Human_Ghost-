@@ -4,6 +4,23 @@ using System.Linq;
 
 namespace HumanGhost.Gameplay
 {
+    // 배치 순번은 같은 플랫폼의 몬스터 목록을 펼친 1부터 시작하는 번호입니다.
+    public readonly struct MonsterSpawnId : IEquatable<MonsterSpawnId>
+    {
+        public int StageId { get; }
+        public int PlacementId { get; }
+        public int Sequence { get; }
+        public MonsterSpawnId(int stageId, int placementId, int sequence)
+        {
+            if (stageId <= 0 || placementId <= 0 || sequence <= 0)
+                throw new ArgumentOutOfRangeException(nameof(stageId), "몬스터 배치 식별자는 양수여야 합니다.");
+            StageId = stageId; PlacementId = placementId; Sequence = sequence;
+        }
+        public bool Equals(MonsterSpawnId other) => StageId == other.StageId && PlacementId == other.PlacementId && Sequence == other.Sequence;
+        public override bool Equals(object obj) => obj is MonsterSpawnId other && Equals(other);
+        public override int GetHashCode() => unchecked((StageId * 397 ^ PlacementId) * 397 ^ Sequence);
+    }
+
     // 빈 칸도 내부 ID를 유지합니다. 화면 정렬 순번과 저장 대상은 구분합니다.
     public readonly struct SaveSlotEntry
     {
@@ -26,10 +43,11 @@ namespace HumanGhost.Gameplay
         public IReadOnlyList<int> OpenedGates { get; }
         public IReadOnlyList<int> ViewedCutscenes { get; }
         public IReadOnlyList<int> UsedSavePoints { get; }
+        public IReadOnlyList<MonsterSpawnId> DefeatedMonsters { get; }
 
         public SaveSnapshot(int stageId, int shrineId, int positionX, int positionY, int hp, int herbs,
             IEnumerable<int> clearedStages, IEnumerable<int> activeShrines, IEnumerable<int> openedGates,
-            IEnumerable<int> viewedCutscenes, IEnumerable<int> usedSavePoints)
+            IEnumerable<int> viewedCutscenes, IEnumerable<int> usedSavePoints, IEnumerable<MonsterSpawnId> defeatedMonsters = null)
         {
             if (stageId <= 0 || shrineId < 0 || hp < 0 || herbs < 0)
                 throw new ArgumentOutOfRangeException(nameof(stageId), "저장 위치와 자원 값이 유효하지 않습니다.");
@@ -44,11 +62,16 @@ namespace HumanGhost.Gameplay
             OpenedGates = CopyIds(openedGates);
             ViewedCutscenes = CopyIds(viewedCutscenes);
             UsedSavePoints = CopyIds(usedSavePoints);
+            MonsterSpawnId[] defeated = (defeatedMonsters ?? Array.Empty<MonsterSpawnId>()).Distinct()
+                .OrderBy(id => id.StageId).ThenBy(id => id.PlacementId).ThenBy(id => id.Sequence).ToArray();
+            if (defeated.Any(id => id.StageId <= 0 || id.PlacementId <= 0 || id.Sequence <= 0))
+                throw new ArgumentException("몬스터 배치 식별자는 양수여야 합니다.", nameof(defeatedMonsters));
+            DefeatedMonsters = Array.AsReadOnly(defeated);
         }
 
         internal SaveSnapshot WithSavePoints(IEnumerable<int> savePoints) => new SaveSnapshot(
             StageId, ShrineId, PositionX, PositionY, Hp, Herbs,
-            ClearedStages, ActiveShrines, OpenedGates, ViewedCutscenes, savePoints);
+            ClearedStages, ActiveShrines, OpenedGates, ViewedCutscenes, savePoints, DefeatedMonsters);
 
         private static IReadOnlyList<int> CopyIds(IEnumerable<int> source)
         {

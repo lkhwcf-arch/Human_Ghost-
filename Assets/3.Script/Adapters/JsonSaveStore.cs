@@ -96,6 +96,10 @@ namespace HumanGhost.Gameplay.Adapters
                 using var reader = new JsonTextReader(input) { MaxDepth = 16, DateParseHandling = DateParseHandling.None };
                 var document = JObject.Load(reader, new JsonLoadSettings { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error });
                 if (reader.Read()) throw new InvalidDataException("저장 내용 뒤에 추가 데이터가 있습니다.");
+                // 기존 버전 1 기록에는 개별 처치 목록이 없습니다. 없는 필드만 빈 목록으로 확장합니다.
+                if (document["Version"]?.Type == JTokenType.Integer && (int)document["Version"] == 1
+                    && document["Snapshot"] is JObject snapshot && snapshot.Property("DefeatedMonsters") == null)
+                    snapshot.Add("DefeatedMonsters", new JArray());
                 CheckIntegerValues(document);
                 var record = document.ToObject<SaveRecord>(JsonSerializer.Create(_settings));
                 CheckVersion(record);

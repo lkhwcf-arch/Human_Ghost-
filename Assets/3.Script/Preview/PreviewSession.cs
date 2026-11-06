@@ -8,6 +8,7 @@ namespace HumanGhost.Gameplay.Preview
         public static StageProgress Progress = new StageProgress();
         public static readonly HashSet<int> OpenedGates = new HashSet<int>();
         public static readonly HashSet<int> DefeatedBoss = new HashSet<int>();
+        public static readonly HashSet<MonsterSpawnId> DefeatedMonsters = new HashSet<MonsterSpawnId>();
         public static int CurrentStage = StageExitRules.VillageStage;
         public static bool CheckpointPassed;
         public static int ShrineId;
@@ -25,6 +26,7 @@ namespace HumanGhost.Gameplay.Preview
             Progress = new StageProgress();
             OpenedGates.Clear();
             DefeatedBoss.Clear();
+            DefeatedMonsters.Clear();
             CurrentStage = StageExitRules.VillageStage;
             CheckpointPassed = false;
             ShrineId = 0;

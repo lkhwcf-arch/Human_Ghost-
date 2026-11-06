@@ -3,8 +3,8 @@ using UnityEngine.SceneManagement;
 
 namespace HumanGhost.Gameplay.Preview
 {
-    // 사망 뒤 암전 재시작(K16add·O09)입니다. 세이브 포인트 전이면 맵 1 시작 지점, 지난 뒤면 맵 3 서낭당 앞입니다. 잡몹은 다시 나옵니다.
-    internal sealed class PreviewDeathRestart
+    // 체크포인트 위치로 돌아가되 개별 처치는 현재 슬롯의 마지막 저장 성공 상태로 되돌립니다.
+    internal sealed class PreviewDeathRestart : System.IDisposable
     {
         // 1500ms를 어두워짐·검은 화면·밝아짐으로 나눕니다. Dead 애니 원본 전까지 보여 줄 시간은 개발 값입니다.
         private const float _deathAnimationSeconds = 0.6f;
@@ -12,23 +12,29 @@ namespace HumanGhost.Gameplay.Preview
         private readonly string _scene;
         private float _deadSeconds;
         private bool _restarting;
+        private readonly SubscriptionScope _lifetime = new SubscriptionScope();
 
         public PreviewDeathRestart(string scene) => _scene = scene;
 
         public void Step(PlayerActor actor, float seconds)
         {
-            if (_restarting || !actor.IsDead) return;
+            if (_lifetime.IsDisposed || _restarting || !actor.IsDead || PreviewScreenFade.IsActive) return;
             _deadSeconds += seconds;
             if (_deadSeconds < _deathAnimationSeconds) return;
             _restarting = true;
             string scene = _scene;
-            PreviewScreenFade.Run(_fadeStepSeconds, _fadeStepSeconds, _fadeStepSeconds, () =>
+            PreviewScreenFade.Run(_fadeStepSeconds, _fadeStepSeconds, _fadeStepSeconds, _lifetime.Guard(() =>
             {
+                SaveSnapshot saved = HumanGhost.Gameplay.Adapters.GameSaveContext.Current?.Session.CurrentSnapshot;
+                PreviewSession.DefeatedMonsters.Clear();
+                if (saved != null) PreviewSession.DefeatedMonsters.UnionWith(saved.DefeatedMonsters);
                 PreviewSession.CarriedHealth = null;
-                PreviewSession.CurrentStage = PreviewSession.CheckpointPassed ? 8003 : StageExitRules.VillageStage;
+                PreviewSession.CurrentStage = PreviewSession.CheckpointPassed ? PreviewSession.ShrineId : StageExitRules.VillageStage;
                 PreviewSession.ArrivalAnchor = PreviewSession.CheckpointPassed ? "Respawn_Seonangdang" : null;
                 SceneManager.LoadScene(scene);
-            });
+            }));
         }
+
+        public void Dispose() => _lifetime.Dispose();
     }
 }

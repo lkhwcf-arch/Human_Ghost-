@@ -20,6 +20,28 @@ namespace HumanGhost.Gameplay.Preview
         private CancellationTokenSource _saveLifetime;
         private bool _saveLocked;
         private bool _saveFailed;
+        private SubscriptionScope _progressScope;
+        private bool _shrineCheckPending;
+        private bool _shrineSaving;
+
+        private void ConnectProgress()
+        {
+            _progressScope?.Dispose();
+            var scope = new SubscriptionScope();
+            _progressScope = scope;
+            PlayerRuntime player = _player;
+            Action moved = scope.Guard(() => _shrineCheckPending = true);
+            scope.Add(() => player.SpatialChanged -= moved); player.SpatialChanged += moved;
+            _shrineCheckPending = true;
+            if (_stage == null) return;
+            foreach (var pair in _stage.MonsterIds)
+            {
+                MonsterActor actor = pair.Key.Actor;
+                MonsterSpawnId id = pair.Value;
+                Action<int> changed = scope.Guard<int>(health => { if (health == 0) PreviewSession.DefeatedMonsters.Add(id); });
+                scope.Add(() => actor.HealthChanged -= changed); actor.HealthChanged += changed;
+            }
+        }
 
         private void ImportEntryProgress()
         {
@@ -36,6 +58,7 @@ namespace HumanGhost.Gameplay.Preview
             PreviewSession.OpenedGates.UnionWith(snapshot.OpenedGates);
             PreviewSession.ActiveShrines.UnionWith(snapshot.ActiveShrines);
             PreviewSession.ViewedCutscenes.UnionWith(snapshot.ViewedCutscenes);
+            PreviewSession.DefeatedMonsters.UnionWith(snapshot.DefeatedMonsters);
             PreviewSession.ShrineId = snapshot.ShrineId;
             PreviewSession.CheckpointPassed = snapshot.ShrineId != 0;
         }
@@ -43,6 +66,7 @@ namespace HumanGhost.Gameplay.Preview
         private async void ConnectSaves()
         {
             _saveLifetime = new CancellationTokenSource();
+            ConnectProgress();
             CancellationToken cancellation = _saveLifetime.Token;
             _saveFailed = false;
             GameSaveContext sceneContext = GameSaveContext.Current;
@@ -111,14 +135,34 @@ namespace HumanGhost.Gameplay.Preview
             && (_textbox == null || !_textbox.IsOpen) && !LoadingScreenActive();
         private static bool LoadingScreenActive() => HumanGhost.Gameplay.Presentation.LoadingScreen.IsActive;
 
-        private async void SaveAtPoint(int savePointId)
+        private async void SaveAtPoint(bool rest)
         {
-            if (_saveFlow == null) return;
-            try { await _saveFlow.SaveAutomaticAsync(savePointId); }
+            if (_shrineSaving || _modalBlocked || _leaving || _saveFlow == null || !_saveFlow.IsPlayable || _saveFlow.IsBusy || _actor.IsDead || _savePoint == null) return;
+            int savePointId = _stageId;
+            var lifetime = _saveLifetime;
+            var flow = _saveFlow;
+            SaveSession session = GameSaveContext.Current.Session;
+            SaveSnapshot previous = session.CurrentSnapshot;
+            _shrineSaving = true;
+            try
+            {
+                PreviewSession.CheckpointPassed = true;
+                PreviewSession.ShrineId = savePointId;
+                PreviewSession.ActiveShrines.Add(savePointId);
+                _savePoint.GetComponent<ShrineInteract>().SetActive(true);
+                if (rest) RestorePlayerVitals(_actor.Definition.HP, _catalog.GetTable<Buff>().Get(_herbBuffId).Charges);
+                await flow.SaveAutomaticAsync(savePointId, rest);
+            }
             catch (Exception error)
             {
-                if (this != null && isActiveAndEnabled)
-                    Debug.LogException(new InvalidOperationException("자동 저장에 실패했습니다. 기존 저장 파일은 유지합니다.", error), this);
+                if (this != null && isActiveAndEnabled && ReferenceEquals(lifetime, _saveLifetime))
+                    Debug.LogException(new InvalidOperationException(ReferenceEquals(previous, session.CurrentSnapshot)
+                        ? "자동 저장에 실패했습니다. 기존 저장 파일은 유지합니다."
+                        : "자동 저장은 완료했지만 저장 완료 알림 처리에서 오류가 발생했습니다.", error), this);
+            }
+            finally
+            {
+                if (this != null && ReferenceEquals(lifetime, _saveLifetime)) _shrineSaving = false;
             }
         }
 
@@ -131,7 +175,8 @@ namespace HumanGhost.Gameplay.Preview
                 Mathf.RoundToInt(_player.transform.position.y / _worldUnitsPerTile * 100f),
                 _actor.Health, _actor.HerbCount,
                 PreviewSession.Progress.GetCleared().Concat(PreviewSession.DefeatedBoss),
-                PreviewSession.ActiveShrines, PreviewSession.OpenedGates, PreviewSession.ViewedCutscenes, Array.Empty<int>());
+                PreviewSession.ActiveShrines, PreviewSession.OpenedGates, PreviewSession.ViewedCutscenes, Array.Empty<int>(),
+                PreviewSession.DefeatedMonsters);
         }
         public Task PrepareAsync(SaveSnapshot snapshot, CancellationToken cancellation)
         {
@@ -161,6 +206,10 @@ namespace HumanGhost.Gameplay.Preview
         }
         private void DisconnectSaves()
         {
+            _progressScope?.Dispose(); _progressScope = null;
+            if (_savePoint != null) _savePoint.GetComponent<ShrineInteract>().Connect(null);
+            _shrineCheckPending = false;
+            _shrineSaving = false;
             _saveLifetime?.Cancel();
             _saveLifetime?.Dispose();
             _saveLifetime = null;

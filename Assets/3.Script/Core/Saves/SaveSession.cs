@@ -28,6 +28,8 @@ namespace HumanGhost.Gameplay
         public int Capacity => _mode == SaveBuildMode.Demo ? 10 : 1;
         public bool ManualSaveEnabled => _mode == SaveBuildMode.Demo;
         public int? CurrentSlot { get; private set; }
+        public SaveSnapshot CurrentSnapshot => CurrentSlot.HasValue && _records.TryGetValue(CurrentSlot.Value, out SaveRecord record)
+            ? record.Snapshot : null;
         public bool IsSaving { get; private set; }
         public Task PendingWrite { get; private set; } = Task.CompletedTask;
         public event Action<SaveRecord, SaveKind> Saved;
@@ -93,10 +95,10 @@ namespace HumanGhost.Gameplay
             return WriteAsync(slot, snapshot.WithSavePoints(_usedSavePoints), SaveKind.Manual);
         }
 
-        public Task<bool> SaveAutomaticAsync(int savePointId, SaveSnapshot snapshot)
+        public Task<bool> SaveAutomaticAsync(int savePointId, SaveSnapshot snapshot, bool repeat = false)
         {
             if (savePointId <= 0) throw new ArgumentOutOfRangeException(nameof(savePointId), "자동 저장 지점 식별자가 필요합니다.");
-            if (IsSaving || !CurrentSlot.HasValue || _usedSavePoints.Contains(savePointId)) return Task.FromResult(false);
+            if (IsSaving || !CurrentSlot.HasValue || (!repeat && _usedSavePoints.Contains(savePointId))) return Task.FromResult(false);
             return WriteAsync(CurrentSlot.Value, snapshot.WithSavePoints(_usedSavePoints.Concat(new[] { savePointId })), SaveKind.Automatic);
         }
 

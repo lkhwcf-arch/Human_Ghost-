@@ -58,13 +58,13 @@ namespace HumanGhost.Gameplay
             var placementIds = new HashSet<int>();
             foreach (StagePlacement placement in layout.Placements)
             {
-                if (!placementIds.Add(placement.PlacementID)) warnings.Add("배치 번호가 중복됩니다: " + placement.PlacementID);
+                if (!placementIds.Add(placement.PlacementID)) { warnings.Add("배치 번호가 중복됩니다: " + placement.PlacementID); continue; }
                 int sequence = 0;
                 foreach (StageMonsterGroup group in placement.Monsters)
                 {
                     int count = group.Points == null ? 0 : group.Points.Count;
-                    if (count != group.MonsterCount) { warnings.Add($"배치 {placement.PlacementID}: 몬스터 {group.MonsterCode} 수량 {group.MonsterCount}과 위치 {count}개가 다릅니다."); continue; }
-                    if (!isKnown(group.MonsterCode)) { warnings.Add($"배치 {placement.PlacementID}: 없는 몬스터 코드 {group.MonsterCode}"); continue; }
+                    if (count != group.MonsterCount) { warnings.Add($"배치 {placement.PlacementID}: 몬스터 {group.MonsterCode} 수량 {group.MonsterCount}과 위치 {count}개가 다릅니다."); sequence += count; continue; }
+                    if (!isKnown(group.MonsterCode)) { warnings.Add($"배치 {placement.PlacementID}: 없는 몬스터 코드 {group.MonsterCode}"); sequence += count; continue; }
                     if (!isEnabled(group.MonsterCode)) { sequence += count; continue; }
                     foreach (List<int> point in group.Points)
                     {

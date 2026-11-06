@@ -17,6 +17,7 @@ namespace HumanGhost.Gameplay.Preview
         public Transform Markers { get; }
         public Transform Interactables { get; }
         public List<MonsterRuntime> Monsters { get; } = new List<MonsterRuntime>();
+        public Dictionary<MonsterRuntime, MonsterSpawnId> MonsterIds { get; } = new Dictionary<MonsterRuntime, MonsterSpawnId>();
         public Bounds Area { get; private set; }
         public float CameraSize { get; }
         // shortcut: 매복 몬스터를 미리 만들어 꺼 둡니다. 풀링 구현 때 그쪽으로 옮깁니다.
@@ -59,10 +60,15 @@ namespace HumanGhost.Gameplay.Preview
             List<StageMonsterSpawn> spawns = StageLayoutRules.ResolveMonsters(layout, known.Contains, enabled.Contains, warnings);
             foreach (string warning in warnings) Debug.LogWarning(warning);
             foreach (StageMonsterSpawn spawn in spawns)
-                if (placed.TryGetValue(spawn.PlacementId, out StagePlacement placement)) SpawnMonster(content, spawn, placement, anchors.Get(placement.Anchor));
+            {
+                var id = new MonsterSpawnId(layout.StageID, spawn.PlacementId, spawn.Sequence);
+                if (!PreviewSession.DefeatedMonsters.Contains(id)
+                    && placed.TryGetValue(spawn.PlacementId, out StagePlacement placement))
+                    SpawnMonster(content, spawn, placement, anchors.Get(placement.Anchor), id);
+            }
         }
 
-        private void SpawnMonster(StageContentSet content, StageMonsterSpawn spawn, StagePlacement placement, Transform anchor)
+        private void SpawnMonster(StageContentSet content, StageMonsterSpawn spawn, StagePlacement placement, Transform anchor, MonsterSpawnId id)
         {
             MonsterRuntime prefab = content.GetMonster(spawn.Code);
             if (prefab == null) { Debug.LogWarning("몬스터 프리팹이 없습니다: " + spawn.Code); return; }
@@ -83,6 +89,7 @@ namespace HumanGhost.Gameplay.Preview
             if (spawn.Trigger is int trigger) _ambushes.Add(new KeyValuePair<float, MonsterRuntime>(MapRoot.position.x + trigger / 100f, monster));
             else monster.gameObject.SetActive(true);
             Monsters.Add(monster);
+            MonsterIds.Add(monster, id);
         }
 
         public void StepAmbushes(float playerX)

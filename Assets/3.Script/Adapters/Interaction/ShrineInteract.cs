@@ -2,13 +2,16 @@ using UnityEngine;
 
 namespace HumanGhost.Gameplay.Adapters
 {
-    // Shrine(K15): 켜졌을 때만 표시합니다. 지스타 빌드는 HP·약초를 바꾸지 않고 저장도 세이브 포인트 통과 때만 합니다(K05_1).
+    // 상태와 실행 요청을 연결합니다. 슬롯·파일·회복 규칙은 주입한 실행 담당이 소유합니다.
     public class ShrineInteract : InteractableBehaviour
     {
         [SerializeField, InspectorName("켜진 상태로 시작")] private bool _active = false;
-        public override bool CanInteract => _active;
+        private System.Action _save;
+        public override bool CanInteract => _active && _save != null;
         public override int PromptTextId => 30063;
         public void SetActive(bool active) { if (_active == active) return; _active = active; NotifyChanged(); }
-        public override void Interact(InteractionContext context) { }
+        public void Connect(System.Action save) { _save = save; NotifyChanged(); }
+        public override void Interact(InteractionContext context) { if (CanInteract) _save(); }
+        protected override void OnDisable() { _save = null; base.OnDisable(); }
     }
 }

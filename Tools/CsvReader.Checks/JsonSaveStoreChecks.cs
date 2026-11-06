@@ -15,7 +15,8 @@ internal static class JsonSaveStoreChecks
         string directory = Path.Combine(Path.GetTempPath(), "HumanGhostSaveChecks-" + Guid.NewGuid().ToString("N"));
         var store = new JsonSaveStore(directory, 1);
         SaveSnapshot Snapshot(int x) => new SaveSnapshot(8003, 8001, x, -125, 50, 2,
-            new[] { 8001, 8002 }, new[] { 8001 }, new[] { 8101 }, new[] { 18001 }, new[] { 9001 });
+            new[] { 8001, 8002 }, new[] { 8001 }, new[] { 8101 }, new[] { 18001 }, new[] { 9001 },
+            new[] { new MonsterSpawnId(8002, 101, 2) });
         try
         {
             check((await store.ReadAsync()).Count == 0 && !Directory.Exists(directory));
@@ -32,9 +33,16 @@ internal static class JsonSaveStoreChecks
                 && snapshot.ActiveShrines.Single() == 8001 && snapshot.OpenedGates.Single() == 8101
                 && snapshot.ViewedCutscenes.Single() == 18001);
             check(!await restored.SaveAutomaticAsync(9002, Snapshot(999)));
+            check(snapshot.DefeatedMonsters.Single().Equals(new MonsterSpawnId(8002, 101, 2)));
 
             string path = Path.Combine(directory, "slot-7.json");
             string original = File.ReadAllText(path, Encoding.UTF8);
+            var legacy = JObject.Parse(original);
+            ((JObject)legacy["Snapshot"]).Remove("DefeatedMonsters");
+            File.WriteAllText(path, legacy.ToString(), new UTF8Encoding(false));
+            check((await store.ReadAsync()).Single(record => record.Slot == 7).Snapshot.DefeatedMonsters.Count == 0);
+            check(File.ReadAllText(path, Encoding.UTF8) == legacy.ToString());
+            File.WriteAllText(path, original, new UTF8Encoding(false));
             check(!File.ReadAllBytes(path).Take(3).SequenceEqual(new byte[] { 0xef, 0xbb, 0xbf }));
             File.WriteAllText(Path.Combine(directory, ".save-interrupted.tmp"), "중단된 임시 기록");
             check((await store.ReadAsync()).Count == 2);
@@ -58,6 +66,8 @@ internal static class JsonSaveStoreChecks
                 document => document["Snapshot"]["PositionX"] = 1.5,
                 document => document["Snapshot"]["Herbs"] = "2",
                 document => document["Snapshot"]["UsedSavePoints"] = null,
+                document => document["Snapshot"]["DefeatedMonsters"] = null,
+                document => document["Snapshot"]["DefeatedMonsters"][0]["Sequence"] = 0,
                 document => document["Snapshot"]["StageId"] = long.MaxValue,
                 document => document["Unexpected"] = 1
             })

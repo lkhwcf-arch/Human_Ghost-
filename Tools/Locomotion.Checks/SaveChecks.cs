@@ -30,6 +30,15 @@ internal static class SaveChecks
         check(await session.SaveAutomaticAsync(9001, Snapshot()), "자동 저장 최초 지점 처리");
         check(!await session.SaveAutomaticAsync(9001, Snapshot()) && session.GetRecords().Count == 2,
             "자동 저장은 현재 슬롯만 갱신하고 지점 재방문 무시");
+        var kills = new[] { new MonsterSpawnId(8002, 101, 1), new MonsterSpawnId(8002, 101, 2) };
+        var killedSnapshot = new SaveSnapshot(8002, 8002, 10, 20, 70, 2, Array.Empty<int>(), new[] { 8002 },
+            Array.Empty<int>(), Array.Empty<int>(), Array.Empty<int>(), kills);
+        kills[0] = new MonsterSpawnId(8003, 101, 1);
+        check(killedSnapshot.DefeatedMonsters[0].Equals(new MonsterSpawnId(8002, 101, 1)),
+            "처치 스냅샷은 원본 목록을 복사하고 맵·배치·개체 순번을 구분");
+        check(await session.SaveAutomaticAsync(9001, killedSnapshot, true)
+            && session.CurrentSnapshot.DefeatedMonsters.Count == 2 && session.GetRecords().Count == 2,
+            "명시적인 서낭당 휴식은 같은 현재 슬롯에 반복 저장하고 처치 기록 보존");
         var reloaded = Create(SaveBuildMode.Demo, session.GetRecords().ToArray());
         check(reloaded.TryContinue(out _) && reloaded.CurrentSlot == 7
             && !await reloaded.SaveAutomaticAsync(9001, Snapshot()), "재실행 후에도 자동 저장 지점 이력 유지");
@@ -42,7 +51,7 @@ internal static class SaveChecks
         store.Fail = true;
         try { await session.SaveAutomaticAsync(9003, Snapshot()); }
         catch (InvalidOperationException) { }
-        check(!session.IsSaving && ReferenceEquals(before, session.GetRecords()[0]) && events == 3,
+        check(!session.IsSaving && ReferenceEquals(before, session.GetRecords()[0]) && events == 4,
             "기록 실패는 기존 슬롯과 성공 이벤트를 변경하지 않음");
         store.Fail = false;
         check(await session.SaveAutomaticAsync(9003, Snapshot()), "실패한 자동 저장 지점 재시도 가능");

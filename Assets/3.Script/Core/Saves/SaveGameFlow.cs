@@ -85,8 +85,8 @@ namespace HumanGhost.Gameplay
             return CaptureAndSaveAsync(snapshot => _session.SaveManualAsync(slot, overwriteConfirmed, snapshot), IsManualSaveOpen);
         }
 
-        public Task<bool> SaveAutomaticAsync(int savePointId) => IsManualSaveOpen ? Task.FromResult(false) :
-            CaptureAndSaveAsync(snapshot => _session.SaveAutomaticAsync(savePointId, snapshot));
+        public Task<bool> SaveAutomaticAsync(int savePointId, bool repeat = false) => IsManualSaveOpen ? Task.FromResult(false) :
+            CaptureAndSaveAsync(snapshot => _session.SaveAutomaticAsync(savePointId, snapshot, repeat));
 
         private async Task<bool> CaptureAndSaveAsync(Func<SaveSnapshot, Task<bool>> save, bool allowPaused = false)
         {

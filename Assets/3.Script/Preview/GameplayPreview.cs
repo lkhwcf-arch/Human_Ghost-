@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using HumanGhost.Data.Definitions;
 using HumanGhost.Data.Infrastructure;
 using HumanGhost.Data.Storage;
@@ -199,6 +200,7 @@ namespace HumanGhost.Gameplay.Preview
 
         private void OnDisable()
         {
+            _deathRestart?.Dispose(); _deathRestart = null;
             _presentation.Reset();
             _feedback?.Dispose();
             _feedback = null;
@@ -426,7 +428,11 @@ namespace HumanGhost.Gameplay.Preview
                 else if (marker.name == "Door_Jangbubang")
                     AddTarget<LedgerInteract>(marker).Configure("(임시) 장부방 맵 공급 전이라 이 자리에서 명부를 조사합니다.");
                 else if (marker.name == "Seonangdang")
-                    _savePoint = AddTarget<ShrineInteract>(marker).transform;
+                {
+                    ShrineInteract shrine = AddTarget<ShrineInteract>(marker);
+                    shrine.Connect(() => SaveAtPoint(true));
+                    _savePoint = shrine.transform;
+                }
                 else if (marker.name == "Exit_ToBossRoom")
                     AddTarget<StageDoor>(marker).Configure(BossStage, "Spawn_FromHyeopgok", CanLeaveStage);
             }
@@ -469,11 +475,6 @@ namespace HumanGhost.Gameplay.Preview
         private bool CanLeaveStage() => StageExitRules.CanLeave(_stageId,
             PreviewSession.Progress.IsCleared(StageExitRules.LedgerStage));
 
-        // 출구 조건 변경으로 임시 저장 지점의 기록 시점까지 바뀌지 않도록 분리합니다.
-        private bool CanActivateSavePoint() => _stageId == StageExitRules.VillageStage
-            ? PreviewSession.Progress.IsCleared(StageExitRules.LedgerStage)
-            : PreviewSession.Progress.IsCleared(_stageId) || RemainingMonsters() == 0;
-
         // 잡몹을 다 잡은 맵을 기록합니다. 맵 1은 명부, 보스방은 보스 처치가 기준이라 제외합니다.
         // 처치한 보스는 사망 재시작·재진입 때 다시 나오지 않습니다(K16add).
         private void StepStageClear()
@@ -495,18 +496,16 @@ namespace HumanGhost.Gameplay.Preview
             }
         }
 
-        // 기존 지점의 체크포인트 활성과 자동 저장 요청입니다. 파일 성공 여부는 저장 세션이 소유합니다.
-        private bool _savePointPassedHere;
+        // 위치 변경 때만 접촉을 확인합니다. 재접촉 자동 저장과 명시적인 휴식 요청은 구분합니다.
         private void StepSavePoint()
         {
-            if (_savePoint == null || _savePointPassedHere || _actor.IsDead || _saveFlow == null || !_saveFlow.IsPlayable) return;
-            if (_player.transform.position.x < _savePoint.position.x || !CanActivateSavePoint()) return;
-            _savePointPassedHere = true;
-            PreviewSession.CheckpointPassed = true;
-            PreviewSession.ShrineId = _stageId;
-            PreviewSession.ActiveShrines.Add(_stageId);
-            _savePoint.GetComponent<ShrineInteract>().SetActive(true);
-            SaveAtPoint(_stageId);
+            if (!_shrineCheckPending || _savePoint == null || _actor.IsDead || _saveFlow == null || !_saveFlow.IsPlayable || _saveFlow.IsBusy) return;
+            _shrineCheckPending = false;
+            SaveSnapshot saved = GameSaveContext.Current?.Session.CurrentSnapshot;
+            if (saved != null && saved.UsedSavePoints.Contains(_stageId)) return;
+            float radius = _worldUnitsPerTile;
+            if (((Vector2)_player.transform.position - (Vector2)_savePoint.position).sqrMagnitude > radius * radius) return;
+            SaveAtPoint(false);
         }
 
         private void DisconnectInteraction()
