@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0944944aab2750248b707abb6e962f05, type: 3}
+  m_Name: RefugeeDialogue
+  m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Adapters.NpcDialogue
+  _speaker: "\uBD80\uC0C1\uB2F9\uD55C \uD53C\uB09C\uBBFC"
+  _lines:
+  - "\uD5C8\uC5B5\u2026 \uD5C8\uC5B5\u2026 \uC0AC, \uC0B4\uB824\uC8FC\uC2DC\uC624\u2026"
+  - "\uB9C8\uC744\uC774\u2026 \uB9C8\uC744\uC774 \uC628\uD1B5 \uD53C\uB85C \uBB3C\uB4E4\uC5C8\uC18C\u2026"
+  - "\uC0AC\uB78C\uB4E4\uC774 \uBE44\uBA85\uC744 \uC9C0\uB974\uB354\uB2C8\u2026 \uD558\uB098\uB458
+    \uC0AC\uB77C\uC84C\uC18C."
+  - "\uADF8\uAC83\uB4E4\uC740\u2026 \uC0AC\uB78C\uC758 \uBAA8\uC2B5\uC744 \uD558\uACE0
+    \uC788\uC5C8\uC9C0\uB9CC, \uC0AC\uB78C\uC774 \uC544\uB2C8\uC5C8\uC18C\u2026"
+  - "\uC81C\uBC1C\u2026 \uB354 \uB4E4\uC5B4\uAC00\uC9C0 \uB9C8\uC2DC\uC624. \uC0B4\uC544\uC11C
+    \uB3CC\uC544\uC628 \uC790\uAC00 \uC5C6\uC18C\u2026"
+  _objective: "\uC7A5\uBD80\uBC29\uC744 \uC0B4\uD3B4\uBCF4\uC790"

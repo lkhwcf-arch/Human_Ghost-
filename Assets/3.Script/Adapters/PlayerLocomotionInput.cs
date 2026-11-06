@@ -21,6 +21,7 @@ namespace HumanGhost.Gameplay.Adapters
         private PlayerActor _actor;
         private bool _subscribed;
         public event Action JumpAccepted;
+        public Func<bool> TryDropThrough { private get; set; }
         // 코어가 점프를 받지 않은 입력입니다. 점프 선입력·매달리기 올라가기에 씁니다.
         public event Action JumpRejected;
         public event Action InteractPressed;
@@ -94,6 +95,12 @@ namespace HumanGhost.Gameplay.Adapters
             _interactAction = _interact == null ? null : _ownedAsset.FindAction(_interact.action.id.ToString(), true);
             _skillAction = _skill == null ? null : _ownedAsset.FindAction(_skill.action.id.ToString(), true);
             _herbAction = _herb == null ? null : _ownedAsset.FindAction(_herb.action.id.ToString(), true);
+            _moveAction.AddBinding("<Gamepad>/leftStick");
+            _moveAction.AddBinding("<Gamepad>/dpad");
+            _jumpAction.AddBinding("<Gamepad>/buttonSouth");
+            if (_attackAction != null) _attackAction.AddBinding("<Gamepad>/buttonWest");
+            if (_rollAction != null) _rollAction.AddBinding("<Gamepad>/buttonEast");
+            KeyboardControls.Apply(_ownedAsset);
             _locomotion = locomotion; _actor = actor;
             if (isActiveAndEnabled) Subscribe();
         }
@@ -103,6 +110,7 @@ namespace HumanGhost.Gameplay.Adapters
         private void OnDisable()
         {
             if (!_subscribed) return;
+            KeyboardControls.Changed -= OnKeyboardChanged;
             _moveAction.performed -= OnMove; _moveAction.canceled -= OnMove;
             _jumpAction.performed -= OnJump;
             if (_attackAction != null) _attackAction.performed -= OnAttack;
@@ -129,6 +137,7 @@ namespace HumanGhost.Gameplay.Adapters
         {
             if (_subscribed) return;
             _subscribed = true;
+            KeyboardControls.Changed += OnKeyboardChanged;
             _moveAction.performed += OnMove; _moveAction.canceled += OnMove;
             _jumpAction.performed += OnJump;
             if (_actor != null)
@@ -144,6 +153,15 @@ namespace HumanGhost.Gameplay.Adapters
             SetDirection(IsBlocked ? 0 : Math.Sign(_moveAction.ReadValue<Vector2>().x));
         }
 
+        private void OnKeyboardChanged()
+        {
+            bool active = _subscribed;
+            if (active) OnDisable();
+            KeyboardControls.Apply(_ownedAsset);
+            DiscardBufferedInput();
+            if (active) Subscribe();
+        }
+
         private void SetDirection(int direction)
         {
             if (_actor != null) _actor.SetMove(direction); else _locomotion.SetMove(direction);
@@ -151,6 +169,7 @@ namespace HumanGhost.Gameplay.Adapters
         private void OnMove(InputAction.CallbackContext context)
         {
             if (IsBlocked) return;
+            KeyboardControls.NoteDevice(context.control.device);
             Vector2 value = context.canceled ? Vector2.zero : context.ReadValue<Vector2>();
             SetDirection(Math.Sign(value.x));
             int vertical = value.y > 0.5f ? 1 : value.y < -0.5f ? -1 : 0;
@@ -163,6 +182,8 @@ namespace HumanGhost.Gameplay.Adapters
         private void OnJump(InputAction.CallbackContext context)
         {
             if (IsBlocked) return;
+            KeyboardControls.NoteDevice(context.control.device);
+            if (_moveAction.ReadValue<Vector2>().y < -0.5f && TryDropThrough != null && TryDropThrough()) return;
             if (_actor != null ? _actor.TryJump() : _locomotion.TryJump()) JumpAccepted?.Invoke();
             else JumpRejected?.Invoke();
         }

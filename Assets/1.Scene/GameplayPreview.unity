@@ -1642,12 +1642,31 @@ MonoBehaviour:
   _bossSightTiles: 0
   _skillUnlocked: 1
   _skillId: 7001
+  _herbBuffId: 14001
   _restartOnDeath: 1
+  _interactor: {fileID: 0}
+  _textbox: {fileID: 0}
+  _refugeeDialogue: {fileID: 0}
+  _loadingPrefab: {fileID: 0}
+  _skillUnlockStageId: 8005
+  _speed: {fileID: 0}
+  _followCamera: {fileID: 0}
+  _audio: {fileID: 0}
+  _hud: {fileID: 0}
+  _pause: {fileID: 0}
+  _parallax: {fileID: 0}
+  _feedbackTextPrefab: {fileID: 0}
+  _showBossGauge: 1
+  _stageId: 8001
+  _content: {fileID: 0}
+  _mapOrigin: {x: -10, y: -2.2, z: 0}
+  _titleScene: Title
   _useMapCollision: 0
   _playerHalfSize: {x: 0.3, y: 0.65}
   _hangEdgeRoot: {fileID: 0}
   _combatMinX: -9
   _combatMaxX: 9
+  _manualSavePrefab: {fileID: 0}
 --- !u!4 &1213176966
 Transform:
   m_ObjectHideFlags: 0
@@ -1676,6 +1695,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Preview.DataLoadViewer
   _data: {fileID: 145074740}
+  _content: {fileID: 0}
 --- !u!1 &1244890266
 GameObject:
   m_ObjectHideFlags: 0
@@ -1794,8 +1814,7 @@ TextMesh:
   m_GameObject: {fileID: 1284713602}
   m_Text: "\uBCF4\uC2A4 \uADFC\uCC98\uC5D0\uC11C \uACF5\uACA9\uD558\uBA74 \uCCB4\uB825\xB7\uCCB4\uC138\uAC00
     \uAC10\uC18C\uD569\uB2C8\uB2E4.\nE: \uAE09\uC18C \uB178\uCD9C \uC2DC \uD574\uCCB4
-    H: \uD50C\uB808\uC774\uC5B4 \uD53C\uACA9
-    \uD655\uC778"
+    H: \uD50C\uB808\uC774\uC5B4 \uD53C\uACA9 \uD655\uC778"
   m_OffsetZ: 0
   m_CharacterSize: 0.05
   m_LineSpacing: 1.15

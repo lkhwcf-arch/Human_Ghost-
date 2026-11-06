@@ -33,6 +33,7 @@ namespace HumanGhost.Gameplay.Adapters
                 _navigate = _owned.FindAction("UI/Navigate", true);
                 _submit = _owned.FindAction("UI/Submit", true);
                 _submit.AddBinding("<Keyboard>/c");
+                KeyboardControls.Apply(_owned);
                 _cancel = _owned.FindAction("UI/Cancel", true);
             }
             catch { UnityEngine.Object.Destroy(_owned); throw; }
@@ -44,6 +45,7 @@ namespace HumanGhost.Gameplay.Adapters
             if (_blocked) return;
             if (_enabled) return;
             _enabled = true;
+            KeyboardControls.Changed += OnKeyboardChanged;
             _navigate.performed += OnNavigate;
             _navigate.canceled += OnNavigate;
             _submit.performed += OnSubmit;
@@ -56,6 +58,7 @@ namespace HumanGhost.Gameplay.Adapters
             _requested = false;
             if (!_enabled) return;
             _enabled = false;
+            KeyboardControls.Changed -= OnKeyboardChanged;
             _navigate.performed -= OnNavigate;
             _navigate.canceled -= OnNavigate;
             _submit.performed -= OnSubmit;
@@ -76,6 +79,7 @@ namespace HumanGhost.Gameplay.Adapters
 
         private void OnNavigate(InputAction.CallbackContext context)
         {
+            KeyboardControls.NoteDevice(context.control.device);
             float side = context.ReadValue<Vector2>().x;
             int sideDirection = side > 0.5f ? 1 : side < -0.5f ? -1 : 0;
             if (_side != null && sideDirection != 0 && sideDirection != _horizontal) _side(sideDirection);
@@ -85,7 +89,18 @@ namespace HumanGhost.Gameplay.Adapters
             if (direction != 0 && direction != _vertical) _move(direction);
             _vertical = direction;
         }
-        private void OnSubmit(InputAction.CallbackContext context) => _accept();
+        private void OnKeyboardChanged()
+        {
+            bool requested = _requested;
+            Disable();
+            KeyboardControls.Apply(_owned);
+            if (requested) Enable();
+        }
+        private void OnSubmit(InputAction.CallbackContext context)
+        {
+            KeyboardControls.NoteDevice(context.control.device);
+            _accept();
+        }
         private void OnCancel(InputAction.CallbackContext context) => _back();
         public void Dispose() { Disable(); if (_owned != null) UnityEngine.Object.Destroy(_owned); }
     }

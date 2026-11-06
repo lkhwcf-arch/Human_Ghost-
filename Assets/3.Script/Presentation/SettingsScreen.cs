@@ -20,6 +20,7 @@ namespace HumanGhost.Gameplay.Presentation
         [SerializeField] private Text _close = null;
         [SerializeField] private GameObject _confirm = null;
         [SerializeField] private Text _confirmBody = null, _confirmYes = null, _confirmNo = null;
+        private Text _layout;
         private SettingsMenu _menu;
         private IReadOnlyDataTable<Language> _language;
         private Action<GameSettings> _preview;
@@ -68,8 +69,17 @@ namespace HumanGhost.Gameplay.Presentation
 
         private void ConnectPointer()
         {
+            if (_layout == null)
+            {
+                _layout = Instantiate(_shake, _shake.transform.parent);
+                _layout.name = "KeyboardLayout";
+                var rect = _layout.rectTransform;
+                rect.anchoredPosition += new Vector2(0f, -64f);
+            }
             if (_connected) return;
             _connected = true;
+            MenuText.Connect(_layout.gameObject, () => Select(SettingsRow.KeyboardLayout),
+                () => { Select(SettingsRow.KeyboardLayout); Adjust(1); });
             ConnectVolume(_master, _masterLeft, _masterRight, SettingsRow.Master);
             ConnectVolume(_music, _musicLeft, _musicRight, SettingsRow.Music);
             ConnectVolume(_effects, _effectsLeft, _effectsRight, SettingsRow.Effects);
@@ -101,7 +111,7 @@ namespace HumanGhost.Gameplay.Presentation
         {
             if (!CanInteract || _menu == null) return;
             if (_menu.IsConfirming) Answer(_menu.ConfirmYes);
-            else if (_menu.Row == SettingsRow.CameraShake) Adjust(1);
+            else if (_menu.Row == SettingsRow.CameraShake || _menu.Row == SettingsRow.KeyboardLayout) Adjust(1);
         }
 
         public void Back()
@@ -143,6 +153,8 @@ namespace HumanGhost.Gameplay.Presentation
         private void Render()
         {
             GameSettings value = _menu.Current;
+            _layout.text = "키보드 조작  " + (value.KeyboardLayout == KeyboardLayout.Arrows ? "A (방향키 · C/X/Space/Z/Q)" : "B (WASD · K/J/L/U/I)");
+            MenuText.SetSelected(_layout, _menu.Row == SettingsRow.KeyboardLayout);
             RenderVolume(_master, _masterTextId == 0 ? _masterTitle : _language.Get(_masterTextId).KO, value.Master, SettingsRow.Master);
             RenderVolume(_music, _language.Get(_musicText).KO, value.Music, SettingsRow.Music);
             RenderVolume(_effects, _language.Get(_effectsText).KO, value.Effects, SettingsRow.Effects);

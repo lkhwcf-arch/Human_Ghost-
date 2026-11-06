@@ -54,6 +54,28 @@ namespace HumanGhost.Gameplay.Preview
             return delta;
         }
 
+        private Collider2D _ignoredPlatform;
+        public bool TryBeginDrop(Vector3 position)
+        {
+            if (!_useColliders) return false;
+            var size = new Vector2(_halfSize.x * 2f - Skin * 4f, _halfSize.y * 2f);
+            int count = Physics2D.BoxCast(position, size, 0f, Vector2.down, _filter, _hits, 0.08f);
+            Collider2D support = null;
+            float nearest = float.MaxValue;
+            for (int i = 0; i < count; i++)
+            {
+                var hit = _hits[i];
+                if (hit.normal.y < 0.5f || hit.distance >= nearest) continue;
+                support = hit.collider;
+                nearest = hit.distance;
+            }
+            if (support == null || !support.usedByEffector) return false;
+            DropThroughPlatform policy = support.GetComponentInParent<DropThroughPlatform>();
+            if (policy == null || !policy.Allowed) return false;
+            _ignoredPlatform = support;
+            return true;
+        }
+
         public bool FindFloor(Vector3 position, float distance, out float floorDistance)
         {
             floorDistance = distance;
@@ -66,12 +88,14 @@ namespace HumanGhost.Gameplay.Preview
             }
             bool found = false;
             float feet = position.y - _halfSize.y;
+            if (_ignoredPlatform != null && position.y + _halfSize.y < _ignoredPlatform.bounds.min.y - Skin)
+                _ignoredPlatform = null;
             var size = new Vector2(_halfSize.x * 2f - Skin * 4f, _halfSize.y * 2f);
             int count = Physics2D.BoxCast(position, size, 0f, Vector2.down, _filter, _hits, distance + Skin);
             for (int i = 0; i < count; i++)
             {
                 RaycastHit2D hit = _hits[i];
-                if (hit.normal.y < 0.5f) continue;
+                if (hit.collider == _ignoredPlatform || hit.normal.y < 0.5f) continue;
                 // 단방향 발판은 발이 윗면보다 위에 있을 때만 밟습니다.
                 if (hit.collider.usedByEffector && feet < hit.collider.bounds.max.y - Skin) continue;
                 float value = Mathf.Max(0f, hit.distance - Skin);

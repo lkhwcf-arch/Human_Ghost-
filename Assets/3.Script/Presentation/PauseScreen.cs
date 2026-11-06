@@ -19,6 +19,7 @@ namespace HumanGhost.Gameplay.Presentation
         [SerializeField] private Text _close = null;
         private PauseMenu _menu;
         private bool _connected;
+        private IReadOnlyDataTable<Language> _language;
         public event Action<PauseItem> ItemHovered;
         public event Action<PauseItem> ItemClicked;
         public event Action<bool> ConfirmHovered;
@@ -30,6 +31,7 @@ namespace HumanGhost.Gameplay.Presentation
         public void Prepare(IReadOnlyDataCatalog data)
         {
             IReadOnlyDataTable<Language> language = data.GetTable<Language>();
+            _language = language;
             _title.text = language.Get(30032).KO;
             _resume.text = language.Get(30033).KO;
             _controls.text = language.Get(30034).KO;
@@ -39,8 +41,7 @@ namespace HumanGhost.Gameplay.Presentation
             _confirmBody.text = language.Get(popup.BodyTextID).KO;
             _confirmYes.text = language.Get(popup.Button1TextID).KO;
             _confirmNo.text = language.Get(popup.Button2TextID).KO;
-            _controlsText.text = language.Get(30058).KO + "  방향키 / 왼쪽 스틱\n" + language.Get(30059).KO + "  C / A\n" + language.Get(30060).KO + "  X / X\n" +
-                language.Get(30061).KO + "  Space / B\n" + language.Get(30062).KO + "  W·E / 위\n" + language.Get(30022).KO + "  Q / LB\n결박 가르기  Z / Y";
+            RefreshControls();
             if (_connected) return;
             _connected = true;
             Connect(_resume, PauseItem.Resume); Connect(_controls, PauseItem.Controls); Connect(_settings, PauseItem.Settings); Connect(_toTitle, PauseItem.ReturnToTitle);
@@ -69,6 +70,7 @@ namespace HumanGhost.Gameplay.Presentation
         public void Render()
         {
             if (_menu == null) return;
+            RefreshControls();
             MenuText.SetSelected(_resume, _menu.Selected == PauseItem.Resume);
             MenuText.SetSelected(_controls, _menu.Selected == PauseItem.Controls);
             MenuText.SetSelected(_settings, _menu.Selected == PauseItem.Settings);
@@ -77,6 +79,19 @@ namespace HumanGhost.Gameplay.Presentation
             _confirm.SetActive(_menu.View == PauseView.ConfirmTitle);
             MenuText.SetSelected(_confirmYes, _menu.ConfirmYes);
             MenuText.SetSelected(_confirmNo, !_menu.ConfirmYes);
+        }
+
+        private void RefreshControls()
+        {
+            if (_language == null) return;
+            bool wasd = Adapters.KeyboardControls.Layout == KeyboardLayout.Wasd;
+            _controlsText.text = _language.Get(30058).KO + (wasd ? "  WASD" : "  방향키") + " / 왼쪽 스틱\n" +
+                _language.Get(30059).KO + (wasd ? "  K" : "  C") + " / A\n" +
+                _language.Get(30060).KO + (wasd ? "  J" : "  X") + " / X\n" +
+                _language.Get(30061).KO + (wasd ? "  L" : "  Space") + " / B\n" +
+                _language.Get(30062).KO + "  E / 위\n" + _language.Get(30022).KO +
+                (wasd ? "  I" : "  Q") + " / LB\n결박 가르기" + (wasd ? "  U" : "  Z") +
+                " / Y\n아래 점프  " + (wasd ? "S+K" : "↓+C") + " / 아래+A";
         }
     }
 }

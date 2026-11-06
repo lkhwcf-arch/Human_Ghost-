@@ -2,11 +2,12 @@ using System;
 
 namespace HumanGhost.Gameplay
 {
-    public enum SettingsRow { Music = 0, Effects = 1, CameraShake = 2, Master = 3 }
+    public enum SettingsRow { Music = 0, Effects = 1, CameraShake = 2, Master = 3, KeyboardLayout = 4 }
 
     // 설정 화면 규칙(O05_1)입니다. 값은 바로 미리 적용하고, 바꾼 채 나가면 확인을 받습니다. 예=저장, 아니오=원래 값.
     public class SettingsMenu
     {
+        private static readonly SettingsRow[] _rows = { SettingsRow.Master, SettingsRow.Music, SettingsRow.Effects, SettingsRow.CameraShake, SettingsRow.KeyboardLayout };
         private readonly GameSettings _original;
         public GameSettings Current { get; }
         public SettingsRow Row { get; private set; } = SettingsRow.Master;
@@ -24,8 +25,9 @@ namespace HumanGhost.Gameplay
         public void Move(int direction)
         {
             if (IsConfirming) { ConfirmYes = !ConfirmYes; Changed?.Invoke(); return; }
-            int count = Enum.GetValues(typeof(SettingsRow)).Length;
-            Row = (SettingsRow)(((int)Row + direction + count) % count);
+            int count = _rows.Length;
+            int index = Array.IndexOf(_rows, Row);
+            Row = _rows[(index + direction % count + count) % count];
             Changed?.Invoke();
         }
 
@@ -46,7 +48,8 @@ namespace HumanGhost.Gameplay
             if (Row == SettingsRow.Master) { SetMaster(Current.Master + direction); return; }
             if (Row == SettingsRow.Music) Current.SetMusic(Current.Music + direction);
             else if (Row == SettingsRow.Effects) Current.SetEffects(Current.Effects + direction);
-            else Current.SetCameraShake(!Current.CameraShake);
+            else if (Row == SettingsRow.CameraShake) Current.SetCameraShake(!Current.CameraShake);
+            else Current.SetKeyboardLayout(Current.KeyboardLayout == KeyboardLayout.Arrows ? KeyboardLayout.Wasd : KeyboardLayout.Arrows);
             Changed?.Invoke();
         }
 

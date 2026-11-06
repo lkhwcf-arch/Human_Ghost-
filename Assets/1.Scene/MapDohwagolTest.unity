@@ -222,7 +222,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8cdd18fcb38a4e4ea4740886b7552b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Preview.PreviewPlayerSprite
-  _player: {fileID: 383945511}
   _renderer: {fileID: 64223849}
   _fallback: {fileID: 6236005101687474386, guid: 0d0809dfcb8b5c14e9b8e2a2cf330dbb, type: 3}
   _frames:
@@ -262,7 +261,22 @@ MonoBehaviour:
     _sprite: {fileID: -1893156959280369655, guid: be0d4de6fbca9d24d9d1bde4c0547025, type: 3}
   - _state: 10009
     _sprite: {fileID: -5996818224257555532, guid: 52b445a585e6a5e4284ed536d8ad78db, type: 3}
+  _player: {fileID: 383945511}
   _sourceFacesLeft: 1
+--- !u!114 &98765001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 145074739}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a98995db06b44f1e97581c87a7246c7d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _prefab: {fileID: 205, guid: d9cc625c4b464a8298bfb7cbcac32c0f, type: 3}
+  _popupId: 15008
 --- !u!1 &99334888
 GameObject:
   m_ObjectHideFlags: 0
@@ -543,9 +557,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
+  - component: {fileID: 145074741}
   - component: {fileID: 98765001}
   - component: {fileID: 880009001}
-  - component: {fileID: 145074741}
   - component: {fileID: 145074740}
   m_Layer: 0
   m_Name: GameDataInitializer
@@ -1444,6 +1458,25 @@ Transform:
   - {fileID: 1723901573}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &880009001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 145074739}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28d109645c034911b3961b6924f19a8c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _initializer: {fileID: 145074740}
+  _events: {fileID: 987919509}
+  _prefab: {fileID: 302, guid: 7a22dd1f074c4ea796b04fde302080f7, type: 3}
+  _inputTargets:
+  - {fileID: 1213176965}
+  _speed: {fileID: 1213176970}
+  _returnScreen: {fileID: 3761807582481786817, guid: 188d0ad953f19334e8d652c4986defc1, type: 3}
 --- !u!1 &987919507
 GameObject:
   m_ObjectHideFlags: 0
@@ -1964,6 +1997,7 @@ MonoBehaviour:
   _restartOnDeath: 1
   _interactor: {fileID: 1213176968}
   _textbox: {fileID: 1860715229}
+  _refugeeDialogue: {fileID: 11400000, guid: e67aba8cf1541df4897f5285f5bdadb7, type: 2}
   _loadingPrefab: {fileID: 3761807582481786817, guid: 188d0ad953f19334e8d652c4986defc1, type: 3}
   _skillUnlockStageId: 8005
   _speed: {fileID: 1213176970}
@@ -1978,7 +2012,6 @@ MonoBehaviour:
   _content: {fileID: 11400000, guid: 36deeec44f058ca4ca5eb6e01cd959ea, type: 2}
   _mapOrigin: {x: -10, y: -2.2, z: 0}
   _titleScene: Title
-  _exitAnchor: ExitRight
   _useMapCollision: 1
   _playerHalfSize: {x: 0.3, y: 0.65}
   _hangEdgeRoot: {fileID: 0}
@@ -2176,8 +2209,7 @@ TextMesh:
   m_GameObject: {fileID: 1284713602}
   m_Text: "\uBCF4\uC2A4 \uADFC\uCC98\uC5D0\uC11C \uACF5\uACA9\uD558\uBA74 \uCCB4\uB825\xB7\uCCB4\uC138\uAC00
     \uAC10\uC18C\uD569\uB2C8\uB2E4.\nE: \uAE09\uC18C \uB178\uCD9C \uC2DC \uD574\uCCB4
-    H: \uD50C\uB808\uC774\uC5B4 \uD53C\uACA9
-    \uD655\uC778"
+    H: \uD50C\uB808\uC774\uC5B4 \uD53C\uACA9 \uD655\uC778"
   m_OffsetZ: 0
   m_CharacterSize: 0.05
   m_LineSpacing: 1.15
@@ -4052,37 +4084,3 @@ SceneRoots:
   - {fileID: 2104232678}
   - {fileID: 1516668411}
   - {fileID: 987919510}
-
---- !u!114 &880009001
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 145074739}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 28d109645c034911b3961b6924f19a8c, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
-  _initializer: {fileID: 145074740}
-  _events: {fileID: 987919509}
-  _prefab: {fileID: 302, guid: 7a22dd1f074c4ea796b04fde302080f7, type: 3}
-  _inputTargets:
-  - {fileID: 1213176965}
-  _speed: {fileID: 1213176970}
-  _returnScreen: {fileID: 3761807582481786817, guid: 188d0ad953f19334e8d652c4986defc1, type: 3}
---- !u!114 &98765001
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 145074739}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a98995db06b44f1e97581c87a7246c7d, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
-  _prefab: {fileID: 205, guid: d9cc625c4b464a8298bfb7cbcac32c0f, type: 3}
-  _popupId: 15008

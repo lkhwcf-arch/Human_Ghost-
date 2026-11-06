@@ -73,6 +73,17 @@ internal static class GameLayerChecks
         combat.Tick(1);
         check(!combat.InCombat, "3초 뒤 탐색");
 
+        var layoutSettings = new GameSettings();
+        layoutSettings.SetKeyboardLayout(KeyboardLayout.Wasd);
+        var layoutCopy = layoutSettings.Clone();
+        check(layoutCopy.KeyboardLayout == KeyboardLayout.Wasd && layoutCopy.SameAs(layoutSettings), "조작 방식 사본 보존");
+        layoutCopy.SetKeyboardLayout(KeyboardLayout.Arrows);
+        check(!layoutCopy.SameAs(layoutSettings), "조작 방식 변경은 설정 변경으로 판정");
+        var layoutMenu = new SettingsMenu(layoutSettings);
+        layoutMenu.Select(SettingsRow.KeyboardLayout);
+        layoutMenu.Adjust(1);
+        check(layoutMenu.Current.KeyboardLayout == KeyboardLayout.Arrows && layoutMenu.IsDirty, "옵션에서 조작 방식 전환");
+        check(layoutMenu.Answer(false).KeyboardLayout == KeyboardLayout.Wasd, "조작 방식 취소 시 원래 값 복원");
         var defaults = new GameSettings();
         GameSettings applied = null;
         Exception reported = null;
@@ -140,7 +151,11 @@ internal static class GameLayerChecks
         check(navigation.Row == SettingsRow.Music, "마스터 다음 배경음 선택");
         navigation.Move(-1);
         navigation.Move(-1);
-        check(navigation.Row == SettingsRow.CameraShake, "설정 첫 행에서 위로 이동하면 마지막 행 선택");
+        check(navigation.Row == SettingsRow.KeyboardLayout, "설정 첫 행에서 위로 이동하면 마지막 조작 방식 행 선택");
+        navigation.Move(-1);
+        check(navigation.Row == SettingsRow.CameraShake, "조작 방식 위에는 카메라 흔들림 행");
+        navigation.Move(2);
+        check(navigation.Row == SettingsRow.Master, "설정 마지막 행 뒤 마스터로 순환");
         var pause = new PauseMenu(false);
         check(pause.Selected == PauseItem.Resume && pause.Submit() == PauseRequest.Close, "계속하기로 닫기");
         check(pause.Back() == PauseRequest.Close, "첫 화면 뒤로는 닫기");

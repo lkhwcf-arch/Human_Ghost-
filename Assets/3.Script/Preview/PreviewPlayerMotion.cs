@@ -24,6 +24,7 @@ namespace HumanGhost.Gameplay.Preview
         private float _verticalSpeed;
         private float _coyoteRemaining;
         private float _jumpBufferRemaining;
+        private bool _dropRequested;
         private float _peakY;
         private bool _airborne;
         private Transform _hangEdge;
@@ -45,7 +46,22 @@ namespace HumanGhost.Gameplay.Preview
 
         public bool IsHanging => _hangEdge != null;
 
-        public void DiscardBufferedInput() => _jumpBufferRemaining = 0f;
+        public bool TryDropThrough()
+        {
+            if (IsHanging || _player.Actor.IsDead || !_player.Actor.Locomotion.CanMove) return false;
+            if (_airborne && !IsHanging) { _dropRequested = true; return false; }
+            if (!_player.Actor.Locomotion.IsGrounded || !_collision.TryBeginDrop(_player.transform.position)) return false;
+            _verticalSpeed = -1f;
+            _airborne = true;
+            _coyoteRemaining = 0f;
+            _jumpBufferRemaining = 0f;
+            _dropRequested = false;
+            _peakY = _player.transform.position.y;
+            _player.SetGrounded(false);
+            return true;
+        }
+
+        public void DiscardBufferedInput() { _jumpBufferRemaining = 0f; _dropRequested = false; }
 
         public void StartJump()
         {
@@ -53,6 +69,7 @@ namespace HumanGhost.Gameplay.Preview
             _airborne = true;
             _coyoteRemaining = 0f;
             _jumpBufferRemaining = 0f;
+            _dropRequested = false;
             _peakY = _player.transform.position.y;
         }
 
@@ -124,6 +141,7 @@ namespace HumanGhost.Gameplay.Preview
             _player.SetPosition(position);
             _peakY = Mathf.Max(_peakY, position.y);
             _jumpBufferRemaining = Mathf.Max(0f, _jumpBufferRemaining - seconds);
+            if (_jumpBufferRemaining <= 0f) _dropRequested = false;
             if (_fallZones.TryHit(position.x, previousFeet, position.y - _halfSize.y, out Vector3 respawn)) ApplyFall(respawn, position.z);
         }
 
@@ -169,6 +187,15 @@ namespace HumanGhost.Gameplay.Preview
             float distance = -delta;
             if (!_collision.FindFloor(position, distance, out float floorDistance)) return position.y - distance;
             float landY = position.y - floorDistance;
+            if (_jumpBufferRemaining > 0f && _dropRequested && !_player.Actor.IsDead && _player.Actor.Locomotion.CanMove &&
+                _collision.TryBeginDrop(new Vector3(position.x, landY, position.z)))
+            {
+                _dropRequested = false; _jumpBufferRemaining = 0f;
+                _coyoteRemaining = 0f; _verticalSpeed = -1f;
+                _player.SetGrounded(false);
+                return landY - 0.01f;
+            }
+            _dropRequested = false;
             Land(_peakY - landY);
             return landY;
         }

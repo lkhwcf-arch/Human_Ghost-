@@ -19,7 +19,11 @@ namespace HumanGhost.Gameplay.Presentation
             if (hover != null) Add(trigger, EventTriggerType.PointerEnter, _ => hover());
             Add(trigger, EventTriggerType.PointerClick, data =>
             {
-                if (data is PointerEventData pointer && pointer.button == PointerEventData.InputButton.Left) click();
+                if (data is PointerEventData pointer && pointer.button == PointerEventData.InputButton.Left)
+                {
+                    HumanGhost.Gameplay.Adapters.KeyboardControls.NoteDevice(UnityEngine.InputSystem.Mouse.current);
+                    click();
+                }
             });
         }
 
