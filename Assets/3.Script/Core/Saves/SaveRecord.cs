@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -61,6 +61,10 @@ namespace HumanGhost.Gameplay
 
     public sealed class SaveRecord
     {
+        // 화면·이어하기·삭제가 동일한 최신 기록 기준을 사용합니다.
+        public static IReadOnlyList<SaveRecord> LatestFirst(IEnumerable<SaveRecord> records) => Array.AsReadOnly(
+            records.OrderByDescending(record => record.SavedAtUnixMs).ThenByDescending(record => record.SaveOrder)
+                .ThenBy(record => record.Slot).ToArray());
         public int Version { get; }
         public int Slot { get; }
         public long SavedAtUnixMs { get; }

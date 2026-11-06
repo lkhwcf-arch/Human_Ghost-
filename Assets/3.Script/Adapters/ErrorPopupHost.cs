@@ -34,6 +34,7 @@ namespace HumanGhost.Gameplay.Adapters
         [ThreadStatic] private static int _reportDepth;
         internal static bool IsWritingReport => _reportDepth > 0;
         public bool IsOpen => _ownsInput;
+        internal InputActionAsset Input => _input;
         public bool IsCapturing => _collector != null && _collector.IsActive;
 
         // 콜백은 이 팝업의 입력 잠금만 소유합니다. 실패한 작업의 재시도·게임 시간은 호출자가 결정합니다.

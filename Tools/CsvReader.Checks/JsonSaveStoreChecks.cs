@@ -1,8 +1,9 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 using HumanGhost.Gameplay;
 using HumanGhost.Gameplay.Adapters;
 using Newtonsoft.Json.Linq;
@@ -93,6 +94,39 @@ internal static class JsonSaveStoreChecks
                 check(Directory.GetFiles(directory, ".save-*.tmp").Select(Path.GetFileName)
                     .SequenceEqual(new[] { ".save-interrupted.tmp" }));
             }
+            var resetDirectory = Path.Combine(directory, "reset");
+            var resetStore = new JsonSaveStore(resetDirectory, 1);
+            check(await resetStore.DeleteLatestAsync() == null && !Directory.Exists(resetDirectory));
+            await resetStore.WriteAsync(new SaveRecord(1, 3, 1000, Snapshot(10), 99));
+            await resetStore.WriteAsync(new SaveRecord(1, 8, 2000, Snapshot(20), 1));
+            await resetStore.WriteAsync(new SaveRecord(1, 2, 2000, Snapshot(30), 2));
+            string preserved = File.ReadAllText(Path.Combine(resetDirectory, "slot-3.json"));
+            File.WriteAllText(Path.Combine(resetDirectory, "settings.json"), "설정 유지");
+            using (var cancelled = new CancellationTokenSource())
+            {
+                cancelled.Cancel();
+                bool stopped = false;
+                try { await resetStore.DeleteLatestAsync(cancelled.Token); }
+                catch (OperationCanceledException) { stopped = true; }
+                check(stopped && (await resetStore.ReadAsync()).Count == 3);
+            }
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+            {
+                bool denied = false;
+                using (var locked = new FileStream(Path.Combine(resetDirectory, "slot-2.json"), FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
+                    try { await resetStore.DeleteLatestAsync(); }
+                    catch (IOException) { denied = true; }
+                }
+                check(denied && (await resetStore.ReadAsync()).Count == 3);
+            }
+            SaveRecord removed = await resetStore.DeleteLatestAsync();
+            check(removed.Slot == 2 && !File.Exists(Path.Combine(resetDirectory, "slot-2.json")));
+            check(File.ReadAllText(Path.Combine(resetDirectory, "slot-3.json")) == preserved
+                && File.ReadAllText(Path.Combine(resetDirectory, "settings.json")) == "설정 유지");
+            check((await resetStore.DeleteLatestAsync()).Slot == 8);
+            check((await resetStore.DeleteLatestAsync()).Slot == 3);
+            check(await resetStore.DeleteLatestAsync() == null && File.Exists(Path.Combine(resetDirectory, "settings.json")));
         }
         finally
         {

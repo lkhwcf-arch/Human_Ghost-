@@ -1,4 +1,4 @@
-#if UNITY_EDITOR
+﻿#if UNITY_EDITOR
 using HumanGhost.Gameplay.Adapters;
 using HumanGhost.Gameplay.Presentation;
 using UnityEditor;
@@ -19,6 +19,8 @@ namespace HumanGhost.EditorTools
             if (report == null || (report.summary.options & UnityEditor.BuildOptions.Development) != 0) return;
             foreach (var root in scene.GetRootGameObjects())
             {
+                foreach (var reset in root.GetComponentsInChildren<DemoResetHost>(true))
+                { Unpack(reset.gameObject); reset.StripFromReleaseBuild(); }
                 var manualScreens = root.GetComponentsInChildren<ManualSaveHost>(true);
                 var slotScreens = root.GetComponentsInChildren<SaveSlotScreen>(true);
                 foreach (var selection in root.GetComponentsInChildren<TitleSaveSelection>(true))

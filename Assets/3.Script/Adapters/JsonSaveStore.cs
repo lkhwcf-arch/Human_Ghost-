@@ -1,7 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -37,7 +38,9 @@ namespace HumanGhost.Gameplay.Adapters
             _version = version;
         }
 
-        public Task<IReadOnlyList<SaveRecord>> ReadAsync() => ExecuteAsync<IReadOnlyList<SaveRecord>>(() =>
+        public Task<IReadOnlyList<SaveRecord>> ReadAsync() => ExecuteAsync(ReadRecords);
+
+        private IReadOnlyList<SaveRecord> ReadRecords()
         {
             var records = new List<SaveRecord>();
             if (!Directory.Exists(_directory)) return records.AsReadOnly();
@@ -49,6 +52,16 @@ namespace HumanGhost.Gameplay.Adapters
                 records.Add(record);
             }
             return records.AsReadOnly();
+        }
+
+        // 확인 후 실행하는 삭제입니다. 같은 저장소의 읽기·쓰기와 동일한 잠금 안에서 최신 기록 하나만 선택합니다.
+        public Task<SaveRecord> DeleteLatestAsync(CancellationToken cancellation = default) => ExecuteAsync(() =>
+        {
+            cancellation.ThrowIfCancellationRequested();
+            SaveRecord latest = SaveRecord.LatestFirst(ReadRecords()).FirstOrDefault();
+            cancellation.ThrowIfCancellationRequested();
+            if (latest != null) File.Delete(Path.Combine(_directory, GetFileName(latest.Slot)));
+            return latest;
         });
 
         public Task WriteAsync(SaveRecord record) => ExecuteAsync(() =>

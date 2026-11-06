@@ -101,6 +101,9 @@ namespace HumanGhost.Gameplay.Preview
         public void SetModalBlocked(bool blocked)
         {
             _modalBlocked = blocked;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (_manualSaveHost != null) _manualSaveHost.SetModalBlocked(blocked);
+#endif
             _motion?.DiscardBufferedInput();
             _input?.SetModalBlocked(blocked);
             if (_pause != null) _pause.SetModalBlocked(blocked);
@@ -291,7 +294,7 @@ namespace HumanGhost.Gameplay.Preview
 
         private void GoToStage(int stageId, string anchor)
         {
-            if (_leaving || _loadingPrefab == null) return;
+            if (_modalBlocked || _saveLocked || _leaving || _loadingPrefab == null) return;
             // 로딩 준비 실패 시 기존 임시 상태와 입력을 먼저 망가뜨리지 않습니다.
             try { Instantiate(_loadingPrefab).Begin(gameObject.scene.name, _catalog, GameSaveContext.Current?.BeginScene()); }
             catch (Exception error) { Debug.LogException(error, this); return; }
@@ -600,7 +603,7 @@ namespace HumanGhost.Gameplay.Preview
 
         private void LateUpdate()
         {
-            if (_saveLocked || !_subscribed || !_player.isActiveAndEnabled || (_bossActive && !_boss.isActiveAndEnabled)) return;
+            if (_modalBlocked || _saveLocked || !_subscribed || !_player.isActiveAndEnabled || (_bossActive && !_boss.isActiveAndEnabled)) return;
             if (_actor.Locomotion.Direction != 0) _facing = _actor.Locomotion.Direction;
             _deathRestart?.Step(_actor, Time.deltaTime);
             StepExecution(Time.deltaTime);

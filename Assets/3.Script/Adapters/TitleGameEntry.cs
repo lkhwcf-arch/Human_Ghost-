@@ -175,7 +175,7 @@ namespace HumanGhost.Gameplay.Adapters
         private bool StartNewGame() => EnterGame(null);
         private bool ContinueGame()
         {
-            SaveRecord record = _records?.OrderByDescending(row => row.SavedAtUnixMs).ThenByDescending(row => row.SaveOrder).FirstOrDefault();
+            SaveRecord record = _records == null ? null : SaveRecord.LatestFirst(_records).FirstOrDefault();
             return record != null && EnterGame(record);
         }
         private bool LoadRecord(SaveRecord record) => EnterGame(record);

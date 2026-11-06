@@ -1,4 +1,4 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+﻿#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using HumanGhost.Data.Definitions;
 using HumanGhost.Data.Storage;
@@ -9,7 +9,7 @@ using UnityEngine.InputSystem;
 namespace HumanGhost.Gameplay.Adapters
 {
     // 독립 프리팹의 연결 창구입니다. 게임 상태·저장 폴더를 새로 만들지 않고 기존 흐름을 주입받습니다.
-    public sealed class ManualSaveHost : MonoBehaviour
+    public sealed class ManualSaveHost : MonoBehaviour, IModalInputTarget
     {
         [SerializeField] private SaveSlotScreen _screen = null;
         [SerializeField] private InputActionAsset _input = null;
@@ -27,6 +27,13 @@ namespace HumanGhost.Gameplay.Adapters
         private IReadOnlyDataTable<Language> _language;
         private int _generation;
         private bool _saving;
+        private bool _modalBlocked;
+        public void SetModalBlocked(bool blocked)
+        {
+            _modalBlocked = blocked;
+            _menuInput?.SetBlocked(blocked);
+            if (_screen != null && IsOpen) _screen.SetBusy(_saving || blocked);
+        }
         public bool IsOpen { get; private set; }
 
         public void Connect(SaveGameFlow flow, IReadOnlyDataCatalog data, Func<bool> canOpen)
@@ -91,7 +98,7 @@ namespace HumanGhost.Gameplay.Adapters
 
         public void Open()
         {
-            if (!isActiveAndEnabled || IsOpen || _flow == null || !_canOpen()) return;
+            if (_modalBlocked || !isActiveAndEnabled || IsOpen || _flow == null || !_canOpen()) return;
             try
             {
                 if (!_flow.TryOpenManualSave()) return;
@@ -113,7 +120,7 @@ namespace HumanGhost.Gameplay.Adapters
 
         private void Select(int index)
         {
-            if (!IsOpen || _saving) return;
+            if (_modalBlocked || !IsOpen || _saving) return;
             SaveSlotEntry entry = _flow.GetSlots(true)[index];
             bool overwrite = entry.Record != null;
             Popup popup = overwrite ? _overwritePopup : _savePopup;
@@ -125,7 +132,7 @@ namespace HumanGhost.Gameplay.Adapters
 
         private async void Save(int slot, bool overwriteConfirmed)
         {
-            if (!IsOpen || _saving) return;
+            if (_modalBlocked || !IsOpen || _saving) return;
             SaveGameFlow flow = _flow;
             int generation = _generation;
             _saving = true;
@@ -142,12 +149,12 @@ namespace HumanGhost.Gameplay.Adapters
                 _screen.ShowStatus("저장 요청 처리 중 오류가 발생했습니다. 콘솔을 확인해 주세요.");
                 Debug.LogError($"수동 저장 요청 처리에 실패했습니다.\n{error.Message}", this);
             }
-            finally { if (IsCurrent(generation)) { _saving = false; _screen.SetBusy(false); } }
+            finally { if (IsCurrent(generation)) { _saving = false; _screen.SetBusy(_modalBlocked); } }
         }
 
         public void Close()
         {
-            if (!IsOpen || _saving || !_flow.CloseManualSave()) return;
+            if (_modalBlocked || !IsOpen || _saving || !_flow.CloseManualSave()) return;
             ++_generation;
             IsOpen = false;
             _menuInput.Disable();

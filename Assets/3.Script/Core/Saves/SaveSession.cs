@@ -48,9 +48,7 @@ namespace HumanGhost.Gameplay
         }
 
         // 기록이 있는 슬롯만 날짜 내림차순으로 반환합니다. 화면은 Capacity를 사용해 빈 슬롯도 표시합니다.
-        public IReadOnlyList<SaveRecord> GetRecords() => Array.AsReadOnly(_records.Values
-            .OrderByDescending(record => record.SavedAtUnixMs).ThenByDescending(record => record.SaveOrder)
-            .ThenBy(record => record.Slot).ToArray());
+        public IReadOnlyList<SaveRecord> GetRecords() => SaveRecord.LatestFirst(_records.Values);
 
         public IReadOnlyList<SaveSlotEntry> GetSlots(bool includeEmpty)
         {

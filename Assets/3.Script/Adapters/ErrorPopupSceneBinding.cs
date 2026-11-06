@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
 using HumanGhost.Data.Infrastructure;
 using HumanGhost.Data.Storage;
 using UnityEngine;
@@ -15,7 +16,12 @@ namespace HumanGhost.Gameplay.Adapters
         [SerializeField, InspectorName("에러 호스트 프리팹")] private ErrorPopupHost _prefab = null;
         [SerializeField, InspectorName("입력 잠금 대상")] private MonoBehaviour[] _inputTargets = Array.Empty<MonoBehaviour>();
         [SerializeField, InspectorName("게임 속도 (타이틀은 비움)")] private GameSpeedController _speed = null;
+        [SerializeField, InspectorName("공통 타이틀 복귀 화면")] private HumanGhost.Gameplay.Presentation.LoadingScreen _returnScreen = null;
         private ErrorPopupHost _host;
+        private readonly HashSet<object> _modalOwners = new HashSet<object>();
+        private readonly object _errorOwner = new object();
+        public bool IsErrorOpen => _host != null && _host.IsOpen;
+        public event Action<bool> ErrorVisibilityChanged;
 
         // 호출 경계의 실패는 자동 로그 수집을 기다리지 않고 상세 상태와 함께 보고합니다.
         public virtual void Report(Exception error, UnityEngine.Object context = null, string state = "")
@@ -60,10 +66,17 @@ namespace HumanGhost.Gameplay.Adapters
                 _host = Instantiate(_prefab, holder.transform);
                 _host.name = "ErrorPopupHost";
                 _host.Initialize(_events, SetBlocked, data);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                foreach (var reset in GetComponents<DemoResetHost>())
+                    reset.Initialize(data, this, _events, _host.Input, ValidateTitleReturn, ReturnToTitle);
+#endif
                 holder.SetActive(true);
             }
             catch
             {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                foreach (var reset in GetComponents<DemoResetHost>()) reset.ReleaseBinding();
+#endif
                 _host = null;
                 Destroy(holder);
                 throw;
@@ -72,13 +85,37 @@ namespace HumanGhost.Gameplay.Adapters
 
         private void SetBlocked(bool blocked)
         {
-            if (_speed != null) _speed.State.SetModalPaused(blocked);
+            SetModalOwner(_errorOwner, blocked);
+            ErrorVisibilityChanged?.Invoke(blocked);
+        }
+
+        private void ValidateTitleReturn()
+        {
+            if (_returnScreen == null || !Application.CanStreamedLevelBeLoaded("Title"))
+                throw new InvalidOperationException("씬 공통 연결의 타이틀 복귀 화면과 빌드 목록의 Title 씬을 확인해 주세요.");
+        }
+        private void ReturnToTitle()
+        {
+            ValidateTitleReturn();
+            Instantiate(_returnScreen).BeginFade("Title");
+        }
+
+        // 각 창이 자기 잠금만 해제하도록 모달 소유자를 구분합니다.
+        public void SetModalOwner(object owner, bool blocked)
+        {
+            if (owner == null) throw new ArgumentNullException(nameof(owner));
+            if (blocked) _modalOwners.Add(owner); else _modalOwners.Remove(owner);
+            bool paused = _modalOwners.Count > 0;
+            if (_speed != null) _speed.State.SetModalPaused(paused);
             foreach (var target in _inputTargets)
-                if (target != null) ((IModalInputTarget)target).SetModalBlocked(blocked);
+                if (target != null) ((IModalInputTarget)target).SetModalBlocked(paused);
         }
 
         protected virtual void OnDisable()
         {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            foreach (var reset in GetComponents<DemoResetHost>()) reset.ReleaseBinding();
+#endif
             if (_initializer != null) _initializer.Initialized -= Prepare;
             if (_host == null) return;
             _host.gameObject.SetActive(false);

@@ -11,16 +11,18 @@ namespace HumanGhost.Gameplay.Adapters
     {
         public static GameSaveContext Current { get; private set; }
         public SaveSession Session { get; }
+        public JsonSaveStore Store { get; }
         public SaveRecord Entry { get; private set; }
         private TaskCompletionSource<bool> _sceneReady = new TaskCompletionSource<bool>();
         public Task<bool> SceneReady => _sceneReady.Task;
         public Task<bool> BeginScene() { _sceneReady = new TaskCompletionSource<bool>(); return _sceneReady.Task; }
         public void CompleteScene(bool success) => _sceneReady.TrySetResult(success);
         public bool EntryPending { get; private set; } = true;
-        public GameSaveContext(SaveSession session, SaveRecord entry)
+        public GameSaveContext(SaveSession session, SaveRecord entry, JsonSaveStore store = null)
         {
             Session = session ?? throw new ArgumentNullException(nameof(session));
             Entry = entry;
+            Store = store;
         }
         public static void Set(GameSaveContext context) => Current = context;
         public void CompleteEntry() { EntryPending = false; Entry = null; }
@@ -51,7 +53,7 @@ namespace HumanGhost.Gameplay.Adapters
         public static GameSaveContext Create(IReadOnlyList<SaveRecord> records, JsonSaveStore store, int version, SaveRecord entry = null)
         {
             var session = new SaveSession(Mode, version, store, () => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), records);
-            return new GameSaveContext(session, entry);
+            return new GameSaveContext(session, entry, store);
         }
     }
 }
