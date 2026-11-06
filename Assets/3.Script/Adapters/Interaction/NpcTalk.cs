@@ -4,7 +4,7 @@ using UnityEngine;
 namespace HumanGhost.Gameplay.Adapters
 {
     // Talk(K11·K15): 대사를 보여 주고, 다시 말을 걸면 마지막 줄만 보여 줍니다. 저장하지 않습니다.
-    public sealed class NpcTalk : MonoBehaviour, IInteractable
+    public class NpcTalk : InteractableBehaviour
     {
         [SerializeField, InspectorName("말하는 사람")] private string _speaker = "";
         [SerializeField, InspectorName("대사 Language ID")] private int[] _lineIds = new int[0];
@@ -16,13 +16,13 @@ namespace HumanGhost.Gameplay.Adapters
         public void Configure(string speaker, string[] temporaryLines, string objective)
         {
             _speaker = speaker; _temporaryLines = temporaryLines; _objective = objective;
+            NotifyChanged();
         }
 
-        public bool CanInteract => true;
-        public Vector2 Position => transform.position;
-        public int PromptTextId => 30064;
+        public override bool CanInteract => true;
+        public override int PromptTextId => 30064;
 
-        public void Interact(InteractionContext context)
+        public override void Interact(InteractionContext context)
         {
             var lines = new List<string>();
             foreach (int id in _lineIds) lines.Add(context.Text(id));

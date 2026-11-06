@@ -43,7 +43,7 @@ namespace HumanGhost.Gameplay.Adapters
 
         private void Update()
         {
-            if (Actor == null) return;
+            if (Actor == null || Actor.IsDead) return;
             Actor.Tick(_clock.Advance(Time.deltaTime));
         }
     }

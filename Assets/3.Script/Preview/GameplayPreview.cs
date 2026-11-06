@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using HumanGhost.Data.Definitions;
 using HumanGhost.Data.Infrastructure;
 using HumanGhost.Data.Storage;
@@ -80,6 +80,8 @@ namespace HumanGhost.Gameplay.Preview
         private PreviewMonsterDriver[] _monsterDrivers = Array.Empty<PreviewMonsterDriver>();
         private PreviewDeathRestart _deathRestart;
         private PreviewCombatFeedback _feedback;
+        private readonly PreviewPresentation _presentation = new PreviewPresentation();
+        private SubscriptionScope _interactionScope;
         private PreviewStageExit _exit;
         private PreviewStage _stage;
         private PreviewBindGates _gates;
@@ -197,6 +199,9 @@ namespace HumanGhost.Gameplay.Preview
 
         private void OnDisable()
         {
+            _presentation.Reset();
+            _feedback?.Dispose();
+            _feedback = null;
             DisconnectSaves();
             if (_data != null) _data.Initialized -= OnDataReady;
             // 초기화 도중 실패해도 이미 연결한 소비자는 반드시 해제합니다.
@@ -206,7 +211,6 @@ namespace HumanGhost.Gameplay.Preview
                 if (_motion != null) _input.JumpRejected -= _motion.OnJumpRejected;
                 _input.InteractPressed -= OnInteract;
                 _input.VerticalPressed -= OnVertical;
-                _input.AdvancePressed -= OnAdvance;
             }
             if (_actor != null)
             {
@@ -283,12 +287,38 @@ namespace HumanGhost.Gameplay.Preview
         private void ConnectInteraction(IReadOnlyDataCatalog catalog)
         {
             if (_interactor == null || _textbox == null) return;
-            _input.AdvancePressed += OnAdvance;
-            _textbox.OpenChanged += OnTextboxChanged;
-            _actor.HealthChanged += OnPlayerHealthChanged;
+            DisconnectInteraction();
+            _interactionScope = new SubscriptionScope();
+            PlayerLocomotionInput input = _input;
+            TextboxScreen textbox = _textbox;
+            PlayerActor actor = _actor;
+            SubscriptionScope scope = _interactionScope;
+            Action advance = scope.Guard(OnAdvance);
+            Action<bool> openChanged = scope.Guard<bool>(OnTextboxChanged);
+            Action<int> playerHealthChanged = scope.Guard<int>(OnPlayerHealthChanged);
+            Action refresh = scope.Guard(RequestInteractionRefresh);
+            Action<StateKey> stateChanged = scope.Guard<StateKey>(OnInteractionStateChanged);
+            Action<int> monsterHealthChanged = scope.Guard<int>(OnInteractionHealthChanged);
+            scope.Add(() => input.AdvancePressed -= advance); input.AdvancePressed += advance;
+            scope.Add(() => textbox.OpenChanged -= openChanged); textbox.OpenChanged += openChanged;
+            scope.Add(() => actor.HealthChanged -= playerHealthChanged); actor.HealthChanged += playerHealthChanged;
             var context = new InteractionContext(_player, _textbox, PreviewSession.Progress, catalog, GoToStage);
             _interactor.Connect(context, () => _motion.CanGrab, _motion.TryGrab, CanExecute, TryExecute);
+            if (_bossActive)
+            {
+                BossRuntime boss = _boss;
+                scope.Add(() => boss.PositionChanged -= refresh); boss.PositionChanged += refresh;
+                scope.Add(() => boss.Actor.States.Changed -= stateChanged); boss.Actor.States.Changed += stateChanged;
+            }
+            foreach (MonsterRuntime runtime in _monsters)
+            {
+                MonsterActor monster = runtime.Actor;
+                scope.Add(() => monster.HealthChanged -= monsterHealthChanged); monster.HealthChanged += monsterHealthChanged;
+            }
         }
+        private void RequestInteractionRefresh() { if (_interactor != null) _interactor.RequestRefresh(); }
+        private void OnInteractionStateChanged(StateKey state) => RequestInteractionRefresh();
+        private void OnInteractionHealthChanged(int health) => RequestInteractionRefresh();
 
         private bool _leaving;
 
@@ -339,7 +369,7 @@ namespace HumanGhost.Gameplay.Preview
             {
                 Transform spawn = new SpawnAnchors(_markersRoot).Get("Boss_Spawn");
                 float half = _bossBody.transform.lossyScale.y * 0.5f;
-                _boss.transform.position = new Vector3(spawn.position.x, spawn.position.y + half, _boss.transform.position.z);
+                _boss.SetPosition(new Vector3(spawn.position.x, spawn.position.y + half, _boss.transform.position.z));
             }
             _boss.gameObject.SetActive(_bossActive);
             if (_interactor != null) _interactor.SetTargetRoot(_stage.Interactables);
@@ -474,8 +504,7 @@ namespace HumanGhost.Gameplay.Preview
 
         private void DisconnectInteraction()
         {
-            if (_textbox != null) _textbox.OpenChanged -= OnTextboxChanged;
-            if (_actor != null) _actor.HealthChanged -= OnPlayerHealthChanged;
+            _interactionScope?.Dispose(); _interactionScope = null;
             if (_interactor != null) _interactor.Disconnect();
         }
 
@@ -501,6 +530,7 @@ namespace HumanGhost.Gameplay.Preview
             if (_audio != null) _audio.PlayMusic(_normalMusic);
             _combat = new CombatPresence(_combatHoldMilliseconds);
             _lastHealth = _actor.Health;
+            _feedback?.Dispose();
             _feedback = new PreviewCombatFeedback(_speed, _followCamera, _audio, _feedbackTextPrefab, catalog.GetTable<Language>().Get(30021).KO);
             if (_bossDriver != null) _bossDriver.PlayerHit += OnBossHitPlayer;
             if (_hud != null)
@@ -575,7 +605,7 @@ namespace HumanGhost.Gameplay.Preview
             StepStageClear();
             StepSavePoint();
             _gates?.Step(_actor, _attackWindow.bounds, _playerBody.bounds, ShowGateHint);
-            _feedback?.Step(Time.unscaledDeltaTime);
+            _feedback?.Step(Time.unscaledDeltaTime, Time.deltaTime);
         }
 
         private void ShowGateHint() { if (_textbox != null) _textbox.ShowObjective("결박이 길을 막고 있다. Z(결박 가르기)로 베어 내자"); }
@@ -595,7 +625,7 @@ namespace HumanGhost.Gameplay.Preview
             Vector3 point;
             try { point = anchors.Get(anchor).position; }
             catch (InvalidOperationException) { point = anchors.Get("PlayerStart").position; }
-            _player.transform.position = new Vector3(point.x, point.y + _playerHalfSize.y, _player.transform.position.z);
+            _player.SetPosition(new Vector3(point.x, point.y + _playerHalfSize.y, _player.transform.position.z));
         }
 
         private void OnRoll(int direction, int distance, int duration)
@@ -618,7 +648,7 @@ namespace HumanGhost.Gameplay.Preview
             _attackWindow.enabled = _actor.IsAttackActive;
             // 몬스터 이동 후 플레이어 판정을 확인합니다(기존 순서 유지).
             foreach (PreviewMonsterDriver monster in _monsterDrivers)
-                monster.Step(Time.deltaTime, combatMin, combatMax);
+                if (monster.NeedsStep) monster.Step(Time.deltaTime, combatMin, combatMax);
             _bossDriver?.Step(Time.deltaTime, combatMin, combatMax);
             CheckPlayerHits();
             HandlePreviewKeys();
@@ -644,9 +674,9 @@ namespace HumanGhost.Gameplay.Preview
 
         private void RefreshLabels()
         {
-            PreviewPresentation.RefreshPlayer(_actor, _playerLabel, _playerBody, _playerColor);
+            _presentation.RefreshPlayer(_actor, _playerLabel, _playerBody, _playerColor);
             if (!_bossActive) return;
-            PreviewPresentation.RefreshBoss(_boss.Actor, _bossLabel, _bossBody, _bossColor);
+            _presentation.RefreshBoss(_boss.Actor, _bossLabel, _bossBody, _bossColor);
             if (_boss.Combat != null && _boss.Combat.IsAttacking) _bossBody.color = new Color(1f, 0.2f, 0.2f);
         }
 

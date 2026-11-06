@@ -5,7 +5,8 @@ using UnityEngine.UI;
 namespace HumanGhost.Gameplay.Presentation
 {
     // 전투 HUD(O11 B안)의 기력·약초·결박 가르기·보스 게이지·흐리기입니다. HP 바는 기존 체력 표시 모듈이 맡습니다. 그림은 공급 뒤 교체합니다.
-    public sealed class HudScreen : MonoBehaviour
+    [DefaultExecutionOrder(1100)]
+    public class HudScreen : MonoBehaviour
     {
         private const float _dimAlpha = 0.25f;
         private const float _fadeSeconds = 0.3f;
@@ -30,7 +31,7 @@ namespace HumanGhost.Gameplay.Presentation
         private float _staminaFlash;
         private float _damageFlash;
         private bool _bright;
-        private bool _subscribed;
+        private SubscriptionScope _scope;
         private float _bossHealth;
         private int _shownHerbs = -1, _shownCooldown = -1;
         private bool? _shownSkill;
@@ -41,10 +42,13 @@ namespace HumanGhost.Gameplay.Presentation
             _player = player; _boss = showBossGauge ? boss : null; _bossMaxPoise = bossMaxPoise;
             _shownHerbs = -1; _shownCooldown = -1; _shownSkill = null;
             _bossGhost = 1f; _bossGhostHold = 0.5f;
+            SetWidth(_bossHealthGhost, _bossGhost);
             _extraGroups = alsoFade;
             _bossRoot.SetActive(_boss != null);
             if (_boss != null) _bossName.text = bossName;
             _damageEdge.enabled = false;
+            _damageFlash = _staminaFlash = 0f;
+            _staminaBack.color = new Color(0.05f, 0.05f, 0.05f, 0.8f);
             if (isActiveAndEnabled) Subscribe();
         }
 
@@ -55,26 +59,30 @@ namespace HumanGhost.Gameplay.Presentation
 
         private void Subscribe()
         {
-            if (_subscribed || _player == null) return;
-            _subscribed = true;
-            _player.Stamina.Changed += RefreshStamina;
-            if (_boss != null) _boss.Changed += RefreshBoss;
-            RefreshStamina(_player.Stamina.Current);
-            RefreshBoss();
+            if (_scope != null || _player == null) return;
+            _scope = new SubscriptionScope();
+            System.Action invalidate = _scope.Invalidate;
+            PlayerActor player = _player;
+            _scope.Add(() => player.DisplayChanged -= invalidate);
+            player.DisplayChanged += invalidate;
+            if (_boss != null)
+            {
+                BossPoise boss = _boss;
+                _scope.Add(() => boss.Changed -= invalidate); boss.Changed += invalidate;
+            }
+            _scope.Invalidate();
         }
 
         private void Unsubscribe()
         {
-            if (!_subscribed) return;
-            _player.Stamina.Changed -= RefreshStamina;
-            if (_boss != null) _boss.Changed -= RefreshBoss;
-            _subscribed = false;
+            _scope?.Dispose(); _scope = null;
         }
 
         private void RefreshStamina(int value) => SetWidth(_staminaFill, _player.Stamina.Max > 0 ? (float)value / _player.Stamina.Max : 0f);
         private void RefreshBoss()
         {
             if (_boss == null) return;
+            if (_bossGhost == _bossHealth) _bossGhostHold = 0.5f;
             _bossHealth = _boss.Definition.HP > 0 ? (float)_boss.Health / _boss.Definition.HP : 0f;
             SetWidth(_bossHealthFill, _bossHealth);
             SetWidth(_bossPoiseFill, _bossMaxPoise > 0 ? (float)_boss.Poise / _bossMaxPoise : 0f);
@@ -84,33 +92,46 @@ namespace HumanGhost.Gameplay.Presentation
         public void FlashStamina() => _staminaFlash = 0.4f;
         public void FlashDamage() { _damageFlash = _damageFlashSeconds; _bright = true; }
 
-        private void Update()
+        private void LateUpdate()
         {
             if (_player == null) return;
+            if (_scope != null && _scope.TryConsumeRefresh()) RefreshData();
             float delta = Time.unscaledDeltaTime;
-            _staminaFlash = Mathf.Max(0f, _staminaFlash - delta);
-            _staminaBack.color = _staminaFlash > 0f && Mathf.FloorToInt(_staminaFlash * 20f) % 2 == 0 ? Color.white : new Color(0.05f, 0.05f, 0.05f, 0.8f);
+            if (_staminaFlash > 0f)
+            {
+                _staminaFlash = Mathf.Max(0f, _staminaFlash - delta);
+                Color color = _staminaFlash > 0f && Mathf.FloorToInt(_staminaFlash * 20f) % 2 == 0 ? Color.white : new Color(0.05f, 0.05f, 0.05f, 0.8f);
+                if (_staminaBack.color != color) _staminaBack.color = color;
+            }
+            UpdateBoss(delta);
+            if (_damageFlash > 0f)
+            {
+                _damageFlash = Mathf.Max(0f, _damageFlash - delta);
+                _damageEdge.enabled = _damageFlash > 0f;
+                if (_damageEdge.enabled) { Color edge = _damageEdge.color; edge.a = _damageFlash / _damageFlashSeconds * 0.5f; _damageEdge.color = edge; }
+            }
+            float target = _bright ? 1f : _dimAlpha;
+            float alpha = Mathf.MoveTowards(_group.alpha, target, delta / _fadeSeconds);
+            if (_group.alpha != alpha) _group.alpha = alpha;
+            foreach (CanvasGroup group in _extraGroups) if (group != null && group.alpha != alpha) group.alpha = alpha;
+        }
+        private void RefreshData()
+        {
+            RefreshStamina(_player.Stamina.Current);
+            RefreshBoss();
             if (_shownHerbs != _player.HerbCount) { _shownHerbs = _player.HerbCount; _herbs.text = "Q  약초 " + _shownHerbs; }
             if (_shownSkill != _player.HasSkill) { _shownSkill = _player.HasSkill; _skill.gameObject.SetActive(_player.HasSkill); _shownCooldown = -1; }
-            int cooldown = Mathf.CeilToInt(_player.SkillCooldownRemaining / 1000f);
+            int cooldown = _player.SkillCooldownSeconds;
             if (_player.HasSkill && cooldown != _shownCooldown)
             {
                 _shownCooldown = cooldown;
                 _skill.text = "Z  결박 가르기 " + (cooldown > 0 ? cooldown + "초" : "");
             }
-            UpdateBoss(delta);
-            _damageFlash = Mathf.Max(0f, _damageFlash - delta);
-            _damageEdge.enabled = _damageFlash > 0f;
-            if (_damageEdge.enabled) { Color edge = _damageEdge.color; edge.a = _damageFlash / _damageFlashSeconds * 0.5f; _damageEdge.color = edge; }
-            float target = _bright ? 1f : _dimAlpha;
-            float alpha = Mathf.MoveTowards(_group.alpha, target, delta / _fadeSeconds);
-            _group.alpha = alpha;
-            foreach (CanvasGroup group in _extraGroups) if (group != null) group.alpha = alpha;
         }
 
         private void UpdateBoss(float delta)
         {
-            if (_boss == null) return;
+            if (_boss == null || _bossGhost == _bossHealth) return;
             float health = _bossHealth;
             // 피해 잔상: 500ms 머문 뒤 줄어듭니다(C11).
             if (health < _bossGhost)
@@ -122,6 +143,10 @@ namespace HumanGhost.Gameplay.Presentation
             SetWidth(_bossHealthGhost, _bossGhost);
         }
 
-        private static void SetWidth(RectTransform fill, float ratio) => fill.anchorMax = new Vector2(Mathf.Clamp01(ratio), 1f);
+        private static void SetWidth(RectTransform fill, float ratio)
+        {
+            var value = new Vector2(Mathf.Clamp01(ratio), 1f);
+            if (fill.anchorMax != value) fill.anchorMax = value;
+        }
     }
 }

@@ -17,6 +17,16 @@ namespace HumanGhost.Gameplay.Adapters
         // 이 플레이어가 공격자일 때의 회피·치명 난수입니다.
         public Func<int, int, int> HitRandom { get; private set; }
         public event Action<PlayerActor> Initialized;
+        public event Action SpatialChanged;
+        public event Action Destroyed;
+        public void SetPosition(Vector3 position)
+        {
+            if (transform.position.Equals(position)) return;
+            transform.position = position;
+            SpatialChanged?.Invoke();
+        }
+        // 외부 물리나 부모 이동을 적용한 소유자가 완료 후 호출합니다.
+        public void NotifySpatialChanged() => SpatialChanged?.Invoke();
 
         // GameDataInitializer 완료 소비자가 호출합니다. 공급 초기화/저장소를 중복 생성하지 않습니다.
         public void Initialize(IReadOnlyDataCatalog catalog, int currentStamina, bool grounded)
@@ -51,7 +61,9 @@ namespace HumanGhost.Gameplay.Adapters
         public void SetGrounded(bool grounded)
         {
             if (Actor == null) throw new InvalidOperationException("플레이어 초기화가 필요합니다.");
+            bool previous = Actor.Locomotion.IsGrounded;
             Actor.Locomotion.SetGrounded(grounded);
+            if (previous != grounded) SpatialChanged?.Invoke();
         }
 
         private void OnEnable() { if (Actor != null) _input.enabled = true; }
@@ -62,6 +74,7 @@ namespace HumanGhost.Gameplay.Adapters
             if (Actor?.BoundBy != null) Actor.ReleaseBind(Actor.BoundBy);
             Actor?.ReleaseChain();
         }
+        private void OnDestroy() => Destroyed?.Invoke();
         private void Update()
         {
             if (Actor == null) return;

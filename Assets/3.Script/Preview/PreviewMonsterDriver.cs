@@ -22,6 +22,10 @@ namespace HumanGhost.Gameplay.Preview
         private PreviewThrownProjectile _projectile;
         private PreviewGroundFireView _fire;
         private bool _fireChecked;
+        private bool _deathShown;
+        public bool NeedsStep => _runtime != null && _runtime.isActiveAndEnabled &&
+            (!_monster.IsDead || !_deathShown || !_fireChecked || (_fire != null && _fire.IsActive) ||
+            (_sprite != null && _sprite.color != Color.gray) || (_body != null && _body.color != Color.gray));
         public SpriteRenderer Sprite => _sprite != null ? _sprite : _body;
         public Vector3 Position => _runtime.transform.position;
         public bool IsEngaged { get; private set; }
@@ -63,7 +67,15 @@ namespace HumanGhost.Gameplay.Preview
 
         public void Step(float seconds, float minX, float maxX)
         {
-            if (!_runtime.isActiveAndEnabled) return;
+            if (!NeedsStep) return;
+            if (_deathShown)
+            {
+                // 마지막 타격의 섬광이 끝난 뒤에도 사망 색이 복구되어야 합니다.
+                if (_sprite != null && _sprite.color != Color.gray) _sprite.color = Color.gray;
+                if (_body.color != Color.gray) _body.color = Color.gray;
+                StepFire(seconds);
+                return;
+            }
             if (_sprite != null)
             {
                 _sprite.flipX = _monster.Facing > 0;
@@ -71,7 +83,7 @@ namespace HumanGhost.Gameplay.Preview
                     _monster.IsAttackActive ? new Color(1f,0.3f,0.3f) : _runtime.Patterns.LeavesDeathFire ? _burningTint : Color.white;
             }
             StepFire(seconds);
-            if (_monster.IsDead) { IsEngaged = false; _body.color = Color.gray; return; }
+            if (_monster.IsDead) { IsEngaged = false; _body.color = Color.gray; _deathShown = true; return; }
             _projectile?.Step(seconds);
             PlayerActor actor = _player.Actor;
             Vector3 position = _runtime.transform.position;
@@ -83,9 +95,10 @@ namespace HumanGhost.Gameplay.Preview
             if (wall) _monster.NotifyWallHit();
 
             float offset = _player.transform.position.x - position.x;
-            IsEngaged = !actor.IsDead && !_monster.IsDead && Distance(offset) <= _monster.Definition.SightRange;
+            int distance = Distance(offset);
+            IsEngaged = !actor.IsDead && !_monster.IsDead && distance <= _monster.Definition.SightRange;
             if (actor.IsDead) _monster.ClearTarget();
-            else _monster.Observe(_playerTargetId, Distance(offset), offset > 0f ? 1 : offset < 0f ? -1 : 0);
+            else _monster.Observe(_playerTargetId, distance, offset > 0f ? 1 : offset < 0f ? -1 : 0);
 
             CheckMonsterHit();
             _body.color = _monster.IsDead ? Color.gray : _monster.CurrentState == StateKey.Stun ? new Color(0.75f, 0.35f, 0.95f) :

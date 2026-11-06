@@ -51,13 +51,15 @@ namespace HumanGhost.Gameplay.Presentation
             if (ratio < _targetRatio) _ghostHold = _ghostHoldSeconds;
             else if (ratio > _ghostRatio) _ghostRatio = ratio;
             _targetRatio = ratio;
+            if (_ghost != null && _ghostRatio == _targetRatio)
+                _ghost.anchorMax = new Vector2(_ghostRatio, 1f);
         }
 
         private void Update()
         {
-            if (_ghost == null) return;
-            if (_ghostHold > 0f) _ghostHold -= Time.unscaledDeltaTime;
-            else _ghostRatio = Mathf.MoveTowards(_ghostRatio, _targetRatio, Time.unscaledDeltaTime);
+            if (_ghost == null || _ghostRatio == _targetRatio) return;
+            if (_ghostHold > 0f) { _ghostHold -= Time.unscaledDeltaTime; return; }
+            _ghostRatio = Mathf.MoveTowards(_ghostRatio, _targetRatio, Time.unscaledDeltaTime);
             _ghost.anchorMax = new Vector2(_ghostRatio, 1f);
         }
     }

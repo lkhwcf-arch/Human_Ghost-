@@ -84,13 +84,13 @@ namespace HumanGhost.Gameplay.Preview
             if (!_hangEdges.TryFind(position, out Transform edge, out int side) || !_player.Actor.TryHang()) return false;
             _hangEdge = edge; _hangSide = side;
             _rollRemaining = 0f; _verticalSpeed = 0f;
-            _player.transform.position = _hangEdges.HangPosition(edge, side, position.z);
+            _player.SetPosition(_hangEdges.HangPosition(edge, side, position.z));
             return true;
         }
 
         private void Climb()
         {
-            _player.transform.position = _hangEdges.ClimbPosition(_hangEdge, _hangSide, _player.transform.position.z);
+            _player.SetPosition(_hangEdges.ClimbPosition(_hangEdge, _hangSide, _player.transform.position.z));
             _hangEdge = null;
             _airborne = false; _verticalSpeed = 0f;
             _player.SetGrounded(true);
@@ -121,7 +121,7 @@ namespace HumanGhost.Gameplay.Preview
             position.x += _collision.MoveHorizontal(position, GetHorizontalDelta(actor, seconds, worldUnitsPerTile));
             position.x = Mathf.Clamp(position.x, minX, maxX);
             position.y = MoveVertical(position, seconds);
-            _player.transform.position = position;
+            _player.SetPosition(position);
             _peakY = Mathf.Max(_peakY, position.y);
             _jumpBufferRemaining = Mathf.Max(0f, _jumpBufferRemaining - seconds);
             if (_fallZones.TryHit(position.x, previousFeet, position.y - _halfSize.y, out Vector3 respawn)) ApplyFall(respawn, position.z);
@@ -188,7 +188,7 @@ namespace HumanGhost.Gameplay.Preview
             if (_player.Actor.ApplyFall(_fallDamage)) return;
             respawn.z = z; respawn.y += _halfSize.y;
             _rollRemaining = 0f;
-            _player.transform.position = respawn;
+            _player.SetPosition(respawn);
             _airborne = false; _verticalSpeed = 0f; _coyoteRemaining = 0f;
             _player.SetGrounded(true);
             PreviewScreenFade.Run(0.1f, 0.1f, 0.1f, null);

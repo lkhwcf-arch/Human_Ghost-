@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -144,8 +144,8 @@ namespace HumanGhost.Gameplay.Preview
         {
             RequireSaveRuntime();
             RestorePlayerVitals(snapshot.Hp, snapshot.Herbs);
-            _player.transform.position = new Vector3(snapshot.PositionX / 100f * _worldUnitsPerTile,
-                snapshot.PositionY / 100f * _worldUnitsPerTile, _player.transform.position.z);
+            _player.SetPosition(new Vector3(snapshot.PositionX / 100f * _worldUnitsPerTile,
+                snapshot.PositionY / 100f * _worldUnitsPerTile, _player.transform.position.z));
         }
         public void SetPlayable(bool playable)
         {

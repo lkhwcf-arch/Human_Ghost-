@@ -8,6 +8,7 @@ namespace HumanGhost.Gameplay.Preview
         private readonly GroundFire _fire;
         private readonly SpriteRenderer _view;
         private MillisecondClock _clock;
+        public bool IsActive => _fire.IsActive;
 
         public PreviewGroundFireView(GroundFire fire, SpriteRenderer view)
         {

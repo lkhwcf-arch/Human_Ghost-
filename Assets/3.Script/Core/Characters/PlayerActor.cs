@@ -40,6 +40,8 @@ namespace HumanGhost.Gameplay
         // 결박 가르기(C07) 해금·연결 여부와 남은 쿨타임(ms)입니다.
         public bool HasSkill => _skill != null;
         public int SkillCooldownRemaining => _skill == null ? 0 : _skill.Remaining;
+        public int SkillCooldownSeconds => _skill == null ? 0 : _skill.CooldownSeconds;
+        public event Action DisplayChanged;
         public int HerbCount => _herbs == null ? 0 : _herbs.Count;
         public bool HasHerbs => _herbs != null;
         // 약초 사용 중 이동 속도(tile_x100/초, 부호 포함). C04의 ‘느려짐’ 비율은 개발 값 절반입니다.
@@ -71,6 +73,9 @@ namespace HumanGhost.Gameplay
             Locomotion = new PlayerLocomotion(definition, grounded, States);
             Stamina = new PlayerStamina(definition, currentStamina);
             Health = definition.HP;
+            States.Changed += OnDisplayValueChanged;
+            Stamina.Changed += OnDisplayValueChanged;
+            HealthChanged += OnDisplayValueChanged;
         }
 
         public void SetMove(int direction)
@@ -100,11 +105,25 @@ namespace HumanGhost.Gameplay
         // 해금된 뒤 조립자가 한 번 연결합니다. 미연결이면 입력해도 나가지 않습니다.
         public void ConfigureSkill(AttackSpec attack, int cooldown, int distance)
         {
-            _skill = new PlayerSkill(attack, cooldown, distance);
+            var skill = new PlayerSkill(attack, cooldown, distance);
+            if (_skill != null) _skill.CooldownSecondsChanged -= OnDisplayValueChanged;
+            _skill = skill;
+            _skill.CooldownSecondsChanged += OnDisplayValueChanged;
+            NotifyDisplayChanged();
         }
 
         // 조립자가 Buff 값으로 한 번 연결합니다. 재시작은 새 개체로 다시 채웁니다.
-        public void ConfigureHerbs(int heal, int useTime, int charges) => _herbs = new PlayerHerbs(heal, useTime, charges);
+        public void ConfigureHerbs(int heal, int useTime, int charges)
+        {
+            var herbs = new PlayerHerbs(heal, useTime, charges);
+            if (_herbs != null) _herbs.Changed -= NotifyDisplayChanged;
+            _herbs = herbs;
+            _herbs.Changed += NotifyDisplayChanged;
+            NotifyDisplayChanged();
+        }
+        private void NotifyDisplayChanged() => DisplayChanged?.Invoke();
+        private void OnDisplayValueChanged(int value) => NotifyDisplayChanged();
+        private void OnDisplayValueChanged(StateKey value) => NotifyDisplayChanged();
 
         // 맵 이동처럼 같은 진행을 이어 갈 때 HP·약초를 되돌립니다. 살아 있는 값만 받습니다. 약초 연결 뒤 호출합니다.
         public void RestoreVitals(int health, int herbs)
@@ -178,6 +197,7 @@ namespace HumanGhost.Gameplay
             {
                 // 구속 중 공격 입력은 연타 해제로만 소비합니다.
                 if (--_bindPresses == 0) EndBind();
+                else NotifyDisplayChanged();
                 return true;
             }
             if (IsAttacking)

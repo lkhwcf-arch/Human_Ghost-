@@ -10,6 +10,8 @@ namespace HumanGhost.Gameplay
         public int Distance { get; }
         public int Remaining { get; private set; }
         public bool IsReady => Remaining == 0;
+        public int CooldownSeconds => Remaining / 1000 + (Remaining % 1000 > 0 ? 1 : 0);
+        public event Action<int> CooldownSecondsChanged;
 
         public PlayerSkill(AttackSpec attack, int cooldown, int distance)
         {
@@ -18,7 +20,13 @@ namespace HumanGhost.Gameplay
             _cooldown = cooldown; Distance = distance;
         }
 
-        public void StartCooldown() => Remaining = _cooldown;
-        public void Tick(int milliseconds) => Remaining = Math.Max(0, Remaining - milliseconds);
+        public void StartCooldown() => SetRemaining(_cooldown);
+        public void Tick(int milliseconds) => SetRemaining(Math.Max(0, Remaining - milliseconds));
+        private void SetRemaining(int value)
+        {
+            int previous = CooldownSeconds;
+            Remaining = value;
+            if (previous != CooldownSeconds) CooldownSecondsChanged?.Invoke(CooldownSeconds);
+        }
     }
 }

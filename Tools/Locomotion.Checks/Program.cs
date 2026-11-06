@@ -29,6 +29,7 @@ internal static class Program
             _checks += MonsterChecks.Run(args[0], definition);
             _checks += BossChecks.Run(definition);
             _checks += HealthDisplayChecks.Run(definition);
+            _checks += NotificationChecks.Run(definition);
             _checks += ContentAccessChecks.Run();
             TitleMenuChecks.Run(Check);
             MovementPatternChecks.Run(definition, Check);

@@ -4,8 +4,16 @@ using UnityEngine;
 namespace HumanGhost.Gameplay.Preview
 {
     // 확인용 문자열·색상만 관리합니다. 상태를 변경하거나 입력·타격을 실행하지 않습니다.
-    internal static class PreviewPresentation
+    internal class PreviewPresentation
     {
+        private PlayerActor _playerSource;
+        private BossPoise _bossSource;
+        private SubscriptionScope _playerScope, _bossScope;
+        public void Reset()
+        {
+            _playerScope?.Dispose(); _bossScope?.Dispose();
+            _playerScope = _bossScope = null; _playerSource = null; _bossSource = null;
+        }
         // 스프라이트의 보이는 맨 아래(피벗 기준)입니다. 프레임마다 다른 아래 여백을 맞출 때 씁니다.
         public static float VisibleBottom(Sprite sprite)
         {
@@ -14,21 +22,45 @@ namespace HumanGhost.Gameplay.Preview
             return bottom;
         }
 
-        public static void RefreshPlayer(PlayerActor actor, TextMesh label, SpriteRenderer body, Color color)
+        public void RefreshPlayer(PlayerActor actor, TextMesh label, SpriteRenderer body, Color color)
         {
-            SetText(label, "플레이어 " + actor.Definition.ID + "\n" + GetStateLabel(actor.CurrentState) +
-                "\n체력 " + actor.Health + "\n스태미나 " + actor.Stamina.Current +
-                (actor.CurrentState == StateKey.Bound ? "\n공격 연타 " + actor.BindPressesRemaining : "") +
-                (actor.HasSkill ? "\n결박 가르기 " + (actor.SkillCooldownRemaining > 0 ? Mathf.CeilToInt(actor.SkillCooldownRemaining / 1000f) + "초" : "가능") : "") +
-                (actor.HasHerbs ? "\n약초 " + actor.HerbCount : ""));
+            if (_playerSource != actor)
+            {
+                _playerScope?.Dispose(); _playerScope = new SubscriptionScope(); _playerSource = actor;
+                System.Action invalidate = _playerScope.Invalidate;
+                _playerScope.Add(() => actor.DisplayChanged -= invalidate);
+                actor.DisplayChanged += invalidate;
+                _playerScope.Invalidate();
+            }
+            if (_playerScope.TryConsumeRefresh())
+            {
+                SetText(label, "플레이어 " + actor.Definition.ID + "\n" + GetStateLabel(actor.CurrentState) +
+                    "\n체력 " + actor.Health + "\n스태미나 " + actor.Stamina.Current +
+                    (actor.CurrentState == StateKey.Bound ? "\n공격 연타 " + actor.BindPressesRemaining : "") +
+                    (actor.HasSkill ? "\n결박 가르기 " + (actor.SkillCooldownSeconds > 0 ? actor.SkillCooldownSeconds + "초" : "가능") : "") +
+                    (actor.HasHerbs ? "\n약초 " + actor.HerbCount : ""));
+            }
             body.color = actor.IsDead ? Color.gray : actor.IsInvulnerable ?
                 new Color(0.95f, 0.77f, 0.2f) : actor.IsAttackActive ? new Color(1f, 0.55f, 0.2f) : color;
         }
 
-        public static void RefreshBoss(BossPoise actor, TextMesh label, SpriteRenderer body, Color color)
+        public void RefreshBoss(BossPoise actor, TextMesh label, SpriteRenderer body, Color color)
         {
-            SetText(label, "보스 " + actor.Definition.ID + " · 페이즈 " + (actor.Phase.Phase + 1) + "\n" + GetStateLabel(actor.CurrentState) +
-                "\n체력 " + actor.Health + "\n체세 " + actor.Poise);
+            if (_bossSource != actor)
+            {
+                _bossScope?.Dispose(); _bossScope = new SubscriptionScope(); _bossSource = actor;
+                SubscriptionScope scope = _bossScope;
+                System.Action invalidate = scope.Invalidate;
+                System.Action<StateKey> stateChanged = value => scope.Invalidate();
+                scope.Add(() => actor.Changed -= invalidate); actor.Changed += invalidate;
+                scope.Add(() => actor.States.Changed -= stateChanged); actor.States.Changed += stateChanged;
+                scope.Invalidate();
+            }
+            if (_bossScope.TryConsumeRefresh())
+            {
+                SetText(label, "보스 " + actor.Definition.ID + " · 페이즈 " + (actor.Phase.Phase + 1) + "\n" + GetStateLabel(actor.CurrentState) +
+                    "\n체력 " + actor.Health + "\n체세 " + actor.Poise);
+            }
             body.color = actor.IsDead ? Color.gray : actor.IsExposed ?
                 new Color(0.75f, 0.35f, 0.95f) : actor.IsInvulnerable ? Color.yellow : color;
         }

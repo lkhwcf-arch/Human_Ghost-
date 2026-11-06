@@ -59,7 +59,7 @@ namespace HumanGhost.Gameplay.Preview
             float extent = _body.bounds.extents.x;
             bool wall = position.x <= minX + extent || position.x >= maxX - extent;
             position.x = Mathf.Clamp(position.x, minX + extent, maxX - extent);
-            _runtime.transform.position = position;
+            _runtime.SetPosition(position);
             if (wall) combat.NotifyWallHit();
             if (noticed && !combat.IsAttacking && !combat.IsWaiting) SelectPattern(Mathf.Abs(offset));
             CheckHit();
@@ -87,7 +87,7 @@ namespace HumanGhost.Gameplay.Preview
             Vector3 position = _player.transform.position;
             float stop = _runtime.transform.position.x + _runtime.Combat.Facing * _range * _worldUnitsPerTile * 0.5f;
             position.x = Mathf.MoveTowards(position.x, stop, Mathf.Abs(velocity) / 100f * _worldUnitsPerTile * seconds);
-            _player.transform.position = position;
+            _player.SetPosition(position);
         }
 
         private void OnAttackWindowChanged(bool active) { if (active) CheckHit(); }

@@ -9,6 +9,7 @@ namespace HumanGhost.Gameplay
         public int Count { get; private set; }
         public int Heal { get; }
         public int UseTime { get; }
+        public event Action Changed;
 
         public PlayerHerbs(int heal, int useTime, int charges)
         {
@@ -21,15 +22,22 @@ namespace HumanGhost.Gameplay
         {
             if (Count == 0) return false;
             Count--;
+            Changed?.Invoke();
             return true;
         }
 
-        public void Refill() => Count = _charges;
+        public void Refill() => SetCount(_charges);
 
         public void Restore(int count)
         {
             if (count < 0 || count > _charges) throw new ArgumentOutOfRangeException(nameof(count));
+            SetCount(count);
+        }
+        private void SetCount(int count)
+        {
+            if (Count == count) return;
             Count = count;
+            Changed?.Invoke();
         }
     }
 }
