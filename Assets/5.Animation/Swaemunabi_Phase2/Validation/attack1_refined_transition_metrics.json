@@ -1,0 +1,27 @@
+{
+  "finished": true,
+  "completedAttacks": 6,
+  "transitionStages": [
+    2,
+    4,
+    6,
+    7,
+    10,
+    12,
+    14,
+    15
+  ],
+  "transitionSamples": 52,
+  "triangleChecks": 1795664,
+  "invertedObservations": 0,
+  "maximumAllEdgesRatio": 1.69148433,
+  "minSignedArea": 2.947882E-05,
+  "screenshots": [
+    "right_idle",
+    "right_walk",
+    "left_idle",
+    "left_walk"
+  ],
+  "bodyResetDegrees": 90.0,
+  "rightArmSortingOrder": 2
+}

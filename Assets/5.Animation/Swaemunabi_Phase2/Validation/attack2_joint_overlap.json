@@ -1,0 +1,16 @@
+[
+  {
+    "state": "Attack2",
+    "sampleCount": 105,
+    "minimumOverlappingGridSamples": [
+      126,
+      252
+    ],
+    "worstTimes": [
+      0.8346153846153848,
+      0.9091346153846155
+    ],
+    "gridSpacingSourcePixels": 1,
+    "searchRadiusSourcePixels": 25
+  }
+]

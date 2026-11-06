@@ -1,0 +1,15 @@
+{
+  "cycles": 2.283518,
+  "samples": 56,
+  "triangleChecks": 1885072,
+  "invertedTriangleObservations": 0,
+  "minSignedArea": 8.952617E-05,
+  "maximumAllEdgesRatio": 1.10087979,
+  "maximumContactVertexDriftPixels": 0.0001546534,
+  "contactVertices": 65,
+  "maximumMeshDifferenceFromOriginalIdlePixels": 2.44859242,
+  "maximumBonePoseDifference": 0.0,
+  "bodyRisePixels": 1.79978609,
+  "exhaleCaptured": true,
+  "inhaleCaptured": true
+}

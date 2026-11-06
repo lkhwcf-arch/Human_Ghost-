@@ -1,0 +1,14 @@
+{
+  "FormatVersion": 2,
+  "StageID": 0,
+  "Level": "M03_Jin_Route_End",
+  "Placements": [
+    {
+      "PlacementID": 101,
+      "PlatformCode": 16011,
+      "Prefab": "Ground_11",
+      "Anchor": "Anchor_Ground_11",
+      "Monsters": []
+    }
+  ]
+}

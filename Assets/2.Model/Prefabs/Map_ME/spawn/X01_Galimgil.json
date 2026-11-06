@@ -1,0 +1,88 @@
+{
+  "FormatVersion": 2,
+  "StageID": 0,
+  "Level": "X01_Galimgil",
+  "Placements": [
+    {
+      "PlacementID": 101,
+      "PlatformCode": 16006,
+      "Prefab": "Ground_6",
+      "Anchor": "Anchor_Ground_6",
+      "Monsters": [
+        {
+          "MonsterCode": 3002,
+          "MonsterCount": 4,
+          "Points": [
+            [
+              1200,
+              3700
+            ],
+            [
+              2200,
+              2800
+            ],
+            [
+              3000,
+              2800
+            ],
+            [
+              3600,
+              2100
+            ]
+          ]
+        },
+        {
+          "MonsterCode": 3003,
+          "MonsterCount": 6,
+          "Points": [
+            [
+              1700,
+              3700
+            ],
+            [
+              2400,
+              0
+            ],
+            [
+              2600,
+              2800
+            ],
+            [
+              3000,
+              2100
+            ],
+            [
+              3400,
+              2800
+            ],
+            [
+              3700,
+              4300
+            ]
+          ]
+        },
+        {
+          "MonsterCode": 3004,
+          "MonsterCount": 2,
+          "Points": [
+            [
+              3000,
+              700
+            ],
+            [
+              3200,
+              4300
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "PlacementID": 201,
+      "PlatformCode": 16523,
+      "Prefab": "Air_Platform_23",
+      "Anchor": "Anchor_Air_Platform_23",
+      "Monsters": []
+    }
+  ]
+}

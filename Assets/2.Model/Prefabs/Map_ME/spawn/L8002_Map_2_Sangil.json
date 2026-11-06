@@ -1,0 +1,183 @@
+{
+  "FormatVersion": 2,
+  "StageID": 8002,
+  "Level": "L8002_Map_2_Sangil",
+  "Placements": [
+    {
+      "PlacementID": 101,
+      "PlatformCode": 16002,
+      "Prefab": "Ground_2",
+      "Anchor": "Anchor_Ground_2",
+      "Monsters": [
+        {
+          "MonsterCode": 3003,
+          "MonsterCount": 12,
+          "Points": [
+            [
+              1450,
+              0
+            ],
+            [
+              1950,
+              0
+            ],
+            [
+              3250,
+              -100
+            ],
+            [
+              5150,
+              0
+            ],
+            [
+              5800,
+              400
+            ],
+            [
+              6700,
+              0
+            ],
+            [
+              6700,
+              800
+            ],
+            [
+              7300,
+              800
+            ],
+            [
+              7500,
+              0
+            ],
+            [
+              9450,
+              200
+            ],
+            [
+              10650,
+              100
+            ],
+            [
+              11050,
+              200
+            ]
+          ]
+        },
+        {
+          "MonsterCode": 3002,
+          "MonsterCount": 10,
+          "Points": [
+            [
+              1750,
+              0
+            ],
+            [
+              2850,
+              0
+            ],
+            [
+              3050,
+              0
+            ],
+            [
+              3950,
+              0
+            ],
+            [
+              5150,
+              300
+            ],
+            [
+              5850,
+              700
+            ],
+            [
+              6500,
+              0
+            ],
+            [
+              7300,
+              0
+            ],
+            [
+              10450,
+              0
+            ],
+            [
+              10850,
+              100
+            ]
+          ]
+        },
+        {
+          "MonsterCode": 3003,
+          "MonsterCount": 2,
+          "Points": [
+            [
+              10450,
+              -700
+            ],
+            [
+              10800,
+              -700
+            ]
+          ],
+          "Trigger": 17800
+        }
+      ]
+    },
+    {
+      "PlacementID": 201,
+      "PlatformCode": 16503,
+      "Prefab": "Air_Platform_3",
+      "Anchor": "Anchor_Air_Platform_3",
+      "Monsters": []
+    },
+    {
+      "PlacementID": 202,
+      "PlatformCode": 16504,
+      "Prefab": "Air_Platform_4",
+      "Anchor": "Anchor_Air_Platform_4",
+      "Monsters": []
+    },
+    {
+      "PlacementID": 203,
+      "PlatformCode": 16505,
+      "Prefab": "Air_Platform_5",
+      "Anchor": "Anchor_Air_Platform_5",
+      "Monsters": [
+        {
+          "MonsterCode": 3003,
+          "MonsterCount": 1,
+          "Points": [
+            [
+              700,
+              0
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "PlacementID": 204,
+      "PlatformCode": 16506,
+      "Prefab": "Air_Platform_6",
+      "Anchor": "Anchor_Air_Platform_6",
+      "Monsters": []
+    },
+    {
+      "PlacementID": 205,
+      "PlatformCode": 16514,
+      "Prefab": "Air_Platform_14",
+      "Anchor": "Anchor_Air_Platform_14",
+      "Monsters": []
+    },
+    {
+      "PlacementID": 206,
+      "PlatformCode": 16515,
+      "Prefab": "Air_Platform_15",
+      "Anchor": "Anchor_Air_Platform_15",
+      "Monsters": []
+    }
+  ]
+}

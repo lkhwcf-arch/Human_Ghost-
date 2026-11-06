@@ -1,0 +1,14 @@
+{
+  "FormatVersion": 2,
+  "StageID": 8005,
+  "Level": "L8005_Jangbubang",
+  "Placements": [
+    {
+      "PlacementID": 101,
+      "PlatformCode": 16005,
+      "Prefab": "Ground_5",
+      "Anchor": "Anchor_Ground_5",
+      "Monsters": []
+    }
+  ]
+}
