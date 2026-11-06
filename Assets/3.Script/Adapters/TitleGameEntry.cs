@@ -197,7 +197,9 @@ namespace HumanGhost.Gameplay.Adapters
 
         private void LateUpdate()
         {
-            if (!_introPending || _cutscenes == null || !_cutscenes.TryTakeResult(out CutsceneEndReason reason)) return;
+            if (!_introPending) return;
+            CutsceneEndReason reason = CutsceneEndReason.Cancelled;
+            if (_cutscenes != null && !_cutscenes.TryTakeResult(out reason)) return;
             _introPending = false;
             try
             {

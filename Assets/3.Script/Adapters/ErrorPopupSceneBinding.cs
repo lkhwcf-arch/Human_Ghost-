@@ -22,6 +22,12 @@ namespace HumanGhost.Gameplay.Adapters
         private readonly object _errorOwner = new object();
         public bool IsErrorOpen => _host != null && _host.IsOpen;
         public event Action<bool> ErrorVisibilityChanged;
+        public event Action ModalChanged;
+        public bool HasOtherModalOwner(object owner)
+        {
+            foreach (object active in _modalOwners) if (!ReferenceEquals(active, owner)) return true;
+            return false;
+        }
 
         // 호출 경계의 실패는 자동 로그 수집을 기다리지 않고 상세 상태와 함께 보고합니다.
         public virtual void Report(Exception error, UnityEngine.Object context = null, string state = "")
@@ -109,6 +115,7 @@ namespace HumanGhost.Gameplay.Adapters
             if (_speed != null) _speed.State.SetModalPaused(paused);
             foreach (var target in _inputTargets)
                 if (target != null) ((IModalInputTarget)target).SetModalBlocked(paused);
+            ModalChanged?.Invoke();
         }
 
         protected virtual void OnDisable()

@@ -46,12 +46,12 @@ namespace HumanGhost.Gameplay.Adapters
                 Action<CutsceneEndReason> finished = scope.Guard<CutsceneEndReason>(reason => _pending = reason);
                 scope.Add(() => { if (_screen != null) _screen.Finished -= finished; });
                 _screen.Finished += finished;
-                Action<bool> errorChanged = scope.Guard<bool>(SetErrorBlocked);
-                scope.Add(() => { if (_modals != null) _modals.ErrorVisibilityChanged -= errorChanged; });
-                _modals.ErrorVisibilityChanged += errorChanged;
+                Action modalChanged = scope.Guard(() => SetErrorBlocked(_modals.HasOtherModalOwner(this)));
+                scope.Add(() => { if (_modals != null) _modals.ModalChanged -= modalChanged; });
+                _modals.ModalChanged += modalChanged;
                 _input.enabled = false;
                 _screen.Connect(new LanguageTextSource(data), LanguageCode.Korean);
-                SetErrorBlocked(_modals.IsErrorOpen);
+                SetErrorBlocked(_modals.HasOtherModalOwner(this));
                 Prepare(sequence, scope, _preparation.Token);
                 return true;
             }

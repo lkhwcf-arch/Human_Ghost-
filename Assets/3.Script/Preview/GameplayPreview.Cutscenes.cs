@@ -24,15 +24,19 @@ namespace HumanGhost.Gameplay.Preview
             if (_afterCutscene != null || _modalBlocked || _leaving || _saveLocked || _actor.IsDead) return false;
             if (_cutscenes == null) throw new InvalidOperationException("컷씬 ID를 사용하는 맵에는 공용 컷씬 실행 담당을 연결해 주세요.");
             if (!_cutscenes.TryPlay(_catalog, id, _audio)) return false;
+            _actor.SetCutsceneDamageBlocked(true);
             _pendingCutsceneId = id;
             _afterCutscene = complete;
             return true;
         }
         private void StepCutsceneFlow()
         {
-            if (_afterCutscene == null || _cutscenes == null || !_cutscenes.TryTakeResult(out CutsceneEndReason reason)) return;
+            if (_afterCutscene == null) return;
+            CutsceneEndReason reason = CutsceneEndReason.Cancelled;
+            if (_cutscenes != null && !_cutscenes.TryTakeResult(out reason)) return;
             Action complete = _afterCutscene;
             _afterCutscene = null;
+            _actor.SetCutsceneDamageBlocked(false);
             int id = _pendingCutsceneId;
             _pendingCutsceneId = 0;
             if (!reason.AllowsProgress()) return;
@@ -54,6 +58,7 @@ namespace HumanGhost.Gameplay.Preview
         }
         private void DisconnectCutscenes()
         {
+            if (_afterCutscene != null) _actor?.SetCutsceneDamageBlocked(false);
             if (_afterCutscene != null && _cutscenes != null)
             {
                 _cutscenes.Cancel();
