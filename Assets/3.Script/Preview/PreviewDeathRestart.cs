@@ -14,7 +14,14 @@ namespace HumanGhost.Gameplay.Preview
         private bool _restarting;
         private readonly SubscriptionScope _lifetime = new SubscriptionScope();
 
-        public PreviewDeathRestart(string scene) => _scene = scene;
+        private readonly GameProgressState _progress;
+        private readonly System.Func<SaveSnapshot> _lastSaved;
+        public PreviewDeathRestart(string scene, GameProgressState progress, System.Func<SaveSnapshot> lastSaved)
+        {
+            _scene = scene;
+            _progress = progress ?? throw new System.ArgumentNullException(nameof(progress));
+            _lastSaved = lastSaved ?? throw new System.ArgumentNullException(nameof(lastSaved));
+        }
 
         public void Step(PlayerActor actor, float seconds)
         {
@@ -25,12 +32,7 @@ namespace HumanGhost.Gameplay.Preview
             string scene = _scene;
             PreviewScreenFade.Run(_fadeStepSeconds, _fadeStepSeconds, _fadeStepSeconds, _lifetime.Guard(() =>
             {
-                SaveSnapshot saved = HumanGhost.Gameplay.Adapters.GameSaveContext.Current?.Session.CurrentSnapshot;
-                PreviewSession.DefeatedMonsters.Clear();
-                if (saved != null) PreviewSession.DefeatedMonsters.UnionWith(saved.DefeatedMonsters);
-                PreviewSession.CarriedHealth = null;
-                PreviewSession.CurrentStage = PreviewSession.CheckpointPassed ? PreviewSession.ShrineId : StageExitRules.VillageStage;
-                PreviewSession.ArrivalAnchor = PreviewSession.CheckpointPassed ? "Respawn_Seonangdang" : null;
+                _progress.RestartAfterDeath(_lastSaved());
                 SceneManager.LoadScene(scene);
             }));
         }

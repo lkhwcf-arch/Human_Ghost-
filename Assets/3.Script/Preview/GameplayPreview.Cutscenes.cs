@@ -40,7 +40,7 @@ namespace HumanGhost.Gameplay.Preview
             int id = _pendingCutsceneId;
             _pendingCutsceneId = 0;
             if (!reason.AllowsProgress()) return;
-            PreviewSession.ViewedCutscenes.Add(id);
+            _progress.MarkCutsceneViewed(id);
             try { complete(); }
             catch (Exception error) { Debug.LogException(new InvalidOperationException("컷씬 종료 후 진행 연결에 실패했습니다.", error), this); }
         }

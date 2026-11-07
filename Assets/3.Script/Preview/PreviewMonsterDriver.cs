@@ -19,6 +19,8 @@ namespace HumanGhost.Gameplay.Preview
         private readonly int _targetId;
         private readonly int _playerTargetId;
         private readonly float _worldUnitsPerTile;
+        private readonly IntegerMotion _motion = new IntegerMotion();
+        private MillisecondClock _clock;
         private PreviewThrownProjectile _projectile;
         private PreviewGroundFireView _fire;
         private bool _fireChecked;
@@ -47,6 +49,7 @@ namespace HumanGhost.Gameplay.Preview
             _playerBody = playerBody != null ? playerBody : throw new ArgumentNullException(nameof(playerBody));
             _attackWindow = attackWindow != null ? attackWindow : throw new ArgumentNullException(nameof(attackWindow));
             if (targetId <= 0 || playerTargetId <= 0 || targetId == playerTargetId) throw new ArgumentOutOfRangeException(nameof(targetId));
+            runtime.ConfigureSpatialScale(worldUnitsPerTile);
             _monster = runtime.Actor ?? throw new InvalidOperationException("일반몹 초기화가 필요합니다.");
             _targetId = targetId; _playerTargetId = playerTargetId; _worldUnitsPerTile = worldUnitsPerTile;
             // 매복 몬스터는 꺼진 채 연결합니다.
@@ -86,12 +89,11 @@ namespace HumanGhost.Gameplay.Preview
             if (_monster.IsDead) { IsEngaged = false; _body.color = Color.gray; _deathShown = true; return; }
             _projectile?.Step(seconds);
             PlayerActor actor = _player.Actor;
-            Vector3 position = _runtime.transform.position;
-            position.x += _monster.Velocity / 100f * _worldUnitsPerTile * seconds;
+            int milliseconds = _clock.Advance(seconds);
             if (_hasSpan) { minX = _spanMin; maxX = _spanMax; }
-            bool wall = position.x < minX || position.x > maxX;
-            position.x = Mathf.Clamp(position.x, minX, maxX);
-            _runtime.transform.position = position;
+            bool wall = _runtime.MoveHorizontal(_motion.StepHorizontal(_monster.Velocity, milliseconds), minX, maxX);
+            if (wall) _motion.ResetHorizontal();
+            Vector3 position = _runtime.ToWorld(_runtime.Position);
             if (wall) _monster.NotifyWallHit();
 
             float offset = _player.transform.position.x - position.x;
@@ -125,7 +127,7 @@ namespace HumanGhost.Gameplay.Preview
         {
             if (_projectile == null)
                 _projectile = new PreviewThrownProjectile(CreateView("PreviewProjectile", new Color(0.45f, 0.3f, 0.15f), new Vector3(0.5f, 0.5f, 1f)), _worldUnitsPerTile);
-            _projectile.Throw(_runtime.transform.position, _player.transform.position, _monster.CurrentPattern.Attack.Active / 1000f);
+            _projectile.Throw(_runtime.transform.position, _player.transform.position, _monster.CurrentPattern.Attack.Active);
         }
 
         // 불붙은 허수귀(C08): 죽은 자리에 불을 남기고 범위 안 플레이어에게 초당 고정 피해를 줍니다.

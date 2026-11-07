@@ -12,17 +12,19 @@ namespace HumanGhost.Gameplay.Adapters
         public static GameSaveContext Current { get; private set; }
         public SaveSession Session { get; }
         public JsonSaveStore Store { get; }
+        public GameProgressState Progress { get; }
         public SaveRecord Entry { get; private set; }
         private TaskCompletionSource<bool> _sceneReady = new TaskCompletionSource<bool>();
         public Task<bool> SceneReady => _sceneReady.Task;
         public Task<bool> BeginScene() { _sceneReady = new TaskCompletionSource<bool>(); return _sceneReady.Task; }
         public void CompleteScene(bool success) => _sceneReady.TrySetResult(success);
         public bool EntryPending { get; private set; } = true;
-        public GameSaveContext(SaveSession session, SaveRecord entry, JsonSaveStore store = null)
+        public GameSaveContext(SaveSession session, SaveRecord entry, JsonSaveStore store = null, GameProgressState progress = null)
         {
             Session = session ?? throw new ArgumentNullException(nameof(session));
             Entry = entry;
             Store = store;
+            Progress = progress ?? new GameProgressState();
         }
         public static void Set(GameSaveContext context) => Current = context;
         public void CompleteEntry() { EntryPending = false; Entry = null; }
@@ -50,10 +52,10 @@ namespace HumanGhost.Gameplay.Adapters
                 throw new InvalidOperationException("저장 폴더는 게임 저장 경로의 하위 폴더여야 합니다.");
             return path;
         }
-        public static GameSaveContext Create(IReadOnlyList<SaveRecord> records, JsonSaveStore store, int version, SaveRecord entry = null)
+        public static GameSaveContext Create(IReadOnlyList<SaveRecord> records, JsonSaveStore store, int version, SaveRecord entry = null, GameProgressState progress = null)
         {
             var session = new SaveSession(Mode, version, store, () => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), records);
-            return new GameSaveContext(session, entry, store);
+            return new GameSaveContext(session, entry, store, progress);
         }
     }
 }

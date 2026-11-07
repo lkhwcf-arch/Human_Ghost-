@@ -36,7 +36,6 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField, InspectorName("임시 보스 근접 거리 (타일)"), Min(0.01f)] private float _bossRangeTiles = 2.5f;
         [SerializeField, InspectorName("임시 보스 둘째 타 거리 (타일)"), Min(0.01f)] private float _bossSecondRangeTiles = 3.5f;
         [SerializeField, InspectorName("임시 보스 인식 거리 (타일, 0=제한 없음)"), Min(0f)] private float _bossSightTiles = 0f;
-        [SerializeField, InspectorName("결박 가르기 해금 상태로 시작")] private bool _skillUnlocked = true;
         [SerializeField, InspectorName("결박 가르기 Skill ID"), Min(1)] private int _skillId = 7001;
         [SerializeField, InspectorName("약초 Buff ID"), Min(1)] private int _herbBuffId = 14001;
         [SerializeField, InspectorName("사망 뒤 재시작 사용")] private bool _restartOnDeath = true;
@@ -45,7 +44,6 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField, InspectorName("텍스트박스")] private TextboxScreen _textbox = null;
         [SerializeField, InspectorName("피난민 대사")] private NpcDialogue _refugeeDialogue = null;
         [SerializeField, InspectorName("로딩 화면 프리팹")] private LoadingScreen _loadingPrefab = null;
-        [SerializeField, InspectorName("해금 맵 ID"), Min(1)] private int _skillUnlockStageId = 8005;
         [Header("피드백·HUD·일시정지 (없으면 끔)")]
         [SerializeField] private GameSpeedController _speed = null;
         [SerializeField] private PreviewFollowCamera _followCamera = null;
@@ -119,8 +117,10 @@ namespace HumanGhost.Gameplay.Preview
 
         private void OnEnable()
         {
+            _input = _player != null ? _player.GetComponent<PlayerLocomotionInput>() : null;
+            _input?.SetLocked(true);
             if (_data == null || _player == null || _boss == null || _playerLabel == null ||
-                _bossLabel == null || _playerBody == null || _bossBody == null || _attackWindow == null)
+                _bossLabel == null || _playerBody == null || _bossBody == null || _attackWindow == null || _input == null)
             {
                 Debug.LogError("임시 확인 장면의 데이터·프리팹·표시 참조를 연결하세요.", this);
                 enabled = false;
@@ -129,6 +129,8 @@ namespace HumanGhost.Gameplay.Preview
             _data.Initialized += OnDataReady;
             if (_data.Data != null) OnDataReady(_data.Data);
         }
+
+        private GameProgressState _progress;
 
         private void OnDataReady(IReadOnlyDataCatalog catalog)
         {
@@ -143,7 +145,11 @@ namespace HumanGhost.Gameplay.Preview
                     // 이 장면의 사각형은 표시용 바닥 높이에 놓여 있습니다.
                     _player.Initialize(catalog, stamina, true);
                 }
+                _player.ConfigureSpatialScale(_worldUnitsPerTile);
+                _boss.ConfigureSpatialScale(_worldUnitsPerTile);
+                _leaving = false;
                 _catalog = catalog;
+                _progress = GameSaveContext.Current?.Progress ?? new GameProgressState();
                 ImportEntryProgress();
                 BuildStage(catalog);
                 if (_boss.Actor == null) _boss.Initialize(catalog);
@@ -161,11 +167,8 @@ namespace HumanGhost.Gameplay.Preview
                 _bossDriver = !_bossActive || _boss.Combat == null ? null : new PreviewBossDriver(_boss, _player, _bossBody, _playerBody,
                     _worldUnitsPerTile, _bossRangeTiles, _bossSecondRangeTiles, _bossSightTiles);
                 _actor = _player.Actor;
-                ApplyWalkableSpans();
                 if (_motion == null) _motion = new PreviewPlayerMotion(_player, _groundY, _useMapCollision, _playerHalfSize, GetMarkers(),
-                    _actor.Definition.JumpHeight / 100f * _worldUnitsPerTile, _jumpSeconds);
-                _input = _player.GetComponent<PlayerLocomotionInput>();
-                if (_input == null) throw new InvalidOperationException("플레이어 입력 어댑터가 없습니다.");
+                    _actor.Definition.JumpHeight, Mathf.RoundToInt(_jumpSeconds * 1000f));
                 _input.SetModalBlocked(_modalBlocked);
                 _input.JumpAccepted += OnJump;
                 _input.JumpRejected += _motion.OnJumpRejected;
@@ -175,14 +178,14 @@ namespace HumanGhost.Gameplay.Preview
                 MoveToArrival();
                 ConnectCutsceneData();
                 ConnectStageObjects(catalog);
-                if (_savePoint != null) _savePoint.GetComponent<ShrineInteract>().SetActive(PreviewSession.ActiveShrines.Contains(_stageId));
+                if (_savePoint != null) _savePoint.GetComponent<ShrineInteract>().SetActive(_progress.HasActiveShrine(_stageId));
                 ConnectGameLayer(catalog);
                 _actor.RollRequested += OnRoll;
                 _actor.SkillStarted += OnRoll;
-                if (_skillUnlocked || PreviewSession.Progress.IsCleared(_skillUnlockStageId)) _player.EnableSkill(catalog.GetTable<Skill>().Get(_skillId));
+                _player.EnableSkill(catalog.GetTable<Skill>().Get(_skillId), new ContentAccess(_progress.Progress.IsCleared));
                 _player.EnableHerbs(catalog.GetTable<Buff>().Get(_herbBuffId));
                 RestoreCarriedVitals();
-                _deathRestart = _restartOnDeath ? new PreviewDeathRestart(gameObject.scene.name) : null;
+                _deathRestart = _restartOnDeath ? new PreviewDeathRestart(gameObject.scene.name, _progress, () => _saveSession?.CurrentSnapshot) : null;
                 // 판정 창이 한 프레임 안에 열리고 닫혀도 열리는 순간 한 번은 접촉을 확인합니다.
                 _actor.AttackWindowChanged += OnPlayerAttackWindowChanged;
                 _subscribed = true;
@@ -190,6 +193,11 @@ namespace HumanGhost.Gameplay.Preview
                 _playerColor = _playerBody.color;
                 _bossColor = _bossBody.color;
                 RefreshLabels();
+                SetPlayable(false);
+                ConnectProgress();
+                _boss.gameObject.SetActive(_bossActive);
+                _stage?.Activate();
+                ApplyWalkableSpans();
                 ConnectSaves();
             }
             catch (Exception error)
@@ -230,7 +238,14 @@ namespace HumanGhost.Gameplay.Preview
             if (_healthDisplay != null) _healthDisplay.Disconnect();
             DisposeMonsterDrivers();
             _subscribed = false;
+            if (_actor != null && _actor.IsHanging) _actor.EndHang();
+            _motion = null;
+            _gates?.Dispose(); _gates = null;
+            _stage?.Dispose(); _stage = null;
+            _savePoint = null;
+            _exit = null;
             if (_attackWindow != null) _attackWindow.enabled = false;
+            _input?.SetLocked(true);
         }
 
         private Transform[] GetMarkers()
@@ -307,7 +322,7 @@ namespace HumanGhost.Gameplay.Preview
             scope.Add(() => input.AdvancePressed -= advance); input.AdvancePressed += advance;
             scope.Add(() => textbox.OpenChanged -= openChanged); textbox.OpenChanged += openChanged;
             scope.Add(() => actor.HealthChanged -= playerHealthChanged); actor.HealthChanged += playerHealthChanged;
-            var context = new InteractionContext(_player, _textbox, PreviewSession.Progress, catalog, GoToStage);
+            var context = new InteractionContext(_player, _textbox, _progress.Progress, catalog, GoToStage);
             _interactor.Connect(context, () => _motion.CanGrab, _motion.TryGrab, CanExecute, TryExecute);
             if (_bossActive)
             {
@@ -330,16 +345,13 @@ namespace HumanGhost.Gameplay.Preview
         private void GoToStage(int stageId, string anchor)
         {
             if (_modalBlocked || _saveLocked || _leaving || _loadingPrefab == null) return;
-            var access = new ContentAccess(PreviewSession.Progress.IsCleared);
+            var access = new ContentAccess(_progress.Progress.IsCleared);
             if (access.Evaluate(_catalog.GetTable<Stage>().Get(stageId)) != ContentAccessResult.Allowed) return;
             // 로딩 준비 실패 시 기존 임시 상태와 입력을 먼저 망가뜨리지 않습니다.
             try { Instantiate(_loadingPrefab).Begin(gameObject.scene.name, _catalog, GameSaveContext.Current?.BeginScene()); }
             catch (Exception error) { Debug.LogException(error, this); return; }
             _leaving = true;
-            PreviewSession.CarriedHealth = _actor.Health;
-            PreviewSession.CarriedHerbs = _actor.HerbCount;
-            PreviewSession.CurrentStage = stageId;
-            PreviewSession.ArrivalAnchor = anchor;
+            _progress.Travel(stageId, anchor, _actor.Health, _actor.HerbCount);
             SetGameInputLocked(true);
             Cursor.visible = false;
         }
@@ -347,11 +359,11 @@ namespace HumanGhost.Gameplay.Preview
         // 맵을 옮겨도 HP·약초는 회복되지 않습니다. 표시 연결 전이라 피격 연출도 나가지 않게 기준값을 맞춥니다.
         private void RestoreCarriedVitals()
         {
-            if (PreviewSession.CarriedHealth is int health)
+            if (_progress.CarriedHealth is int health)
             {
-                RestorePlayerVitals(health, PreviewSession.CarriedHerbs);
+                RestorePlayerVitals(health, _progress.CarriedHerbs);
             }
-            PreviewSession.CarriedHealth = null;
+            _progress.ClearCarriedVitals();
         }
 
         // 복원을 피해로 표시하지 않도록 표시 기준을 먼저 맞춥니다.
@@ -366,22 +378,22 @@ namespace HumanGhost.Gameplay.Preview
         {
             _markersRoot = _hangEdgeRoot;
             if (_content == null) return;
-            _stageId = PreviewSession.CurrentStage;
-            _stage = new PreviewStage(_content, _stageId, catalog, _mapOrigin);
+            _stageId = _progress.CurrentStage;
+            _stage = new PreviewStage(_content, _stageId, catalog, _mapOrigin, _progress);
             _markersRoot = _stage.Markers;
             _monsters = _stage.Monsters.ToArray();
             _showBossGauge = _stageId == BossStage;
-            _bossActive = _stageId == BossStage && !PreviewSession.DefeatedBoss.Contains(BossStage);
+            _bossActive = _stageId == BossStage && !_progress.HasDefeatedBoss(BossStage);
             if (_bossActive)
             {
                 Transform spawn = new SpawnAnchors(_markersRoot).Get("Boss_Spawn");
                 float half = _bossBody.transform.lossyScale.y * 0.5f;
                 _boss.SetPosition(new Vector3(spawn.position.x, spawn.position.y + half, _boss.transform.position.z));
             }
-            _boss.gameObject.SetActive(_bossActive);
+            _boss.gameObject.SetActive(false);
             if (_interactor != null) _interactor.SetTargetRoot(_stage.Interactables);
             // 몬스터 걷는 구간이 관문에서 끊기도록 먼저 만듭니다.
-            _gates = new PreviewBindGates(_markersRoot, _stageId, catalog);
+            _gates = new PreviewBindGates(_markersRoot, _stageId, catalog, _progress);
         }
 
         private const int BossStage = 8004;
@@ -485,16 +497,16 @@ namespace HumanGhost.Gameplay.Preview
         }
 
         private bool CanLeaveStage() => StageExitRules.CanLeave(_stageId,
-            PreviewSession.Progress.IsCleared(StageExitRules.LedgerStage));
+            _progress.Progress.IsCleared(StageExitRules.LedgerStage));
 
         // 잡몹을 다 잡은 맵을 기록합니다. 맵 1은 명부, 보스방은 보스 처치가 기준이라 제외합니다.
         // 처치한 보스는 사망 재시작·재진입 때 다시 나오지 않습니다(K16add).
         private void StepStageClear()
         {
-            if (_bossActive && _boss.Actor.IsDead) PreviewSession.DefeatedBoss.Add(BossStage);
+            if (_bossActive && _boss.Actor.IsDead) _progress.MarkBossDefeated(BossStage);
             TryStartEnding();
             if (_stage != null && _stageId != StageExitRules.VillageStage && _stageId != StageExitRules.LedgerStage && _stageId != BossStage && RemainingMonsters() == 0)
-                PreviewSession.Progress.Clear(_stageId);
+                _progress.Progress.Clear(_stageId);
         }
 
         private static string StageName(int stageId)
@@ -566,6 +578,7 @@ namespace HumanGhost.Gameplay.Preview
 
         private void DisconnectGameLayer()
         {
+            if (_parallax != null) _parallax.Disconnect();
             if (_pause != null) _pause.Disconnect();
             if (_bossDriver != null) _bossDriver.PlayerHit -= OnBossHitPlayer;
             if (_actor != null)
@@ -631,25 +644,27 @@ namespace HumanGhost.Gameplay.Preview
 
         private void MoveToArrival()
         {
-            string anchor = PreviewSession.ArrivalAnchor;
-            PreviewSession.ArrivalAnchor = null;
-            if (_markersRoot == null) return;
+            string anchor = _progress.ArrivalAnchor;
+            if (_markersRoot == null)
+            {
+                if (!string.IsNullOrEmpty(anchor)) throw new InvalidOperationException("요청한 도착 앵커를 찾을 표식 묶음이 없습니다: " + anchor);
+                return;
+            }
             if (string.IsNullOrEmpty(anchor))
             {
                 if (_stage == null) return;
                 // 장부방은 PlayerStart 없이 문 앞 표식만 둡니다.
                 anchor = _stageId == StageExitRules.LedgerStage ? LedgerArrival : "PlayerStart";
             }
-            // 도착 앵커가 없는 맵은 시작 지점에 섭니다(L09_1).
+            // 명시한 도착 앵커가 잘못되면 시작점으로 대체하지 않고 진입 실패로 전달합니다.
             var anchors = new SpawnAnchors(_markersRoot);
-            Vector3 point;
-            try { point = anchors.Get(anchor).position; }
-            catch (InvalidOperationException) { point = anchors.Get("PlayerStart").position; }
+            Vector3 point = anchors.Get(anchor).position;
             _player.SetPosition(new Vector3(point.x, point.y + _playerHalfSize.y, _player.transform.position.z));
+            _progress.TakeArrival();
         }
 
         private void OnRoll(int direction, int distance, int duration)
-            => _motion.StartRoll(direction, distance, duration, _worldUnitsPerTile);
+            => _motion.StartRoll(direction, distance, duration);
 
         private void LateUpdate()
         {
@@ -665,7 +680,7 @@ namespace HumanGhost.Gameplay.Preview
             // 출구가 잠겨 있어도 맵 밖으로 나가 떨어지지 않게 맵 끝에서 막습니다.
             float moveMin = _stage != null ? _stage.Area.min.x + _playerHalfSize.x : _useMapCollision ? float.NegativeInfinity : -_stageHalfWidth;
             float moveMax = _stage != null ? _stage.Area.max.x - _playerHalfSize.x : _useMapCollision ? float.PositiveInfinity : _stageHalfWidth;
-            _motion.Move(Time.deltaTime, _worldUnitsPerTile, moveMin, moveMax);
+            _motion.Move(Time.deltaTime, moveMin, moveMax);
             _attackWindow.enabled = _actor.IsAttackActive;
             // 몬스터 이동 후 플레이어 판정을 확인합니다(기존 순서 유지).
             foreach (PreviewMonsterDriver monster in _monsterDrivers)

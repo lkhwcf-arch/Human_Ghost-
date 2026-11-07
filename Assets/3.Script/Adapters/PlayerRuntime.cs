@@ -6,7 +6,7 @@ using UnityEngine;
 namespace HumanGhost.Gameplay.Adapters
 {
     // 제공된 초기화 완료 데이터와 실제 접지 관측을 받는 프리팹 연결점입니다.
-    public sealed class PlayerRuntime : MonoBehaviour
+    public sealed class PlayerRuntime : SpatialRuntime
     {
         [SerializeField] private int _playerId = 2001;
         [SerializeField] private PlayerCombatSettings _combat = null;
@@ -17,16 +17,7 @@ namespace HumanGhost.Gameplay.Adapters
         // 이 플레이어가 공격자일 때의 회피·치명 난수입니다.
         public Func<int, int, int> HitRandom { get; private set; }
         public event Action<PlayerActor> Initialized;
-        public event Action SpatialChanged;
         public event Action Destroyed;
-        public void SetPosition(Vector3 position)
-        {
-            if (transform.position.Equals(position)) return;
-            transform.position = position;
-            SpatialChanged?.Invoke();
-        }
-        // 외부 물리나 부모 이동을 적용한 소유자가 완료 후 호출합니다.
-        public void NotifySpatialChanged() => SpatialChanged?.Invoke();
 
         // GameDataInitializer 완료 소비자가 호출합니다. 공급 초기화/저장소를 중복 생성하지 않습니다.
         public void Initialize(IReadOnlyDataCatalog catalog, int currentStamina, bool grounded)
@@ -43,12 +34,16 @@ namespace HumanGhost.Gameplay.Adapters
             Initialized?.Invoke(actor);
         }
 
-        // 해금 판단은 호출자 책임입니다. 시트 정의와 설정 에셋으로 결박 가르기를 연결합니다.
-        public void EnableSkill(Skill definition)
+        // 모든 연결 경로가 같은 기획 잠금·해금 판단을 거칩니다. 시험 모드도 기획 잠금은 우회하지 않습니다.
+        public bool EnableSkill(Skill definition, ContentAccess access)
         {
             if (definition == null) throw new ArgumentNullException(nameof(definition));
             if (Actor == null) throw new InvalidOperationException("플레이어 초기화가 필요합니다.");
+            if (access == null) throw new ArgumentNullException(nameof(access));
+            ContentAccessResult result = access.Evaluate(definition);
+            if (result != ContentAccessResult.Allowed) return false;
             Actor.ConfigureSkill(_combat.CreateSkill(definition), definition.Cooldown, _combat.SkillDistance);
+            return true;
         }
 
         public void EnableHerbs(Buff definition)
@@ -63,7 +58,7 @@ namespace HumanGhost.Gameplay.Adapters
             if (Actor == null) throw new InvalidOperationException("플레이어 초기화가 필요합니다.");
             bool previous = Actor.Locomotion.IsGrounded;
             Actor.Locomotion.SetGrounded(grounded);
-            if (previous != grounded) SpatialChanged?.Invoke();
+            if (previous != grounded) NotifySpatialStateChanged();
         }
 
         private void OnEnable() { if (Actor != null) _input.enabled = true; }

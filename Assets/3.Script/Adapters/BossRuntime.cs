@@ -5,15 +5,9 @@ using UnityEngine;
 
 namespace HumanGhost.Gameplay.Adapters
 {
-    public sealed class BossRuntime : MonoBehaviour
+    public sealed class BossRuntime : SpatialRuntime
     {
-        public event Action PositionChanged;
-        public void SetPosition(Vector3 position)
-        {
-            if (transform.position.Equals(position)) return;
-            transform.position = position;
-            PositionChanged?.Invoke();
-        }
+        public event Action PositionChanged { add => SpatialChanged += value; remove => SpatialChanged -= value; }
         [SerializeField] private int _bossId = 1006;
         [SerializeField] private int _phase = 0;
         // 선택: 연결하지 않으면 체세·노출·해체만 동작하고 패턴 실행 요청은 누락 오류로 거부합니다.

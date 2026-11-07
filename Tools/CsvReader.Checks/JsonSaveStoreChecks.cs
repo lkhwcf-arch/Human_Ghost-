@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -20,6 +20,21 @@ internal static class JsonSaveStoreChecks
         try
         {
             check((await store.ReadAsync()).Count == 0 && !Directory.Exists(directory));
+            string settings = Path.Combine(directory, "atomic", "settings.json");
+            AtomicTextFile.Write(settings, "처음 설정");
+            AtomicTextFile.Write(settings, "변경 설정");
+            check(File.ReadAllText(settings, Encoding.UTF8) == "변경 설정");
+            bool encodingFailed = false;
+            try { AtomicTextFile.Write(settings, "\uD800"); } catch (EncoderFallbackException) { encodingFailed = true; }
+            check(encodingFailed && File.ReadAllText(settings, Encoding.UTF8) == "변경 설정");
+            bool replacementFailed = false;
+            using (var locked = new FileStream(settings, FileMode.Open, FileAccess.Read, FileShare.None))
+            {
+                try { AtomicTextFile.Write(settings, "실패할 설정"); } catch (IOException) { replacementFailed = true; }
+            }
+            check(replacementFailed && File.ReadAllText(settings, Encoding.UTF8) == "변경 설정"
+                && Directory.GetFiles(Path.GetDirectoryName(settings), "*.tmp").Length == 0);
+
             var session = new SaveSession(SaveBuildMode.Demo, 1, store, () => 1000, Array.Empty<SaveRecord>());
             check(await session.NewGameAsync(Snapshot(100)));
             check(await session.SaveManualAsync(7, false, Snapshot(350)));

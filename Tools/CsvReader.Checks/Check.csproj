@@ -17,6 +17,7 @@
     <Compile Include="../../Assets/3.Script/Core/Cutscenes/*.cs" />
     <Compile Include="../../Assets/3.Script/Core/Saves/*.cs" />
     <Compile Include="../../Assets/3.Script/Adapters/JsonSaveStore.cs" />
+    <Compile Include="../../Assets/3.Script/Adapters/AtomicTextFile.cs" />
     <Compile Include="../../Assets/3.Script/Adapters/CutsceneSequenceSource.cs" />
     <Compile Include="../../Assets/3.Script/Adapters/LanguageTextSource.cs" />
     <Compile Include="../../Assets/3.Script/Adapters/ErrorLogDispatcher.cs" />

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
@@ -204,7 +204,7 @@ namespace HumanGhost.Gameplay.Adapters
             try
             {
                 if (!reason.AllowsProgress() || !EnterGame(null)) _host.CompleteRequest();
-                else HumanGhost.Gameplay.Preview.PreviewSession.ViewedCutscenes.Add(_introCutsceneId);
+                else GameSaveContext.Current.Progress.MarkCutsceneViewed(_introCutsceneId);
             }
             catch (Exception error) { _host.CompleteRequest(); _host.ReportError(error, "인트로 종료 후 새 게임 진입"); }
         }
@@ -227,7 +227,6 @@ namespace HumanGhost.Gameplay.Adapters
                 foreach (int id in record.Snapshot.OpenedGates) _data.Data.GetTable<HumanGhost.Data.Definitions.GateConfig>().Get(id);
             }
             Instantiate(_loadingPrefab).Begin(_newGameScene, _data.Data, context.SceneReady);
-            HumanGhost.Gameplay.Preview.PreviewSession.Reset();
             GameSaveContext.Set(context);
             Cursor.visible = false;
             return true;

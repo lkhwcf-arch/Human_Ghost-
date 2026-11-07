@@ -9,34 +9,63 @@ namespace HumanGhost.Gameplay.Preview
 {
     // 스테이지 하나를 조립합니다: 맵 → JSON 플랫폼 → JSON 몬스터. 생성은 비활성 상태에서 마친 뒤 활성화합니다.
     // 재시작·스테이지 이동은 씬을 다시 불러오므로 몬스터를 재사용하는 풀은 아직 두지 않습니다.
-    internal sealed class PreviewStage
+    internal sealed class PreviewStage : IDisposable
     {
         private const string _markersName = "Markers";
         private const float _groundLine = 2f;
+        private GameObject _root;
+        private readonly GameProgressState _progress;
         public Transform MapRoot { get; }
         public Transform Markers { get; }
         public Transform Interactables { get; }
-        public List<MonsterRuntime> Monsters { get; } = new List<MonsterRuntime>();
-        public Dictionary<MonsterRuntime, MonsterSpawnId> MonsterIds { get; } = new Dictionary<MonsterRuntime, MonsterSpawnId>();
+        private readonly List<MonsterRuntime> _monsters = new List<MonsterRuntime>();
+        private readonly Dictionary<MonsterRuntime, MonsterSpawnId> _monsterIds = new Dictionary<MonsterRuntime, MonsterSpawnId>();
+        public IReadOnlyList<MonsterRuntime> Monsters => _monsters;
+        public IReadOnlyDictionary<MonsterRuntime, MonsterSpawnId> MonsterIds => _monsterIds;
         public Bounds Area { get; private set; }
         public float CameraSize { get; }
-        // shortcut: 매복 몬스터를 미리 만들어 꺼 둡니다. 풀링 구현 때 그쪽으로 옮깁니다.
+        // 매복 몬스터는 초기화한 뒤 발동 시점까지 비활성 상태로 유지합니다.
         private readonly List<KeyValuePair<float, MonsterRuntime>> _ambushes = new List<KeyValuePair<float, MonsterRuntime>>();
 
-        public PreviewStage(StageContentSet content, int stageId, IReadOnlyDataCatalog data, Vector3 origin)
+        public PreviewStage(StageContentSet content, int stageId, IReadOnlyDataCatalog data, Vector3 origin, GameProgressState progress)
         {
-            StageContentSet.StageEntry entry = content.GetStage(stageId) ?? throw new InvalidOperationException("스테이지 리소스가 없습니다: " + stageId);
-            if (entry.Map == null) throw new InvalidOperationException("스테이지 맵 프리팹이 없습니다: " + stageId);
-            CameraSize = entry.CameraSize;
-            GameObject map = UnityEngine.Object.Instantiate(entry.Map, origin + entry.Map.transform.localPosition, Quaternion.identity);
-            map.name = entry.Map.name;
-            MapRoot = map.transform;
-            Markers = MapRoot.Find(_markersName) ?? throw new InvalidOperationException(map.name + "에 Markers가 없습니다.");
-            Interactables = new GameObject("Interactables").transform;
-            Interactables.SetParent(MapRoot, false);
-            if (entry.Spawn != null) Build(content, StageLayoutReader.Read(entry.Spawn.text), data);
+            _progress = progress ?? throw new ArgumentNullException(nameof(progress));
+            _root = new GameObject("StageScope");
+            _root.SetActive(false);
+            try
+            {
+                StageContentSet.StageEntry entry = content.GetStage(stageId) ?? throw new InvalidOperationException("스테이지 리소스가 없습니다: " + stageId);
+                if (entry.Map == null) throw new InvalidOperationException("스테이지 맵 프리팹이 없습니다: " + stageId);
+                CameraSize = entry.CameraSize;
+                GameObject map = UnityEngine.Object.Instantiate(entry.Map, origin + entry.Map.transform.localPosition, Quaternion.identity, _root.transform);
+                map.name = entry.Map.name;
+                map.SetActive(true);
+                MapRoot = map.transform;
+                Markers = MapRoot.Find(_markersName) ?? throw new InvalidOperationException(map.name + "에 Markers가 없습니다.");
+                Interactables = new GameObject("Interactables").transform;
+                Interactables.SetParent(MapRoot, false);
+                if (entry.Spawn != null) Build(content, StageLayoutReader.Read(entry.Spawn.text), data);
+                Area = FindArea();
+            }
+            catch { Dispose(); throw; }
+        }
+
+        public void Activate()
+        {
+            if (_root == null) throw new ObjectDisposedException(nameof(PreviewStage));
+            foreach (MonsterRuntime monster in Monsters)
+                if (!monster.IsInitialized) throw new InvalidOperationException("몬스터 초기화가 끝나기 전에 스테이지를 활성화할 수 없습니다.");
+            _root.SetActive(true);
             Physics2D.SyncTransforms();
-            Area = FindArea();
+        }
+
+        public void Dispose()
+        {
+            if (_root == null) return;
+            _root.SetActive(false);
+            UnityEngine.Object.Destroy(_root);
+            _root = null;
+            _ambushes.Clear(); _monsters.Clear(); _monsterIds.Clear();
         }
 
         private void Build(StageContentSet content, StageLayout layout, IReadOnlyDataCatalog data)
@@ -50,6 +79,7 @@ namespace HumanGhost.Gameplay.Preview
                 Transform anchor = anchors.Get(placement.Anchor);
                 GameObject platform = UnityEngine.Object.Instantiate(prefab, anchor.position, Quaternion.identity, MapRoot);
                 platform.name = prefab.name;
+                platform.SetActive(true);
                 placed[placement.PlacementID] = placement;
             }
             IReadOnlyDataTable<Monster> table = data.GetTable<Monster>();
@@ -62,7 +92,7 @@ namespace HumanGhost.Gameplay.Preview
             foreach (StageMonsterSpawn spawn in spawns)
             {
                 var id = new MonsterSpawnId(layout.StageID, spawn.PlacementId, spawn.Sequence);
-                if (!PreviewSession.DefeatedMonsters.Contains(id)
+                if (!_progress.HasDefeatedMonster(id)
                     && placed.TryGetValue(spawn.PlacementId, out StagePlacement placement))
                     SpawnMonster(content, spawn, placement, anchors.Get(placement.Anchor), id);
             }
@@ -72,24 +102,19 @@ namespace HumanGhost.Gameplay.Preview
         {
             MonsterRuntime prefab = content.GetMonster(spawn.Code);
             if (prefab == null) { Debug.LogWarning("몬스터 프리팹이 없습니다: " + spawn.Code); return; }
-            // 비활성 부모 아래 생성해 Awake 전에 위치를 정합니다. 프리팹 원본은 건드리지 않습니다.
-            var holder = new GameObject("SpawnHolder");
-            holder.SetActive(false);
-            MonsterRuntime monster = UnityEngine.Object.Instantiate(prefab, holder.transform);
+            // 스테이지 소유 범위에서 위치와 데이터를 먼저 준비합니다. 원본 프리팹은 변경하지 않습니다.
+            MonsterRuntime monster = UnityEngine.Object.Instantiate(prefab, _root.transform);
             monster.name = $"{prefab.name}_{spawn.PlacementId}_{spawn.Sequence}";
             // 발판을 옮기면 몬스터도 따라가도록 플랫폼 앵커에서 잽니다. 바닥선은 맵 y=2입니다.
             float baseY = StageLayoutRules.UsesGroundLine(placement.Prefab) ? MapRoot.position.y + _groundLine : anchor.position.y;
             float halfHeight = monster.GetComponentInChildren<SpriteRenderer>(true).transform.lossyScale.y * 0.5f;
             monster.transform.position = new Vector3(anchor.position.x + spawn.X / 100f, baseY + spawn.Height / 100f + halfHeight, MapRoot.position.z);
-            // 부모에서 꺼내기 전에 꺼 두어야 Awake가 활성화 시점까지 미뤄집니다.
             monster.gameObject.SetActive(false);
-            monster.transform.SetParent(null, true);
-            UnityEngine.Object.Destroy(holder);
             // 발동 전 몬스터도 목록에 있어 출구 조건의 '스폰 예정'으로 셉니다(K07).
             if (spawn.Trigger is int trigger) _ambushes.Add(new KeyValuePair<float, MonsterRuntime>(MapRoot.position.x + trigger / 100f, monster));
             else monster.gameObject.SetActive(true);
-            Monsters.Add(monster);
-            MonsterIds.Add(monster, id);
+            _monsters.Add(monster);
+            _monsterIds.Add(monster, id);
         }
 
         public void StepAmbushes(float playerX)
@@ -108,8 +133,17 @@ namespace HumanGhost.Gameplay.Preview
             var area = new Bounds(MapRoot.position, Vector3.zero);
             foreach (BoxCollider2D box in MapRoot.GetComponentsInChildren<BoxCollider2D>(true))
             {
-                if (box.isTrigger) continue;
-                if (first) { area = box.bounds; first = false; } else area.Encapsulate(box.bounds);
+                if (box.isTrigger || !box.enabled) continue;
+                bool active = true;
+                for (Transform parent = box.transform; parent != _root.transform; parent = parent.parent)
+                    if (!parent.gameObject.activeSelf) { active = false; break; }
+                if (!active) continue;
+                // 비활성 충돌체의 bounds는 비어 있으므로 설정값을 월드 경계로 변환합니다.
+                Vector3 center = box.transform.TransformPoint(box.offset);
+                Vector3 x = box.transform.TransformVector(new Vector3(box.size.x, 0f));
+                Vector3 y = box.transform.TransformVector(new Vector3(0f, box.size.y));
+                var bounds = new Bounds(center, new Vector3(Mathf.Abs(x.x) + Mathf.Abs(y.x), Mathf.Abs(x.y) + Mathf.Abs(y.y), 0f));
+                if (first) { area = bounds; first = false; } else area.Encapsulate(bounds);
             }
             return area;
         }

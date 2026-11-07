@@ -17,6 +17,7 @@ namespace HumanGhost.Gameplay.Preview
         private GameObject _manualSaveRoot;
 #endif
         private SaveGameFlow _saveFlow;
+        private SaveSession _saveSession;
         private CancellationTokenSource _saveLifetime;
         private bool _saveLocked;
         private bool _saveFailed;
@@ -38,7 +39,7 @@ namespace HumanGhost.Gameplay.Preview
             {
                 MonsterActor actor = pair.Key.Actor;
                 MonsterSpawnId id = pair.Value;
-                Action<int> changed = scope.Guard<int>(health => { if (health == 0) PreviewSession.DefeatedMonsters.Add(id); });
+                Action<int> changed = scope.Guard<int>(health => { if (health == 0) _progress.MarkMonsterDefeated(id); });
                 scope.Add(() => actor.HealthChanged -= changed); actor.HealthChanged += changed;
             }
         }
@@ -51,28 +52,17 @@ namespace HumanGhost.Gameplay.Preview
             if (snapshot.Hp == 0) throw new InvalidOperationException("사망 상태 기록으로는 이어하기를 시작할 수 없습니다.");
             _catalog.GetTable<Stage>().Get(snapshot.StageId);
             foreach (int id in snapshot.OpenedGates) _catalog.GetTable<GateConfig>().Get(id);
-            PreviewSession.Reset();
-            PreviewSession.CurrentStage = snapshot.StageId;
-            foreach (int id in snapshot.ClearedStages) PreviewSession.Progress.Clear(id);
-            if (snapshot.ClearedStages.Contains(BossStage)) PreviewSession.DefeatedBoss.Add(BossStage);
-            PreviewSession.OpenedGates.UnionWith(snapshot.OpenedGates);
-            PreviewSession.ActiveShrines.UnionWith(snapshot.ActiveShrines);
-            PreviewSession.ViewedCutscenes.UnionWith(snapshot.ViewedCutscenes);
-            PreviewSession.DefeatedMonsters.UnionWith(snapshot.DefeatedMonsters);
-            PreviewSession.ShrineId = snapshot.ShrineId;
-            PreviewSession.CheckpointPassed = snapshot.ShrineId != 0;
+            _progress.Restore(snapshot);
         }
 
         private async void ConnectSaves()
         {
             _saveLifetime = new CancellationTokenSource();
-            ConnectProgress();
             CancellationToken cancellation = _saveLifetime.Token;
             _saveFailed = false;
             GameSaveContext sceneContext = GameSaveContext.Current;
             try
             {
-                SetPlayable(false);
                 GameSaveContext context = GameSaveContext.Current;
                 if (context == null)
                 {
@@ -80,10 +70,11 @@ namespace HumanGhost.Gameplay.Preview
                     var records = await store.ReadAsync();
                     cancellation.ThrowIfCancellationRequested();
                     RequireSaveRuntime();
-                    context = GameSaveContext.Create(records, store, 1);
+                    context = GameSaveContext.Create(records, store, 1, progress: _progress);
                     GameSaveContext.Set(context);
                     sceneContext = context;
                 }
+                _saveSession = context.Session;
                 try { await context.Session.PendingWrite; }
                 catch (Exception error)
                 {
@@ -141,14 +132,12 @@ namespace HumanGhost.Gameplay.Preview
             int savePointId = _stageId;
             var lifetime = _saveLifetime;
             var flow = _saveFlow;
-            SaveSession session = GameSaveContext.Current.Session;
+            SaveSession session = _saveSession;
             SaveSnapshot previous = session.CurrentSnapshot;
             _shrineSaving = true;
             try
             {
-                PreviewSession.CheckpointPassed = true;
-                PreviewSession.ShrineId = savePointId;
-                PreviewSession.ActiveShrines.Add(savePointId);
+                _progress.ActivateShrine(savePointId);
                 _savePoint.GetComponent<ShrineInteract>().SetActive(true);
                 if (rest) RestorePlayerVitals(_actor.Definition.HP, _catalog.GetTable<Buff>().Get(_herbBuffId).Charges);
                 await flow.SaveAutomaticAsync(savePointId, rest);
@@ -170,13 +159,13 @@ namespace HumanGhost.Gameplay.Preview
         {
             RequireSaveRuntime();
             if (_actor.IsDead) throw new InvalidOperationException("사망 상태에서는 현재 위치를 저장할 수 없습니다.");
-            return new SaveSnapshot(_stageId, PreviewSession.ShrineId,
-                Mathf.RoundToInt(_player.transform.position.x / _worldUnitsPerTile * 100f),
-                Mathf.RoundToInt(_player.transform.position.y / _worldUnitsPerTile * 100f),
+            return new SaveSnapshot(_stageId, _progress.ShrineId,
+                IntegerPosition.ToData(_player.Position.X),
+                IntegerPosition.ToData(_player.Position.Y),
                 _actor.Health, _actor.HerbCount,
-                PreviewSession.Progress.GetCleared().Concat(PreviewSession.DefeatedBoss),
-                PreviewSession.ActiveShrines, PreviewSession.OpenedGates, PreviewSession.ViewedCutscenes, Array.Empty<int>(),
-                PreviewSession.DefeatedMonsters);
+                _progress.Progress.GetCleared(),
+                _progress.ActiveShrines, _progress.OpenedGates, _progress.ViewedCutscenes, Array.Empty<int>(),
+                _progress.DefeatedMonsters);
         }
         public Task PrepareAsync(SaveSnapshot snapshot, CancellationToken cancellation)
         {
@@ -189,8 +178,7 @@ namespace HumanGhost.Gameplay.Preview
         {
             RequireSaveRuntime();
             RestorePlayerVitals(snapshot.Hp, snapshot.Herbs);
-            _player.SetPosition(new Vector3(snapshot.PositionX / 100f * _worldUnitsPerTile,
-                snapshot.PositionY / 100f * _worldUnitsPerTile, _player.transform.position.z));
+            _player.SetPosition(new IntegerPosition(IntegerPosition.FromData(snapshot.PositionX), IntegerPosition.FromData(snapshot.PositionY)));
         }
         public void SetPlayable(bool playable)
         {
@@ -225,6 +213,7 @@ namespace HumanGhost.Gameplay.Preview
             if (_saveLocked && _speed != null) _speed.State.SetPaused(false);
             _saveLocked = false;
             _saveFlow = null;
+            _saveSession = null;
         }
     }
 }

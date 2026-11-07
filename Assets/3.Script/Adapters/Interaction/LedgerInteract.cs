@@ -32,8 +32,8 @@ namespace HumanGhost.Gameplay.Adapters
         {
             if (context.Progress.Clear(_stageId))
             {
-                context.Player.EnableSkill(context.Data.GetTable<Skill>().Get(_skillId));
-                context.Textbox.ShowNotice(context.Text(_unlockTextId));
+                if (context.Player.EnableSkill(context.Data.GetTable<Skill>().Get(_skillId), new ContentAccess(context.Progress.IsCleared)))
+                    context.Textbox.ShowNotice(context.Text(_unlockTextId));
                 return;
             }
             context.Textbox.Open("", new[] { _temporaryRepeatLine }, null);

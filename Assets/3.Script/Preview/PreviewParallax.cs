@@ -19,12 +19,20 @@ namespace HumanGhost.Gameplay.Preview
         // 맵 프리팹의 Background 아래 Sky=SKY, Mountains=FAR로 연결합니다.
         public void Connect(IReadOnlyDataCatalog data, int stageId, Transform map)
         {
-            _targets.Clear(); _rates.Clear(); _bases.Clear();
+            Disconnect();
             Add(data, stageId, map.Find("Background/Sky"), "SKY");
             Add(data, stageId, map.Find("Background/Mountains"), "FAR");
             _cameraBase = _camera.position;
             _ready = true;
         }
+
+        public void Disconnect()
+        {
+            _ready = false;
+            _targets.Clear(); _rates.Clear(); _bases.Clear();
+        }
+
+        private void OnDisable() => Disconnect();
 
         private void Add(IReadOnlyDataCatalog data, int stageId, Transform target, string layerName)
         {

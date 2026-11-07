@@ -34,7 +34,7 @@ namespace HumanGhost.Gameplay.Adapters
         public static void Save(GameSettings settings)
         {
             var data = new Payload { Master = settings.Master, Music = settings.Music, Effects = settings.Effects, CameraShake = settings.CameraShake, KeyboardLayout = (int)settings.KeyboardLayout };
-            File.WriteAllText(FilePath, JsonUtility.ToJson(data));
+            AtomicTextFile.Write(FilePath, JsonUtility.ToJson(data));
         }
     }
 }

@@ -6,7 +6,7 @@ using UnityEngine;
 namespace HumanGhost.Gameplay.Adapters
 {
     // 제공된 일반몹 정의와 패턴 설정으로 개체별 AI 런타임을 조립합니다. 관측·이동·판정은 외부 어댑터가 공급합니다.
-    public sealed class MonsterRuntime : MonoBehaviour
+    public sealed class MonsterRuntime : SpatialRuntime
     {
         [SerializeField, Min(1)] private int _monsterId = 3001;
         [SerializeField] private MonsterPatternSettings _patterns = null;

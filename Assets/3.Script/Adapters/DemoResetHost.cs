@@ -112,7 +112,6 @@ namespace HumanGhost.Gameplay.Adapters
                     if (ReferenceEquals(GameSaveContext.Current, owner))
                     {
                         GameSaveContext.Set(null);
-                        HumanGhost.Gameplay.Preview.PreviewSession.Reset();
                     }
                 }
                 cancellation.ThrowIfCancellationRequested();

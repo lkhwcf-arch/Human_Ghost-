@@ -16,6 +16,9 @@ namespace HumanGhost.Gameplay.Preview
         private readonly float _secondRange;
         private readonly float _sight;
         private int _nextPattern;
+        private MillisecondClock _clock;
+        private readonly IntegerMotion _motion = new IntegerMotion();
+        private readonly IntegerMotion _pullMotion = new IntegerMotion();
         public event Action PlayerHit;
         // 추적 중이거나 패턴을 쓰는 동안입니다. 전투 BGM·HUD에 씁니다.
         public bool IsEngaged { get; private set; }
@@ -29,6 +32,7 @@ namespace HumanGhost.Gameplay.Preview
             _playerBody = playerBody != null ? playerBody : throw new ArgumentNullException(nameof(playerBody));
             if (runtime.Combat == null || worldUnitsPerTile <= 0f || range <= 0f || secondRange < range)
                 throw new ArgumentException("보스 패턴·임시 거리 설정을 확인하세요.");
+            runtime.ConfigureSpatialScale(worldUnitsPerTile);
             _worldUnitsPerTile = worldUnitsPerTile;
             _range = range;
             _secondRange = secondRange;
@@ -49,21 +53,19 @@ namespace HumanGhost.Gameplay.Preview
             if (_player.Actor.IsDead) { combat.Release(); return; }
             float offset = _player.transform.position.x - _runtime.transform.position.x;
             if (!combat.IsAttacking) combat.Face(offset < 0f ? -1 : 1);
-            Vector3 position = _runtime.transform.position;
-            float velocity = combat.Velocity;
+            int milliseconds = _clock.Advance(seconds);
+            int velocity = combat.Velocity;
             bool noticed = _sight <= 0f || Mathf.Abs(offset) <= _sight * _worldUnitsPerTile;
             IsEngaged = noticed;
             if (noticed && !combat.IsAttacking && !combat.IsWaiting && Mathf.Abs(offset) > _range * _worldUnitsPerTile)
                 velocity = combat.Facing * _runtime.Actor.Definition.MoveSpeed;
-            position.x += velocity / 100f * _worldUnitsPerTile * seconds;
             float extent = _body.bounds.extents.x;
-            bool wall = position.x <= minX + extent || position.x >= maxX - extent;
-            position.x = Mathf.Clamp(position.x, minX + extent, maxX - extent);
-            _runtime.SetPosition(position);
+            bool wall = _runtime.MoveHorizontal(_motion.StepHorizontal(velocity, milliseconds), minX + extent, maxX - extent);
+            if (wall) _motion.ResetHorizontal();
             if (wall) combat.NotifyWallHit();
             if (noticed && !combat.IsAttacking && !combat.IsWaiting) SelectPattern(Mathf.Abs(offset));
             CheckHit();
-            Pull(seconds);
+            Pull(milliseconds);
         }
 
         // 근접 거리는 사슬 외 패턴을 순환하고, 그 밖에서는 사슬이 닿으면 사슬을 씁니다.
@@ -80,14 +82,16 @@ namespace HumanGhost.Gameplay.Preview
             }
         }
 
-        private void Pull(float seconds)
+        private void Pull(int milliseconds)
         {
             int velocity = _runtime.Combat.PullVelocity;
-            if (velocity == 0) return;
-            Vector3 position = _player.transform.position;
-            float stop = _runtime.transform.position.x + _runtime.Combat.Facing * _range * _worldUnitsPerTile * 0.5f;
-            position.x = Mathf.MoveTowards(position.x, stop, Mathf.Abs(velocity) / 100f * _worldUnitsPerTile * seconds);
-            _player.SetPosition(position);
+            if (velocity == 0) { _pullMotion.ResetHorizontal(); return; }
+            long x = _player.Position.X;
+            long stop = _player.ToInteger(_runtime.transform.position.x + _runtime.Combat.Facing * _range * _worldUnitsPerTile * 0.5f);
+            long distance = _pullMotion.StepHorizontal(Math.Abs(velocity), milliseconds);
+            long next = x < stop ? Math.Min(stop, x + distance) : Math.Max(stop, x - distance);
+            _player.SetPosition(new IntegerPosition(next, _player.Position.Y));
+
         }
 
         private void OnAttackWindowChanged(bool active) { if (active) CheckHit(); }

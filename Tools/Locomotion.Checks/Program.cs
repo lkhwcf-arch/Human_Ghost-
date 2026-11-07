@@ -18,6 +18,8 @@ internal static class Program
             if (args.Length != 1) throw new ArgumentException("Unity 프로젝트 루트가 필요합니다.");
             Player definition = ReadPlayer(args[0]);
             CheckLocomotion(definition);
+            IntegerMotionChecks.Run(Check);
+            GameProgressChecks.Run(Check);
             Player changed = ReadPlayer(args[0], checked(definition.MoveSpeed + 1), checked(definition.JumpHeight + 1));
             var changedActor = new PlayerLocomotion(changed, true);
             changedActor.SetMove(-1);

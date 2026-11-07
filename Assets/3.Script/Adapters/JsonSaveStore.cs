@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -69,22 +69,7 @@ namespace HumanGhost.Gameplay.Adapters
             if (record == null) throw new ArgumentNullException(nameof(record));
             CheckVersion(record);
             string json = JsonConvert.SerializeObject(record, _settings);
-            Directory.CreateDirectory(_directory);
-            string destination = Path.Combine(_directory, GetFileName(record.Slot));
-            string temporary = Path.Combine(_directory, ".save-" + Guid.NewGuid().ToString("N") + ".tmp");
-            try
-            {
-                byte[] bytes = _encoding.GetBytes(json);
-                using (var stream = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
-                {
-                    stream.Write(bytes, 0, bytes.Length);
-                    stream.Flush(true);
-                }
-                // 기존 파일을 먼저 삭제하지 않습니다. 교체를 지원하지 않으면 실패를 호출자에게 전달합니다.
-                if (File.Exists(destination)) File.Replace(temporary, destination, null);
-                else File.Move(temporary, destination);
-            }
-            finally { File.Delete(temporary); }
+            AtomicTextFile.Write(Path.Combine(_directory, GetFileName(record.Slot)), json);
             return true;
         });
 
