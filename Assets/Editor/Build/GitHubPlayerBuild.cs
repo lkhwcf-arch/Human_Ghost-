@@ -27,6 +27,11 @@ namespace HumanGhost.Editor.Build
 
         private static void BuildWindowsCore()
         {
+            string mode = ReadArgument("-humanGhostBuildMode", "development");
+            BuildOptions options = mode == "development" ? BuildOptions.Development
+                : mode == "release" ? BuildOptions.None
+                : throw new BuildFailedException("지원하지 않는 빌드 종류입니다. development 또는 release를 지정해 주세요.");
+            string modeName = mode == "release" ? "정식" : "테스트";
             string scene = ReadArgument("-humanGhostScene", "build-settings");
             string[] scenes = scene == "dohwagol"
                 ? new[] { "Assets/1.Scene/MapDohwagolTest.unity" }
@@ -46,7 +51,7 @@ namespace HumanGhost.Editor.Build
             string version = PlayerSettings.bundleVersion;
             try
             {
-                // GitHub의 Linux 실행 환경에서 Windows 개발 빌드를 만들도록 Mono를 사용합니다.
+                // 두 종류 모두 기존 Linux 실행 환경과 Windows 64비트 Mono 출력을 공유합니다.
                 PlayerSettings.SetScriptingBackend(target, ScriptingImplementation.Mono2x);
                 PlayerSettings.bundleVersion = ReadArgument("-humanGhostVersion", version);
                 BuildReport report = BuildPipeline.BuildPlayer(new BuildPlayerOptions
@@ -54,11 +59,11 @@ namespace HumanGhost.Editor.Build
                     scenes = scenes,
                     target = BuildTarget.StandaloneWindows64,
                     locationPathName = output,
-                    options = BuildOptions.Development
+                    options = options
                 });
                 if (report.summary.result != BuildResult.Succeeded)
                     throw new BuildFailedException("윈도우 게임 빌드가 성공하지 못했습니다. 빌드 로그를 확인해주세요.");
-                Debug.Log("윈도우 게임 빌드를 완료했습니다.");
+                Debug.Log($"윈도우 {modeName} 게임 빌드를 완료했습니다.");
             }
             finally
             {

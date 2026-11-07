@@ -1,6 +1,6 @@
 # GitHub 빌드와 디스코드 공지 사용 안내
 
-> 2026-11-04 최신 풀 점검: GitHub 기본은 build / build-settings이며 Title→MapDohwagolTest 개발 빌드입니다. 결과는7일 보관합니다. 특정 커밋 입력은 미구현이고 실행 중 빌드는 시작 커밋 기준입니다. 최신 엄격 검사 실패는 검증 현황을 확인합니다. 전체 상태는 [현재 구현과 검증 현황](../%EA%B0%9C%EB%B0%9C%EC%9E%90%EC%9A%A9%20%EC%84%A4%EA%B3%84%EB%AC%B8%EC%84%9C/%ED%98%84%EC%9E%AC%20%EA%B5%AC%ED%98%84%EA%B3%BC%20%EA%B2%80%EC%A6%9D%20%ED%98%84%ED%99%A9.md), 우선순위는 [남은 작업](../%EA%B0%9C%EB%B0%9C%EC%9E%90%EC%9A%A9%20%EC%84%A4%EA%B3%84%EB%AC%B8%EC%84%9C/%EB%82%A8%EC%9D%80%20%EA%B5%AC%ED%98%84%EA%B3%BC%20%EA%B2%80%EC%A6%9D%20%EC%9E%91%EC%97%85.md)을 따릅니다.
+> 2026-11-07 갱신: build_mode에서 development(테스트)·release(정식)를 선택합니다. 기본값은 테스트이며 결과물은 7일 보관합니다. 변경 파일을 GitHub에 반영한 뒤 새 실행부터 적용됩니다. 기존 실행 기록을 다시 실행하는 것은 새 설정 반영 방법이 아닙니다.
 
 ## 이 기능은 왜 필요한가요?
 
@@ -75,7 +75,7 @@ Google 로그인 계정의 별도 Unity 비밀번호 설정과 라이선스 계�
 3. 왼쪽 목록에서 **Windows 게임 빌드**를 선택합니다.
 4. 오른쪽 **Run workflow** 버튼을 누릅니다.
 5. 실행할 브랜치를 고릅니다. 처음에는 개발자가 설정을 반영한 **Develop**을 선택합니다.
-6. 아래 표를 보고 operation과 scene을 선택합니다.
+6. 아래 표를 보고 operation·build_mode·scene을 선택합니다.
 7. 초록색 **Run workflow**를 누르고 실행 기록이 생길 때까지 기다립니다.
 
 ```text
@@ -83,7 +83,7 @@ Google 로그인 계정의 별도 Unity 비밀번호 설정과 라이선스 계�
   → 맨 위 Actions
     → 왼쪽 Windows 게임 빌드
       → 오른쪽 Run workflow
-        → 브랜치·operation·scene 선택
+        → 브랜치·operation·build_mode·scene 선택
           → 초록색 Run workflow
 ```
 
@@ -91,14 +91,45 @@ Google 로그인 계정의 별도 Unity 비밀번호 설정과 라이선스 계�
 | --- | --- | --- |
 | operation | notice-test | 빌드 채널로 테스트 메시지만 보냄. 게임은 만들지 않음 |
 | operation | build | 검사 후 실제 Windows 게임을 만들고 결과를 공지 |
+| build_mode | development | 테스트 빌드. F5 저장·저장 기록 선택·F12 초기화 사용. 기본값 |
+| build_mode | release | 정식 빌드. 테스트 전용 기능 제외·자동 저장 단일 슬롯 |
 | scene | dohwagol | R3c 도화골 전투 테스트(MapDohwagolTest)만 |
 | scene | preview | 독립 게임플레이 검사 장면(GameplayPreview) |
 | scene | build-settings | Unity 빌드 설정의 활성 씬. 현재 Title→MapDohwagolTest. 기본값 |
 
-처음에는 **notice-test**로 채널을 확인한 뒤 **build / build-settings**로 타이틀부터 시작하는 게임 파일을 만듭니다.
-notice-test에서는 scene 값이 사용되지 않습니다.
+평소 시연·검사는 **build / development / build-settings**, 정식 설정 확인은 **build / release / build-settings**를 선택합니다. notice-test는 공지만 확인하며 게임 파일을 만들지 않습니다.
+notice-test에서는 scene으로 게임을 만들지 않습니다. 공지의 빌드 종류는 선택값을 보여줄 뿐 실제 빌드 완료를 뜻하지 않습니다.
 현재 build-settings는 Title·MapDohwagolTest 활성, SampleScene 비활성입니다. 명령줄 -humanGhostScene 생략 시에도 build-settings를 사용합니다.
 버튼이나 목록이 없으면 개발자에게 설정의 기본 브랜치 반영과 계정 실행 권한을 확인해달라고 요청합니다.
+
+
+### 테스트와 정식을 어떻게 구분하나요?
+
+```mermaid
+flowchart TD
+    A[Run workflow 열기] --> B[operation: build]
+    B --> C{build_mode 선택}
+    C -->|development| D[테스트 기능 포함]
+    C -->|release| E[테스트 기능 제외]
+    D --> F[같은 검사·빌드 절차]
+    E --> F
+    F --> G[파일 이름과 디스코드 빌드 종류 확인]
+```
+
+| 구분 | development: 테스트 | release: 정식 |
+| --- | --- | --- |
+| F5 수동 저장 | 사용 가능 | 사용 안 함 |
+| 타이틀의 저장 기록 선택 | 테스트 화면 사용 | 제외 |
+| F12 초기화 | 사용 가능 | 사용 안 함 |
+| 저장 정책 | 테스트용 슬롯 최대 10개 | 자동 저장 슬롯 1개 |
+| 저장 위치 | 기존 테스트 저장 폴더 | 별도의 Saves/Release 폴더 |
+| 내려받는 파일 이름 | HumanGhost-Windows-development-실행번호-시도번호 | HumanGhost-Windows-release-실행번호-시도번호 |
+
+정식 빌드를 처음 켰을 때 테스트 저장 기록이 보이지 않는 것은 폴더가 분리되어 있기 때문입니다. 기존 테스트 저장을 삭제하거나 자동으로 옮기지 않습니다. 게임을 수정한 뒤에는 새 실행을 시작하고, 내려받은 폴더도 테스트·정식을 나누어 보관하세요. 두 종류 모두 Windows 64비트입니다.
+
+정식 설정 선택은 미완성 콘텐츠를 자동으로 완성하거나 출시 승인을 처리하지 않습니다. 파일을 내려받아 타이틀에 테스트 기록 선택이 없는지, F5·F12가 동작하지 않는지, 자동 저장 후 이어하기가 되는지 확인해야 합니다. 실제 씬에 연결하지 않은 기능은 테스트 빌드에서도 자동 연결되지 않습니다.
+
+선택 칸이 보이지 않으면 변경이 기본 브랜치와 실행할 브랜치에 반영됐는지 개발자에게 확인해 주세요. 비밀값을 다시 만들 필요는 없습니다.
 
 ## 실행 중에는 무엇을 하나요?
 
@@ -163,7 +194,7 @@ flowchart LR
 빌드를 실행했는데 확인이 필요해요.
 실행한 날짜·시간:
 선택한 브랜치:
-operation / scene:
+operation / build_mode / scene:
 GitHub 실행 기록 주소:
 실패한 단계 이름 또는 화면:
 디스코드 공지가 도착했나요?:
@@ -175,59 +206,16 @@ GitHub 실행 기록 주소:
 실패 기록 전체에 비밀값이 없는지 확인한 뒤 공유합니다. 원인을 모르겠다면 코드를 직접 수정하지 말고 개발자에게 전달합니다.
 재실행하면 새 공지가 다시 전송될 수 있습니다.
 
-## 개발자가 알아야 할 책임과 코드 위치
+## 개발자에게 전달할 문서
 
-```mermaid
-flowchart TD
-    A[unity-build.yml: 전체 순서] --> B[project-checks.yml: 기존 검사 재사용]
-    A --> C[GitHubPlayerBuild: Unity 빌드]
-    A --> D[결과물 보관]
-    A --> E[discord_notice: 공지 내용]
-    E --> F[discord_webhook: 공통 전송]
-    G[discord-merge.yml: 개발 알림] --> E
-```
-
-| 파일 | 위치를 선택한 이유 |
-| --- | --- |
-| .github/workflows/unity-build.yml | GitHub 실행 환경·비밀값 전달·순서·결과물·공지의 조립 책임 |
-| .github/workflows/project-checks.yml | 기존 검사를 호출 가능하게 해 검사 절차 중복 방지 |
-| Assets/Editor/Build/GitHubPlayerBuild.cs | Unity 빌드 API 전용. 게임 런타임에 포함하지 않음 |
-| Tools/Automation/discord_notice.py | 개발·빌드 결과를 메시지로 변환. Unity 코드와 분리 |
-| Tools/Automation/discord_webhook.py | 웹훅 전송·멘션 제한·전송 오류 처리 공통화 |
-
-Unity 버전은 ProjectVersion.txt에서 읽습니다.
-Windows 64비트 Mono 개발 빌드이며, GitHub의 Linux 실행 환경에서 생성합니다.
-출력은 build/StandaloneWindows64, 버전은 0.1.실행번호입니다. 실행번호와 커밋은 공지에 기록합니다.
-씬 선택은 빌드 호출에만 적용하고 EditorBuildSettings를 수정하지 않습니다.
-빌드 중 바꾼 스크립팅 백엔드와 버전은 종료 시 복원합니다.
-기존 데이터 에셋 갱신은 빌드 전처리기를 그대로 사용하며 원본 시트 배포를 이 작업에서 실행하지 않습니다.
-코드 반영 공지는 DataSheet 저장소의 알림과 별개로 기존 채널에 유지됩니다.
-독립 빌드 단계를 추가한 구조이며 게임 상태·전투 규칙은 변경하지 않습니다.
-
-## 검증 상태와 앞으로의 방향
-
-2026-11-02 기준 공지 로직 13개 경우를 실제 전송 없이 확인했습니다.
-원격 비밀값 내용은 읽지 않았으며 실제 Personal 인증·Unity 이미지 준비·클라우드 빌드·게임 실행은 최초 GitHub 실행 후 확인해야 합니다.
-과거 선택 참조 검사에서 보고한 직렬화 필드 경고와 실제 Unity 빌드 결과는 구분합니다.
-
-```mermaid
-flowchart LR
-    A[현재: 버튼으로 빌드·전용 공지] --> B[최초 인증·다운로드·게임 확인]
-    B --> C[후속: 검사 성공 후 푸시 자동 연동]
-    C --> D[후속: 캐시·비용·빌드 시간 측정과 개선]
-```
-
-의도는 빌드 담당자의 반복 작업을 줄이고 팀원이 같은 커밋의 게임을 확인하게 하는 것입니다.
-예상 효과는 배포 누락 감소와 성공·실패 위치의 명확화이며, 아직 측정한 시간 단축 수치는 없습니다.
-현재는 프로젝트 Library 캐시를 추가하지 않았습니다. 최초 동작과 저장 용량 사용을 확인한 뒤 도입합니다.
-설정 방식의 참고 문서는 [GameCI 빌드 안내](https://game.ci/docs/github/builder/)와 [Personal 인증 안내](https://game.ci/docs/github/activation/)입니다.
+설계 이유·파일별 책임·명령줄 인자·테스트 기능 제외 계약은 [테스트·정식 빌드 선택 설계](../개발자용%20설계문서/테스트와%20정식%20빌드%20선택%20설계.md)에 분리했습니다. 기획자는 위 실행 절차와 결과 확인을 따르면 됩니다.
 
 ## 결과물 보관·압축 설정·이번 빌드 확인
 
 결과물은 현재7일 보관합니다. Actions에서 해당 실행을 열고 Artifacts의휴지통으로 결과물만 삭제할 수 있으며 내려받은PC파일과 소스코드는 남습니다. 삭제 뒤 기존 공지의 다운로드 링크는 사용할 수 없습니다.
 
-현재 BuildOptions.Development가 고정돼 테스트 빌드 별도 체크는 필요하지 않습니다. 다만 실제 씬에 연결하지 않은 F5·이어하기까지 자동으로 활성화되지는 않습니다. 특정 리비전 입력란은 아직 없으며 실행 시작 커밋을 기준으로 빌드합니다. 로컬 수정을 반영하려면 커밋·푸시 후 새 실행이 필요합니다.
+빌드 종류는 매번 build_mode에서 선택합니다. development가 기본값이며 release를 선택해야 정식 설정으로 빌드됩니다. 특정 리비전 입력란은 아직 없으며 실행 시작 커밋을 기준으로 빌드합니다. 로컬 수정을 반영하려면 커밋·푸시 후 새 실행이 필요합니다.
 
 Assets/4.Sprite/Map/Art_New/Maps의19개이미지는 Standalone BC7·해상도 유지로 설정됐습니다. 원본PNG·피벗은 유지합니다. 이론상 원본RGBA32 전체 약902MiB와 BC7약226MiB의비교는 실제 동시메모리·빌드 절감량이 아닙니다. Unity재임포트 후 지형경계·반투명·그라데이션과 빌드 크기를 확인해야 합니다. 긴 음원 스트리밍과 중복이미지 통합은 미적용입니다.
 
-최신 코어/데이터가 통과해도 엔진참조 컴파일의 `_exitAnchor`미사용 문제가 남아 CI를 막을 수 있습니다. 실행 결과를 확인하고 ‘성공’과 실제 게임 완주 검증을 구분합니다.
+이번 선택 기능은 로컬 공지 검사와 Unity 참조 컴파일로 확인합니다. 실제 GitHub의 두 종류 빌드 성공·파일 다운로드·게임 실행은 새 실행에서 확인해야 합니다. 현재 검증 결과는 [현재 구현과 검증 현황](../개발자용%20설계문서/현재%20구현과%20검증%20현황.md)을 따르며 코드 컴파일 성공과 게임 완주 검증을 구분합니다.

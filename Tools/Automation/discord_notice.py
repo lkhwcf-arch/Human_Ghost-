@@ -6,6 +6,10 @@ from discord_webhook import Send
 
 
 def BuildNotice(env):
+    mode = env.get("BUILD_MODE") or "development"
+    modeNames = {"development": "테스트 빌드", "release": "정식 빌드"}
+    if mode not in modeNames:
+        raise ValueError("빌드 종류는 development 또는 release로 지정해주세요.")
     test = env.get("NOTICE_OPERATION") == "notice-test"
     checked = env.get("CHECK_RESULT", "skipped")
     built = env.get("BUILD_RESULT", "skipped")
@@ -27,6 +31,7 @@ def BuildNotice(env):
             {"name": "브랜치", "value": env["GITHUB_REF_NAME"][:1024], "inline": True},
             {"name": "커밋", "value": env["GITHUB_SHA"][:7], "inline": True},
             {"name": "빌드 번호", "value": env["GITHUB_RUN_NUMBER"], "inline": True},
+            {"name": "빌드 종류", "value": modeNames[mode], "inline": True},
             {"name": "시작 장면", "value": env.get("BUILD_SCENE", "preview"), "inline": True},
         ],
         "footer": {"text": env["GITHUB_REPOSITORY"][:2048]},

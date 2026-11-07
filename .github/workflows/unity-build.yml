@@ -1,4 +1,5 @@
 name: Windows 게임 빌드
+run-name: Windows ${{ inputs.build_mode == 'release' && '정식' || '테스트' }} 빌드 · ${{ github.ref_name }}
 
 on:
   workflow_dispatch:
@@ -8,6 +9,11 @@ on:
         type: choice
         options: [build, notice-test]
         default: build
+      build_mode:
+        description: 'development: 테스트 빌드 / release: 정식 빌드'
+        type: choice
+        options: [development, release]
+        default: development
       scene:
         description: 'build-settings: 타이틀부터 도화골까지 / dohwagol: 도화골 전투만 / preview: 임시 게임플레이'
         type: choice
@@ -64,7 +70,7 @@ jobs:
           targetPlatform: StandaloneWindows64
           buildMethod: HumanGhost.Editor.Build.GitHubPlayerBuild.BuildWindows
           versioning: None
-          customParameters: -humanGhostScene ${{ inputs.scene }} -humanGhostVersion 0.1.${{ github.run_number }}
+          customParameters: -humanGhostScene ${{ inputs.scene }} -humanGhostBuildMode ${{ inputs.build_mode }} -humanGhostVersion 0.1.${{ github.run_number }}
       - name: 실행파일 생성 확인
         shell: python
         run: |
@@ -76,7 +82,7 @@ jobs:
         id: artifact
         uses: actions/upload-artifact@v4
         with:
-          name: HumanGhost-Windows-${{ github.run_number }}-${{ github.run_attempt }}
+          name: HumanGhost-Windows-${{ inputs.build_mode }}-${{ github.run_number }}-${{ github.run_attempt }}
           path: build/StandaloneWindows64/
           if-no-files-found: error
           retention-days: 7
@@ -97,6 +103,7 @@ jobs:
           DISCORD_BUILD_WEBHOOK_URL: ${{ secrets.DISCORD_BUILD_WEBHOOK_URL }}
           NOTICE_OPERATION: ${{ inputs.operation }}
           BUILD_SCENE: ${{ inputs.scene }}
+          BUILD_MODE: ${{ inputs.build_mode }}
           CHECK_RESULT: ${{ needs.checks.result }}
           BUILD_RESULT: ${{ needs.build.result }}
           BUILD_ARTIFACT_URL: ${{ needs.build.outputs.artifact-url }}
