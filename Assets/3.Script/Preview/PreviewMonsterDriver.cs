@@ -108,6 +108,8 @@ namespace HumanGhost.Gameplay.Preview
         }
 
         // 플레이어 판정 창과 이 몬스터의 접촉. GameplayPreview가 창 열림 순간과 매 프레임 호출합니다. 중복은 창 등록이 막습니다.
+        public event System.Action PlayerDodged;
+
         public HitOutcome CheckPlayerHit()
         {
             PlayerActor actor = _player.Actor;
@@ -174,7 +176,8 @@ namespace HumanGhost.Gameplay.Preview
             bool inFront = offset * _monster.Facing >= 0f;
             bool touching = pattern.IsProjectile ? _projectile != null && _projectile.IsFlying && _projectile.Bounds.Intersects(target) :
                 pattern.IsCharge ? own.Intersects(target) : sameHeight && inFront && Distance(offset) <= pattern.Range;
-            if (touching) _monster.TryHitPlayer(_playerTargetId, actor, _runtime.HitRandom);
+            if (touching && _monster.TryHitPlayer(_playerTargetId, actor, _runtime.HitRandom) == HitOutcome.Dodged)
+                PlayerDodged?.Invoke();
         }
 
         private int Distance(float offset) => Mathf.RoundToInt(Mathf.Abs(offset) / _worldUnitsPerTile * 100f);

@@ -141,6 +141,8 @@ namespace HumanGhost.Gameplay.Preview
                 _savePoint.GetComponent<ShrineInteract>().SetActive(true);
                 if (rest) RestorePlayerVitals(_actor.Definition.HP, _catalog.GetTable<Buff>().Get(_herbBuffId).Charges);
                 await flow.SaveAutomaticAsync(savePointId, rest);
+                if (rest && this != null && isActiveAndEnabled && ReferenceEquals(lifetime, _saveLifetime))
+                    _playerAudio?.PlayAnimationSound("PLAYER_SAVE");
             }
             catch (Exception error)
             {
