@@ -4,6 +4,11 @@ using HumanGhost.Gameplay;
 
 internal static class CombatChecks
 {
+    // 문서의 ATK12·치명 추가6 예시는 배포 밸런스와 분리해 고정합니다.
+    private sealed class ExampleAttacker : CharacterStat
+    {
+        public ExampleAttacker() : base(100, 12, 0, 0, 0, 6, 0, 0, 0) { }
+    }
     public static int Run(Player definition)
     {
         int checks = 0;
@@ -153,12 +158,14 @@ internal static class CombatChecks
         Check(!executor.CompleteExecution(true) && !target.CompleteExecution(true), "해체 완료 중복 피해 방지");
         target.ReceiveHit(1,120); target.TryBeginExecution(); target.CompleteExecution(false);
         Check(target.IsExposed && target.Poise==0, "회복하지 않는 종료 정책도 호출자가 명시");
-        Check(CombatMath.Damage(definition,target.Definition,10,true)==24, "기획 정수 치명 피해 예시");
-        Check(CombatMath.Damage(definition,target.Definition,6,false)==14, "기획 스킬 추가 피해 예시");
+        Check(CombatMath.Damage(new ExampleAttacker(),target.Definition,10,true)==24, "기획 정수 치명 피해 예시");
+        Check(CombatMath.Damage(new ExampleAttacker(),target.Definition,6,false)==14, "기획 스킬 추가 피해 예시");
 
+        int normalDamage = Math.Max(1, definition.ATK - Math.Max(0, 4 - definition.ArmorPen));
+        int finisherDamage = Math.Max(1, definition.ATK + 10 - Math.Max(0, 4 - definition.ArmorPen));
         var striker=Actor();var hitTarget=Boss();striker.TryAttack();striker.Tick(120);
-        Check(striker.TryHitBoss(1,hitTarget,false,false) && hitTarget.Health==412 && hitTarget.Poise==112, "공격 창에서 보스 HP·체세 동시 적용");
-        Check(!striker.TryHitBoss(1,hitTarget,false,true) && hitTarget.Health==412, "같은 공격 창은 중복 치명 피해도 거부");
+        Check(striker.TryHitBoss(1,hitTarget,false,false) && hitTarget.Health==420-normalDamage && hitTarget.Poise==112, "공격 창에서 보스 HP·체세 동시 적용");
+        Check(!striker.TryHitBoss(1,hitTarget,false,true) && hitTarget.Health==420-normalDamage, "같은 공격 창은 중복 치명 피해도 거부");
         var dodgedTarget=Boss();
         Check(!striker.TryHitBoss(2,dodgedTarget,true,true) && dodgedTarget.Health==420 && dodgedTarget.Poise==120, "회피하면 HP·체세 모두 무피해");
 
@@ -197,7 +204,7 @@ internal static class CombatChecks
             if (i < 3) Check(fullCombo.TryAttack(), "1~3타 후딜 큐");
             fullCombo.Tick(hit.Recovery);
         }
-        Check(comboBoss.Poise == 80 && comboBoss.Health == 378, "실제4타 HP42·체세40 적용");
+        Check(comboBoss.Poise == 80 && comboBoss.Health == 420 - normalDamage * 3 - finisherDamage, "실제4타 데이터 공격력·체세40 적용");
         Check(spent == 40 && fullCombo.Stamina.Current >= start - 40, "실제4타 총 소모40·시간 회복은 별도");
         fullCombo.TryAttack();
         for (int i = 0; i < 4; i++)

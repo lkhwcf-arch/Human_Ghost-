@@ -43,29 +43,29 @@ internal static class HitChecks
             return new BossPoise(new Boss(common,new[]{phase}),phase);
         }
         MonsterActor Jigegwi() => new MonsterActor(jigegwi, new[] { new MonsterPattern(StateKey.Attack1, 150, new AttackSpec(500, 100, 500, 0, 0, 0, 0)) }, 300, 500, (min, max) => min);
-        Check(player.Dodge == 500 && player.Crit == 1200 && player.CritDamage == 6 && player.ATK == 12 && jigegwi.Dodge == 400 && jigegwi.DEF == 2, "배포 회피·치명 정의");
+        Check(player.Dodge == 500 && player.Crit == 1200 && player.CritDamage == 6 && player.ATK == 15 && jigegwi.Dodge == 400 && jigegwi.DEF == 2, "배포 회피·치명 정의");
 
         // 플레이어→일반몹: 상대 Dodge 400, 공격자 Crit 1200. 성공 조건은 난수 < 확률.
         var j = Jigegwi();
         var p = Attacking();
-        Check(p.TryHitMonster(1, j, Script(400, 1200)) == HitOutcome.Hit && calls == 2 && j.Health == 40, "p는 실패: 회피·치명 1회씩, 평타 10");
-        Check(p.TryHitMonster(1, j, Script(0, 0)) == HitOutcome.None && calls == 0 && j.Health == 40, "같은 창 중복 대상은 난수 0회");
+        Check(p.TryHitMonster(1, j, Script(400, 1200)) == HitOutcome.Hit && calls == 2 && j.Health == 27, "p는 실패: 회피·치명 1회씩, 평타 13");
+        Check(p.TryHitMonster(1, j, Script(0, 0)) == HitOutcome.None && calls == 0 && j.Health == 27, "같은 창 중복 대상은 난수 0회");
         j = Jigegwi(); p = Attacking();
-        Check(p.TryHitMonster(1, j, Script(400, 1199)) == HitOutcome.Critical && calls == 2 && j.Health == 34, "치명 p-1 성공, 치명 16");
+        Check(p.TryHitMonster(1, j, Script(400, 1199)) == HitOutcome.Critical && calls == 2 && j.Health == 21, "치명 p-1 성공, 치명 19");
         j = Jigegwi(); p = Attacking();
-        Check(p.TryHitMonster(1, j, Script(399)) == HitOutcome.Dodged && calls == 1 && j.Health == 50 && j.CurrentState == StateKey.Idle, "회피 p-1 성공: 치명 난수 0회·무피해");
-        Check(p.TryHitMonster(1, j, Script(9999, 9999)) == HitOutcome.None && calls == 0 && j.Health == 50, "회피한 대상 재접촉은 재추첨 없음");
-        Check(p.TryHitMonster(2, j, Script(9999, 9999)) == HitOutcome.Hit && calls == 2 && j.Health == 40, "다른 대상 ID는 같은 창에서 별도 판정");
+        Check(p.TryHitMonster(1, j, Script(399)) == HitOutcome.Dodged && calls == 1 && j.Health == 40 && j.CurrentState == StateKey.Idle, "회피 p-1 성공: 치명 난수 0회·무피해");
+        Check(p.TryHitMonster(1, j, Script(9999, 9999)) == HitOutcome.None && calls == 0 && j.Health == 40, "회피한 대상 재접촉은 재추첨 없음");
+        Check(p.TryHitMonster(2, j, Script(9999, 9999)) == HitOutcome.Hit && calls == 2 && j.Health == 27, "다른 대상 ID는 같은 창에서 별도 판정");
         var idle = new PlayerActor(player, new[] { new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0) }, true, player.StaminaMax);
         Check(idle.TryHitMonster(1, Jigegwi(), Script()) == HitOutcome.None && calls == 0, "비판정 상태는 난수 0회");
         var dead = Jigegwi(); dead.ReceiveHit(50);
         Check(Attacking().TryHitMonster(1, dead, Script()) == HitOutcome.None && calls == 0, "사망 대상은 난수 0회");
 
-        // 플레이어→보스: DEF4, 추가 피해 +10 → 일반 18·치명 24, 체세 피해 20.
+        // 플레이어→보스: DEF4, 추가 피해 +10 → 일반 21·치명 27, 체세 피해 13.
         var boss = Boss();
-        Check(Attacking(10, 20).TryHitBoss(9, boss, Script(300, 1200)) == HitOutcome.Hit && boss.Health == 402 && boss.Poise == 100, "보스 일반 18·체세 20");
+        Check(Attacking(10, 20).TryHitBoss(9, boss, Script(300, 1200)) == HitOutcome.Hit && boss.Health == 399 && boss.Poise == 100, "보스 일반 21·체세 20");
         boss = Boss();
-        Check(Attacking(10, 20).TryHitBoss(9, boss, Script(300, 0)) == HitOutcome.Critical && boss.Health == 396 && boss.Poise == 100, "보스 치명 24");
+        Check(Attacking(10, 20).TryHitBoss(9, boss, Script(300, 0)) == HitOutcome.Critical && boss.Health == 393 && boss.Poise == 100, "보스 치명 27");
         boss = Boss();
         Check(Attacking(10, 20).TryHitBoss(9, boss, Script(299)) == HitOutcome.Dodged && calls == 1 && boss.Health == 420 && boss.Poise == 120, "보스 회피: HP·체세 피해 0");
         boss = Boss(); boss.ReceiveHit(0, 120); boss.TryBeginExecution();
@@ -86,10 +86,10 @@ internal static class HitChecks
         Expect<ArgumentNullException>(() => Attacking().TryHitMonster(1, null, Script()));
         Expect<ArgumentOutOfRangeException>(() => Attacking().TryHitBoss(0, Boss(), Script()));
 
-        // 일반몹→플레이어: 플레이어 Dodge 500, 허수귀 Crit 0 → 치명 불가, 피해 20.
+        // 일반몹→플레이어: 플레이어 Dodge 500, 허수귀 Crit 0 → 치명 불가, 피해 13.
         var h = husugwi(); h.Observe(1, 150, -1); h.Tick(400);
         var target = new PlayerActor(player, new[] { new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0), new AttackSpec(1,1,0,0,0,0,0) }, true, player.StaminaMax);
-        Check(h.IsAttackActive && h.TryHitPlayer(2001, target, Script(500, 0)) == HitOutcome.Hit && calls == 2 && target.Health == 80, "몬스터 공격: 회피 실패·Crit 0은 난수 0에서도 실패");
+        Check(h.IsAttackActive && h.TryHitPlayer(2001, target, Script(500, 0)) == HitOutcome.Hit && calls == 2 && target.Health == 87, "몬스터 공격: 회피 실패·Crit 0은 난수 0에서도 실패");
         var second = husugwi(); second.Observe(1, 150, -1); second.Tick(400);
         Check(target.IsInvulnerable && second.TryHitPlayer(2001, target, Script()) == HitOutcome.None && calls == 0, "피격 무적 중 다른 몬스터 타격은 난수 0회");
         var dodger = husugwi(); dodger.Observe(1, 150, -1); dodger.Tick(400);

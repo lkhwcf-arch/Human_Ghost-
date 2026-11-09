@@ -341,68 +341,103 @@ MonoBehaviour:
   _clips:
   - _key: BGM_VILLAGE
     _clip: {fileID: 8300000, guid: 2868a7ba05e7f4e4ca271fa21f36035a, type: 3}
+    _soundId: 0
   - _key: BGM_FIELD
     _clip: {fileID: 8300000, guid: 2868a7ba05e7f4e4ca271fa21f36035a, type: 3}
+    _soundId: 0
   - _key: BGM_BATTLE
     _clip: {fileID: 8300000, guid: 0570030454d77764c94b4df97c4265ef, type: 3}
+    _soundId: 0
   - _key: BGM_BOSS
     _clip: {fileID: 8300000, guid: 0570030454d77764c94b4df97c4265ef, type: 3}
+    _soundId: 0
   - _key: SFX_HIT
     _clip: {fileID: 8300000, guid: f38c81019fa50e643b5ade1ff8100941, type: 3}
+    _soundId: 0
   - _key: SFX_CRIT
     _clip: {fileID: 8300000, guid: 6660350fde5e66444a470c4d92c55088, type: 3}
+    _soundId: 0
   - _key: SFX_MISS
     _clip: {fileID: 8300000, guid: 101851675a8d6da49b0bb12001a3e5d4, type: 3}
+    _soundId: 0
   - _key: SFX_EXECUTE
     _clip: {fileID: 8300000, guid: 4db245c3281b27b489dce96e2422deb5, type: 3}
+    _soundId: 0
   - _key: SFX_HURT
     _clip: {fileID: 8300000, guid: fbfacf19ee32e3646abb53826dd242d7, type: 3}
+    _soundId: 0
   - _key: AMBIANCE_FIRE
     _clip: {fileID: 8300000, guid: 763de6ea5f7964f44a1a82059e4d2e30, type: 3}
+    _soundId: 3001
   - _key: PLAYER_WALK
     _clip: {fileID: 8300000, guid: 44e078cb71194e441a2c45660212baa2, type: 3}
+    _soundId: 3002
   - _key: PLAYER_WALK
     _clip: {fileID: 8300000, guid: cdef89d8e5f147e4691a15cd9da6c91a, type: 3}
+    _soundId: 3003
   - _key: PLAYER_WALK
     _clip: {fileID: 8300000, guid: 5918b4922ccac474ebbefac2fb042b74, type: 3}
+    _soundId: 3004
   - _key: PLAYER_RUN
     _clip: {fileID: 8300000, guid: 5a47bc0ddd6a40d4ca4734849956e7b0, type: 3}
+    _soundId: 3005
   - _key: PLAYER_RUN
     _clip: {fileID: 8300000, guid: a58f850899bdd0c488821b386824ce48, type: 3}
+    _soundId: 3006
   - _key: PLAYER_HIT
     _clip: {fileID: 8300000, guid: 6553313311913e64faa55b9a893dad7c, type: 3}
+    _soundId: 3007
   - _key: PLAYER_ATTACK
     _clip: {fileID: 8300000, guid: f38c81019fa50e643b5ade1ff8100941, type: 3}
+    _soundId: 3008
   - _key: PLAYER_JUMP_ATTACK
     _clip: {fileID: 8300000, guid: 8995f3b88a9ac7546b522fdbc4ae113f, type: 3}
+    _soundId: 3009
   - _key: PLAYER_BACK_EVADE
     _clip: {fileID: 8300000, guid: 5b0a11fa7dcc0434fabae9a347705c7b, type: 3}
+    _soundId: 3010
   - _key: PLAYER_EVADE
     _clip: {fileID: 8300000, guid: 59239987b222d3c46adec430fdae1832, type: 3}
+    _soundId: 3011
   - _key: PLAYER_CRIT_HIT
     _clip: {fileID: 8300000, guid: 8231f1d70715a9f44af499a93fa380f4, type: 3}
+    _soundId: 3012
   - _key: PLAYER_EXECUTE_1
     _clip: {fileID: 8300000, guid: 0e7c516d722dcf246af9859e74827ff7, type: 3}
+    _soundId: 3013
   - _key: PLAYER_EXECUTE_2
     _clip: {fileID: 8300000, guid: d2aae69cda957734085a6f1e9a817dc3, type: 3}
+    _soundId: 3014
   - _key: PLAYER_DEAD
     _clip: {fileID: 8300000, guid: 4b6147c0cabfe374f983b35ae0e7609d, type: 3}
+    _soundId: 3015
   - _key: PLAYER_HANG
     _clip: {fileID: 8300000, guid: af906355ff7c9f9458550ec4e515c13a, type: 3}
+    _soundId: 3016
   - _key: PLAYER_LAND
     _clip: {fileID: 8300000, guid: e633424a59a34684d841dd532502edec, type: 3}
+    _soundId: 3017
   - _key: PLAYER_ROLL
     _clip: {fileID: 8300000, guid: a08afe7735ed3a541b471ce773aee16a, type: 3}
+    _soundId: 3018
   - _key: PLAYER_BACK_ROLL
     _clip: {fileID: 8300000, guid: a0e818a541e58bb4c936709ae2147740, type: 3}
+    _soundId: 3019
   - _key: PLAYER_JUMP
     _clip: {fileID: 8300000, guid: a793b028926802848a9e0788076c7500, type: 3}
+    _soundId: 3020
   - _key: PLAYER_HEAL
     _clip: {fileID: 8300000, guid: 280f41c0fe4c3ab4d8a3412770fdc5ab, type: 3}
+    _soundId: 3021
   - _key: PLAYER_CLIMB
     _clip: {fileID: 8300000, guid: b738f89e9421bbb44b42985745194d07, type: 3}
+    _soundId: 3022
   - _key: PLAYER_SAVE
     _clip: {fileID: 8300000, guid: 99ed9b6675ec71e40b1c765f1d908a9d, type: 3}
+    _soundId: 3023
+  - _key: TITLE_BACKGROUND
+    _clip: {fileID: 8300000, guid: 4dfbd978788b37a49b341af5d79447e1, type: 3}
+    _soundId: 0
   _musicA: {fileID: 748258672732590955}
   _musicB: {fileID: 1232308879320497956}
   _effects: {fileID: 1532842353738971575}

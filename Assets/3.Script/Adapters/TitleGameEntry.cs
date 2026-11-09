@@ -17,6 +17,7 @@ namespace HumanGhost.Gameplay.Adapters
         [SerializeField, InspectorName("로딩 화면 프리팹")] private LoadingScreen _loadingPrefab = null;
         [SerializeField, InspectorName("소리 프리팹")] private GameAudio _audioPrefab = null;
         private GameAudio _audio;
+        [SerializeField, InspectorName("타이틀 배경 영상")] private TitleVideoBackground _backgroundVideo = null;
         [SerializeField, InspectorName("타이틀 배경음 키")] private string _musicKey = "BGM_VILLAGE";
         [SerializeField] private SettingsScreen _settingsPrefab = null;
         [SerializeField] private InputActionAsset _input = null;
@@ -55,11 +56,18 @@ namespace HumanGhost.Gameplay.Adapters
             _host.Connect(TitleAction.Quit, Quit);
             if (_data != null) _data.Initialized += ConnectAudioData;
             if (_data != null && _data.Data != null) ConnectAudioData(_data.Data);
-            if (_started) RefreshSave();
+            if (_backgroundVideo != null) _backgroundVideo.Ready += PlayTitleMusic;
+            if (_started)
+            {
+                if (_backgroundVideo == null || _backgroundVideo.IsReady) PlayTitleMusic();
+                RefreshSave();
+            }
         }
 
         private void OnDisable()
         {
+            if (_backgroundVideo != null) _backgroundVideo.Ready -= PlayTitleMusic;
+            if (_audio != null) _audio.StopMusic();
             _layoutResultReady = false;
             _layoutPending = false;
             _layoutResult = null;
@@ -181,8 +189,9 @@ namespace HumanGhost.Gameplay.Adapters
         private void Start()
         {
             _settings = GameSettingsStore.Load();
-            if (_audioPrefab != null) _audio = Instantiate(_audioPrefab);
-            if (_audio != null) { _audio.Apply(_settings); _audio.PlayMusic(_musicKey); }
+            if (_audioPrefab != null) _audio = Instantiate(_audioPrefab, transform);
+            if (_audio != null) _audio.Apply(_settings);
+            if (_backgroundVideo == null || _backgroundVideo.IsReady) PlayTitleMusic();
             if (_data != null && _data.Data != null) ConnectAudioData(_data.Data);
             _started = true;
             RefreshSave();
@@ -207,6 +216,8 @@ namespace HumanGhost.Gameplay.Adapters
                 Debug.LogError($"타이틀 저장 조회에 실패했습니다.\n{error.Message}", this);
             }
         }
+
+        private void PlayTitleMusic() { if (_audio != null) _audio.PlayMusic(_musicKey); }
 
         private void ConnectAudioData(IReadOnlyDataCatalog data)
         {

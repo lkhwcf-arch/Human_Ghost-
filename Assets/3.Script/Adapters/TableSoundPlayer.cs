@@ -17,6 +17,7 @@ namespace HumanGhost.Gameplay.Adapters
             public Sound Definition;
             public AudioSource Source;
             public SoundEnvelope Envelope;
+            public int FadeOutMs;
         }
         private readonly List<Voice> _voices = new List<Voice>();
         private readonly Stack<AudioSource> _pool = new Stack<AudioSource>();
@@ -81,8 +82,17 @@ namespace HumanGhost.Gameplay.Adapters
             channel.mute = _muted;
             try
             {
-                var voice = new Voice { Definition = definition, Source = channel,
-                    Envelope = new SoundEnvelope(definition.FadeInMs, definition.FadeOutMs) };
+                int fadeIn = definition.FadeInMs, fadeOut = definition.FadeOutMs;
+                long totalFade = (long)fadeIn + fadeOut;
+                int duration = Math.Max(0, Mathf.FloorToInt(clip.length * 1000f) - 1);
+                // 짧은 단발 음원도 소리가 난 뒤 사라지도록, 겹치는 페이드만 실제 길이에 비례해 줄입니다.
+                if (!definition.Loop && totalFade > duration)
+                {
+                    fadeIn = (int)(fadeIn * (long)duration / totalFade);
+                    fadeOut = duration - fadeIn;
+                }
+                var voice = new Voice { Definition = definition, Source = channel, FadeOutMs = fadeOut,
+                    Envelope = new SoundEnvelope(fadeIn, fadeOut) };
                 channel.clip = clip;
                 channel.loop = definition.Loop;
                 ApplyVolume(voice);
@@ -147,7 +157,7 @@ namespace HumanGhost.Gameplay.Adapters
                     continue;
                 }
                 if (!voice.Definition.Loop && !voice.Envelope.IsStopping
-                    && (voice.Source.clip.length - voice.Source.time) * 1000f <= voice.Definition.FadeOutMs)
+                    && (voice.Source.clip.length - voice.Source.time) * 1000f <= voice.FadeOutMs)
                     voice.Envelope.Stop();
                 voice.Envelope.Tick(elapsed);
                 ApplyVolume(voice);

@@ -15,8 +15,8 @@ internal static class MonsterChecks
         { try { action(); } catch (T) { checks++; return; } throw new Exception("예외 누락 " + typeof(T).Name); }
 
         Monster husugwi = ReadMonster(root, 3001), jigegwi = ReadMonster(root, 3002);
-        Check(husugwi.HP == 35 && husugwi.ATK == 20 && !husugwi.SuperArmor && husugwi.SightRange == 800 && husugwi.AttackRange == 150, "배포 허수귀 정의");
-        Check(jigegwi.HP == 50 && jigegwi.DEF == 2 && jigegwi.SuperArmor && jigegwi.AttackRange == 600, "배포 지게귀 정의");
+        Check(husugwi.HP == 35 && husugwi.ATK == 13 && !husugwi.SuperArmor && husugwi.SightRange == 800 && husugwi.AttackRange == 150, "배포 허수귀 정의");
+        Check(jigegwi.HP == 40 && jigegwi.DEF == 2 && jigegwi.SuperArmor && jigegwi.AttackRange == 600, "배포 지게귀 정의");
         // 설정 에셋 시작값과 같은 개발 값.
         MonsterPattern[] HusugwiPatterns() => new[]
         {
@@ -74,7 +74,7 @@ internal static class MonsterChecks
         h.Tick(1);
         Check(h.IsAttackActive, "판정 시작");
         var p1 = P();
-        Check(h.TryHitPlayer(2001, p1, false, false) && p1.Health == 80, "CombatMath 피해 20");
+        Check(h.TryHitPlayer(2001, p1, false, false) && p1.Health == 87, "CombatMath 피해 13");
         Check(!h.TryHitPlayer(2001, p1, false, false), "판정 창 대상 중복 방지");
         h.Tick(100);
         Check(!h.IsAttackActive && !h.TryRegisterTarget(5), "판정 종료");
@@ -115,9 +115,9 @@ internal static class MonsterChecks
         var target = H();
         var attacker = P();
         attacker.TryAttack(); attacker.Tick(120);
-        Check(attacker.TryHitMonster(5, target, false, false) && target.Health == 23, "플레이어 평타 피해 12");
+        Check(attacker.TryHitMonster(5, target, false, false) && target.Health == 20, "플레이어 평타 피해 15");
         Check(!attacker.TryHitMonster(5, target, false, false), "플레이어 창당 대상 중복 방지");
-        Check(!attacker.TryHitMonster(6, target, true, false) && target.Health == 23, "회피 시 무피해");
+        Check(!attacker.TryHitMonster(6, target, true, false) && target.Health == 20, "회피 시 무피해");
 
         // 허수귀 잡기·연타 해제
         pickLast = true;
@@ -128,7 +128,7 @@ internal static class MonsterChecks
         var rolling = P(); rolling.TryRoll();
         Check(!g.TryHitPlayer(3, rolling, false, false) && rolling.CurrentState == StateKey.Roll, "구르기 무적은 잡기 회피");
         int stamina = bound.Stamina.Current;
-        Check(g.TryHitPlayer(2001, bound, false, false) && bound.CurrentState == StateKey.Bound && bound.BoundBy == g && bound.Health == 80,
+        Check(g.TryHitPlayer(2001, bound, false, false) && bound.CurrentState == StateKey.Bound && bound.BoundBy == g && bound.Health == 87,
             "잡기 피해와 구속");
         Check(!g.IsAttackActive, "잡기 성공 후 판정 종료");
         bound.SetMove(1);
@@ -194,12 +194,12 @@ internal static class MonsterChecks
         }, 300, 500, Random);
         var damagingGrab = Grab(); var grabbedPlayer = P();
         damagingGrab.Observe(1,150,1); damagingGrab.Tick(500);
-        Check(damagingGrab.TryHitPlayer(1,grabbedPlayer,false,false) && grabbedPlayer.Health == 85 && grabbedPlayer.BoundBy == damagingGrab,
-            "잡기 ATK20-5 피해15와 구속");
-        Check(!damagingGrab.TryHitPlayer(1,grabbedPlayer,false,false) && grabbedPlayer.Health == 85, "잡기 중복 피해 없음");
+        Check(damagingGrab.TryHitPlayer(1,grabbedPlayer,false,false) && grabbedPlayer.Health == 92 && grabbedPlayer.BoundBy == damagingGrab,
+            "잡기 ATK13-5 피해8과 구속");
+        Check(!damagingGrab.TryHitPlayer(1,grabbedPlayer,false,false) && grabbedPlayer.Health == 92, "잡기 중복 피해 없음");
         Check(!grabbedPlayer.ReceiveHit(1), "잡기 피해도 피격 무적 적용");
         var lethalGrab = Grab(); var dyingPlayer = P();
-        dyingPlayer.ReceiveHit(90); dyingPlayer.Tick(player.HitIFrame);
+        dyingPlayer.ReceiveHit(player.HP - 1); dyingPlayer.Tick(player.HitIFrame);
         lethalGrab.Observe(1,150,1); lethalGrab.Tick(500);
         Check(lethalGrab.TryHitPlayer(1,dyingPlayer,false,false) && dyingPlayer.IsDead && dyingPlayer.BoundBy == null,
             "잡기 사망은 구속보다 우선");
@@ -225,8 +225,8 @@ internal static class MonsterChecks
         Check(j.CurrentState == StateKey.Attack2 && !j.IsSuperArmor && j.Velocity == 0, "AttackRange 안 원거리는 돌진만 선택·선딜 정지");
         j.Tick(600);
         Check(j.IsCharging && j.IsSuperArmor && j.Velocity == 900, "돌진 판정 중 이동·슈퍼아머");
-        Check(j.ReceiveHit(5) && j.Health == 45 && j.CurrentState == StateKey.Attack2 && j.IsCharging, "슈퍼아머는 HP만 깎이고 Hit 없음");
-        Check(j.TryHitPlayer(2001, victim, false, false) && victim.Health == 69, "돌진 피해 26+5");
+        Check(j.ReceiveHit(5) && j.Health == 35 && j.CurrentState == StateKey.Attack2 && j.IsCharging, "슈퍼아머는 HP만 깎이고 Hit 없음");
+        Check(j.TryHitPlayer(2001, victim, false, false) && victim.Health == 80, "돌진 피해 15+5");
         Check(!j.TryHitPlayer(2001, victim, false, false), "돌진 창 중복 피해 방지");
         Check(j.NotifyWallHit() && j.CurrentState == StateKey.Stun && j.Velocity == 0 && !j.IsSuperArmor, "벽 충돌 허점·슈퍼아머 해제");
         Check(j.ReceiveHit(5) && j.CurrentState == StateKey.Stun, "허점 중 피해는 허점 유지");
