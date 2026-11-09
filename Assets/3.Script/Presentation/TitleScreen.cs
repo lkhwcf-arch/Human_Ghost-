@@ -28,17 +28,22 @@ namespace HumanGhost.Gameplay.Presentation
                 _label.raycastTarget = !useImage;
                 if (_labelImage != null) _labelImage.enabled = useImage;
             }
-            public void Show(TitleMenu menu)
+            public void Show(TitleMenu menu, Color selected, Color normal)
             {
                 bool visible = false;
                 foreach (TitleAction item in menu.Items) if (item == _action) { visible = true; break; }
                 Root.SetActive(visible);
-                _cursor.SetActive(visible && menu.Selected == _action);
+                if (_cursor != null) _cursor.SetActive(false);
+                Color color = menu.Selected == _action ? selected : normal;
+                _label.color = color;
+                if (_labelImage != null) _labelImage.color = color;
             }
         }
 
         [SerializeField] private GameObject _menuRoot = null;
         [SerializeField] private Entry[] _entries = Array.Empty<Entry>();
+        [SerializeField, InspectorName("선택된 메뉴 글자 색")] private Color _entrySelected = Color.white;
+        [SerializeField, InspectorName("선택되지 않은 메뉴 글자 색")] private Color _entryNormal = new Color(0.55f, 0.53f, 0.5f, 0.65f);
         [SerializeField, InspectorName("새 게임 확인 Popup ID"), Min(1)] private int _newGamePopupId = 15005;
         [SerializeField] private GameObject _confirmation = null;
         [SerializeField] private Text _question = null;
@@ -131,7 +136,7 @@ namespace HumanGhost.Gameplay.Presentation
 
         private void Apply()
         {
-            foreach (Entry entry in _entries) entry.Show(_menu);
+            foreach (Entry entry in _entries) entry.Show(_menu, _entrySelected, _entryNormal);
             _confirmation.SetActive(_menu.State == TitleMenuState.ConfirmingNewGame);
             _yesLabel.color = _menu.ConfirmYes ? _answerSelected : _answerNormal;
             _noLabel.color = _menu.ConfirmYes ? _answerNormal : _answerSelected;
