@@ -161,15 +161,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1002, guid: f5c41460008040588417cb34c9bf943b, type: 3}
       propertyPath: m_LocalScale.x
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1002, guid: f5c41460008040588417cb34c9bf943b, type: 3}
       propertyPath: m_LocalScale.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1002, guid: f5c41460008040588417cb34c9bf943b, type: 3}
       propertyPath: m_LocalScale.z
-      value: 1
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1003, guid: f5c41460008040588417cb34c9bf943b, type: 3}
+      propertyPath: m_AdditionalShaderChannelsFlag
+      value: 25
       objectReference: {fileID: 0}
     - target: {fileID: 1065, guid: f5c41460008040588417cb34c9bf943b, type: 3}
       propertyPath: m_Text
@@ -178,6 +182,14 @@ PrefabInstance:
     - target: {fileID: 1084, guid: f5c41460008040588417cb34c9bf943b, type: 3}
       propertyPath: _previewHasSave
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9193840867013842609, guid: f5c41460008040588417cb34c9bf943b, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9193840867013842609, guid: f5c41460008040588417cb34c9bf943b, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
