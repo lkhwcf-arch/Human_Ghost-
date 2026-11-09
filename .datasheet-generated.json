@@ -45,6 +45,7 @@
     "Assets/Data/Json/PlayerState.json",
     "Assets/Data/Json/spawn/8001.json",
     "Assets/Data/Json/spawn/8002.json",
-    "Assets/Data/Json/spawn/8003.json"
+    "Assets/Data/Json/spawn/8003.json",
+    "Assets/Data/Json/spawn/8005.json"
   ]
 }

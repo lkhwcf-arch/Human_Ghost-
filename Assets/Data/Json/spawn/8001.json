@@ -23,5 +23,6 @@
       "Anchor": "Anchor_Air_Platform_2",
       "Monsters": []
     }
-  ]
+  ],
+  "MaxMonsterCount": 30
 }

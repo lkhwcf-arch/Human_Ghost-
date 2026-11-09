@@ -8,6 +8,7 @@ namespace HumanGhost.Gameplay
     {
         public int FormatVersion { get; set; }
         public int StageID { get; set; }
+        public int MaxMonsterCount { get; set; }
         public List<StagePlacement> Placements { get; set; } = new List<StagePlacement>();
     }
 

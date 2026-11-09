@@ -1,8 +1,6 @@
 using System;
-using System.IO;
 using System.Collections.Generic;
 using System.Linq;
-using System.Collections;
 using HumanGhost.Data.Infrastructure;
 using HumanGhost.Data.Storage;
 using HumanGhost.Gameplay.Presentation;
@@ -11,8 +9,8 @@ using UnityEngine.InputSystem;
 
 namespace HumanGhost.Gameplay.Adapters
 {
-    // 타이틀 저장 유무·새 게임 진입·공용 옵션 화면을 연결합니다. 인트로·이어하기 복원은 소유하지 않습니다.
-    public sealed class TitleGameEntry : MonoBehaviour, IModalInputTarget
+    // 타이틀 요청을 키 선택·인트로·저장 진입에 연결합니다. 재생·저장 규칙은 기존 모듈을 사용합니다.
+    public sealed partial class TitleGameEntry : MonoBehaviour, IModalInputTarget
     {
         [SerializeField] private TitleSceneHost _host = null;
         [SerializeField] private GameDataInitializer _data = null;
@@ -31,19 +29,19 @@ namespace HumanGhost.Gameplay.Adapters
         private int _saveGeneration;
         private IReadOnlyList<SaveRecord> _records;
         private JsonSaveStore _saveStore;
-        private bool _settingsPending;
-        private Coroutine _settingsReturn;
+        private bool _menuPending;
+        private int _menuReturnFrame = -1;
         [SerializeField, InspectorName("새 게임 시작 씬")] private string _newGameScene = "MapDohwagolTest";
         [SerializeField, InspectorName("저장 하위 폴더")] private string _saveSubdirectory = "Saves/Demo";
         [SerializeField, InspectorName("지원 저장 버전")] private int _saveVersion = 1;
         [SerializeField, InspectorName("공용 컷씬 실행 담당")] private CutsceneHost _cutscenes = null;
-        private int _introCutsceneId;
-        private bool _introPending;
+        private GameObject _menuRoot;
 
         public void SetModalBlocked(bool blocked)
         {
             _modalBlocked = blocked;
             _settingsInput?.SetBlocked(blocked);
+            if (_layoutScreen != null) _layoutScreen.SetBlocked(blocked);
             if (_settingsScreen != null) _settingsScreen.SetInputBlocked(blocked);
         }
 
@@ -62,12 +60,15 @@ namespace HumanGhost.Gameplay.Adapters
 
         private void OnDisable()
         {
+            _layoutResultReady = false;
+            _layoutPending = false;
+            _layoutResult = null;
+            if (_layoutScreen != null) _layoutScreen.Cancel();
             if (_introPending)
             {
                 _cutscenes?.Cancel();
                 if (_cutscenes != null) _cutscenes.TryTakeResult(out _);
                 _introPending = false;
-                _host?.CompleteRequest();
             }
             ++_saveGeneration;
             if (_data != null) _data.Initialized -= ConnectAudioData;
@@ -81,44 +82,63 @@ namespace HumanGhost.Gameplay.Adapters
             }
             _settingsInput?.Disable();
             if (_settingsScreen != null) _settingsScreen.Cancel();
-            if (_settingsReturn != null) StopCoroutine(_settingsReturn);
-            _settingsReturn = null;
-            if (_settingsPending && _host != null)
+            _menuReturnFrame = -1;
+            if (_menuPending && _host != null)
             {
                 _host.CompleteRequest();
                 _host.enabled = true;
             }
-            _settingsPending = false;
+            _menuPending = false;
         }
 
         private bool OpenSettings()
         {
-            if (_modalBlocked || _settingsPending) return false;
-            if (_host == null) throw new InvalidOperationException("타이틀 설정을 열 수 없습니다. 타이틀 메뉴 호스트가 연결되지 않았습니다.");
-            if (_data == null || _data.Data == null) throw new InvalidOperationException("타이틀 설정을 열 수 없습니다. 데이터 초기화가 연결되지 않았거나 완료되지 않았습니다.");
-            if (_settingsPrefab == null) throw new InvalidOperationException("타이틀 설정 화면 프리팹이 연결되지 않았습니다. TitleGameEntry의 설정 프리팹을 확인해 주세요.");
-            if (_input == null) throw new InvalidOperationException("타이틀 설정 입력 에셋이 연결되지 않았습니다.");
-            if (_settingsApplication == null)
-                _settingsApplication = new SettingsApplication(PreviewSettings, GameSettingsStore.Save, error => _host.ReportError(error, "타이틀 설정 적용·저장"));
-            if (_settingsScreen == null)
-            {
-                _settingsScreen = Instantiate(_settingsPrefab, transform);
-                try
-                {
-                    _settingsInput = new MenuInput(_input, _settingsScreen.Move, _settingsScreen.Submit, _settingsScreen.Back, _settingsScreen.Adjust);
-                }
-                catch { Destroy(_settingsScreen.gameObject); _settingsScreen = null; throw; }
-            }
+            if (_modalBlocked || _menuPending) return false;
+            PrepareMenu();
             _settingsInput.SetBlocked(_modalBlocked);
             _settingsScreen.SetInputBlocked(_modalBlocked);
             _settingsScreen.Open(_data.Data, _settings, PreviewSettings, OnSettingsClosed);
             try { _settingsInput.Enable(); }
             catch { _settingsScreen.Cancel(); throw; }
-            _settingsPending = true;
+            _menuPending = true;
             _host.enabled = false;
             Cursor.visible = true;
             return true;
         }
+
+        // 옵션과 새 게임 선택이 같은 입력 사본·설정 적용/저장 경계를 공유합니다.
+        private void PrepareMenu()
+        {
+            if (_host == null || _data == null || _data.Data == null || _settingsPrefab == null || _input == null)
+                throw new InvalidOperationException("타이틀 화면·데이터·공용 설정 프리팹·입력 참조를 연결해 주세요.");
+            if (_settingsApplication == null)
+                _settingsApplication = new SettingsApplication(PreviewSettings, GameSettingsStore.Save,
+                    error => _host.ReportError(error, "타이틀 설정 적용·저장"), KeyboardControls.SetLayout);
+            if (_menuRoot == null)
+            {
+                _settingsInput?.Dispose(); _settingsInput = null;
+                _menuRoot = new GameObject("TitleMenuScreens");
+                _menuRoot.transform.SetParent(transform, false);
+                _menuRoot.SetActive(false);
+                try
+                {
+                    _settingsScreen = Instantiate(_settingsPrefab, _menuRoot.transform);
+                    _settingsScreen.gameObject.SetActive(false);
+                    _settingsInput = new MenuInput(_input, MoveMenu, SubmitMenu, BackMenu, AdjustMenu);
+                    _menuRoot.SetActive(true);
+                }
+                catch
+                {
+                    _settingsInput?.Dispose(); _settingsInput = null;
+                    Destroy(_menuRoot); _menuRoot = null; _settingsScreen = null;
+                    throw;
+                }
+            }
+        }
+        private void MoveMenu(int direction) { if (_layoutPending) _layoutScreen.Move(direction); else _settingsScreen.Move(direction); }
+        private void SubmitMenu() { if (_layoutPending) _layoutScreen.Submit(); else _settingsScreen.Submit(); }
+        private void BackMenu() { if (_layoutPending) _layoutScreen.Back(); else _settingsScreen.Back(); }
+        private void AdjustMenu(int direction) { if (_layoutPending) _layoutScreen.Move(direction); else _settingsScreen.Adjust(direction); }
 
         private void PreviewSettings(GameSettings value) => _audio?.Apply(value);
 
@@ -132,17 +152,18 @@ namespace HumanGhost.Gameplay.Adapters
             finally
             {
                 // 오류 보고가 실패해도 부모 입력 반환은 실행합니다.
-                if (isActiveAndEnabled) _settingsReturn = StartCoroutine(ReturnFromSettings());
+                if (isActiveAndEnabled) QueueMenuReturn();
             }
         }
 
         private void OnDestroy() => _settingsInput?.Dispose();
 
-        private IEnumerator ReturnFromSettings()
+        private void QueueMenuReturn() => _menuReturnFrame = Time.frameCount;
+
+        private void ReturnFromMenu()
         {
-            yield return null;
-            _settingsPending = false;
-            _settingsReturn = null;
+            _menuPending = false;
+            _menuReturnFrame = -1;
             _host.CompleteRequest();
             _host.enabled = true;
         }
@@ -182,32 +203,6 @@ namespace HumanGhost.Gameplay.Adapters
             if (_audio != null) _audio.ConnectTable(data);
         }
 
-        private bool StartNewGame()
-        {
-            if (_data == null || _data.Data == null) return false;
-            _introCutsceneId = CutsceneSequenceSource.FindId(_data.Data, CutsceneSequenceSource.IntroKey);
-            if (_introCutsceneId == 0) return EnterGame(null);
-            if (_modalBlocked || _introPending || _records == null || _saveStore == null) return false;
-            if (_cutscenes == null || _data == null || _data.Data == null)
-                throw new InvalidOperationException("인트로의 공용 실행 담당과 초기화가 완료된 데이터를 연결해 주세요.");
-            if (!_cutscenes.TryPlay(_data.Data, _introCutsceneId, _audio)) return false;
-            _introPending = true;
-            return true;
-        }
-
-        private void LateUpdate()
-        {
-            if (!_introPending) return;
-            CutsceneEndReason reason = CutsceneEndReason.Cancelled;
-            if (_cutscenes != null && !_cutscenes.TryTakeResult(out reason)) return;
-            _introPending = false;
-            try
-            {
-                if (!reason.AllowsProgress() || !EnterGame(null)) _host.CompleteRequest();
-                else GameSaveContext.Current.Progress.MarkCutsceneViewed(_introCutsceneId);
-            }
-            catch (Exception error) { _host.CompleteRequest(); _host.ReportError(error, "인트로 종료 후 새 게임 진입"); }
-        }
         private bool ContinueGame()
         {
             SaveRecord record = _records == null ? null : SaveRecord.LatestFirst(_records).FirstOrDefault();

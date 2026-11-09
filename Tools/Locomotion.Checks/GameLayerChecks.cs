@@ -94,6 +94,14 @@ internal static class GameLayerChecks
         check(application.Complete(defaults, changedSettings) && saves == 1 && applied.Master == 4, "타이틀·맵의 공용 설정 적용과 저장");
         var brokenStore = new SettingsApplication(value => applied = value, value => throw new InvalidOperationException("설정 파일 쓰기 실패 검사"), error => reported = error);
         check(!brokenStore.Complete(defaults, changedSettings) && applied.SameAs(defaults) && reported != null, "설정 저장 실패 시 원래 값 복구와 오류 전달");
+        KeyboardLayout activeLayout = KeyboardLayout.Arrows;
+        var keyboardSettings = defaults.Clone(); keyboardSettings.SetKeyboardLayout(KeyboardLayout.Wasd);
+        var keyboardApplication = new SettingsApplication(value => applied = value, value => { }, error => reported = error, layout => activeLayout = layout);
+        check(keyboardApplication.Complete(defaults, keyboardSettings) && activeLayout == KeyboardLayout.Wasd
+            && defaults.KeyboardLayout == KeyboardLayout.Arrows, "선택한 키 배치는 입력에 적용하고 설정 원본은 보존");
+        var keyboardFailure = new SettingsApplication(value => applied = value, value => throw new InvalidOperationException("키 배치 저장 실패"),
+            error => reported = error, layout => activeLayout = layout);
+        check(!keyboardFailure.Complete(defaults, keyboardSettings) && activeLayout == KeyboardLayout.Arrows, "키 배치 저장 실패 시 입력도 이전 방식으로 복구");
         var brokenApply = new SettingsApplication(value => { if (value.Master == 4) throw new InvalidOperationException("표시 적용 실패 검사"); applied = value; }, value => saves++, error => reported = error);
         check(!brokenApply.Complete(defaults, changedSettings) && saves == 1 && applied.SameAs(defaults), "설정 적용 실패 시 저장하지 않고 원래 값 복구");
         var mutatingConsumer = new SettingsApplication(value => value.SetMaster(0), value => value.SetEffects(0), error => reported = error);

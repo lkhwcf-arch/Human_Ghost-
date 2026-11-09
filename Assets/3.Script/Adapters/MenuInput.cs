@@ -33,7 +33,6 @@ namespace HumanGhost.Gameplay.Adapters
                 _navigate = _owned.FindAction("UI/Navigate", true);
                 _submit = _owned.FindAction("UI/Submit", true);
                 _submit.AddBinding("<Keyboard>/c");
-                KeyboardControls.Apply(_owned);
                 _cancel = _owned.FindAction("UI/Cancel", true);
             }
             catch { UnityEngine.Object.Destroy(_owned); throw; }
@@ -44,6 +43,8 @@ namespace HumanGhost.Gameplay.Adapters
             _requested = true;
             if (_blocked) return;
             if (_enabled) return;
+            // 비활성 중 조작 방식이 바뀌었어도 다시 켤 때 현재 설정을 사용합니다.
+            KeyboardControls.Apply(_owned);
             _enabled = true;
             KeyboardControls.Changed += OnKeyboardChanged;
             _navigate.performed += OnNavigate;
@@ -93,7 +94,6 @@ namespace HumanGhost.Gameplay.Adapters
         {
             bool requested = _requested;
             Disable();
-            KeyboardControls.Apply(_owned);
             if (requested) Enable();
         }
         private void OnSubmit(InputAction.CallbackContext context)

@@ -1,6 +1,7 @@
 {
   "FormatVersion": 2,
   "StageID": 8005,
+  "Level": "L8005_Jangbubang",
   "Placements": [
     {
       "PlacementID": 101,
@@ -9,5 +10,6 @@
       "Anchor": "Anchor_Ground_5",
       "Monsters": []
     }
-  ]
+  ],
+  "MaxMonsterCount": 30
 }

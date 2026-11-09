@@ -42,7 +42,7 @@ namespace HumanGhost.Gameplay.Adapters
             _data = data ?? throw new ArgumentNullException(nameof(data));
             _speed = speed; _audio = audio; _settings = settings;
             _canOpen = canOpen; _setGameInputLocked = setGameInputLocked; _returnToTitle = returnToTitle; _settingsChanged = settingsChanged;
-            _settingsApplication = new SettingsApplication(Preview, GameSettingsStore.Save, error => Debug.LogException(error, this));
+            _settingsApplication = new SettingsApplication(Preview, GameSettingsStore.Save, error => Debug.LogException(error, this), KeyboardControls.SetLayout);
             try
             {
                 _screen.Prepare(data);

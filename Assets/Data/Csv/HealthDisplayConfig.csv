@@ -1,2 +1,2 @@
 ID,PrefabKey,AnchorName,Width,Height,Visible
-1,PlayerHealthBar,플레이어체력앵커,240,20,Y
+1,PlayerHealthBar,PlayerHealthAnchor,240,20,Y

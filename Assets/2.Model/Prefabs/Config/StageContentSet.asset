@@ -19,11 +19,11 @@ MonoBehaviour:
     CameraSize: 5.625
   - StageId: 8002
     Map: {fileID: 100001, guid: 31e12a1d470681a45963f2f06d08cc23, type: 3}
-    Spawn: {fileID: 4900000, guid: 23c5c491f21442943aff5df64177c000, type: 3}
+    Spawn: {fileID: 4900000, guid: 436d1538fc7da474698595c5e3f2d02c, type: 3}
     CameraSize: 5.625
   - StageId: 8003
     Map: {fileID: 100001, guid: 53f22b56fbaa30744a1abbc1cc6ec2e6, type: 3}
-    Spawn: {fileID: 4900000, guid: c623a855dcdc6d44cb3babdbf0e43912, type: 3}
+    Spawn: {fileID: 4900000, guid: 4570e4ffc49353947b1b3c51469a4f90, type: 3}
     CameraSize: 5.625
   - StageId: 8004
     Map: {fileID: 100001, guid: 0acbb8b3d9a33a445b7ba87a3cd7e6ea, type: 3}
@@ -31,7 +31,7 @@ MonoBehaviour:
     CameraSize: 6.75
   - StageId: 8005
     Map: {fileID: 6190918105606674834, guid: 0f97cf1b037c0ec4c8044537f62b8ee4, type: 3}
-    Spawn: {fileID: 4900000, guid: 922ef85484d56ea41b823392ffd311ca, type: 3}
+    Spawn: {fileID: 4900000, guid: bc4feb177f93c1344ad35bfc043ee872, type: 3}
     CameraSize: 3.6
   _platforms:
   - {fileID: 9109195467246044568, guid: ddc56e26ecb3f4f4daf2d556292e3d67, type: 3}
