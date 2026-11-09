@@ -15,6 +15,8 @@ namespace HumanGhost.Gameplay.Presentation
 
         public static KeyboardLayoutScreen Create(Transform parent, SettingsScreen template)
         {
+            Text exemplar = template != null ? template.GetComponentInChildren<Text>(true) : null;
+            if (exemplar == null || exemplar.font == null) throw new InvalidOperationException("조작 선택의 글꼴 참조를 연결해 주세요.");
             var root = new GameObject("KeyboardLayoutScreen", typeof(RectTransform), typeof(Canvas),
                 typeof(CanvasScaler), typeof(GraphicRaycaster));
             root.SetActive(false);
@@ -30,8 +32,6 @@ namespace HumanGhost.Gameplay.Presentation
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920, 1080);
             var screen = root.AddComponent<KeyboardLayoutScreen>();
-            Text exemplar = template != null ? template.GetComponentInChildren<Text>(true) : null;
-            if (exemplar == null || exemplar.font == null) throw new InvalidOperationException("조작 선택의 글꼴 참조를 연결해 주세요.");
             var background = new GameObject("Backdrop", typeof(RectTransform), typeof(Image));
             background.transform.SetParent(root.transform, false);
             var rect = background.GetComponent<RectTransform>();

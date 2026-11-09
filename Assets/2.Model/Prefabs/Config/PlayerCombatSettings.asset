@@ -19,32 +19,32 @@ MonoBehaviour:
     _comboWindow: 200
     _extraDamage: 0
     _poiseDamage: 8
-    _staminaCost: 12
+    _staminaCost: 10
   - _windup: 120
     _active: 80
     _recovery: 250
     _comboWindow: 200
     _extraDamage: 0
     _poiseDamage: 8
-    _staminaCost: 12
+    _staminaCost: 10
   - _windup: 120
     _active: 80
     _recovery: 250
     _comboWindow: 200
     _extraDamage: 0
     _poiseDamage: 8
-    _staminaCost: 12
+    _staminaCost: 10
   - _windup: 200
     _active: 100
     _recovery: 400
     _comboWindow: 0
     _extraDamage: 10
     _poiseDamage: 16
-    _staminaCost: 12
+    _staminaCost: 10
   - _windup: 100
     _active: 80
     _recovery: 200
     _comboWindow: 0
     _extraDamage: -2
     _poiseDamage: 8
-    _staminaCost: 12
+    _staminaCost: 10

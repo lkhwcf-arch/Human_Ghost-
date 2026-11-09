@@ -11,7 +11,7 @@ using UnityEngine.InputSystem;
 
 namespace HumanGhost.Gameplay.Adapters
 {
-    // 타이틀 저장 유무·새 게임 진입·공용 옵션 화면을 연결합니다. 인트로·이어하기 복원은 소유하지 않습니다.
+    // 타이틀 저장 조회·조작 선택·인트로 요청·새 게임/기록 진입을 연결합니다. 맵 상태 복원은 게임 씬이 소유합니다.
     public sealed class TitleGameEntry : MonoBehaviour, IModalInputTarget
     {
         [SerializeField] private TitleSceneHost _host = null;
@@ -39,11 +39,17 @@ namespace HumanGhost.Gameplay.Adapters
         [SerializeField, InspectorName("공용 컷씬 실행 담당")] private CutsceneHost _cutscenes = null;
         private int _introCutsceneId;
         private bool _introPending;
+        private KeyboardLayoutScreen _layoutScreen;
+        private MenuInput _layoutInput;
+        private bool _layoutPending;
+        private Coroutine _layoutReturn;
 
         public void SetModalBlocked(bool blocked)
         {
             _modalBlocked = blocked;
             _settingsInput?.SetBlocked(blocked);
+            _layoutInput?.SetBlocked(blocked);
+            if (_layoutScreen != null) _layoutScreen.SetBlocked(blocked);
             if (_settingsScreen != null) _settingsScreen.SetInputBlocked(blocked);
         }
 
@@ -79,6 +85,16 @@ namespace HumanGhost.Gameplay.Adapters
                 _host.Disconnect(TitleAction.Settings, OpenSettings);
                 _host.Disconnect(TitleAction.Quit, Quit);
             }
+            _layoutInput?.Disable();
+            if (_layoutScreen != null) _layoutScreen.Cancel();
+            if (_layoutReturn != null) StopCoroutine(_layoutReturn);
+            _layoutReturn = null;
+            if (_layoutPending && _host != null)
+            {
+                _host.CompleteRequest();
+                _host.enabled = true;
+            }
+            _layoutPending = false;
             _settingsInput?.Disable();
             if (_settingsScreen != null) _settingsScreen.Cancel();
             if (_settingsReturn != null) StopCoroutine(_settingsReturn);
@@ -120,7 +136,11 @@ namespace HumanGhost.Gameplay.Adapters
             return true;
         }
 
-        private void PreviewSettings(GameSettings value) => _audio?.Apply(value);
+        private void PreviewSettings(GameSettings value)
+        {
+            _audio?.Apply(value);
+            KeyboardControls.SetLayout(value.KeyboardLayout);
+        }
 
         private void OnSettingsClosed(GameSettings result)
         {
@@ -136,7 +156,11 @@ namespace HumanGhost.Gameplay.Adapters
             }
         }
 
-        private void OnDestroy() => _settingsInput?.Dispose();
+        private void OnDestroy()
+        {
+            _settingsInput?.Dispose();
+            _layoutInput?.Dispose();
+        }
 
         private IEnumerator ReturnFromSettings()
         {
@@ -183,6 +207,66 @@ namespace HumanGhost.Gameplay.Adapters
         }
 
         private bool StartNewGame()
+        {
+            if (_modalBlocked || _layoutPending || _settingsPending || _introPending || _records == null || _saveStore == null) return false;
+            if (_data == null || _data.Data == null) return false;
+            if (KeyboardControls.LastDeviceWasGamepad) return PlayIntroOrEnterGame();
+            if (_settingsPrefab == null || _input == null) throw new InvalidOperationException("조작 선택의 화면·입력 참조를 연결해 주세요.");
+            if (_layoutScreen == null)
+            {
+                _layoutScreen = KeyboardLayoutScreen.Create(transform, _settingsPrefab);
+                try { _layoutInput = new MenuInput(_input, _layoutScreen.Move, _layoutScreen.Submit, _layoutScreen.Back, acceptBothJumpKeys: true); }
+                catch { Destroy(_layoutScreen.gameObject); _layoutScreen = null; throw; }
+            }
+            _layoutInput.SetBlocked(_modalBlocked);
+            _layoutScreen.SetBlocked(_modalBlocked);
+            _layoutPending = true;
+            _host.enabled = false;
+            try
+            {
+                _layoutScreen.Open(KeyboardLayout.Arrows, OnLayoutChosen);
+                _layoutInput.Enable();
+            }
+            catch
+            {
+                _layoutInput.Disable(); _layoutScreen.Cancel(); _layoutPending = false;
+                _host.enabled = true;
+                throw;
+            }
+            Cursor.visible = true;
+            return true;
+        }
+
+        private void OnLayoutChosen(KeyboardLayout? layout)
+        {
+            _layoutInput.Disable();
+            _layoutReturn = StartCoroutine(CompleteLayout(layout));
+        }
+
+        private IEnumerator CompleteLayout(KeyboardLayout? layout)
+        {
+            yield return null;
+            _layoutReturn = null;
+            _layoutPending = false;
+            _host.enabled = true;
+            try
+            {
+                if (layout.HasValue)
+                {
+                    GameSettings result = _settings.Clone();
+                    result.SetKeyboardLayout(layout.Value);
+                    var application = new SettingsApplication(PreviewSettings, GameSettingsStore.Save,
+                        error => _host.ReportError(error, "조작 선택 적용·저장"));
+                    if (!application.Complete(_settings, result)) { _host.CompleteRequest(); yield break; }
+                    _settings = result;
+                    if (PlayIntroOrEnterGame()) yield break;
+                }
+                _host.CompleteRequest();
+            }
+            catch (Exception error) { _host.CompleteRequest(); _host.ReportError(error, "조작 선택 후 새 게임 진입"); }
+        }
+
+        private bool PlayIntroOrEnterGame()
         {
             if (_data == null || _data.Data == null) return false;
             _introCutsceneId = CutsceneSequenceSource.FindId(_data.Data, CutsceneSequenceSource.IntroKey);

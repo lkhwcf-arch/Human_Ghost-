@@ -157,11 +157,17 @@ namespace HumanGhost.Gameplay.Adapters
         private void OnEntryClicked(TitleAction action)
         {
             if (IsPointerBlocked() || _menu.State != TitleMenuState.Selecting) return;
+            KeyboardControls.NoteDevice(Mouse.current);
             _menu.SelectItem(action);
             Dispatch(_menu.Submit());
         }
         private void OnConfirmHovered(bool yes) { if (!IsPointerBlocked()) _menu.SelectConfirm(yes); }
-        private void OnConfirmClicked(bool yes) { if (!IsPointerBlocked()) Dispatch(_menu.AnswerNewGame(yes)); }
+        private void OnConfirmClicked(bool yes)
+        {
+            if (IsPointerBlocked()) return;
+            KeyboardControls.NoteDevice(Mouse.current);
+            Dispatch(_menu.AnswerNewGame(yes));
+        }
 
         private void OnMove(int direction)
         {
