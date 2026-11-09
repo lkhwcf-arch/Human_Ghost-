@@ -615,6 +615,7 @@ namespace HumanGhost.Gameplay.Preview
 
         private void OnSettingsChanged(GameSettings value)
         {
+            KeyboardControls.SetLayout(value.KeyboardLayout);
             if (_audio != null) _audio.Apply(value);
             if (_followCamera != null) _followCamera.ShakeEnabled = value.CameraShake;
         }

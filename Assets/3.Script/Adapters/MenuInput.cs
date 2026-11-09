@@ -12,6 +12,7 @@ namespace HumanGhost.Gameplay.Adapters
         private readonly Action<int> _move;
         private readonly Action _accept, _back;
         private readonly Action<int> _side;
+        private readonly bool _acceptBothJumpKeys;
         private int _horizontal;
         private bool _enabled;
         private bool _blocked;
@@ -19,9 +20,10 @@ namespace HumanGhost.Gameplay.Adapters
         private int _vertical;
 
         // side는 좌우 값 바꾸기(선택)입니다.
-        public MenuInput(InputActionAsset source, Action<int> move, Action accept, Action back, Action<int> side = null)
+        public MenuInput(InputActionAsset source, Action<int> move, Action accept, Action back, Action<int> side = null, bool acceptBothJumpKeys = false)
         {
             _side = side;
+            _acceptBothJumpKeys = acceptBothJumpKeys;
             if (source == null) throw new ArgumentNullException(nameof(source));
             _move = move ?? throw new ArgumentNullException(nameof(move));
             _accept = accept ?? throw new ArgumentNullException(nameof(accept));
@@ -33,6 +35,7 @@ namespace HumanGhost.Gameplay.Adapters
                 _navigate = _owned.FindAction("UI/Navigate", true);
                 _submit = _owned.FindAction("UI/Submit", true);
                 _submit.AddBinding("<Keyboard>/c");
+                if (_acceptBothJumpKeys) _submit.AddBinding("<Keyboard>/k");
                 _cancel = _owned.FindAction("UI/Cancel", true);
             }
             catch { UnityEngine.Object.Destroy(_owned); throw; }
@@ -44,7 +47,7 @@ namespace HumanGhost.Gameplay.Adapters
             if (_blocked) return;
             if (_enabled) return;
             // 비활성 중 조작 방식이 바뀌었어도 다시 켤 때 현재 설정을 사용합니다.
-            KeyboardControls.Apply(_owned);
+            ApplyKeyboardLayout();
             _enabled = true;
             KeyboardControls.Changed += OnKeyboardChanged;
             _navigate.performed += OnNavigate;
@@ -89,6 +92,14 @@ namespace HumanGhost.Gameplay.Adapters
             int direction = value > 0.5f ? -1 : value < -0.5f ? 1 : 0;
             if (direction != 0 && direction != _vertical) _move(direction);
             _vertical = direction;
+        }
+        private void ApplyKeyboardLayout()
+        {
+            KeyboardControls.Apply(_owned);
+            if (!_acceptBothJumpKeys) return;
+            for (int i = 0; i < _submit.bindings.Count; i++)
+                if (_submit.bindings[i].path == "<Keyboard>/c" || _submit.bindings[i].path == "<Keyboard>/k")
+                    _submit.RemoveBindingOverride(i);
         }
         private void OnKeyboardChanged()
         {

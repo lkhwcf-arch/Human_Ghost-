@@ -124,7 +124,7 @@ namespace HumanGhost.Gameplay.Adapters
                 {
                     _settingsScreen = Instantiate(_settingsPrefab, _menuRoot.transform);
                     _settingsScreen.gameObject.SetActive(false);
-                    _settingsInput = new MenuInput(_input, MoveMenu, SubmitMenu, BackMenu, AdjustMenu);
+                    _settingsInput = new MenuInput(_input, MoveMenu, SubmitMenu, BackMenu, AdjustMenu, acceptBothJumpKeys: true);
                     _menuRoot.SetActive(true);
                 }
                 catch

@@ -16,6 +16,7 @@ namespace HumanGhost.Gameplay.Adapters
         private bool StartNewGame()
         {
             if (_modalBlocked || _menuPending || _introPending || _records == null || _saveStore == null) return false;
+            if (KeyboardControls.LastDeviceWasGamepad) return BeginNewGame();
             PrepareMenu();
             if (_layoutScreen == null) _layoutScreen = KeyboardLayoutScreen.Create(_menuRoot.transform, _settingsScreen);
             _layoutScreen.SetBlocked(_modalBlocked);
