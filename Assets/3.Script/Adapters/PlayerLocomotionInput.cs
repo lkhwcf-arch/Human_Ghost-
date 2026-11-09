@@ -17,6 +17,7 @@ namespace HumanGhost.Gameplay.Adapters
         private InputActionAsset _ownedAsset;
         private InputAction _moveAction, _jumpAction, _attackAction, _rollAction, _interactAction, _skillAction, _herbAction;
         private int _vertical;
+        public int VerticalDirection => _vertical;
         private PlayerLocomotion _locomotion;
         private PlayerActor _actor;
         private bool _subscribed;

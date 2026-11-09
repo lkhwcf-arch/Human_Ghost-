@@ -171,6 +171,7 @@ namespace HumanGhost.Gameplay.Preview
                 if (_motion == null) _motion = new PreviewPlayerMotion(_player, _groundY, _useMapCollision, _playerHalfSize, GetMarkers(),
                     _actor.Definition.JumpHeight, Mathf.RoundToInt(_jumpSeconds * 1000f),
                     key => _playerAudio?.PlayAnimationSound(key));
+                _input.TryDropThrough = _motion.TryDropThrough;
                 _input.SetModalBlocked(_modalBlocked);
                 _input.JumpAccepted += OnJump;
                 _input.JumpRejected += _motion.OnJumpRejected;
@@ -230,6 +231,8 @@ namespace HumanGhost.Gameplay.Preview
             // 초기화 도중 실패해도 이미 연결한 소비자는 반드시 해제합니다.
             if (_input != null)
             {
+                _motion?.StopClimbing();
+                _input.TryDropThrough = null;
                 _input.JumpAccepted -= OnJump;
                 if (_motion != null) _input.JumpRejected -= _motion.OnJumpRejected;
                 _input.InteractPressed -= OnInteract;
@@ -299,6 +302,7 @@ namespace HumanGhost.Gameplay.Preview
         // 매달린 중 위·아래는 오르기·놓기이고, 그 밖의 위는 상호작용입니다(K03·K15).
         private void OnVertical(int direction)
         {
+            if (_motion.TryUseLadder(direction)) return;
             if (_motion.IsHanging) _motion.OnVerticalPressed(direction);
             else if (direction > 0) OnInteract();
         }
@@ -703,6 +707,7 @@ namespace HumanGhost.Gameplay.Preview
             // 출구가 잠겨 있어도 맵 밖으로 나가 떨어지지 않게 맵 끝에서 막습니다.
             float moveMin = _stage != null ? _stage.Area.min.x + _playerHalfSize.x : _useMapCollision ? float.NegativeInfinity : -_stageHalfWidth;
             float moveMax = _stage != null ? _stage.Area.max.x - _playerHalfSize.x : _useMapCollision ? float.PositiveInfinity : _stageHalfWidth;
+            _motion.SetVerticalInput(_input.VerticalDirection);
             _motion.Move(Time.deltaTime, moveMin, moveMax);
             _attackWindow.enabled = _actor.IsAttackActive;
             // 몬스터 이동 후 플레이어 판정을 확인합니다(기존 순서 유지).
