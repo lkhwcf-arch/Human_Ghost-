@@ -1090,6 +1090,7 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
+  - component: {fileID: 3705122121569537229}
   - component: {fileID: 467578063341807462}
   - component: {fileID: 2228834300486759717}
   m_Layer: 0
@@ -1618,6 +1619,7 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
+  - component: {fileID: 672075091382983323}
   - component: {fileID: 2475108027100420853}
   - component: {fileID: 1223137059813317595}
   m_Layer: 0
@@ -1696,6 +1698,7 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
+  - component: {fileID: 1954984026530755528}
   - component: {fileID: 3476372577120261199}
   - component: {fileID: 4520966635643377459}
   m_Layer: 0
@@ -2502,6 +2505,7 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
+  - component: {fileID: 1191080962589190637}
   - component: {fileID: 1125450630062009161}
   - component: {fileID: 4558092292758251000}
   m_Layer: 0
@@ -4058,6 +4062,7 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
+  - component: {fileID: 3339155804128386388}
   - component: {fileID: 6621898275623854629}
   - component: {fileID: 6147203337681617112}
   m_Layer: 0
@@ -4318,3 +4323,73 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &3339155804128386388
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8278674463912016751}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d000c912d4e14aad94dbdb185485469e, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Preview.LadderClimbArea
+  _volume: {fileID: 6147203337681617112}
+  _tilesPerSecond: 3
+--- !u!114 &1191080962589190637
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4513462468415623688}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d000c912d4e14aad94dbdb185485469e, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Preview.LadderClimbArea
+  _volume: {fileID: 4558092292758251000}
+  _tilesPerSecond: 3
+--- !u!114 &1954984026530755528
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2950998039109219515}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d000c912d4e14aad94dbdb185485469e, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Preview.LadderClimbArea
+  _volume: {fileID: 4520966635643377459}
+  _tilesPerSecond: 3
+--- !u!114 &672075091382983323
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2852182108198999196}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d000c912d4e14aad94dbdb185485469e, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Preview.LadderClimbArea
+  _volume: {fileID: 1223137059813317595}
+  _tilesPerSecond: 3
+--- !u!114 &3705122121569537229
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1918194318464612821}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d000c912d4e14aad94dbdb185485469e, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Preview.LadderClimbArea
+  _volume: {fileID: 2228834300486759717}
+  _tilesPerSecond: 3

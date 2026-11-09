@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace HumanGhost.Gameplay.Presentation
 {
@@ -47,12 +48,29 @@ namespace HumanGhost.Gameplay.Presentation
             if (_fill == null) return;
             // 정수 체력은 그대로 유지하고 화면 너비로 전달하는 경계에서만 비율로 변환합니다.
             float ratio = maximum > 0 ? Mathf.Clamp01((float)current / maximum) : 0f;
-            _fill.anchorMax = new Vector2(ratio, 1f);
+            SetFillRatio(_fill, ratio);
             if (ratio < _targetRatio) _ghostHold = _ghostHoldSeconds;
             else if (ratio > _ghostRatio) _ghostRatio = ratio;
             _targetRatio = ratio;
             if (_ghost != null && _ghostRatio == _targetRatio)
-                _ghost.anchorMax = new Vector2(_ghostRatio, 1f);
+                SetFillRatio(_ghost, _ghostRatio);
+        }
+
+        // 붓 획은 크기를 찌그러뜨리지 않고 가로로 잘라 표시합니다. 기존 사각형 프리팹도 지원합니다.
+        internal static void SetFillRatio(RectTransform fill, float ratio)
+        {
+            var image = fill.GetComponent<Image>();
+            ratio = Mathf.Clamp01(ratio);
+            if (image != null && image.type == Image.Type.Filled)
+            {
+                if (fill.anchorMax != Vector2.one) fill.anchorMax = Vector2.one;
+                if (image.fillAmount != ratio) image.fillAmount = ratio;
+            }
+            else
+            {
+                var size = new Vector2(ratio, 1f);
+                if (fill.anchorMax != size) fill.anchorMax = size;
+            }
         }
 
         private void Update()
@@ -60,7 +78,7 @@ namespace HumanGhost.Gameplay.Presentation
             if (_ghost == null || _ghostRatio == _targetRatio) return;
             if (_ghostHold > 0f) { _ghostHold -= Time.unscaledDeltaTime; return; }
             _ghostRatio = Mathf.MoveTowards(_ghostRatio, _targetRatio, Time.unscaledDeltaTime);
-            _ghost.anchorMax = new Vector2(_ghostRatio, 1f);
+            SetFillRatio(_ghost, _ghostRatio);
         }
     }
 }

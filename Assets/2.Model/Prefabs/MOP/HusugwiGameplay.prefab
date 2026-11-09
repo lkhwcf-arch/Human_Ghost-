@@ -8,6 +8,7 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
+  - component: {fileID: 4431834088010252383}
   - component: {fileID: 1185859332554086695}
   - component: {fileID: 5443279662782439812}
   m_Layer: 0
@@ -416,3 +417,48 @@ MonoBehaviour:
     _sprite: {fileID: 3189917877515256400, guid: 8396d911a8abcc54fb948282d4a00219, type: 3}
   - _state: 10016
     _sprite: {fileID: 8202977276693823444, guid: e1f093330bf73d1469c443f1a49e6f4a, type: 3}
+  _animations:
+  - _state: 10001
+    _clip: {fileID: 7400000, guid: 79ec959f93bd7c34b8d7c0ed2aab3b7d, type: 2}
+  - _state: 10002
+    _clip: {fileID: 7400000, guid: eb1a58c4e88faa9479413c5652502bd8, type: 2}
+  - _state: 10003
+    _clip: {fileID: 7400000, guid: 9a162cf54dbc44c4da843616c5dedc46, type: 2}
+  - _state: 10004
+    _clip: {fileID: 7400000, guid: 9da7103ec5728594d82644c856b63ca5, type: 2}
+  - _state: 10005
+    _clip: {fileID: 7400000, guid: 81bcb67d085e2294bb0d86165f7f2918, type: 2}
+  - _state: 10007
+    _clip: {fileID: 7400000, guid: a82823fc26f10e548bd393a198bf29af, type: 2}
+  - _state: 10008
+    _clip: {fileID: 7400000, guid: 7f513c4663003d5408b15ea9415feaea, type: 2}
+  - _state: 10009
+    _clip: {fileID: 7400000, guid: 9da7103ec5728594d82644c856b63ca5, type: 2}
+  - _state: 10015
+    _clip: {fileID: 7400000, guid: d18b3b3feedfed640bf6babed09ab4dc, type: 2}
+  - _state: 10016
+    _clip: {fileID: 7400000, guid: 723844867ecdb3d4b99e0c964f9f772c, type: 2}
+  - _state: 10019
+    _clip: {fileID: 7400000, guid: 45a4b175e2801194ab9b5ead50d099e0, type: 2}
+--- !u!95 &4431834088010252383
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1256115982110655389}
+  m_Enabled: 0
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 0}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage:
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0

@@ -16,6 +16,13 @@ namespace HumanGhost.Gameplay.Adapters
         public PlayerActor Actor { get; private set; }
         // 이 플레이어가 공격자일 때의 회피·치명 난수입니다.
         public Func<int, int, int> HitRandom { get; private set; }
+        public event Action<string> PresentationCue;
+        // 상태 ID가 없는 성공 동작(Climb/Save)의 표현 알림입니다. 전투 상태는 변경하지 않습니다.
+        public void NotifyPresentationCue(string cue)
+        {
+            if (string.IsNullOrEmpty(cue)) throw new ArgumentException("동작 키가 필요합니다.", nameof(cue));
+            PresentationCue?.Invoke(cue);
+        }
         public event Action<PlayerActor> Initialized;
         public event Action Destroyed;
 

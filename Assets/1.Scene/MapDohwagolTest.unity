@@ -127,6 +127,7 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
+  - component: {fileID: 2375674213620268925}
   - component: {fileID: 64223848}
   - component: {fileID: 64223849}
   - component: {fileID: 64223850}
@@ -263,6 +264,53 @@ MonoBehaviour:
     _sprite: {fileID: -5996818224257555532, guid: 52b445a585e6a5e4284ed536d8ad78db, type: 3}
   _player: {fileID: 383945511}
   _sourceFacesLeft: 1
+  _animations:
+  - _state: 10001
+    _clip: {fileID: 7400000, guid: 3b858049ac4d2d54a8804bd46299d30c, type: 2}
+  - _state: 10002
+    _clip: {fileID: 7400000, guid: 3334a1f7516430b42bf8cda4683e3c2e, type: 2}
+  - _state: 10003
+    _clip: {fileID: 7400000, guid: f0e4e12d609dc4448ae2067b4f8cec2b, type: 2}
+  - _state: 10004
+    _clip: {fileID: 7400000, guid: d40f180eac9351946b0010496fe962ea, type: 2}
+  - _state: 10005
+    _clip: {fileID: 7400000, guid: 1a9e9385eb4c7794998724cf388f9018, type: 2}
+  - _state: 10006
+    _clip: {fileID: 7400000, guid: d40f180eac9351946b0010496fe962ea, type: 2}
+  - _state: 10007
+    _clip: {fileID: 7400000, guid: 84b7f78dc4081fd4fb800c772bbb2f2e, type: 2}
+  - _state: 10008
+    _clip: {fileID: 7400000, guid: cc3de20f8d416da4a8114f1d071446a9, type: 2}
+  - _state: 10009
+    _clip: {fileID: 7400000, guid: 76121100b8a8b4342961da25cd9e12c4, type: 2}
+  - _state: 10010
+    _clip: {fileID: 7400000, guid: 248a234fbd364404fa4e62d475e4eb2e, type: 2}
+  - _state: 10011
+    _clip: {fileID: 7400000, guid: 76a41418e90b5b04eac2994cbac32a87, type: 2}
+  - _state: 10012
+    _clip: {fileID: 7400000, guid: f7e25e716a056d84dbeb4d5bb2deb62a, type: 2}
+  - _state: 10013
+    _clip: {fileID: 7400000, guid: 66ca3d0f457c7184890589f118a18812, type: 2}
+  - _state: 10014
+    _clip: {fileID: 7400000, guid: cc3de20f8d416da4a8114f1d071446a9, type: 2}
+  - _state: 10015
+    _clip: {fileID: 7400000, guid: 4441b72c85f07f743a79c23b9d1d96cf, type: 2}
+  - _state: 10016
+    _clip: {fileID: 7400000, guid: bf1d874e061184e41935fa6c11b19f4c, type: 2}
+  - _state: 10017
+    _clip: {fileID: 7400000, guid: eb304d85d2f979d40983859261a25052, type: 2}
+  - _state: 10019
+    _clip: {fileID: 7400000, guid: cc3de20f8d416da4a8114f1d071446a9, type: 2}
+  - _state: 10020
+    _clip: {fileID: 7400000, guid: 42040cc13cbc7fd47bae061e65df2890, type: 2}
+  - _state: 10022
+    _clip: {fileID: 7400000, guid: f0e4e12d609dc4448ae2067b4f8cec2b, type: 2}
+  - _state: 10024
+    _clip: {fileID: 7400000, guid: 1a9e9385eb4c7794998724cf388f9018, type: 2}
+  _airAttack: {fileID: 7400000, guid: 48d243d972470124a82dfcc472b4a601, type: 2}
+  _climb: {fileID: 7400000, guid: 6d2bf8909bcce0d4781c45984a4d084e, type: 2}
+  _save: {fileID: 7400000, guid: 8b98f4955cee7ad408645c317b727aa1, type: 2}
+  _ladderClimb: {fileID: 7400000, guid: 60a3b3700f40ddf48b66b1c5d414951a, type: 2}
 --- !u!114 &98765001
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4084,3 +4132,25 @@ SceneRoots:
   - {fileID: 2104232678}
   - {fileID: 1516668411}
   - {fileID: 987919510}
+--- !u!95 &2375674213620268925
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 64223847}
+  m_Enabled: 0
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 0}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage:
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0

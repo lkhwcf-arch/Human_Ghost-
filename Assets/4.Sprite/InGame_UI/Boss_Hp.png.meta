@@ -153,7 +153,7 @@ TextureImporter:
         width: 1327
         height: 45
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -175,7 +175,7 @@ TextureImporter:
         width: 92
         height: 9
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -197,7 +197,7 @@ TextureImporter:
         width: 1062
         height: 21
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -210,11 +210,33 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: UI_BossHealth
+      rect:
+        serializedVersion: 2
+        x: 276
+        y: 80
+        width: 1366
+        height: 45
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0d99df0b10aca29448b860a1819c3e70
+      internalID: 2120985885
+      vertices: []
+      indices:
+      edges: []
+      weights: []
     outline: []
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 124ee6c051698c341903ae1364be54f4
     internalID: 0
     vertices: []
     indices: 
@@ -227,6 +249,7 @@ TextureImporter:
       Boss_Hp_0: -5091355869155085998
       Boss_Hp_1: -379186087835355362
       Boss_Hp_2: -6307933263865185009
+      UI_BossHealth: 2120985885
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

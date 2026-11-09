@@ -145,8 +145,7 @@ namespace HumanGhost.Gameplay.Presentation
 
         private static void SetWidth(RectTransform fill, float ratio)
         {
-            var value = new Vector2(Mathf.Clamp01(ratio), 1f);
-            if (fill.anchorMax != value) fill.anchorMax = value;
+            HealthDisplay.SetFillRatio(fill, ratio);
         }
     }
 }

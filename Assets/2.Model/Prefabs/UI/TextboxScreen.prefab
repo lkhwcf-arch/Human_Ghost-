@@ -113,8 +113,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -21}
-  m_SizeDelta: {x: -80, y: -82}
+  m_AnchoredPosition: {x: 0, y: -22}
+  m_SizeDelta: {x: -140, y: -130}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8321690907703082789
 CanvasRenderer:
@@ -146,7 +146,7 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 12800000, guid: 7ad442f2735b750438d39cf662d8b9ed, type: 3}
-    m_FontSize: 34
+    m_FontSize: 32
     m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 10
@@ -345,10 +345,10 @@ RectTransform:
   - {fileID: 4732305806569804634}
   m_Father: {fileID: 5115389862765062161}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.1, y: 0}
-  m_AnchorMax: {x: 0.9, y: 0}
-  m_AnchoredPosition: {x: 0, y: 40}
-  m_SizeDelta: {x: 0, y: 200}
+  m_AnchorMin: {x: 0.5, y: 0}
+  m_AnchorMax: {x: 0.5, y: 0}
+  m_AnchoredPosition: {x: 0, y: 48}
+  m_SizeDelta: {x: 1440, y: 347}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!222 &1241434305857108741
 CanvasRenderer:
@@ -371,14 +371,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.05, g: 0.05, b: 0.06, a: 0.88}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: -907547118, guid: 694a6141747c3dd4e993828edf749dc9, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -607,10 +607,10 @@ RectTransform:
   m_Father: {fileID: 3553579721155801978}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 40, y: -14}
-  m_SizeDelta: {x: -80, y: 44}
-  m_Pivot: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 70, y: -44}
+  m_SizeDelta: {x: 360, y: 45}
+  m_Pivot: {x: 0, y: 0.5}
 --- !u!222 &7983949632372573839
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -687,8 +687,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: -24, y: 14}
-  m_SizeDelta: {x: 120, y: 40}
+  m_AnchoredPosition: {x: -48, y: 28}
+  m_SizeDelta: {x: 140, y: 40}
   m_Pivot: {x: 1, y: 0}
 --- !u!222 &9124159948211204280
 CanvasRenderer:
@@ -720,7 +720,7 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 12800000, guid: 7ad442f2735b750438d39cf662d8b9ed, type: 3}
-    m_FontSize: 28
+    m_FontSize: 26
     m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 10

@@ -8,6 +8,7 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
+  - component: {fileID: 2488586731648489172}
   - component: {fileID: 2879107356158231218}
   - component: {fileID: 7861104906962683884}
   m_Layer: 0
@@ -189,3 +190,16 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 5, y: 0.5}
   m_EdgeRadius: 0
+--- !u!114 &2488586731648489172
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2207386687199381540}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b429bec1522b71c45a4519375bb3048c, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Preview.DropThroughPlatform
+  _allowed: 1

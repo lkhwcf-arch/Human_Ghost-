@@ -26,6 +26,12 @@ namespace HumanGhost.Gameplay.Preview
         private bool _airborne;
         private Transform _hangEdge;
         private int _hangSide;
+        private readonly System.Collections.Generic.List<LadderClimbArea> _ladders = new System.Collections.Generic.List<LadderClimbArea>();
+        private LadderClimbArea _ladder;
+        private Bounds _lastLadderArea;
+        private int _verticalInput, _shownLadderDirection;
+        public bool IsOnLadder => !ReferenceEquals(_ladder, null);
+        public void SetVerticalInput(int direction) => _verticalInput = Math.Sign(direction);
 
         // markers: 호출자가 전달한 표식 묶음(매달리기 모서리·낙하 구역).
         public PreviewPlayerMotion(PlayerRuntime player, float groundY, bool useColliders, Vector2 halfSize,
@@ -37,6 +43,12 @@ namespace HumanGhost.Gameplay.Preview
             _collision = new PreviewCollision(useColliders, groundY, halfSize);
             _hangEdges = new PreviewHangEdges(markers, halfSize);
             _fallZones = new PreviewFallZones(markers);
+            foreach (Transform marker in markers ?? Array.Empty<Transform>())
+            {
+                if (marker == null) continue;
+                var ladder = marker.GetComponent<LadderClimbArea>();
+                if (ladder != null) _ladders.Add(ladder);
+            }
             _motion.ConfigureJump(IntegerPosition.FromData(jumpHeight), jumpMilliseconds);
         }
 
@@ -79,6 +91,24 @@ namespace HumanGhost.Gameplay.Preview
         // 공중 점프 입력은 착지 직전 선입력으로, 매달린 중에는 올라가기로 씁니다.
         public void OnJumpRejected()
         {
+            if (IsOnLadder)
+            {
+                bool hanging = _player.Actor.IsHanging;
+                bool downward = _verticalInput < 0;
+                StopClimbing();
+                if (hanging && !_player.Actor.IsDead)
+                {
+                    if (downward && TryDropThrough()) return;
+                    if (downward && !_player.Actor.Locomotion.IsGrounded)
+                    {
+                        _airborne = true; _coyoteRemaining = 0;
+                        _motion.SetVerticalSpeed(-IntegerPosition.UnitsPerTile);
+                        return;
+                    }
+                    _player.SetGrounded(false); StartJump();
+                }
+                return;
+            }
             if (IsHanging) Climb();
             else if (_airborne) _jumpBufferRemaining = _jumpBufferMilliseconds;
         }
@@ -87,6 +117,84 @@ namespace HumanGhost.Gameplay.Preview
         {
             if (!IsHanging) return;
             if (direction > 0) Climb(); else Drop();
+        }
+
+        public bool TryUseLadder(int direction)
+        {
+            if (IsOnLadder) { SetVerticalInput(direction); return true; }
+            if (direction == 0 || !_player.Actor.Locomotion.CanMove || _player.Actor.IsDead) return false;
+            Vector3 position = _player.transform.position;
+            float feet = position.y - _halfSize.y;
+            foreach (LadderClimbArea ladder in _ladders)
+            {
+                if (ladder == null || !ladder.isActiveAndEnabled) continue;
+                Bounds area = ladder.Area;
+                if (Mathf.Abs(position.x - area.center.x) > area.extents.x + _halfSize.x + 0.1f || feet < area.min.y - 0.12f || feet > area.max.y + 0.12f ||
+                    direction > 0 && feet >= area.max.y || direction < 0 && feet <= area.min.y) continue;
+                bool grounded = _player.Actor.Locomotion.IsGrounded;
+                _player.SetGrounded(false);
+                if (!_player.Actor.TryHang()) { _player.SetGrounded(grounded); return false; }
+                _ladder = ladder; _lastLadderArea = area; _verticalInput = Math.Sign(direction); _shownLadderDirection = 0;
+                position.x = area.center.x; _player.SetPosition(position);
+                _motion.StopRoll(); _motion.SetVerticalSpeed(); _airborne = false;
+                _jumpBufferRemaining = _coyoteRemaining = 0; _dropRequested = false;
+                _peakY = _player.Position.Y;
+                _player.NotifyPresentationCue(_verticalInput > 0 ? "LadderUp" : "LadderDown");
+                _shownLadderDirection = _verticalInput;
+                _playSound?.Invoke("PLAYER_CLIMB");
+                return true;
+            }
+            return false;
+        }
+
+        public void StopClimbing() => LeaveLadder(false);
+        private void LeaveLadder(bool atTop)
+        {
+            if (ReferenceEquals(_ladder, null)) return;
+            if (_player == null || _player.Actor == null) { _ladder = null; return; }
+            Bounds area = _ladder == null ? _lastLadderArea : _ladder.Area;
+            _ladder = null; _verticalInput = _shownLadderDirection = 0;
+            Vector3 position = _player.transform.position;
+            float gap;
+            bool grounded = _collision.FindFloor(position, 0.12f, out gap);
+            if (!grounded && atTop)
+            {
+                int preferred = _player.Actor.Locomotion.Direction < 0 ? -1 : 1;
+                for (int i = 0; i < 2 && !grounded; i++)
+                {
+                    Vector3 candidate = position;
+                    candidate.x = area.center.x + (i == 0 ? preferred : -preferred) * (area.extents.x + _halfSize.x + PreviewCollision.Skin);
+                    if (!_collision.FindFloor(candidate, 0.12f, out gap)) continue;
+                    position = candidate; grounded = true;
+                }
+            }
+            if (grounded) { position.y -= gap; _player.SetPosition(position); }
+            _player.SetGrounded(grounded);
+            _player.Actor.EndHang();
+            _motion.SetVerticalSpeed(); _airborne = !grounded; _peakY = _player.Position.Y;
+            _player.NotifyPresentationCue("LadderExit");
+        }
+
+        private bool MoveLadder(float seconds)
+        {
+            if (ReferenceEquals(_ladder, null)) return false;
+            if (_ladder == null || !_ladder.isActiveAndEnabled || !_player.Actor.IsHanging) { StopClimbing(); return false; }
+            Bounds area = _ladder.Area;
+            _lastLadderArea = area;
+            Vector3 position = _player.transform.position;
+            float bottom = area.min.y + _halfSize.y;
+            float top = area.max.y + _halfSize.y + PreviewCollision.Skin;
+            float step = _verticalInput * _ladder.TilesPerSecond * _player.ToWorld(IntegerPosition.UnitsPerTile) * seconds;
+            position.x = area.center.x;
+            position.y = Mathf.Clamp(position.y + step, bottom, top);
+            _player.SetPosition(position);
+            if (_shownLadderDirection != _verticalInput)
+            {
+                _shownLadderDirection = _verticalInput;
+                _player.NotifyPresentationCue(_verticalInput > 0 ? "LadderUp" : _verticalInput < 0 ? "LadderDown" : "LadderHold");
+            }
+            if (_verticalInput > 0 && position.y >= top || _verticalInput < 0 && position.y <= bottom) LeaveLadder(_verticalInput > 0);
+            return true;
         }
 
         public bool CanGrab => _airborne && !IsHanging && _hangEdges.TryFind(_player.transform.position, out _, out _);
@@ -109,6 +217,7 @@ namespace HumanGhost.Gameplay.Preview
             _airborne = false; _motion.SetVerticalSpeed();
             _player.SetGrounded(true);
             _player.Actor.EndHang();
+            _player.NotifyPresentationCue("Climb");
             _playSound?.Invoke("PLAYER_CLIMB");
         }
 
@@ -125,6 +234,7 @@ namespace HumanGhost.Gameplay.Preview
             int milliseconds = _clock.Advance(seconds);
             if (milliseconds == 0) return;
             PlayerActor actor = _player.Actor;
+            if (MoveLadder(milliseconds / 1000f)) return;
             if (IsHanging)
             {
                 if (actor.IsHanging) return;

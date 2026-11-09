@@ -19,6 +19,7 @@ namespace HumanGhost.Gameplay.Adapters
         private InteractionContext _context;
         private Func<bool> _canGrab, _tryGrab, _canExecute, _tryExecute;
         private TextMesh _prompt;
+        private bool _promptHasKeyIcon;
         private IInteractable _selected;
         private int? _shownPromptId;
         private string _shownPrompt;
@@ -34,6 +35,7 @@ namespace HumanGhost.Gameplay.Adapters
             _canGrab = canGrab; _tryGrab = tryGrab; _canExecute = canExecute; _tryExecute = tryExecute;
             PrepareRegistry();
             if (_prompt == null && _promptPrefab != null) { _prompt = Instantiate(_promptPrefab, transform); _prompt.gameObject.SetActive(false); }
+            _promptHasKeyIcon = _prompt != null && _prompt.GetComponentInChildren<SpriteRenderer>(true) != null;
             StartBindings();
         }
 
@@ -156,6 +158,7 @@ namespace HumanGhost.Gameplay.Adapters
 
         private void ShowPrompt(string text, Vector3 position)
         {
+            if (_promptHasKeyIcon) text = text == "E" ? "" : text.StartsWith("E ", StringComparison.Ordinal) ? text.Substring(2) : text;
             if (_prompt.text != text) _prompt.text = text;
             var next = new Vector3(position.x, position.y, _prompt.transform.position.z);
             if (_prompt.transform.position != next) _prompt.transform.position = next;
