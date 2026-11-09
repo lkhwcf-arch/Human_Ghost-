@@ -24,7 +24,8 @@ namespace HumanGhost.Gameplay.Adapters
         [SerializeField] private AudioSource _musicA = null;
         [SerializeField] private AudioSource _musicB = null;
         [SerializeField] private AudioSource _effects = null;
-        private readonly Dictionary<string, AudioClip> _lookup = new Dictionary<string, AudioClip>();
+        private readonly Dictionary<string, List<AudioClip>> _lookup = new Dictionary<string, List<AudioClip>>();
+        private readonly System.Random _effectRandom = new System.Random();
         private string _currentMusic;
         private bool _usingA = true;
         private float _fade = 1f;
@@ -42,7 +43,15 @@ namespace HumanGhost.Gameplay.Adapters
             if (_tablePlayer != null) _tablePlayer.SetMuted(blocked);
         }
 
-        private void Awake() { foreach (Entry entry in _clips) if (entry != null && entry.Clip != null) _lookup[entry.Key] = entry.Clip; }
+        private void Awake()
+        {
+            foreach (Entry entry in _clips)
+            {
+                if (entry == null || entry.Clip == null || string.IsNullOrEmpty(entry.Key)) continue;
+                if (!_lookup.TryGetValue(entry.Key, out List<AudioClip> clips)) _lookup.Add(entry.Key, clips = new List<AudioClip>());
+                clips.Add(entry.Clip);
+            }
+        }
 
         public void Apply(GameSettings settings)
         {
@@ -85,7 +94,8 @@ namespace HumanGhost.Gameplay.Adapters
 
         public void PlayMusic(string key)
         {
-            if (string.IsNullOrEmpty(key) || key == _currentMusic || !_lookup.TryGetValue(key, out AudioClip clip)) return;
+            if (string.IsNullOrEmpty(key) || key == _currentMusic || !_lookup.TryGetValue(key, out List<AudioClip> clips)) return;
+            AudioClip clip = clips[0];
             _currentMusic = key;
             _usingA = !_usingA;
             AudioSource next = _usingA ? _musicA : _musicB;
@@ -96,7 +106,8 @@ namespace HumanGhost.Gameplay.Adapters
 
         public void PlayEffect(string key)
         {
-            if (_lookup.TryGetValue(key, out AudioClip clip)) _effects.PlayOneShot(clip);
+            if (_effects != null && !string.IsNullOrEmpty(key) && _lookup.TryGetValue(key, out List<AudioClip> clips))
+                _effects.PlayOneShot(clips[_effectRandom.Next(clips.Count)]);
         }
 
         private void Update()

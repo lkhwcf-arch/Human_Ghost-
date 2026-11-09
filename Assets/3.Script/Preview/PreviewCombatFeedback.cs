@@ -45,7 +45,6 @@ namespace HumanGhost.Gameplay.Preview
                     _speed?.State.HitStop(_normalStop);
                     _camera?.Shake(0.06f, 0.08f);
                     AddFlash(target, Color.white);
-                    _audio?.PlayEffect("SFX_HIT");
                     break;
                 case HitOutcome.Critical:
                     _speed?.State.Critical(_criticalStop, _criticalSlow, _criticalSlowRate);
@@ -61,14 +60,12 @@ namespace HumanGhost.Gameplay.Preview
             _speed?.State.ClearSlow();
             _speed?.State.HitStop(_executeStop);
             _camera?.Shake(0.25f, 0.25f);
-            _audio?.PlayEffect("SFX_EXECUTE");
         }
 
         public void OnPlayerDamaged(bool byBoss)
         {
             if (byBoss) _speed?.State.HitStop(_bossHitStop);
             _camera?.Shake(0.15f, 0.2f);
-            _audio?.PlayEffect("SFX_HURT");
         }
 
         // 다른 표시가 색을 정한 뒤 마지막에 덮습니다.

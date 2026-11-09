@@ -12,6 +12,7 @@ namespace HumanGhost.Gameplay.Preview
         private const int _jumpBufferMilliseconds = 100;
         private const int _fallDamage = 10;
         private readonly PlayerRuntime _player;
+        private readonly Action<string> _playSound;
         private readonly PreviewCollision _collision;
         private readonly PreviewHangEdges _hangEdges;
         private readonly PreviewFallZones _fallZones;
@@ -28,10 +29,11 @@ namespace HumanGhost.Gameplay.Preview
 
         // markers: 호출자가 전달한 표식 묶음(매달리기 모서리·낙하 구역).
         public PreviewPlayerMotion(PlayerRuntime player, float groundY, bool useColliders, Vector2 halfSize,
-            Transform[] markers, int jumpHeight, int jumpMilliseconds)
+            Transform[] markers, int jumpHeight, int jumpMilliseconds, Action<string> playSound = null)
         {
             _player = player != null ? player : throw new ArgumentNullException(nameof(player));
             _halfSize = halfSize;
+            _playSound = playSound;
             _collision = new PreviewCollision(useColliders, groundY, halfSize);
             _hangEdges = new PreviewHangEdges(markers, halfSize);
             _fallZones = new PreviewFallZones(markers);
@@ -59,6 +61,7 @@ namespace HumanGhost.Gameplay.Preview
 
         public void StartJump()
         {
+            _playSound?.Invoke("PLAYER_JUMP");
             _motion.StartJump();
             _airborne = true;
             _coyoteRemaining = 0;
@@ -106,6 +109,7 @@ namespace HumanGhost.Gameplay.Preview
             _airborne = false; _motion.SetVerticalSpeed();
             _player.SetGrounded(true);
             _player.Actor.EndHang();
+            _playSound?.Invoke("PLAYER_CLIMB");
         }
 
         private void Drop()
@@ -198,6 +202,7 @@ namespace HumanGhost.Gameplay.Preview
 
         private void Land(long fallUnits)
         {
+            if (_airborne) _playSound?.Invoke("PLAYER_LAND");
             bool coreKnewAirborne = _coyoteRemaining <= 0;
             _airborne = false; _motion.SetVerticalSpeed(); _coyoteRemaining = 0;
             if (coreKnewAirborne) _player.SetGrounded(true);

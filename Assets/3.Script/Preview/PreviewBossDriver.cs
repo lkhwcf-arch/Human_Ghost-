@@ -20,6 +20,7 @@ namespace HumanGhost.Gameplay.Preview
         private readonly IntegerMotion _motion = new IntegerMotion();
         private readonly IntegerMotion _pullMotion = new IntegerMotion();
         public event Action PlayerHit;
+        public event Action PlayerDodged;
         // 추적 중이거나 패턴을 쓰는 동안입니다. 전투 BGM·HUD에 씁니다.
         public bool IsEngaged { get; private set; }
 
@@ -105,7 +106,10 @@ namespace HumanGhost.Gameplay.Preview
             float range = combat.CurrentPattern.IsChain ? combat.CurrentPattern.Range / 100f : combat.HitIndex > 0 ? _secondRange : _range;
             bool touching = combat.IsCharging ? own.Intersects(target) :
                 target.min.y <= own.max.y && target.max.y >= own.min.y && offset * combat.Facing >= 0f && Mathf.Abs(offset) <= range * _worldUnitsPerTile;
-            if (touching && combat.TryHitPlayer(1, _player.Actor, _runtime.HitRandom) >= HitOutcome.Hit) PlayerHit?.Invoke();
+            if (!touching) return;
+            HitOutcome outcome = combat.TryHitPlayer(1, _player.Actor, _runtime.HitRandom);
+            if (outcome >= HitOutcome.Hit) PlayerHit?.Invoke();
+            else if (outcome == HitOutcome.Dodged) PlayerDodged?.Invoke();
         }
     }
 }

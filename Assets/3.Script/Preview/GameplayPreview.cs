@@ -80,6 +80,7 @@ namespace HumanGhost.Gameplay.Preview
         private PreviewMonsterDriver[] _monsterDrivers = Array.Empty<PreviewMonsterDriver>();
         private PreviewDeathRestart _deathRestart;
         private PreviewCombatFeedback _feedback;
+        private PlayerAnimationAudio _playerAudio;
         private readonly PreviewPresentation _presentation = new PreviewPresentation();
         private SubscriptionScope _interactionScope;
         private PreviewStageExit _exit;
@@ -168,7 +169,8 @@ namespace HumanGhost.Gameplay.Preview
                     _worldUnitsPerTile, _bossRangeTiles, _bossSecondRangeTiles, _bossSightTiles);
                 _actor = _player.Actor;
                 if (_motion == null) _motion = new PreviewPlayerMotion(_player, _groundY, _useMapCollision, _playerHalfSize, GetMarkers(),
-                    _actor.Definition.JumpHeight, Mathf.RoundToInt(_jumpSeconds * 1000f));
+                    _actor.Definition.JumpHeight, Mathf.RoundToInt(_jumpSeconds * 1000f),
+                    key => _playerAudio?.PlayAnimationSound(key));
                 _input.SetModalBlocked(_modalBlocked);
                 _input.JumpAccepted += OnJump;
                 _input.JumpRejected += _motion.OnJumpRejected;
@@ -185,6 +187,12 @@ namespace HumanGhost.Gameplay.Preview
                 _player.EnableSkill(catalog.GetTable<Skill>().Get(_skillId), new ContentAccess(_progress.Progress.IsCleared));
                 _player.EnableHerbs(catalog.GetTable<Buff>().Get(_herbBuffId));
                 RestoreCarriedVitals();
+                if (_audio != null)
+                {
+                    _playerAudio = _player.GetComponent<PlayerAnimationAudio>();
+                    if (_playerAudio == null) _playerAudio = _player.gameObject.AddComponent<PlayerAnimationAudio>();
+                    _playerAudio.Connect(_player, key => { if (_audio != null) _audio.PlayEffect(key); });
+                }
                 _deathRestart = _restartOnDeath ? new PreviewDeathRestart(gameObject.scene.name, _progress, () => _saveSession?.CurrentSnapshot) : null;
                 // 판정 창이 한 프레임 안에 열리고 닫혀도 열리는 순간 한 번은 접촉을 확인합니다.
                 _actor.AttackWindowChanged += OnPlayerAttackWindowChanged;
@@ -210,6 +218,8 @@ namespace HumanGhost.Gameplay.Preview
 
         private void OnDisable()
         {
+            if (_playerAudio != null) _playerAudio.Disconnect();
+            _playerAudio = null;
             DisconnectCutscenes();
             _deathRestart?.Dispose(); _deathRestart = null;
             _presentation.Reset();
@@ -556,14 +566,19 @@ namespace HumanGhost.Gameplay.Preview
             if (_audio != null) _audio.ConnectTable(catalog);
             if (_audio != null) _audio.Apply(settings);
             if (_followCamera != null) _followCamera.ShakeEnabled = settings.CameraShake;
-            Stage stage = catalog.GetTable<Stage>().Get(_stageId);
-            _normalMusic = stage.BGM_Normal; _battleMusic = stage.BGM_Battle;
+            // 사용자 임시 요청: 인게임은 전투 여부와 관계없이 불 환경음만 반복합니다.
+            _normalMusic = _battleMusic = "AMBIANCE_FIRE";
             if (_audio != null) _audio.PlayMusic(_normalMusic);
             _combat = new CombatPresence(_combatHoldMilliseconds);
             _lastHealth = _actor.Health;
             _feedback?.Dispose();
             _feedback = new PreviewCombatFeedback(_speed, _followCamera, _audio, _feedbackTextPrefab, catalog.GetTable<Language>().Get(30021).KO);
-            if (_bossDriver != null) _bossDriver.PlayerHit += OnBossHitPlayer;
+            if (_bossDriver != null)
+            {
+                _bossDriver.PlayerHit += OnBossHitPlayer;
+                _bossDriver.PlayerDodged += OnPlayerDodged;
+            }
+            foreach (PreviewMonsterDriver driver in _monsterDrivers) driver.PlayerDodged += OnPlayerDodged;
             if (_hud != null)
             {
                 CanvasGroup healthGroup = _healthAnchorRoot != null ? _healthAnchorRoot.GetComponentInParent<Canvas>().GetComponent<CanvasGroup>() : null;
@@ -580,7 +595,13 @@ namespace HumanGhost.Gameplay.Preview
         {
             if (_parallax != null) _parallax.Disconnect();
             if (_pause != null) _pause.Disconnect();
-            if (_bossDriver != null) _bossDriver.PlayerHit -= OnBossHitPlayer;
+            if (_bossDriver != null)
+            {
+                _bossDriver.PlayerHit -= OnBossHitPlayer;
+                _bossDriver.PlayerDodged -= OnPlayerDodged;
+            }
+            foreach (PreviewMonsterDriver driver in _monsterDrivers)
+                if (driver != null) driver.PlayerDodged -= OnPlayerDodged;
             if (_actor != null)
             {
                 _actor.HealthChanged -= OnGameLayerHealthChanged;
@@ -590,6 +611,7 @@ namespace HumanGhost.Gameplay.Preview
         }
 
         private void OnBossHitPlayer() => _bossHitThisFrame = true;
+        private void OnPlayerDodged() => _playerAudio?.PlayAnimationSound("PLAYER_BACK_EVADE");
 
         private void OnGameLayerHealthChanged(int health)
         {
