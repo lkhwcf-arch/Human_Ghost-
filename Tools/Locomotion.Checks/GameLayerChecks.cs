@@ -85,6 +85,28 @@ internal static class GameLayerChecks
         check(layoutMenu.Current.KeyboardLayout == KeyboardLayout.Arrows && layoutMenu.IsDirty, "옵션에서 조작 방식 전환");
         check(layoutMenu.Answer(false).KeyboardLayout == KeyboardLayout.Wasd, "조작 방식 취소 시 원래 값 복원");
         var defaults = new GameSettings();
+        var windowSettings = defaults.Clone();
+        windowSettings.SetWindowMode(WindowMode.Windowed);
+        check(defaults.WindowMode == WindowMode.Fullscreen && !defaults.SameAs(windowSettings)
+            && windowSettings.Clone().WindowMode == WindowMode.Windowed, "화면 모드는 원본과 독립적으로 복제·변경 판정");
+        var titleSettings = new SettingsMenu(defaults, allowWindowMode: true);
+        titleSettings.Select(SettingsRow.WindowMode);
+        titleSettings.Adjust(1);
+        check(titleSettings.Current.WindowMode == WindowMode.Windowed && titleSettings.IsDirty, "타이틀 화면 모드 전환");
+        check(!titleSettings.RequestClose() && titleSettings.Answer(false).WindowMode == WindowMode.Fullscreen, "화면 모드 취소 시 원래 값 복구");
+        var pauseSettings = new SettingsMenu(windowSettings);
+        pauseSettings.Select(SettingsRow.WindowMode);
+        check(pauseSettings.Row == SettingsRow.Master, "일시정지에서 화면 모드 행 선택 차단");
+        pauseSettings.Move(-1);
+        check(pauseSettings.Row == SettingsRow.KeyboardLayout, "일시정지 순환에 화면 모드 행 제외");
+        var titleNavigation = new SettingsMenu(defaults, true);
+        titleNavigation.Move(-1);
+        check(titleNavigation.Row == SettingsRow.WindowMode, "타이틀 순환에 화면 모드 행 포함");
+        var failedWindowSave = new SettingsApplication(value => windowSettings = value,
+            value => throw new InvalidOperationException("화면 모드 저장 실패 검사"), error => { });
+        var windowSelection = defaults.Clone(); windowSelection.SetWindowMode(WindowMode.Windowed);
+        check(!failedWindowSave.Complete(defaults, windowSelection) && windowSettings.WindowMode == WindowMode.Fullscreen,
+            "화면 모드 저장 실패 시 기존 공용 경계에서 복구");
         GameSettings applied = null;
         Exception reported = null;
         int saves = 0;

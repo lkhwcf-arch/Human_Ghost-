@@ -2,12 +2,13 @@ using System;
 
 namespace HumanGhost.Gameplay
 {
-    public enum SettingsRow { Music = 0, Effects = 1, CameraShake = 2, Master = 3, KeyboardLayout = 4 }
+    public enum SettingsRow { Music = 0, Effects = 1, CameraShake = 2, Master = 3, KeyboardLayout = 4, WindowMode = 5 }
 
     // 설정 화면 규칙(O05_1)입니다. 값은 바로 미리 적용하고, 바꾼 채 나가면 확인을 받습니다. 예=저장, 아니오=원래 값.
     public class SettingsMenu
     {
-        private static readonly SettingsRow[] _rows = { SettingsRow.Master, SettingsRow.Music, SettingsRow.Effects, SettingsRow.CameraShake, SettingsRow.KeyboardLayout };
+        private static readonly SettingsRow[] _rows = { SettingsRow.Master, SettingsRow.Music, SettingsRow.Effects, SettingsRow.CameraShake, SettingsRow.KeyboardLayout, SettingsRow.WindowMode };
+        private readonly int _rowCount;
         private readonly GameSettings _original;
         public GameSettings Current { get; }
         public SettingsRow Row { get; private set; } = SettingsRow.Master;
@@ -16,8 +17,9 @@ namespace HumanGhost.Gameplay
         public bool IsDirty => !Current.SameAs(_original);
         public event Action Changed;
 
-        public SettingsMenu(GameSettings settings)
+        public SettingsMenu(GameSettings settings, bool allowWindowMode = false)
         {
+            _rowCount = allowWindowMode ? _rows.Length : _rows.Length - 1;
             _original = (settings ?? throw new ArgumentNullException(nameof(settings))).Clone();
             Current = settings.Clone();
         }
@@ -25,13 +27,17 @@ namespace HumanGhost.Gameplay
         public void Move(int direction)
         {
             if (IsConfirming) { ConfirmYes = !ConfirmYes; Changed?.Invoke(); return; }
-            int count = _rows.Length;
+            int count = _rowCount;
             int index = Array.IndexOf(_rows, Row);
             Row = _rows[(index + direction % count + count) % count];
             Changed?.Invoke();
         }
 
-        public void Select(SettingsRow row) { if (!IsConfirming && Row != row) { Row = row; Changed?.Invoke(); } }
+        public void Select(SettingsRow row)
+        {
+            int index = Array.IndexOf(_rows, row);
+            if (!IsConfirming && Row != row && index >= 0 && index < _rowCount) { Row = row; Changed?.Invoke(); }
+        }
 
         // 화면의 마스터 조작부는 이 진입점을 사용합니다. 확인 중에는 값을 바꾸지 않습니다.
         public void SetMaster(int value)
@@ -49,7 +55,8 @@ namespace HumanGhost.Gameplay
             if (Row == SettingsRow.Music) Current.SetMusic(Current.Music + direction);
             else if (Row == SettingsRow.Effects) Current.SetEffects(Current.Effects + direction);
             else if (Row == SettingsRow.CameraShake) Current.SetCameraShake(!Current.CameraShake);
-            else Current.SetKeyboardLayout(Current.KeyboardLayout == KeyboardLayout.Arrows ? KeyboardLayout.Wasd : KeyboardLayout.Arrows);
+            else if (Row == SettingsRow.KeyboardLayout) Current.SetKeyboardLayout(Current.KeyboardLayout == KeyboardLayout.Arrows ? KeyboardLayout.Wasd : KeyboardLayout.Arrows);
+            else if (Row == SettingsRow.WindowMode) Current.SetWindowMode(Current.WindowMode == WindowMode.Fullscreen ? WindowMode.Windowed : WindowMode.Fullscreen);
             Changed?.Invoke();
         }
 

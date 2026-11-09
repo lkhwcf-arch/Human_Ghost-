@@ -97,7 +97,7 @@ namespace HumanGhost.Gameplay.Adapters
             PrepareMenu();
             _settingsInput.SetBlocked(_modalBlocked);
             _settingsScreen.SetInputBlocked(_modalBlocked);
-            _settingsScreen.Open(_data.Data, _settings, PreviewSettings, OnSettingsClosed);
+            _settingsScreen.Open(_data.Data, _settings, PreviewSettings, OnSettingsClosed, allowWindowMode: true);
             try { _settingsInput.Enable(); }
             catch { _settingsScreen.Cancel(); throw; }
             _menuPending = true;
@@ -117,8 +117,14 @@ namespace HumanGhost.Gameplay.Adapters
             if (_menuRoot == null)
             {
                 _settingsInput?.Dispose(); _settingsInput = null;
-                _menuRoot = new GameObject("TitleMenuScreens");
+                _menuRoot = new GameObject("TitleMenuScreens", typeof(RectTransform));
                 _menuRoot.transform.SetParent(transform, false);
+                // 중간 UI 부모도 표시 영역을 가져야 하위 화면의 늘림 앵커가 유효합니다.
+                var menuRect = (RectTransform)_menuRoot.transform;
+                menuRect.anchorMin = Vector2.zero;
+                menuRect.anchorMax = Vector2.one;
+                menuRect.offsetMin = Vector2.zero;
+                menuRect.offsetMax = Vector2.zero;
                 _menuRoot.SetActive(false);
                 try
                 {
@@ -140,7 +146,11 @@ namespace HumanGhost.Gameplay.Adapters
         private void BackMenu() { if (_layoutPending) _layoutScreen.Back(); else _settingsScreen.Back(); }
         private void AdjustMenu(int direction) { if (_layoutPending) _layoutScreen.Move(direction); else _settingsScreen.Adjust(direction); }
 
-        private void PreviewSettings(GameSettings value) => _audio?.Apply(value);
+        private void PreviewSettings(GameSettings value)
+        {
+            WindowModeApplication.Apply(value.WindowMode);
+            _audio?.Apply(value);
+        }
 
         private void OnSettingsClosed(GameSettings result)
         {

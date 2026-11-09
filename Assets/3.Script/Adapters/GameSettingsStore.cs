@@ -8,7 +8,7 @@ namespace HumanGhost.Gameplay.Adapters
     public static class GameSettingsStore
     {
         [Serializable]
-        private sealed class Payload { public int Master = GameSettings.MaxVolume; public int Music = 8; public int Effects = 8; public bool CameraShake = true; public int KeyboardLayout; }
+        private sealed class Payload { public int Master = GameSettings.MaxVolume; public int Music = 8; public int Effects = 8; public bool CameraShake = true; public int KeyboardLayout; public int WindowMode; }
 
         private static string FilePath => Path.Combine(Application.persistentDataPath, "settings.json");
 
@@ -22,6 +22,7 @@ namespace HumanGhost.Gameplay.Adapters
                 JsonUtility.FromJsonOverwrite(File.ReadAllText(FilePath), data);
                 var settings = new GameSettings(data.Master, data.Music, data.Effects, data.CameraShake);
                 settings.SetKeyboardLayout(data.KeyboardLayout == 1 ? KeyboardLayout.Wasd : KeyboardLayout.Arrows);
+                settings.SetWindowMode(data.WindowMode == 1 ? WindowMode.Windowed : WindowMode.Fullscreen);
                 return settings;
             }
             catch (Exception error)
@@ -33,7 +34,7 @@ namespace HumanGhost.Gameplay.Adapters
 
         public static void Save(GameSettings settings)
         {
-            var data = new Payload { Master = settings.Master, Music = settings.Music, Effects = settings.Effects, CameraShake = settings.CameraShake, KeyboardLayout = (int)settings.KeyboardLayout };
+            var data = new Payload { Master = settings.Master, Music = settings.Music, Effects = settings.Effects, CameraShake = settings.CameraShake, KeyboardLayout = (int)settings.KeyboardLayout, WindowMode = (int)settings.WindowMode };
             AtomicTextFile.Write(FilePath, JsonUtility.ToJson(data));
         }
     }

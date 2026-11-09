@@ -21,6 +21,7 @@ namespace HumanGhost.Gameplay.Presentation
         [SerializeField] private GameObject _confirm = null;
         [SerializeField] private Text _confirmBody = null, _confirmYes = null, _confirmNo = null;
         private Text _layout;
+        private Text _windowMode;
         private SettingsMenu _menu;
         private IReadOnlyDataTable<Language> _language;
         private Action<GameSettings> _preview;
@@ -34,7 +35,7 @@ namespace HumanGhost.Gameplay.Presentation
 
         public bool IsOpen => _menu != null;
 
-        public void Open(IReadOnlyDataCatalog data, GameSettings settings, Action<GameSettings> preview, Action<GameSettings> closed)
+        public void Open(IReadOnlyDataCatalog data, GameSettings settings, Action<GameSettings> preview, Action<GameSettings> closed, bool allowWindowMode = false)
         {
             if (IsOpen) throw new InvalidOperationException("이미 열린 설정 화면입니다.");
             RequireReferences();
@@ -47,9 +48,10 @@ namespace HumanGhost.Gameplay.Presentation
                 _confirmNo.text = _language.Get(popup.Button2TextID).KO;
                 _preview = preview; _closed = closed;
                 _openedFrame = Time.frameCount;
-                _menu = new SettingsMenu(settings);
+                _menu = new SettingsMenu(settings, allowWindowMode);
                 _menu.Changed += Render;
                 ConnectPointer();
+                if (_windowMode != null) _windowMode.gameObject.SetActive(allowWindowMode);
                 gameObject.SetActive(true);
                 Render();
                 ScreenVisibility.RequireVisible(GetComponent<Canvas>());
@@ -71,13 +73,14 @@ namespace HumanGhost.Gameplay.Presentation
         {
             if (_layout == null)
             {
-                _layout = Instantiate(_shake, _shake.transform.parent);
-                _layout.name = "KeyboardLayout";
-                var rect = _layout.rectTransform;
-                rect.anchoredPosition += new Vector2(0f, -64f);
+                _layout = CreateRow("KeyboardLayout", -64f);
+                // 입력 콜백을 연결하기 전에 복제해 다른 행의 클릭 처리를 물려받지 않습니다.
+                _windowMode = CreateRow("WindowMode", -128f);
             }
             if (_connected) return;
             _connected = true;
+            MenuText.Connect(_windowMode.gameObject, () => Select(SettingsRow.WindowMode),
+                () => { Select(SettingsRow.WindowMode); Adjust(1); });
             MenuText.Connect(_layout.gameObject, () => Select(SettingsRow.KeyboardLayout),
                 () => { Select(SettingsRow.KeyboardLayout); Adjust(1); });
             ConnectVolume(_master, _masterLeft, _masterRight, SettingsRow.Master);
@@ -87,6 +90,14 @@ namespace HumanGhost.Gameplay.Presentation
             MenuText.Connect(_close.gameObject, null, Back);
             MenuText.Connect(_confirmYes.gameObject, null, () => Answer(true));
             MenuText.Connect(_confirmNo.gameObject, null, () => Answer(false));
+        }
+
+        private Text CreateRow(string name, float offsetY)
+        {
+            Text label = Instantiate(_shake, _shake.transform.parent);
+            label.name = name;
+            label.rectTransform.anchoredPosition += new Vector2(0f, offsetY);
+            return label;
         }
 
         private void ConnectVolume(Text label, Text left, Text right, SettingsRow row)
@@ -111,7 +122,7 @@ namespace HumanGhost.Gameplay.Presentation
         {
             if (!CanInteract || _menu == null) return;
             if (_menu.IsConfirming) Answer(_menu.ConfirmYes);
-            else if (_menu.Row == SettingsRow.CameraShake || _menu.Row == SettingsRow.KeyboardLayout) Adjust(1);
+            else if (_menu.Row == SettingsRow.CameraShake || _menu.Row == SettingsRow.KeyboardLayout || _menu.Row == SettingsRow.WindowMode) Adjust(1);
         }
 
         public void Back()
@@ -153,6 +164,11 @@ namespace HumanGhost.Gameplay.Presentation
         private void Render()
         {
             GameSettings value = _menu.Current;
+            if (_windowMode != null && _windowMode.gameObject.activeSelf)
+            {
+                _windowMode.text = "화면 모드  ◀ " + (value.WindowMode == WindowMode.Windowed ? "창모드" : "전체 화면") + " ▶";
+                MenuText.SetSelected(_windowMode, _menu.Row == SettingsRow.WindowMode);
+            }
             _layout.text = "키보드 조작  " + (value.KeyboardLayout == KeyboardLayout.Arrows ? "A (방향키 · C/X/Space/Z/Q)" : "B (WASD · K/J/L/U/I)");
             MenuText.SetSelected(_layout, _menu.Row == SettingsRow.KeyboardLayout);
             RenderVolume(_master, _masterTextId == 0 ? _masterTitle : _language.Get(_masterTextId).KO, value.Master, SettingsRow.Master);

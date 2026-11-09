@@ -4,6 +4,7 @@ namespace HumanGhost.Gameplay
 {
     // 설정 값(O05)입니다. 세이브와 별개이며 볼륨은 0~10칸입니다.
     public enum KeyboardLayout { Arrows = 0, Wasd = 1 }
+    public enum WindowMode { Fullscreen = 0, Windowed = 1 }
 
     public class GameSettings
     {
@@ -13,6 +14,7 @@ namespace HumanGhost.Gameplay
         public int Effects { get; private set; } = 8;
         public bool CameraShake { get; private set; } = true;
         public KeyboardLayout KeyboardLayout { get; private set; }
+        public WindowMode WindowMode { get; private set; }
 
         public GameSettings() { }
         public GameSettings(int music, int effects, bool cameraShake) { SetMusic(music); SetEffects(effects); CameraShake = cameraShake; }
@@ -33,12 +35,20 @@ namespace HumanGhost.Gameplay
             KeyboardLayout = layout;
         }
 
+        public void SetWindowMode(WindowMode mode)
+        {
+            if (mode != WindowMode.Fullscreen && mode != WindowMode.Windowed)
+                throw new ArgumentOutOfRangeException(nameof(mode));
+            WindowMode = mode;
+        }
+
         public GameSettings Clone()
         {
             var copy = new GameSettings(Master, Music, Effects, CameraShake);
             copy.SetKeyboardLayout(KeyboardLayout);
+            copy.SetWindowMode(WindowMode);
             return copy;
         }
-        public bool SameAs(GameSettings other) => other != null && Master == other.Master && Music == other.Music && Effects == other.Effects && CameraShake == other.CameraShake && KeyboardLayout == other.KeyboardLayout;
+        public bool SameAs(GameSettings other) => other != null && Master == other.Master && Music == other.Music && Effects == other.Effects && CameraShake == other.CameraShake && KeyboardLayout == other.KeyboardLayout && WindowMode == other.WindowMode;
     }
 }
