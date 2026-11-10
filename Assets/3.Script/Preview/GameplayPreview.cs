@@ -104,6 +104,7 @@ namespace HumanGhost.Gameplay.Preview
         public void SetModalBlocked(bool blocked)
         {
             _modalBlocked = blocked;
+            BlockShrine(blocked);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             if (_manualSaveHost != null) _manualSaveHost.SetModalBlocked(blocked);
 #endif
@@ -471,7 +472,7 @@ namespace HumanGhost.Gameplay.Preview
                 else if (marker.name == "Seonangdang")
                 {
                     ShrineInteract shrine = AddTarget<ShrineInteract>(marker);
-                    shrine.Connect(() => SaveAtPoint(true));
+                    shrine.Connect(OpenShrine);
                     _savePoint = shrine.transform;
                 }
                 else if (marker.name == "Exit_ToBossRoom")
@@ -698,6 +699,7 @@ namespace HumanGhost.Gameplay.Preview
 
         private void LateUpdate()
         {
+            StepShrineClose();
             StepCutsceneFlow();
             if (_modalBlocked || _saveLocked || !_subscribed || !_player.isActiveAndEnabled || (_bossActive && !_boss.isActiveAndEnabled)) return;
             if (_actor.Locomotion.Direction != 0) _facing = _actor.Locomotion.Direction;

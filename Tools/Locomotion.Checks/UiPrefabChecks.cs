@@ -20,6 +20,14 @@ internal static class UiPrefabChecks
         check(reference.Success && Regex.IsMatch(title, @"(?m)^--- !u!114 &" + reference.Groups[1].Value + @"\r?$"));
         string scene = Read("Assets/1.Scene/Title.unity");
         check(!Regex.IsMatch(scene, @"propertyPath: m_LocalScale\.[xy]\s+value: 0\s"));
+        string shrine = Read("Assets/2.Model/Prefabs/UI/ShrineScreen.prefab");
+        string shrineRoot = RootRect(shrine);
+        check(shrineRoot.Contains("m_LocalScale: {x: 1, y: 1, z: 1}") && shrineRoot.Contains("m_AnchorMax: {x: 1, y: 1}"));
+        check(shrine.Contains("HumanGhost.Gameplay.Presentation.ShrineScreen") && shrine.Contains("_pipOn:") && shrine.Contains("_pipOff:"));
+        string map = Read("Assets/1.Scene/MapDohwagolTest.unity");
+        check(Regex.IsMatch(map, @"_shrinePrefab: \{fileID: 900010, guid: cef95eb48552d778e19b6706a45e3951, type: 3\}"));
+        Match modal = Regex.Match(map, @"_shrineModalBinding: \{fileID: (\d+)\}");
+        check(modal.Success && Regex.IsMatch(map, @"(?m)^--- !u!114 &" + modal.Groups[1].Value + @"\r?$"));
     }
 
     private static string RootRect(string yaml)

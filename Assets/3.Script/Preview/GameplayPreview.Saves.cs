@@ -218,6 +218,7 @@ namespace HumanGhost.Gameplay.Preview
         }
         private void DisconnectSaves()
         {
+            DisconnectShrine();
             _progressScope?.Dispose(); _progressScope = null;
             if (_savePoint != null) _savePoint.GetComponent<ShrineInteract>().Connect(null);
             _shrineCheckPending = false;

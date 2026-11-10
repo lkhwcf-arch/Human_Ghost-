@@ -13,6 +13,7 @@ namespace HumanGhost.Gameplay
         public bool IsParrying => _parryLocked;
         public int ParryStunTime => _parry.StunTime;
         public int ParryPoiseDamage => _parry.PoiseDamage;
+        public int ParryStaminaCost => _parry == null ? 0 : (int)Math.Max(0, Math.Min(int.MaxValue, (long)_parry.StaminaCost + _parryCostDelta));
         public event Action<string> ActionCue;
         public event Action<int> ParrySucceeded;
 
@@ -32,7 +33,7 @@ namespace HumanGhost.Gameplay
                 if (_combo.Index >= 3 || _elapsed < start || _elapsed >= start + CurrentAttack.ComboWindow) return false;
             }
             else if (!Locomotion.CanMove) return false;
-            if (!Stamina.TryConsume((int)Math.Max(0, Math.Min(int.MaxValue, (long)_parry.StaminaCost + _parryCostDelta)))) { StaminaRefused?.Invoke(); return false; }
+            if (!Stamina.TryConsume(ParryStaminaCost)) { StaminaRefused?.Invoke(); return false; }
             ClearAttack();
             _parry.TryBegin(); _parryLocked = true;
             Locomotion.SetActionBlocked(true);
