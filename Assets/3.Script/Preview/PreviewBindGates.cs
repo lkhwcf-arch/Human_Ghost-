@@ -32,7 +32,11 @@ namespace HumanGhost.Gameplay.Preview
                 {
                     if (!marker.name.StartsWith("BindGate_", System.StringComparison.Ordinal)) continue;
                     if (!ids.TryGetValue(marker.name, out int id))
-                        throw new System.InvalidOperationException($"관문 ID 연결이 없습니다. GateConfig에서 스테이지 {stageId}, 앵커 {marker.name}을 연결해 주세요.");
+                    {
+                        // 임시 연결 정책: 표에 없는 표식은 통행을 막거나 저장 ID를 임의로 만들지 않습니다.
+                        Debug.LogWarning($"관문을 임시로 생성하지 않습니다. GateConfig에서 스테이지 {stageId}, 앵커 {marker.name}의 ID를 연결한 뒤 다시 배포해 주세요. 이 위치는 통행 가능하며 개방 기록은 저장하지 않습니다.", marker);
+                        continue;
+                    }
                     if (_progress.HasOpenedGate(id)) continue;
                     // 폭 1·높이 3타일(L08).
                     var blocker = new GameObject("Blocker");
