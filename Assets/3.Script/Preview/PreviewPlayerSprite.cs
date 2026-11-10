@@ -14,7 +14,7 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField] private AnimationClip _ladderClimb = null;
         private bool _onLadder;
         private int _ladderDirection;
-        protected override float AnimationDelta => _onLadder ? Time.deltaTime * _ladderDirection : base.AnimationDelta;
+        protected override float AnimationDelta => _player != null && _player.Actor != null && _player.Actor.IsParrying ? 0f : _onLadder ? Time.deltaTime * _ladderDirection : base.AnimationDelta;
         private AnimationClip _action;
         private float _actionElapsed;
         private int _facing = 1;
@@ -30,6 +30,7 @@ namespace HumanGhost.Gameplay.Preview
         }
         private void OnPresentationCue(string cue)
         {
+            if (cue == "Parry") { _action = null; RestartAnimation(); return; }
             if (cue == "LadderExit") { _onLadder = false; _ladderDirection = 0; return; }
             if (cue == "LadderUp" || cue == "LadderDown" || cue == "LadderHold")
             {
@@ -50,6 +51,7 @@ namespace HumanGhost.Gameplay.Preview
 
         protected override AnimationClip SelectAnimation(StateKey state)
         {
+            if (_player.Actor.IsParrying) return base.SelectAnimation(StateKey.Attack1);
             if (_onLadder && state == StateKey.Hang && _ladderClimb != null) return _ladderClimb;
             if (_action != null)
             {
@@ -91,7 +93,7 @@ namespace HumanGhost.Gameplay.Preview
 
         protected override void UpdateFacing()
         {
-            if (_player.Actor.Locomotion.Direction != 0) _facing = _player.Actor.Locomotion.Direction;
+            _facing = _player.Actor.Facing;
             Renderer.flipX = _sourceFacesLeft ? _facing > 0 : _facing < 0;
         }
     }

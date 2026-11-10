@@ -24,14 +24,14 @@ MonoBehaviour:
     _chargeSpeed: 0
     _wallStun: 0
   - _key: 10005
-    _range: 600
+    _range: 400
     _windup: 600
-    _active: 1000
+    _active: 500
     _recovery: 400
     _extraDamage: 5
     _bindTime: 0
     _bindPresses: 0
-    _chargeSpeed: 900
+    _chargeSpeed: 800
     _wallStun: 800
   _hitStun: 300
   _critHitStun: 500

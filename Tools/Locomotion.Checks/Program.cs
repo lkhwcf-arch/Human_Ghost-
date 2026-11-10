@@ -20,6 +20,7 @@ internal static class Program
             CheckLocomotion(definition);
             IntegerMotionChecks.Run(Check);
             GameProgressChecks.Run(Check);
+            PriorityChecks.Run(definition, Check);
             Player changed = ReadPlayer(args[0], checked(definition.MoveSpeed + 1), checked(definition.JumpHeight + 1));
             var changedActor = new PlayerLocomotion(changed, true);
             changedActor.SetMove(-1);

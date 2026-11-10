@@ -91,7 +91,7 @@ namespace HumanGhost.Gameplay.Presentation
                 _language.Get(30061).KO + (wasd ? "  L" : "  Space") + " / B\n" +
                 _language.Get(30062).KO + "  E / 위\n" + _language.Get(30022).KO +
                 (wasd ? "  I" : "  Q") + " / LB\n결박 가르기" + (wasd ? "  U" : "  Z") +
-                " / Y\n아래 점프  " + (wasd ? "S+K" : "↓+C") + " / 아래+A";
+                " / Y\n아래 점프  " + (wasd ? "S+K" : "↓+C") + " / 아래+A\n패링  " + (wasd ? "오른쪽 Shift" : "왼쪽 Shift") + " / LT";
         }
     }
 }
