@@ -20,6 +20,16 @@
     "ContentEnabled": false
   },
   {
+    "ID": 6004,
+    "TextID": 30232,
+    "ItemType": "Weapon",
+    "StatJson": "6004.json",
+    "SkillID": null,
+    "Acquire": "STORY",
+    "AcquireAnim": "ANIM_ACQ_6004",
+    "ContentEnabled": true
+  },
+  {
     "ID": 6101,
     "TextID": null,
     "ItemType": "Armor",

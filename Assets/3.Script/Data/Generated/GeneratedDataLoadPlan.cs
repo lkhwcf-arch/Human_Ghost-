@@ -12,17 +12,22 @@ namespace HumanGhost.Data.Infrastructure
         {
             await loader.LoadCsvAsync<UnitStat>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<Buff>(catalog, row => row.ID, token);
+            await loader.LoadCsvAsync<Currency>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<Cutscene>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<CutsceneStep>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<GateConfig>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<HealthDisplayConfig>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<Language>(catalog, row => row.ID, token);
+            await loader.LoadCsvAsync<MonsterReward>(catalog, row => row.ID, token);
+            await loader.LoadCsvAsync<PlayerAction>(catalog, row => row.ID, token);
+            await loader.LoadCsvAsync<PlayerLevel>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<Popup>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<Skill>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<Sound>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<Stage>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<StageLayer>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<State>(catalog, row => row.ID, token);
+            await loader.LoadCsvAsync<Upgrade>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<Monster>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<Player>(catalog, row => row.ID, token);
             await Task.CompletedTask;
