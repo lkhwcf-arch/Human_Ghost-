@@ -41,6 +41,17 @@ namespace HumanGhost.Gameplay.Preview
                 map.name = entry.Map.name;
                 map.SetActive(true);
                 MapRoot = map.transform;
+                foreach (StageContentSet.BackgroundPosition position in entry.BackgroundPositions)
+                {
+                    Transform layer = MapRoot.Find(position.Path)
+                        ?? throw new InvalidOperationException($"스테이지 {stageId}에 배경 경로가 없습니다: {position.Path}");
+                    Vector3 localPosition = layer.localPosition;
+                    if (position.UseLocalX)
+                        localPosition.x = position.LocalX;
+                    else
+                        localPosition.y = position.LocalY;
+                    layer.localPosition = localPosition;
+                }
                 Markers = MapRoot.Find(_markersName) ?? throw new InvalidOperationException(map.name + "에 Markers가 없습니다.");
                 Interactables = new GameObject("Interactables").transform;
                 Interactables.SetParent(MapRoot, false);

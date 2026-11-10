@@ -40,15 +40,7 @@ namespace HumanGhost.Gameplay.Preview
             long x = _start.X + (_end.X - _start.X) * _elapsed / _duration;
             long y = _start.Y + (_end.Y - _start.Y) * _elapsed / _duration;
             y += 4 * _arcUnits * _elapsed * (_duration - _elapsed) / ((long)_duration * _duration);
-            Vector3 next = new Vector3(ToWorld(x), ToWorld(y), _z);
-            foreach (RaycastHit2D hit in Physics2D.LinecastAll(_view.transform.position, next))
-            {
-                Collider2D collider = hit.collider;
-                if (collider.isTrigger || collider.usedByEffector || collider.GetComponentInParent<PlayerRuntime>() != null ||
-                    collider.GetComponentInParent<MonsterRuntime>() != null || collider.GetComponentInParent<BossRuntime>() != null) continue;
-                Stop(); return;
-            }
-            _view.transform.position = next;
+            _view.transform.position = new Vector3(ToWorld(x), ToWorld(y), _z);
         }
 
         private IntegerPosition FromWorld(Vector3 position) => new IntegerPosition(

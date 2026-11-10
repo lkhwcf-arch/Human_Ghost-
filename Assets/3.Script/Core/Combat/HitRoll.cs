@@ -7,7 +7,6 @@ namespace HumanGhost.Gameplay
     {
         None,
         Dodged,
-        Parried,
         Hit,
         Critical
     }

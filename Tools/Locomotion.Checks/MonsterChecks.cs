@@ -228,8 +228,6 @@ internal static class MonsterChecks
         Check(j.ReceiveHit(5) && j.Health == 35 && j.CurrentState == StateKey.Attack2 && j.IsCharging, "슈퍼아머는 HP만 깎이고 Hit 없음");
         Check(j.TryHitPlayer(2001, victim, false, false) && victim.Health == 80, "돌진 피해 15+5");
         Check(!j.TryHitPlayer(2001, victim, false, false), "돌진 창 중복 피해 방지");
-        Check(!j.IsCharging && j.Velocity == 0 && !j.NotifyWallHit(), "명중 즉시 돌진 정지·후딜에서는 벽 판정 무시");
-        j = J(); j.Observe(1, 600, 1); j.Tick(600);
         Check(j.NotifyWallHit() && j.CurrentState == StateKey.Stun && j.Velocity == 0 && !j.IsSuperArmor, "벽 충돌 허점·슈퍼아머 해제");
         Check(j.ReceiveHit(5) && j.CurrentState == StateKey.Stun, "허점 중 피해는 허점 유지");
         j.Tick(799);

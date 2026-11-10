@@ -69,13 +69,9 @@ namespace HumanGhost.Gameplay
             DefeatedMonsters = Array.AsReadOnly(defeated);
         }
 
-        internal SaveSnapshot WithSavePoints(IEnumerable<int> savePoints) => Copy(savePoints, OpenedGates);
-        internal SaveSnapshot WithOpenedGates(IEnumerable<int> openedGates) => Copy(UsedSavePoints, openedGates);
-
-        // 저장 항목을 추가할 때 사본 생성의 전체 필드 전달은 이곳에서만 관리합니다.
-        private SaveSnapshot Copy(IEnumerable<int> savePoints, IEnumerable<int> openedGates) => new SaveSnapshot(
+        internal SaveSnapshot WithSavePoints(IEnumerable<int> savePoints) => new SaveSnapshot(
             StageId, ShrineId, PositionX, PositionY, Hp, Herbs,
-            ClearedStages, ActiveShrines, openedGates, ViewedCutscenes, savePoints, DefeatedMonsters);
+            ClearedStages, ActiveShrines, OpenedGates, ViewedCutscenes, savePoints, DefeatedMonsters);
 
         private static IReadOnlyList<int> CopyIds(IEnumerable<int> source)
         {
@@ -97,14 +93,6 @@ namespace HumanGhost.Gameplay
         public long SavedAtUnixMs { get; }
         public long SaveOrder { get; }
         public SaveSnapshot Snapshot { get; }
-
-        // 현재 콘텐츠에 남아 있는 관문만 복원 사본에 유지합니다. 원본 기록과 슬롯 메타데이터는 변경하지 않습니다.
-        public SaveRecord WithExistingGates(Func<int, bool> gateExists)
-        {
-            if (gateExists == null) throw new ArgumentNullException(nameof(gateExists));
-            SaveSnapshot snapshot = Snapshot.WithOpenedGates(Snapshot.OpenedGates.Where(gateExists));
-            return new SaveRecord(Version, Slot, SavedAtUnixMs, snapshot, SaveOrder);
-        }
 
         public SaveRecord(int version, int slot, long savedAtUnixMs, SaveSnapshot snapshot, long saveOrder = 0)
         {

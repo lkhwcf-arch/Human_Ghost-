@@ -28,10 +28,8 @@ namespace HumanGhost.EditorTools
             public IReadOnlyDataTable<T> GetTable<T>()
             {
                 if (_sounds is IReadOnlyDataTable<T> table) return table;
-                throw new KeyNotFoundException($"사운드 미리보기에 테이블이 없습니다: {typeof(T).Name}");
+                throw new KeyNotFoundException($"Sound preview has no table for {typeof(T).Name}.");
             }
-            public T GetDefinition<T>() where T : class
-                => throw new KeyNotFoundException($"사운드 미리보기에 정의가 없습니다: {typeof(T).Name}");
         }
 
         private IReadOnlyDataCatalog _catalog;

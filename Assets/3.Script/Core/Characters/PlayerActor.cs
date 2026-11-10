@@ -6,7 +6,7 @@ using HumanGhost.Gameplay.States;
 namespace HumanGhost.Gameplay
 {
     // 위치·히트박스·입력을 소유하지 않는 플레이어 전투/행동 런타임입니다.
-    public sealed partial class PlayerActor
+    public sealed class PlayerActor
     {
         private readonly PlayerCombo _combo;
         private readonly AttackWindow _attackWindow = new AttackWindow();
@@ -81,17 +81,15 @@ namespace HumanGhost.Gameplay
         public void SetMove(int direction)
         {
             Locomotion.SetMove(direction);
-            if (direction != 0 && !IsActionBusy && !IsHanging) _facing = direction;
+            if (direction != 0) _facing = direction;
         }
 
         public bool TryJump() => !IsDead && Locomotion.TryJump();
 
         // 공중에서 외부가 모서리를 확인한 뒤 요청합니다. 매달린 동안 공격·구르기·이동은 막히고 스태미나를 쓰지 않습니다.
-        public bool TryHang(int facing = 0)
+        public bool TryHang()
         {
-            if (facing < -1 || facing > 1) throw new ArgumentOutOfRangeException(nameof(facing));
             if (IsDead || !Locomotion.CanMove || Locomotion.IsGrounded) return false;
-            if (facing != 0) _facing = facing;
             States.Call(StateKey.Hang);
             return true;
         }
@@ -101,7 +99,6 @@ namespace HumanGhost.Gameplay
         {
             if (!IsHanging) return false;
             Locomotion.Resume();
-            if (Locomotion.Direction != 0) _facing = Locomotion.Direction;
             return true;
         }
 
@@ -334,8 +331,6 @@ namespace HumanGhost.Gameplay
         {
             if (milliseconds < 0) throw new ArgumentOutOfRangeException(nameof(milliseconds));
             if (IsDead || CurrentState == StateKey.Execute) return;
-            TickAction(ref milliseconds);
-            if (IsActionBusy) return;
             while (milliseconds > 0)
             {
                 bool timed = IsAttacking || _usingSkill || CurrentState == StateKey.Heal || CurrentState == StateKey.Land || CurrentState == StateKey.Roll || CurrentState == StateKey.Hit || CurrentState == StateKey.CritHit ||
@@ -419,7 +414,6 @@ namespace HumanGhost.Gameplay
 
         private void ClearAttack()
         {
-            CancelCombatAction();
             SetAttackActive(false);
             _combo.Clear(); _attackWindow.ClearTargets();
             _usingSkill = false;

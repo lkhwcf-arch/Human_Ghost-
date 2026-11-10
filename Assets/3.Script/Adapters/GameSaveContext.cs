@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -53,16 +52,10 @@ namespace HumanGhost.Gameplay.Adapters
                 throw new InvalidOperationException("저장 폴더는 게임 저장 경로의 하위 폴더여야 합니다.");
             return path;
         }
-        public static GameSaveContext Create(IReadOnlyList<SaveRecord> records, JsonSaveStore store, int version,
-            Func<int, bool> gateExists, SaveRecord entry = null, GameProgressState progress = null)
+        public static GameSaveContext Create(IReadOnlyList<SaveRecord> records, JsonSaveStore store, int version, SaveRecord entry = null, GameProgressState progress = null)
         {
-            if (records == null) throw new ArgumentNullException(nameof(records));
-            if (gateExists == null) throw new ArgumentNullException(nameof(gateExists));
-            // 파일은 건드리지 않고 새 세션이 소유할 사본만 준비합니다. 맵의 사전 복원도 같은 기록을 사용합니다.
-            SaveRecord[] compatible = records.Select(record => record.WithExistingGates(gateExists)).ToArray();
-            SaveRecord preparedEntry = entry == null ? null : compatible.Single(record => record.Slot == entry.Slot);
-            var session = new SaveSession(Mode, version, store, () => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), compatible);
-            return new GameSaveContext(session, preparedEntry, store, progress);
+            var session = new SaveSession(Mode, version, store, () => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), records);
+            return new GameSaveContext(session, entry, store, progress);
         }
     }
 }

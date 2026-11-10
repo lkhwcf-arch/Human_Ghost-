@@ -80,8 +80,6 @@ namespace HumanGhost.Gameplay.Preview
         private PreviewMonsterDriver[] _monsterDrivers = Array.Empty<PreviewMonsterDriver>();
         private PreviewDeathRestart _deathRestart;
         private PreviewCombatFeedback _feedback;
-        private PreviewParryFeedback _parryFeedback;
-        [SerializeField] private SpriteClipEffect _parryImpactPrefab = null;
         private PlayerAnimationAudio _playerAudio;
         private readonly PreviewPresentation _presentation = new PreviewPresentation();
         private SubscriptionScope _interactionScope;
@@ -114,8 +112,6 @@ namespace HumanGhost.Gameplay.Preview
             if (_pause != null) _pause.SetModalBlocked(blocked);
         }
 
-        private void OnParrySucceeded(int milliseconds) => _parryFeedback?.Show(milliseconds,
-            _playerBody.bounds.center + Vector3.right * (_actor.Facing * 0.5f));
         public bool IsReady => _subscribed;
         public PlayerRuntime Player => _player;
         public BossRuntime Boss => _boss;
@@ -172,7 +168,6 @@ namespace HumanGhost.Gameplay.Preview
                 _bossDriver = !_bossActive || _boss.Combat == null ? null : new PreviewBossDriver(_boss, _player, _bossBody, _playerBody,
                     _worldUnitsPerTile, _bossRangeTiles, _bossSecondRangeTiles, _bossSightTiles);
                 _actor = _player.Actor;
-                _actor.ParrySucceeded += OnParrySucceeded;
                 if (_motion == null) _motion = new PreviewPlayerMotion(_player, _groundY, _useMapCollision, _playerHalfSize, GetMarkers(),
                     _actor.Definition.JumpHeight, Mathf.RoundToInt(_jumpSeconds * 1000f),
                     key => _playerAudio?.PlayAnimationSound(key));
@@ -224,7 +219,6 @@ namespace HumanGhost.Gameplay.Preview
 
         private void OnDisable()
         {
-            if (_actor != null) _actor.ParrySucceeded -= OnParrySucceeded;
             if (_playerAudio != null) _playerAudio.Disconnect();
             _playerAudio = null;
             DisconnectCutscenes();
@@ -232,7 +226,6 @@ namespace HumanGhost.Gameplay.Preview
             _presentation.Reset();
             _feedback?.Dispose();
             _feedback = null;
-            _parryFeedback?.Dispose(); _parryFeedback = null;
             DisconnectSaves();
             if (_data != null) _data.Initialized -= OnDataReady;
             // 초기화 도중 실패해도 이미 연결한 소비자는 반드시 해제합니다.
@@ -584,8 +577,6 @@ namespace HumanGhost.Gameplay.Preview
             _lastHealth = _actor.Health;
             _feedback?.Dispose();
             _feedback = new PreviewCombatFeedback(_speed, _followCamera, _audio, _feedbackTextPrefab, catalog.GetTable<Language>().Get(30021).KO);
-            _parryFeedback?.Dispose();
-            _parryFeedback = new PreviewParryFeedback(_speed, _followCamera, _audio, _parryImpactPrefab);
             if (_bossDriver != null)
             {
                 _bossDriver.PlayerHit += OnBossHitPlayer;
@@ -674,7 +665,6 @@ namespace HumanGhost.Gameplay.Preview
             StepSavePoint();
             _gates?.Step(_actor, _attackWindow.bounds, _playerBody.bounds, ShowGateHint);
             _feedback?.Step(Time.unscaledDeltaTime, Time.deltaTime);
-            _parryFeedback?.Step(Time.unscaledDeltaTime);
         }
 
         private void ShowGateHint() { if (_textbox != null) _textbox.ShowObjective("결박이 길을 막고 있다. Z(결박 가르기)로 베어 내자"); }

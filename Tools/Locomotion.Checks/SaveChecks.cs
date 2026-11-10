@@ -16,33 +16,6 @@ internal static class SaveChecks
         SaveSnapshot Snapshot(int x = 125) => new SaveSnapshot(8001, 0, x, -250, 70, 2,
             new[] { 8001 }, Array.Empty<int>(), Array.Empty<int>(), Array.Empty<int>(), new[] { 9001 });
         var session = Create(SaveBuildMode.Demo);
-        var oldSnapshot = new SaveSnapshot(8002, 8001, 350, -125, 60, 3, new[] { 8001 }, new[] { 8001 },
-            new[] { 800201, 9001 }, new[] { 18001 }, new[] { 9002 }, new[] { new MonsterSpawnId(8002, 101, 1) });
-        var oldRecord = new SaveRecord(1, 7, 500, oldSnapshot, 12);
-        var compatible = oldRecord.WithExistingGates(id => id == 9001);
-        check(compatible.Snapshot.OpenedGates.SequenceEqual(new[] { 9001 }), "현재 표에 없는 관문만 복원 대상에서 제외");
-        check(oldRecord.Snapshot.OpenedGates.SequenceEqual(new[] { 9001, 800201 })
-            && !ReferenceEquals(oldRecord, compatible) && !ReferenceEquals(oldSnapshot, compatible.Snapshot),
-            "관문 복원 호환은 원본 기록과 스냅샷을 변경하지 않음");
-        check(compatible.Version == 1 && compatible.Slot == 7 && compatible.SavedAtUnixMs == 500 && compatible.SaveOrder == 12,
-            "관문 호환 처리 후 슬롯·버전·시각·정렬 순서 보존");
-        check(compatible.Snapshot.StageId == 8002 && compatible.Snapshot.ShrineId == 8001
-            && compatible.Snapshot.PositionX == 350 && compatible.Snapshot.PositionY == -125
-            && compatible.Snapshot.Hp == 60 && compatible.Snapshot.Herbs == 3, "관문 호환 처리 후 위치·자원 보존");
-        check(compatible.Snapshot.ClearedStages.SequenceEqual(oldSnapshot.ClearedStages)
-            && compatible.Snapshot.ActiveShrines.SequenceEqual(oldSnapshot.ActiveShrines)
-            && compatible.Snapshot.ViewedCutscenes.SequenceEqual(oldSnapshot.ViewedCutscenes)
-            && compatible.Snapshot.UsedSavePoints.SequenceEqual(oldSnapshot.UsedSavePoints)
-            && compatible.Snapshot.DefeatedMonsters.SequenceEqual(oldSnapshot.DefeatedMonsters), "관문 외 진행·자동 저장 이력·개별 처치 보존");
-        check(oldRecord.WithExistingGates(id => false).Snapshot.OpenedGates.Count == 0, "관문 표가 비어 있어도 이전 기록 복원 허용");
-        check(oldRecord.WithExistingGates(id => true).Snapshot.OpenedGates.SequenceEqual(oldSnapshot.OpenedGates),
-            "현재 관문이 남아 있으면 열린 상태 유지");
-        var compatibleSession = Create(SaveBuildMode.Demo, compatible);
-        check(compatibleSession.TryContinue(7, out var gateRestored) && gateRestored.OpenedGates.SequenceEqual(new[] { 9001 }),
-            "최신·선택 기록에 공용 호환 사본으로 세션 진입");
-        bool missingLookup = false;
-        try { oldRecord.WithExistingGates(null); } catch (ArgumentNullException) { missingLookup = true; }
-        check(missingLookup, "관문 조회 계약 누락을 전체 관문 폐기로 오해하지 않음");
         int events = 0;
         session.Saved += (record, kind) => events++;
         check(!session.TryContinue(out _), "기록 없이 이어하기 불가");
