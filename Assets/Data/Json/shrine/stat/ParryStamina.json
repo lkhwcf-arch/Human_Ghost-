@@ -1,0 +1,26 @@
+{
+  "_note": "패링 스태미나 소모(줄임) [제안 11/9]. 서낭당에서 고르면 1단계씩 오름. value = 그 단계에서 더하는 값. enabled=false면 지스타 선택지에 안 나옴.",
+  "statType": "ParryStamina",
+  "textId": 30231,
+  "target": "PlayerAction.ParryStamina에 더함(음수 = 줄임, 30 → 20)",
+  "enabled": true,
+  "maxStep": 4,
+  "steps": [
+    {
+      "step": 1,
+      "value": -3
+    },
+    {
+      "step": 2,
+      "value": -3
+    },
+    {
+      "step": 3,
+      "value": -2
+    },
+    {
+      "step": 4,
+      "value": -2
+    }
+  ]
+}

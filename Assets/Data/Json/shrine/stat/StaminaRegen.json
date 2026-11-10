@@ -1,0 +1,26 @@
+{
+  "_note": "스태미나 회복(초당) [제안 11/9]. 서낭당에서 고르면 1단계씩 오름. value = 그 단계에서 더하는 값. enabled=false면 지스타 선택지에 안 나옴.",
+  "statType": "StaminaRegen",
+  "textId": 30227,
+  "target": "Player.StaminaRegen(초당)에 더함",
+  "enabled": true,
+  "maxStep": 4,
+  "steps": [
+    {
+      "step": 1,
+      "value": 5
+    },
+    {
+      "step": 2,
+      "value": 5
+    },
+    {
+      "step": 3,
+      "value": 5
+    },
+    {
+      "step": 4,
+      "value": 5
+    }
+  ]
+}
