@@ -42,8 +42,8 @@ namespace HumanGhost.Gameplay.Presentation
                 rect.offsetMin = Vector2.zero; rect.offsetMax = Vector2.zero;
                 background.GetComponent<Image>().color = new Color(.04f, .04f, .04f, .97f);
                 screen.Label("Title", "조작 방식을 고르세요", 180, exemplar, false);
-                screen._arrows = screen.Label("Arrows", "A (방향키)    점프 C · 공격 X · 구르기 Space · 기술 Z · 약초 Q", 50, exemplar, true);
-                screen._wasd = screen.Label("Wasd", "B (WASD)    점프 K · 공격 J · 구르기 L · 기술 U · 약초 I", -40, exemplar, true);
+                screen._arrows = screen.Label("Arrows", "A (방향키)    점프 C · 공격 X · 구르기 Space · 기술 Z · 약초 Q\n패링 왼쪽 Shift", 50, exemplar, true);
+                screen._wasd = screen.Label("Wasd", "B (WASD)    점프 K · 공격 J · 구르기 L · 기술 U · 약초 I\n패링 오른쪽 Shift", -40, exemplar, true);
                 Text cancel = screen.Label("Cancel", "뒤로", -190, exemplar, true);
                 MenuText.Connect(screen._arrows.gameObject, () => screen.Hover(KeyboardLayout.Arrows), () => screen.Choose(KeyboardLayout.Arrows));
                 MenuText.Connect(screen._wasd.gameObject, () => screen.Hover(KeyboardLayout.Wasd), () => screen.Choose(KeyboardLayout.Wasd));

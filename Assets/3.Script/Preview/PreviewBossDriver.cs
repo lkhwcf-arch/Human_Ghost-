@@ -107,7 +107,7 @@ namespace HumanGhost.Gameplay.Preview
             bool touching = combat.IsCharging ? own.Intersects(target) :
                 target.min.y <= own.max.y && target.max.y >= own.min.y && offset * combat.Facing >= 0f && Mathf.Abs(offset) <= range * _worldUnitsPerTile;
             if (!touching) return;
-            HitOutcome outcome = combat.TryHitPlayer(1, _player.Actor, _runtime.HitRandom);
+            HitOutcome outcome = combat.TryHitPlayer(1, _player.Actor, _runtime.HitRandom, System.Math.Sign(_runtime.transform.position.x - _player.transform.position.x));
             if (outcome >= HitOutcome.Hit) PlayerHit?.Invoke();
             else if (outcome == HitOutcome.Dodged) PlayerDodged?.Invoke();
         }

@@ -18,6 +18,10 @@ namespace HumanGhost.Gameplay.Preview
             return 0f;
         }
 
+        public float DeathDuration
+        {
+            get { var clip = base.SelectAnimation(StateKey.Dead); return clip != null ? clip.length : 0.6f; }
+        }
         protected override bool TryGetState(out StateKey state)
         {
             state = _monster != null && _monster.Actor != null ? _monster.Actor.CurrentState : StateKey.Idle;

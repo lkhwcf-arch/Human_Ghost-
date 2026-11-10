@@ -25,9 +25,11 @@ namespace HumanGhost.Gameplay.Preview
         private PreviewGroundFireView _fire;
         private bool _fireChecked;
         private bool _deathShown;
+        private float _deathElapsed;
+        private readonly float _deathDuration;
         public bool NeedsStep => _runtime != null && _runtime.isActiveAndEnabled &&
             (!_monster.IsDead || !_deathShown || !_fireChecked || (_fire != null && _fire.IsActive) ||
-            (_sprite != null && _sprite.color != Color.gray) || (_body != null && _body.color != Color.gray));
+            _deathElapsed < _deathDuration + 1f);
         public SpriteRenderer Sprite => _sprite != null ? _sprite : _body;
         public Vector3 Position => _runtime.transform.position;
         public bool IsEngaged { get; private set; }
@@ -51,6 +53,8 @@ namespace HumanGhost.Gameplay.Preview
             if (targetId <= 0 || playerTargetId <= 0 || targetId == playerTargetId) throw new ArgumentOutOfRangeException(nameof(targetId));
             runtime.ConfigureSpatialScale(worldUnitsPerTile);
             _monster = runtime.Actor ?? throw new InvalidOperationException("일반몹 초기화가 필요합니다.");
+            var view = runtime.GetComponentInChildren<PreviewMonsterSprite>(true);
+            _deathDuration = view != null ? view.DeathDuration : 0.6f;
             _targetId = targetId; _playerTargetId = playerTargetId; _worldUnitsPerTile = worldUnitsPerTile;
             // 매복 몬스터는 꺼진 채 연결합니다.
             _body = runtime.GetComponentInChildren<SpriteRenderer>(true);
@@ -74,8 +78,11 @@ namespace HumanGhost.Gameplay.Preview
             if (_deathShown)
             {
                 // 마지막 타격의 섬광이 끝난 뒤에도 사망 색이 복구되어야 합니다.
-                if (_sprite != null && _sprite.color != Color.gray) _sprite.color = Color.gray;
-                if (_body.color != Color.gray) _body.color = Color.gray;
+                _deathElapsed += seconds;
+                float alpha = Mathf.Clamp01(1f - (_deathElapsed - _deathDuration));
+                Color color = new Color(0.5f, 0.5f, 0.5f, alpha);
+                if (_sprite != null) { _sprite.color = color; if (alpha == 0f) _sprite.enabled = false; }
+                _body.color = color; if (alpha == 0f) _body.enabled = false;
                 StepFire(seconds);
                 return;
             }
@@ -176,7 +183,7 @@ namespace HumanGhost.Gameplay.Preview
             bool inFront = offset * _monster.Facing >= 0f;
             bool touching = pattern.IsProjectile ? _projectile != null && _projectile.IsFlying && _projectile.Bounds.Intersects(target) :
                 pattern.IsCharge ? own.Intersects(target) : sameHeight && inFront && Distance(offset) <= pattern.Range;
-            if (touching && _monster.TryHitPlayer(_playerTargetId, actor, _runtime.HitRandom) == HitOutcome.Dodged)
+            if (touching && _monster.TryHitPlayer(_playerTargetId, actor, _runtime.HitRandom, System.Math.Sign(_runtime.transform.position.x - _player.transform.position.x)) == HitOutcome.Dodged)
                 PlayerDodged?.Invoke();
         }
 

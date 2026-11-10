@@ -10,7 +10,7 @@ namespace HumanGhost.Gameplay.Preview
     {
         private const int _coyoteMilliseconds = 100;
         private const int _jumpBufferMilliseconds = 100;
-        private const int _fallDamage = 10;
+        private const int _fallDamage = int.MaxValue;
         private readonly PlayerRuntime _player;
         private readonly Action<string> _playSound;
         private readonly PreviewCollision _collision;
@@ -320,7 +320,7 @@ namespace HumanGhost.Gameplay.Preview
             _player.Actor.NotifyLanded(IntegerPosition.ToData(fallUnits));
         }
 
-        // 구덩이 앞에서 다시 섭니다(HP 10 감소, 10 이하면 낙사). 암전 300ms는 L08 가정입니다.
+        // 구덩이 낙하는 즉사입니다. 컷씬 피해 차단 중에는 기존 안전 위치로 복귀합니다.
         private void ApplyFall(Vector3 respawn, float z)
         {
             if (_player.Actor.ApplyFall(_fallDamage)) return;

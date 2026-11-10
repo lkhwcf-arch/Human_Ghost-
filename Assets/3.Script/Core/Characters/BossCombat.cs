@@ -74,8 +74,8 @@ namespace HumanGhost.Gameplay
         }
 
         // 충돌 판정자가 공급한 접촉에 플레이어 Dodge·보스 Crit 확률로 한 번 적용. random은 이 보스 소유 타격 난수입니다.
-        public HitOutcome TryHitPlayer(int targetId, PlayerActor target, Func<int, int, int> random)
-            => HitPlayer(targetId, target, random ?? throw new ArgumentNullException(nameof(random)), false, false);
+        public HitOutcome TryHitPlayer(int targetId, PlayerActor target, Func<int, int, int> random, int direction = 0)
+            => HitPlayer(targetId, target, random ?? throw new ArgumentNullException(nameof(random)), false, false, direction);
 
         // 검사·제어용: 회피/치명을 호출자가 확정합니다.
         public bool TryHitPlayer(int targetId, PlayerActor target, bool dodged, bool critical)
@@ -132,9 +132,14 @@ namespace HumanGhost.Gameplay
 
         private bool IsBlocked => Boss.IsDead || Boss.IsExposed || Boss.IsInvulnerable;
 
-        private HitOutcome HitPlayer(int targetId, PlayerActor target, Func<int, int, int> random, bool dodged, bool critical)
+        private HitOutcome HitPlayer(int targetId, PlayerActor target, Func<int, int, int> random, bool dodged, bool critical, int direction = 0)
         {
             if (target == null) throw new ArgumentNullException(nameof(target));
+            if (!IsBlocked && _pattern != null && !_pattern.IsChain && target.TryParryContact(_attackWindow, targetId, direction))
+            {
+                Boss.ReceiveHit(0, target.ParryPoiseDamage);
+                return HitOutcome.Parried;
+            }
             HitOutcome outcome = HitRoll.Resolve(_attackWindow, targetId, target.Definition.Dodge, Boss.Definition.Crit,
                 IsBlocked || target.IsDead || target.IsInvulnerable, true, random, dodged, critical);
             if (outcome < HitOutcome.Hit) return outcome;

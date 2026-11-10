@@ -122,17 +122,24 @@ namespace HumanGhost.Gameplay
 
         // 충돌 판정자가 공급한 대상에 플레이어 Dodge·이 몬스터 Crit 확률로 한 번 적용. 잡기는 비치명 피해와 구속을 함께 적용하며 회피만 판정합니다.
         // random은 패턴/대기용과 분리된 이 몬스터 소유 타격 난수입니다.
-        public HitOutcome TryHitPlayer(int targetId, PlayerActor target, Func<int, int, int> random)
-            => HitPlayer(targetId, target, random ?? throw new ArgumentNullException(nameof(random)), false, false);
+        public HitOutcome TryHitPlayer(int targetId, PlayerActor target, Func<int, int, int> random, int direction = 0)
+            => HitPlayer(targetId, target, random ?? throw new ArgumentNullException(nameof(random)), false, false, direction);
 
         // 검사·제어용: 회피/치명을 호출자가 확정합니다.
         public bool TryHitPlayer(int targetId, PlayerActor target, bool dodged, bool critical)
             => HitPlayer(targetId, target, null, dodged, critical) >= HitOutcome.Hit;
 
-        private HitOutcome HitPlayer(int targetId, PlayerActor target, Func<int, int, int> random, bool dodged, bool critical)
+        private HitOutcome HitPlayer(int targetId, PlayerActor target, Func<int, int, int> random, bool dodged, bool critical, int direction = 0)
         {
             if (target == null) throw new ArgumentNullException(nameof(target));
             bool grab = _pattern != null && _pattern.IsGrab;
+            if (!IsDead && !grab && target.TryParryContact(_attackWindow, targetId, direction))
+            {
+                ClearPattern(); _waitRemaining = 0;
+                _stunRemaining = target.ParryStunTime;
+                States.Call(StateKey.Stun);
+                return HitOutcome.Parried;
+            }
             HitOutcome outcome = HitRoll.Resolve(_attackWindow, targetId, target.Definition.Dodge, Definition.Crit,
                 target.IsDead || target.IsInvulnerable, !grab, random, dodged, critical);
             if (outcome < HitOutcome.Hit) return outcome;
@@ -140,7 +147,13 @@ namespace HumanGhost.Gameplay
             {
                 bool isCritical = outcome == HitOutcome.Critical;
                 int damage = CombatMath.Damage(Definition, target.Definition, _pattern.Attack.ExtraDamage, isCritical);
-                return target.ReceiveHit(damage, isCritical) ? outcome : HitOutcome.None;
+                if (!target.ReceiveHit(damage, isCritical)) return HitOutcome.None;
+                if (_pattern.IsCharge)
+                {
+                    _elapsed = _pattern.Attack.Windup + _pattern.Attack.Active;
+                    SetAttackActive(false);
+                }
+                return outcome;
             }
             int grabDamage = CombatMath.Damage(Definition, target.Definition, _pattern.Attack.ExtraDamage, false);
             if (!target.TryBind(this, _pattern.BindTime, _pattern.BindPresses, grabDamage)) return HitOutcome.None;
