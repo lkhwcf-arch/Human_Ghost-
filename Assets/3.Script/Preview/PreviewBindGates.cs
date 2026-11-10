@@ -32,7 +32,11 @@ namespace HumanGhost.Gameplay.Preview
                 {
                     if (!marker.name.StartsWith("BindGate_", System.StringComparison.Ordinal)) continue;
                     if (!ids.TryGetValue(marker.name, out int id))
+                    {
+                        // 11/10 삭제 확정된 관문만 이전 맵의 잔여 표식을 허용합니다.
+                        if (IsRemovedMarker(stageId, marker.name)) continue;
                         throw new System.InvalidOperationException($"관문 ID 연결이 없습니다. GateConfig에서 스테이지 {stageId}, 앵커 {marker.name}을 연결해 주세요.");
+                    }
                     if (_progress.HasOpenedGate(id)) continue;
                     // 폭 1·높이 3타일(L08).
                     var blocker = new GameObject("Blocker");
@@ -52,6 +56,10 @@ namespace HumanGhost.Gameplay.Preview
             }
             catch { Dispose(); throw; }
         }
+
+        private static bool IsRemovedMarker(int stageId, string name)
+            => (stageId == 8002 && (name == "BindGate_1" || name == "BindGate_2")) ||
+                (stageId == 8003 && name == "BindGate_3");
 
         public void Dispose()
         {
