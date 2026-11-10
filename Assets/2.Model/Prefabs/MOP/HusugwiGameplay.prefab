@@ -420,26 +420,52 @@ MonoBehaviour:
   _animations:
   - _state: 10001
     _clip: {fileID: 7400000, guid: 79ec959f93bd7c34b8d7c0ed2aab3b7d, type: 2}
+    _hitFrames: []
   - _state: 10002
     _clip: {fileID: 7400000, guid: eb1a58c4e88faa9479413c5652502bd8, type: 2}
+    _hitFrames: []
   - _state: 10003
     _clip: {fileID: 7400000, guid: 9a162cf54dbc44c4da843616c5dedc46, type: 2}
+    _hitFrames: []
   - _state: 10004
     _clip: {fileID: 7400000, guid: 9da7103ec5728594d82644c856b63ca5, type: 2}
+    _hitFrames:
+    - _hit: 0
+      _first: 0
+      _contact: 7
+      _recovery: 8
+      _end: 13
   - _state: 10005
     _clip: {fileID: 7400000, guid: 81bcb67d085e2294bb0d86165f7f2918, type: 2}
+    _hitFrames:
+    - _hit: 0
+      _first: 0
+      _contact: 20
+      _recovery: 22
+      _end: 25
   - _state: 10007
     _clip: {fileID: 7400000, guid: a82823fc26f10e548bd393a198bf29af, type: 2}
+    _hitFrames: []
   - _state: 10008
     _clip: {fileID: 7400000, guid: 7f513c4663003d5408b15ea9415feaea, type: 2}
+    _hitFrames: []
   - _state: 10009
     _clip: {fileID: 7400000, guid: 9da7103ec5728594d82644c856b63ca5, type: 2}
+    _hitFrames:
+    - _hit: 0
+      _first: 0
+      _contact: 7
+      _recovery: 8
+      _end: 13
   - _state: 10015
     _clip: {fileID: 7400000, guid: d18b3b3feedfed640bf6babed09ab4dc, type: 2}
+    _hitFrames: []
   - _state: 10016
     _clip: {fileID: 7400000, guid: 723844867ecdb3d4b99e0c964f9f772c, type: 2}
+    _hitFrames: []
   - _state: 10019
     _clip: {fileID: 7400000, guid: 45a4b175e2801194ab9b5ead50d099e0, type: 2}
+    _hitFrames: []
 --- !u!95 &4431834088010252383
 Animator:
   serializedVersion: 7

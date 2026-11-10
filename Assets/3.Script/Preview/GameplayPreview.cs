@@ -81,6 +81,7 @@ namespace HumanGhost.Gameplay.Preview
         private PreviewDeathRestart _deathRestart;
         private PreviewCombatFeedback _feedback;
         private PreviewParryFeedback _parryFeedback;
+        [SerializeField] private SpriteClipEffect _parryImpactPrefab = null;
         private PlayerAnimationAudio _playerAudio;
         private readonly PreviewPresentation _presentation = new PreviewPresentation();
         private SubscriptionScope _interactionScope;
@@ -584,7 +585,7 @@ namespace HumanGhost.Gameplay.Preview
             _feedback?.Dispose();
             _feedback = new PreviewCombatFeedback(_speed, _followCamera, _audio, _feedbackTextPrefab, catalog.GetTable<Language>().Get(30021).KO);
             _parryFeedback?.Dispose();
-            _parryFeedback = new PreviewParryFeedback(_speed, _followCamera, _audio);
+            _parryFeedback = new PreviewParryFeedback(_speed, _followCamera, _audio, _parryImpactPrefab);
             if (_bossDriver != null)
             {
                 _bossDriver.PlayerHit += OnBossHitPlayer;

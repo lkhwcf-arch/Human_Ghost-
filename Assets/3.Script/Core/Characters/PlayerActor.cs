@@ -81,15 +81,17 @@ namespace HumanGhost.Gameplay
         public void SetMove(int direction)
         {
             Locomotion.SetMove(direction);
-            if (direction != 0 && !IsActionBusy) _facing = direction;
+            if (direction != 0 && !IsActionBusy && !IsHanging) _facing = direction;
         }
 
         public bool TryJump() => !IsDead && Locomotion.TryJump();
 
         // 공중에서 외부가 모서리를 확인한 뒤 요청합니다. 매달린 동안 공격·구르기·이동은 막히고 스태미나를 쓰지 않습니다.
-        public bool TryHang()
+        public bool TryHang(int facing = 0)
         {
+            if (facing < -1 || facing > 1) throw new ArgumentOutOfRangeException(nameof(facing));
             if (IsDead || !Locomotion.CanMove || Locomotion.IsGrounded) return false;
+            if (facing != 0) _facing = facing;
             States.Call(StateKey.Hang);
             return true;
         }
@@ -99,6 +101,7 @@ namespace HumanGhost.Gameplay
         {
             if (!IsHanging) return false;
             Locomotion.Resume();
+            if (Locomotion.Direction != 0) _facing = Locomotion.Direction;
             return true;
         }
 

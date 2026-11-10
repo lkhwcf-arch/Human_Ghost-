@@ -33,6 +33,8 @@ namespace HumanGhost.Gameplay
         public bool IsDead => Health == 0;
         public int Facing { get; private set; } = 1;
         public MonsterPattern CurrentPattern => _pattern;
+        public int AttackElapsed => _pattern == null ? 0 : _elapsed;
+        public bool IsHolding => _holding != null && _holding.BoundBy == this;
         public bool IsAttackActive => _attackWindow.IsActive;
         public bool IsCharging => IsAttackActive && _pattern.IsCharge;
         // SuperArmor는 돌진 판정 구간에만 적용합니다. 상시 피격 면제가 아닙니다.

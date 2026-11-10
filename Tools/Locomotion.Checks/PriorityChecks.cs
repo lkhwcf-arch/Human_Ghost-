@@ -81,6 +81,11 @@ internal static class PriorityChecks
             check(combat.TryHitPlayer(2001,target,NoRoll,1) == HitOutcome.None && boss.Poise == 90,"같은 보스 공격 중복 패링 없음");
         }
         finally { combat.Release(); }
+        var hanger = Actor(100,false); hanger.SetMove(1); hanger.TryHang(); hanger.SetMove(-1);
+        check(hanger.Facing == 1 && hanger.Locomotion.HorizontalSpeed == 0 && !hanger.TryAttack() && !hanger.TryParry(),
+            "매달린 동안 방향·이동·전투 고정");
+        hanger.Locomotion.SetGrounded(true); hanger.EndHang();
+        check(hanger.Facing == -1 && hanger.Locomotion.CanMove,"매달리기 종료 후 이동·방향 복구");
         var falling = Actor(); falling.TryParry(); falling.ApplyFall(int.MaxValue);
         check(falling.IsDead && !falling.IsActionBusy,"낙사 즉사·패링 잠금 해제");
     }
