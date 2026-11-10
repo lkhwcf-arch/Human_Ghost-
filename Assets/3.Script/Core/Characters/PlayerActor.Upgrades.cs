@@ -10,6 +10,7 @@ namespace HumanGhost.Gameplay
         private int _baseHerbHeal;
         private int _baseHerbCharges;
         public int HerbCapacity => _herbs?.Capacity ?? 0;
+        public int HerbHealing => _herbs?.Heal ?? 0;
 
         public void ApplyUpgrades(UpgradeSession upgrades)
         {

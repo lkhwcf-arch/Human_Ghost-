@@ -15,6 +15,7 @@ namespace HumanGhost.Gameplay.Adapters
         [SerializeField] private InputActionReference _skill = null;
         [SerializeField] private InputActionReference _herb = null;
         private InputActionAsset _ownedAsset;
+        internal InputActionAsset Source => _move?.action?.actionMap?.asset;
         private InputAction _moveAction, _jumpAction, _attackAction, _rollAction, _interactAction, _skillAction, _herbAction;
         private PlayerParryInput _parryInput;
         private int _vertical;

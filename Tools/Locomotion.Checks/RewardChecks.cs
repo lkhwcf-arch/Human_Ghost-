@@ -106,5 +106,31 @@ internal static class RewardChecks
         combo.Start(0);
         combo.SetTimeReduction(2400);
         check(combo.Current.TotalTime == 228, "같은 공격 속도 적용 반복으로 시간이 계속 줄어들지 않음");
+        var menuWallet = new CurrencyWallet(new[] { new Currency(1, 1, 0, true), new Currency(2, 2, 0, true) },
+            new Dictionary<int, int> { [1] = 100, [2] = 100 });
+        var menuSession = new UpgradeSession(menuWallet, shrine, upgrades);
+        var menu = new ShrineMenu(menuSession, shrine, upgrades);
+        check(menu.Page == ShrinePage.Main && menu.Count == 3, "서낭당 첫 화면은 세 메뉴");
+        menu.Move(-1);
+        check(menu.Selected == 2, "목록 처음에서 위로 이동하면 마지막 선택");
+        menu.Select(0); menu.Submit();
+        check(menu.Page == ShrinePage.Offering && menu.Count == 5 && menuSession.ShrineLevel == 1,
+            "혼 메뉴 진입만으로는 구매하지 않음");
+        menu.Submit();
+        check(menu.Result == UpgradePurchaseResult.Purchased && menuSession.ShrineLevel == 2
+            && menuWallet.GetBalance(1) == 99 && menuWallet.GetBalance(2) == 100, "혼 메뉴 구매는 기존 세션으로 혼만 차감");
+        menu.Back(); menu.Select(1); menu.Submit();
+        check(menu.Page == ShrinePage.Herbs && menu.Count == 2 && menu.NextHerb().ID == 18021
+            && menu.HerbMaximum("HERB_CHARGES") == 1, "약초 목록·다음 단계·최대 단계는 표에서 결정");
+        menu.Submit();
+        check(menu.Result == UpgradePurchaseResult.Purchased && menuWallet.GetBalance(2) == 99, "약초 메뉴는 엽전 구매에 연결");
+        menu.Submit();
+        check(menu.Result == UpgradePurchaseResult.StepLimit && menuWallet.GetBalance(2) == 99, "상한 반복 결정은 추가 차감 없음");
+        menu.Back(); menu.Back(); menu.Move(1);
+        check(menu.Closed && menu.Selected == 0, "나가기 뒤 입력으로 선택 상태가 바뀌지 않음");
+        var emptyShrine = new ShrineDefinitions(shrine.Level, Array.Empty<ShrineStatDefinition>());
+        var empty = new ShrineMenu(new UpgradeSession(menuWallet, emptyShrine, Array.Empty<Upgrade>()), emptyShrine, Array.Empty<Upgrade>());
+        empty.Submit(); empty.Submit(); empty.Move(1);
+        check(empty.Count == 0 && empty.Result == null, "빈 강화 표에서도 인덱스 오류나 임의 구매 없음");
     }
 }

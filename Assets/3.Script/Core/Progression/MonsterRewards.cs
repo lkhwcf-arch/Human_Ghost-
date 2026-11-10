@@ -10,6 +10,8 @@ namespace HumanGhost.Gameplay
     {
         private const int _soulCurrencyId = 1;
         private const int _coinCurrencyId = 2;
+        public static int SoulCurrencyId => _soulCurrencyId;
+        public static int CoinCurrencyId => _coinCurrencyId;
         private readonly Currency[] _currencies;
         private readonly Dictionary<int, MonsterReward> _rewards;
         private readonly PlayerLevels _levels;
