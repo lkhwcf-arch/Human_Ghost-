@@ -1,0 +1,28 @@
+{
+  "_note": "서낭당 레벨 표(11/9 회의 확정 구조, 수치 [제안]). 혼을 내고 능력치 1개를 1단계 올리면 서낭당 레벨 +1. soulCostToNext = 다음 레벨로 갈 때 드는 혼. 합계 320 = 얻는 혼 376(맵 2·3 기본형 52×6 + 변종 8×8, Tables MonsterReward)의 85%(11/9 확정 비율). 서낭당 레벨은 UI에 표시하지 않음.",
+  "maxLevel": 5,
+  "soulCurrencyId": 1,
+  "deathSoulLossRate": 5000,
+  "levels": [
+    {
+      "level": 1,
+      "soulCostToNext": 64
+    },
+    {
+      "level": 2,
+      "soulCostToNext": 73
+    },
+    {
+      "level": 3,
+      "soulCostToNext": 86
+    },
+    {
+      "level": 4,
+      "soulCostToNext": 97
+    },
+    {
+      "level": 5,
+      "soulCostToNext": 0
+    }
+  ]
+}
