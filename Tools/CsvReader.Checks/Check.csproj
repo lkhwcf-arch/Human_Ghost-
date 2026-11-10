@@ -28,6 +28,7 @@
     <Compile Include="../../Assets/3.Script/Data/*.cs" />
     <None Include="../../Assets/Data/Csv/*.csv" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../Assets/Data/Json/*.json" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../Assets/Data/Json/shrine/**/*.json" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
   </ItemGroup>
 </Project>

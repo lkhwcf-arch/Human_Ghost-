@@ -55,6 +55,12 @@ internal static class DataBootstrapperChecks
         check(result.GetTable<Boss>().All.All(boss => boss.States.All(state => state.UnitID == boss.ID)));
         check(result.GetTable<UnitStateGroup<PlayerState>>().Count == 1);
         check(result.GetTable<Elite>().Count == 0 && result.GetTable<UnitStateGroup<EliteState>>().Count == 0);
+        var shrine = result.GetDefinition<ShrineDefinitions>();
+        check(shrine.Stats.Count > 0 && shrine.Stats.Keys.All(key => files.Any(path =>
+            Path.GetFileName(path) == key + ".json")));
+        check(shrine.Level.SoulCosts.Count == shrine.Level.MaxLevel && shrine.Stats["ParryStamina"].Steps[1] < 0);
+        check(files.FindIndex(path => Path.GetFileName(path) == "shrine_level.json") > files.FindLastIndex(path => path.EndsWith(".csv")));
+        check(ReferenceEquals(notified.GetDefinition<ShrineDefinitions>(), shrine));
         await bootstrapper.InitializeAsync(CancellationToken.None);
         check(files.Count == expectedFiles && notifications == 1);
 
@@ -122,6 +128,13 @@ internal static class DataBootstrapperChecks
         try { await preparationFailed.InitializeAsync(CancellationToken.None); check(false); }
         catch (IOException error) { check(ReferenceEquals(error, failure)); }
         check(preparationFailed.Data == null && preparationReports == 0);
+        int missingShrineNotifications = 0;
+        var missingShrine = new DataBootstrapper(new Source((name, token) => Path.GetFileName(name) == "shrine_level.json"
+            ? Task.FromException<string>(new FileNotFoundException("서낭당 정의 누락 검사"))
+            : new Utf8CsvFileSource().ReadTextAsync(name, token)), ResolvePath);
+        missingShrine.Initialized += _ => missingShrineNotifications++;
+        try { await missingShrine.InitializeAsync(CancellationToken.None); check(false); }
+        catch (FileNotFoundException) { check(missingShrine.Data == null && missingShrineNotifications == 0); }
     }
 
     private sealed class Source : ICsvTextSource

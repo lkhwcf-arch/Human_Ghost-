@@ -36,12 +36,14 @@ namespace HumanGhost.Data.Infrastructure
         public async Task<IReadOnlyDataTable<T>> LoadJsonAsync<T>(DataCatalog catalog, string name,
             Func<string, IReadOnlyList<T>> read, Func<T, int> selectId, CancellationToken token)
         {
-            var loader = new JsonLoader<IReadOnlyList<T>>(_source, read);
-            IReadOnlyList<T> definitions = await loader.LoadAsync(_resolvePath(Path.Combine("Json", name + ".json")), token);
+            IReadOnlyList<T> definitions = await ReadJsonAsync(name, read, token);
             var table = new DataTable<T>(definitions, selectId);
             catalog.Register(table);
             return table;
         }
+
+        public Task<T> ReadJsonAsync<T>(string name, Func<string, T> read, CancellationToken token)
+            => new JsonLoader<T>(_source, read).LoadAsync(_resolvePath(Path.Combine("Json", name + ".json")), token);
 
         public Task<IReadOnlyDataTable<UnitStateGroup<T>>> LoadGroupsAsync<T>(DataCatalog catalog, CancellationToken token, string groupColumn = "UnitID")
             => LoadJsonAsync(catalog, typeof(T).Name, text => new JsonTableReader().ReadGroups<T>(text, groupColumn), group => group.UnitID, token);
