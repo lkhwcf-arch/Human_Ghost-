@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace HumanGhost.Gameplay.Preview
 {
-    [DefaultExecutionOrder(-10)]
+    [DefaultExecutionOrder(10)]
     public sealed class PreviewBossSprite : PreviewStateSprite
     {
         [SerializeField, InspectorName("보스 런타임")] private BossRuntime _boss = null;

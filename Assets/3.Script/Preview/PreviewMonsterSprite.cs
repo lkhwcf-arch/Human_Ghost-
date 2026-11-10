@@ -4,10 +4,33 @@ using UnityEngine;
 
 namespace HumanGhost.Gameplay.Preview
 {
-    [DefaultExecutionOrder(-10)]
+    [DefaultExecutionOrder(10)]
     public class PreviewMonsterSprite : PreviewStateSprite
     {
         [SerializeField, InspectorName("일반몹 런타임")] private MonsterRuntime _monster = null;
+
+        private MonsterActor _actor;
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+            if (_monster == null) return;
+            _monster.Initialized += OnInitialized;
+            Bind();
+        }
+        private void OnInitialized(Monster definition) => Bind();
+        private void Bind()
+        {
+            if (_actor != null) _actor.Parried -= OnParried;
+            _actor = _monster.Actor;
+            if (_actor != null) _actor.Parried += OnParried;
+        }
+        private void OnDisable()
+        {
+            if (_monster != null) _monster.Initialized -= OnInitialized;
+            if (_actor != null) _actor.Parried -= OnParried;
+            _actor = null;
+        }
+        private void OnParried() => RestartAnimation();
 
         protected override float Duration(StateKey state)
         {
