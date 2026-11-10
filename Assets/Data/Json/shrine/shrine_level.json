@@ -1,7 +1,9 @@
 {
-  "_note": "서낭당 레벨 표(11/9 회의 확정 구조). 혼을 내고 능력치 1개를 1단계 올리면 서낭당 레벨 +1. soulCostToNext = 다음 레벨로 갈 때 드는 혼. 11/10 김현호 확정: 다 잡아도 80%만 해금. 얻는 혼 278(처치 188 = 맵 2·3 기본형 52×3 + 변종 8×4, Tables MonsterReward / 갈림길 보상 90 = 산길 30마리×3, stats/galimgil) = 비용 합계 348의 80% → 전부 잡아도 4단계 중 3단계. 서낭당 레벨은 UI에 표시하지 않음.",
+  "_note": "서낭당 레벨(11/9 회의 확정 구조). 혼을 내고 능력치 1개를 1단계 올리면 서낭당 레벨 +1. 11/10 김현호(개발 협의): 요구량은 표가 아니라 계산식(비율식, 확장성 때문). 다음 레벨업 혼 = 버림(soulCostBase × (soulCostRate ÷ 10000)^(현재 서낭당 레벨 − 1)), soulCostRate는 만분율(11500 = ×1.15). 앞 레벨 결과에 곱하지 말고 항상 soulCostBase에서 계산. maxLevel에서는 더 못 올림. 지금 값 70·80·92·106(합계 348). 얻는 혼 278(처치 188 + 갈림길 90) → 3단계(누적 242)까지, 4단계 못 엶(80%, 다 잡아도 80% 해금 기준 유지). levels 표는 개발이 계산식을 구현하기 전까지 기존 배포 검사(ShrineFileCollector)를 통과시키려고 계산식 결과를 그대로 적어 둔 것. 계산식 구현 뒤 개발 판단으로 지워도 됨. 서낭당 레벨은 UI에 표시하지 않음.",
   "maxLevel": 5,
   "soulCurrencyId": 1,
+  "soulCostBase": 70,
+  "soulCostRate": 11500,
   "deathSoulLossRate": 5000,
   "levels": [
     {
@@ -10,15 +12,15 @@
     },
     {
       "level": 2,
-      "soulCostToNext": 79
+      "soulCostToNext": 80
     },
     {
       "level": 3,
-      "soulCostToNext": 94
+      "soulCostToNext": 92
     },
     {
       "level": 4,
-      "soulCostToNext": 105
+      "soulCostToNext": 106
     },
     {
       "level": 5,
