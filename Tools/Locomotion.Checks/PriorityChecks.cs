@@ -61,13 +61,49 @@ internal static class PriorityChecks
         foreach (var enemy in new[]{Enemy(),Enemy(charge:true),Enemy(projectile:true)})
         {
             var target = Actor(); target.TryParry(); enemy.Observe(2001,100,1); enemy.Tick(1);
+            int parried = 0;
+            enemy.Parried += () =>
+            {
+                check(enemy.CurrentState == StateKey.Stun && enemy.CurrentPattern == null &&
+                    !enemy.IsAttackActive && !enemy.IsCharging && enemy.Velocity == 0,
+                    "패링 알림 전에 공격·돌진·판정 종료와 경직 확정");
+                parried++;
+            };
             check(enemy.TryHitPlayer(2001,target,NoRoll,1) == HitOutcome.Parried && target.Health == definition.HP &&
                 enemy.CurrentState == StateKey.Stun && !enemy.IsAttackActive && enemy.Velocity == 0,
                 "근접·돌진·투척 패링 피해0·창 닫힘·정지·스턴");
+            check(parried == 1 && !enemy.ReceiveParried(1000) && parried == 1,
+                "동일 공격 패링 알림 한 번·중복 수신 무시");
+            check(enemy.TryHitPlayer(2001,target,NoRoll,1) == HitOutcome.None && target.Health == definition.HP,
+                "취소한 공격이 다시 접촉해도 피해·추가 패링 없음");
             enemy.Tick(999); check(enemy.CurrentState == StateKey.Stun,"스턴999ms 유지");
             enemy.Tick(1); check(enemy.CurrentState != StateKey.Stun,"스턴1000ms 종료");
         }
+        var direct = Enemy();
+        check(!direct.ReceiveParried(1000), "공격 전 패링 수신 거부");
+        direct.Observe(2001,100,1);
+        check(!direct.ReceiveParried(1000), "선딜 중 패링 수신 거부");
+        direct.Tick(1);
+        foreach (int invalid in new[]{0,-1})
+        {
+            bool rejected = false;
+            try { direct.ReceiveParried(invalid); } catch (ArgumentOutOfRangeException) { rejected = true; }
+            check(rejected && direct.IsAttackActive, "잘못된 경직 시간은 상태 변경 없이 거부");
+        }
+        check(direct.ReceiveParried(1000) && direct.CurrentState == StateKey.Stun && !direct.IsAttackActive,
+            "이벤트 구독·Unity 표시 없이 패링 수신 독립 작동");
+        direct.ReceiveHit(1000);
+        check(!direct.ReceiveParried(1000) && direct.IsDead, "사망 대상에 경직 재등록 없음");
+        var broken = Enemy(); broken.Observe(2001,100,1); broken.Tick(1);
+        broken.Parried += () => throw new InvalidOperationException("listener fixture");
+        bool propagated = false;
+        try { broken.ReceiveParried(1000); }
+        catch (InvalidOperationException error) { propagated = error.Message == "listener fixture"; }
+        check(propagated && broken.CurrentState == StateKey.Stun && !broken.IsAttackActive && broken.CurrentPattern == null,
+            "알림 예외는 전파하되 확정된 경직·공격 취소는 유지");
+
         var grabber = Enemy(grab:true); var grabbed = Actor(); grabbed.TryParry(); grabber.Observe(2001,100,1); grabber.Tick(1);
+        check(!grabber.ReceiveParried(1000) && grabber.IsAttackActive, "잡기 공격은 직접 패링 수신도 거부");
         check(grabber.TryHitPlayer(2001,grabbed,(min,max)=>max-1,1) == HitOutcome.Hit && grabbed.BoundBy == grabber && !grabbed.IsActionBusy,
             "잡기는 패링 불가·패링 수명 정리");
         var phase = new BossState(4001,1006,1500,1500,2000,15,2000,"DAMAGE",1800,false,0,"Idle",10000);

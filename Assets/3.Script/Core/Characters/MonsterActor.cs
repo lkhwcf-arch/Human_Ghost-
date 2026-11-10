@@ -41,6 +41,8 @@ namespace HumanGhost.Gameplay
         public int Velocity => IsCharging ? Facing * _pattern.ChargeSpeed : CurrentState == StateKey.Walk ? Facing * Definition.MoveSpeed : 0;
         public event Action<int> HealthChanged;
         public event Action<MonsterPattern> PatternStarted;
+        // 공격 취소와 경직 진입을 완료한 뒤 표시 소비자에게 알립니다.
+        public event Action Parried;
         public event Action<bool> AttackWindowChanged
         {
             add { _attackWindow.Changed += value; }
@@ -117,6 +119,18 @@ namespace HumanGhost.Gameplay
             return true;
         }
 
+        // 판정자가 확정한 패링을 적용합니다. 표시 구독 없이도 전투 상태를 정리합니다.
+        public bool ReceiveParried(int stunMilliseconds)
+        {
+            if (stunMilliseconds <= 0) throw new ArgumentOutOfRangeException(nameof(stunMilliseconds));
+            if (IsDead || !IsAttackActive || _pattern == null || _pattern.IsGrab) return false;
+            ClearPattern(); _waitRemaining = 0;
+            _stunRemaining = stunMilliseconds;
+            States.Call(StateKey.Stun);
+            Parried?.Invoke();
+            return true;
+        }
+
         // 판정 창마다 대상 ID를 한 번만 허용합니다.
         public bool TryRegisterTarget(int targetId) => _attackWindow.TryRegisterTarget(targetId);
 
@@ -135,9 +149,7 @@ namespace HumanGhost.Gameplay
             bool grab = _pattern != null && _pattern.IsGrab;
             if (!IsDead && !grab && target.TryParryContact(_attackWindow, targetId, direction))
             {
-                ClearPattern(); _waitRemaining = 0;
-                _stunRemaining = target.ParryStunTime;
-                States.Call(StateKey.Stun);
+                ReceiveParried(target.ParryStunTime);
                 return HitOutcome.Parried;
             }
             HitOutcome outcome = HitRoll.Resolve(_attackWindow, targetId, target.CombatStats.Dodge, Definition.Crit,
