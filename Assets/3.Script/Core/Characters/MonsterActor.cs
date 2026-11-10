@@ -141,7 +141,6 @@ namespace HumanGhost.Gameplay
                 return HitOutcome.Parried;
             }
             HitOutcome outcome = HitRoll.Resolve(_attackWindow, targetId, target.CombatStats.Dodge, Definition.Crit,
-            HitOutcome outcome = HitRoll.Resolve(_attackWindow, targetId, target.Definition.Dodge, Definition.Crit,
                 target.IsDead || target.IsInvulnerable, !grab, random, dodged, critical);
             if (outcome < HitOutcome.Hit) return outcome;
             if (!grab)
