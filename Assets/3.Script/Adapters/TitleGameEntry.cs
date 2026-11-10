@@ -235,13 +235,13 @@ namespace HumanGhost.Gameplay.Adapters
             if (_modalBlocked || _records == null || _saveStore == null) return false;
             if (_data == null || _data.Data == null || _loadingPrefab == null) return false;
             var records = record == null ? _records : _records.Where(row => row.Slot != record.Slot).Append(record).ToArray();
-            var context = GameSaveContext.Create(records, _saveStore, _saveVersion, record);
             if (record != null)
             {
                 if (record.Snapshot.Hp <= 0) throw new InvalidOperationException("사망 상태의 저장 기록으로는 이어하기를 시작할 수 없습니다.");
                 _data.Data.GetTable<HumanGhost.Data.Definitions.Stage>().Get(record.Snapshot.StageId);
-                foreach (int id in record.Snapshot.OpenedGates) _data.Data.GetTable<HumanGhost.Data.Definitions.GateConfig>().Get(id);
             }
+            var gates = _data.Data.GetTable<HumanGhost.Data.Definitions.GateConfig>();
+            var context = GameSaveContext.Create(records, _saveStore, _saveVersion, id => gates.TryGet(id, out _), record);
             Instantiate(_loadingPrefab).Begin(_newGameScene, _data.Data, context.SceneReady);
             GameSaveContext.Set(context);
             Cursor.visible = false;
