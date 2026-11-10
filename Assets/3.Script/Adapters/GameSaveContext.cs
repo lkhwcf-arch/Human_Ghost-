@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -52,10 +53,15 @@ namespace HumanGhost.Gameplay.Adapters
                 throw new InvalidOperationException("저장 폴더는 게임 저장 경로의 하위 폴더여야 합니다.");
             return path;
         }
-        public static GameSaveContext Create(IReadOnlyList<SaveRecord> records, JsonSaveStore store, int version, SaveRecord entry = null, GameProgressState progress = null)
+        public static GameSaveContext Create(IReadOnlyList<SaveRecord> records, JsonSaveStore store, int version,
+            Func<int, bool> gateExists, SaveRecord entry = null, GameProgressState progress = null)
         {
-            var session = new SaveSession(Mode, version, store, () => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), records);
-            return new GameSaveContext(session, entry, store, progress);
+            if (records == null) throw new ArgumentNullException(nameof(records));
+            if (gateExists == null) throw new ArgumentNullException(nameof(gateExists));
+            var compatible = records.Select(record => record.WithExistingGates(gateExists)).ToArray();
+            SaveRecord prepared = entry == null ? null : compatible.Single(record => record.Slot == entry.Slot);
+            var session = new SaveSession(Mode, version, store, () => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), compatible);
+            return new GameSaveContext(session, prepared, store, progress);
         }
     }
 }

@@ -145,14 +145,13 @@ namespace HumanGhost.Gameplay
                 IsBlocked || target.IsDead || target.IsInvulnerable, true, random, dodged, critical);
             if (outcome < HitOutcome.Hit) return outcome;
             bool isCritical = outcome == HitOutcome.Critical;
+            int damage = CombatMath.Damage(Boss.Definition, target.CombatStats, _pattern.Hits[_hit].ExtraDamage, !_pattern.IsChain && isCritical);
             if (_pattern.IsChain)
             {
-                int chainDamage = CombatMath.Damage(Boss.Definition, target.CombatStats, _pattern.Hits[_hit].ExtraDamage, false);
-                if (!target.TryChainBind(_pattern.BindTime, _pattern.BindPresses, chainDamage)) return HitOutcome.None;
+                if (!target.TryChainBind(_pattern.BindTime, _pattern.BindPresses, damage)) return HitOutcome.None;
                 _chained = target.IsDead ? null : target;
                 return outcome;
             }
-            int damage = CombatMath.Damage(Boss.Definition, target.CombatStats, _pattern.Hits[_hit].ExtraDamage, isCritical);
             return target.ReceiveHit(damage, isCritical) ? outcome : HitOutcome.None;
         }
 

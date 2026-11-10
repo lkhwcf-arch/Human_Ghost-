@@ -176,7 +176,8 @@ namespace HumanGhost.Gameplay.Preview
             bool inFront = offset * _monster.Facing >= 0f;
             bool touching = pattern.IsProjectile ? _projectile != null && _projectile.IsFlying && _projectile.Bounds.Intersects(target) :
                 pattern.IsCharge ? own.Intersects(target) : sameHeight && inFront && Distance(offset) <= pattern.Range;
-            if (touching && _monster.TryHitPlayer(_playerTargetId, actor, _runtime.HitRandom) == HitOutcome.Dodged)
+            int direction = System.Math.Sign(_runtime.transform.position.x - _player.transform.position.x);
+            if (touching && _monster.TryHitPlayer(_playerTargetId, actor, _runtime.HitRandom, direction) == HitOutcome.Dodged)
                 PlayerDodged?.Invoke();
         }
 

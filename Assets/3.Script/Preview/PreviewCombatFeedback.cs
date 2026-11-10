@@ -61,6 +61,12 @@ namespace HumanGhost.Gameplay.Preview
             _speed?.State.HitStop(_executeStop);
             _camera?.Shake(0.25f, 0.25f);
         }
+        public void OnParry(int hitStop)
+        {
+            _speed?.State.HitStop(hitStop);
+            _camera?.Shake(0.08f, 0.1f);
+            _audio?.PlayEffect("SFX_PARRY");
+        }
 
         public void OnPlayerDamaged(bool byBoss)
         {

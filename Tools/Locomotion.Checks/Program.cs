@@ -22,6 +22,7 @@ internal static class Program
             GameProgressChecks.Run(Check);
             ProgressionChecks.Run(Check);
             RewardChecks.Run(definition, Check);
+            GalimgilChecks.Run(Check);
             PriorityChecks.Run(definition, Check);
             AttackAnimationChecks.Run(Check);
             Player changed = ReadPlayer(args[0], checked(definition.MoveSpeed + 1), checked(definition.JumpHeight + 1));

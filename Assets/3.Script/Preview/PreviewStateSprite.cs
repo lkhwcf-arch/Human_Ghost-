@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using HumanGhost.Data.Definitions;
 using UnityEngine;
 
@@ -33,6 +34,20 @@ namespace HumanGhost.Gameplay.Preview
         private StateKey _state;
         private bool _hasState;
         private Sprite _selected;
+        private readonly Dictionary<StateKey, AnimationClip> _clipsByState = new Dictionary<StateKey, AnimationClip>();
+        private readonly Dictionary<StateKey, Sprite> _framesByState = new Dictionary<StateKey, Sprite>();
+        private bool _lookupReady;
+        protected virtual void OnValidate() => _lookupReady = false;
+        private void PrepareLookup()
+        {
+            if (_lookupReady) return;
+            _clipsByState.Clear(); _framesByState.Clear();
+            foreach (var entry in _animations)
+                if (entry != null && entry.Clip != null && !_clipsByState.ContainsKey(entry.State)) _clipsByState.Add(entry.State, entry.Clip);
+            foreach (var entry in _frames)
+                if (entry != null && entry.Sprite != null && !_framesByState.ContainsKey(entry.State)) _framesByState.Add(entry.State, entry.Sprite);
+            _lookupReady = true;
+        }
         protected AnimationClip CurrentAnimation => _animation;
         protected void RestartAnimation() => _hasState = false;
         protected SpriteRenderer Renderer => _renderer;
@@ -43,9 +58,8 @@ namespace HumanGhost.Gameplay.Preview
         protected virtual float Duration(StateKey state) => 0f;
         protected virtual AnimationClip SelectAnimation(StateKey state)
         {
-            foreach (StateAnimation entry in _animations)
-                if (entry != null && entry.State == state && entry.Clip != null) return entry.Clip;
-            return null;
+            PrepareLookup();
+            return _clipsByState.TryGetValue(state, out var clip) ? clip : null;
         }
 
         protected virtual void Awake()
@@ -59,9 +73,8 @@ namespace HumanGhost.Gameplay.Preview
 
         protected Sprite FindFrame(StateKey state)
         {
-            foreach (StateFrame frame in _frames)
-                if (frame != null && frame.State == state && frame.Sprite != null) return frame.Sprite;
-            return null;
+            PrepareLookup();
+            return _framesByState.TryGetValue(state, out var sprite) ? sprite : null;
         }
 
         protected virtual void LateUpdate()
@@ -81,7 +94,7 @@ namespace HumanGhost.Gameplay.Preview
                 time = _animation.isLooping && duration <= 0f ? Mathf.Repeat(time, _animation.length) : Mathf.Min(time, _animation.length);
                 _animation.SampleAnimation(_renderer.gameObject, time);
             }
-            else if (_selected != null) _renderer.sprite = _selected;
+            else if (_selected != null && _renderer.sprite != _selected) _renderer.sprite = _selected;
             // 셀 내부의 동작을 보존합니다. 프레임마다 발을 강제로 당겨 구르기·사망을 흔들지 않습니다.
             if (changed && AlignFeet && _fallback != null && _renderer.sprite != null)
             {

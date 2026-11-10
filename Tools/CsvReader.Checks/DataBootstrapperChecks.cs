@@ -52,6 +52,7 @@ internal static class DataBootstrapperChecks
         check(result.GetTable<HealthDisplayConfig>().All.Select(row => row.AnchorName).SequenceEqual(
             new CsvParser().Read(File.ReadAllText(ResolvePath("HealthDisplayConfig.csv"))).Rows.Select(row => row.Get("AnchorName"))));
         check(result.GetTable<Player>().All.All(player => player.HP == result.GetTable<UnitStat>().Get(player.UnitID).HP));
+        check(result.GetDefinition<GalimgilRewardDefinition>().SoulPerKill == 3);
         check(result.GetTable<Boss>().All.All(boss => boss.States.All(state => state.UnitID == boss.ID)));
         check(result.GetTable<UnitStateGroup<PlayerState>>().Count == 1);
         check(result.GetTable<Elite>().Count == 0 && result.GetTable<UnitStateGroup<EliteState>>().Count == 0);

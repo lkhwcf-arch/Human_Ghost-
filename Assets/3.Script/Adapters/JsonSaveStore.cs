@@ -91,6 +91,9 @@ namespace HumanGhost.Gameplay.Adapters
                     if (snapshot.Property("Upgrades") == null)
                         snapshot.Add("Upgrades", new JObject { ["ShrineLevel"] = 1,
                             ["ShrineSteps"] = new JObject(), ["TableSteps"] = new JObject() });
+                    if (snapshot.Property("Galimgil") == null)
+                        snapshot.Add("Galimgil", new JObject { ["Claimed"] = 0, ["InteractedObjects"] = new JArray() });
+                    MigrateCurrencyIds(snapshot);
                 }
                 CheckIntegerValues(document);
                 var record = document.ToObject<SaveRecord>(JsonSerializer.Create(_settings));
@@ -116,6 +119,19 @@ namespace HumanGhost.Gameplay.Adapters
             if (token is JValue && token.Type != JTokenType.Integer)
                 throw new InvalidDataException("저장 데이터의 수치는 정수여야 합니다.");
             foreach (JToken child in token.Children()) CheckIntegerValues(child);
+        }
+
+        private static void MigrateCurrencyIds(JObject snapshot)
+        {
+            if (!(snapshot["Rewards"] is JObject rewards) || !(rewards["Balances"] is JObject balances)) return;
+            foreach (var pair in new[] { (Old: "6301", Current: "1"), (Old: "6302", Current: "2") })
+            {
+                JProperty old = balances.Property(pair.Old);
+                if (old == null) continue;
+                if (balances.Property(pair.Current) != null)
+                    throw new InvalidDataException("저장 재화의 이전 ID와 현재 ID가 함께 있어 자동 변환할 수 없습니다.");
+                old.Replace(new JProperty(pair.Current, old.Value.DeepClone()));
+            }
         }
 
         private async Task<T> ExecuteAsync<T>(Func<T> operation)

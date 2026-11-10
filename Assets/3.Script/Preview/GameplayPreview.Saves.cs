@@ -64,6 +64,8 @@ namespace HumanGhost.Gameplay.Preview
             if (_progress.Upgrades == null)
                 _progress.ConnectUpgrades(new UpgradeSession(_progress.Rewards.Wallet,
                     _catalog.GetDefinition<ShrineDefinitions>(), _catalog.GetTable<Upgrade>().All));
+            if (_progress.Galimgil == null)
+                _progress.ConnectGalimgil(new GalimgilRewards(_catalog.GetDefinition<GalimgilRewardDefinition>(), _progress.Rewards.Wallet));
             var context = GameSaveContext.Current;
             SaveSnapshot snapshot = context != null && context.EntryPending ? context.Entry?.Snapshot : null;
             if (snapshot == null) return;
@@ -88,7 +90,8 @@ namespace HumanGhost.Gameplay.Preview
                     var records = await store.ReadAsync();
                     cancellation.ThrowIfCancellationRequested();
                     RequireSaveRuntime();
-                    context = GameSaveContext.Create(records, store, 1, progress: _progress);
+                    var gates = _catalog.GetTable<GateConfig>();
+                    context = GameSaveContext.Create(records, store, 1, id => gates.TryGet(id, out _), progress: _progress);
                     GameSaveContext.Set(context);
                     sceneContext = context;
                 }
@@ -188,7 +191,7 @@ namespace HumanGhost.Gameplay.Preview
                 _actor.Health, _actor.HerbCount,
                 _progress.Progress.GetCleared(),
                 _progress.ActiveShrines, _progress.OpenedGates, _progress.ViewedCutscenes, Array.Empty<int>(),
-                _progress.DefeatedMonsters, _progress.Rewards.Capture(), _progress.Upgrades.Capture());
+                _progress.DefeatedMonsters, _progress.Rewards.Capture(), _progress.Upgrades.Capture(), _progress.Galimgil.Capture());
         }
         public Task PrepareAsync(SaveSnapshot snapshot, CancellationToken cancellation)
         {
@@ -210,6 +213,7 @@ namespace HumanGhost.Gameplay.Preview
             _saveLocked = !playable;
             if (_speed != null) _speed.State.SetPaused(!playable);
             SetGameInputLocked(!playable);
+            foreach (var arrival in _galimgilArrivals) if (arrival != null) arrival.SetReady(playable);
         }
         private void RequireSaveRuntime()
         {
@@ -218,6 +222,7 @@ namespace HumanGhost.Gameplay.Preview
         }
         private void DisconnectSaves()
         {
+            DisconnectGalimgilArrivals();
             DisconnectShrine();
             _progressScope?.Dispose(); _progressScope = null;
             if (_savePoint != null) _savePoint.GetComponent<ShrineInteract>().Connect(null);

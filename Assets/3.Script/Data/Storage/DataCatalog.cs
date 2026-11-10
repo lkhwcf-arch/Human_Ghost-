@@ -9,11 +9,18 @@ namespace HumanGhost.Data.Storage
         private readonly Dictionary<Type, object> _tables = new Dictionary<Type, object>();
 
         internal void Register<T>(IReadOnlyDataTable<T> table)
-            => _tables.Add(typeof(T), table);
+            => _tables.Add(typeof(IReadOnlyDataTable<T>), table);
+
+        internal void RegisterDefinition<T>(T definition) where T : class => _tables.Add(typeof(T), definition);
+        public T GetDefinition<T>() where T : class
+        {
+            if (_tables.TryGetValue(typeof(T), out object definition)) return (T)definition;
+            throw new KeyNotFoundException($"초기화된 데이터 정의를 찾을 수 없습니다. 데이터 형식: {typeof(T).Name}");
+        }
 
         public IReadOnlyDataTable<T> GetTable<T>()
         {
-            if (_tables.TryGetValue(typeof(T), out object table)) return (IReadOnlyDataTable<T>)table;
+            if (_tables.TryGetValue(typeof(IReadOnlyDataTable<T>), out object table)) return (IReadOnlyDataTable<T>)table;
             throw new KeyNotFoundException($"초기화된 데이터 테이블을 찾을 수 없습니다. 데이터 형식: {typeof(T).Name}");
         }
     }

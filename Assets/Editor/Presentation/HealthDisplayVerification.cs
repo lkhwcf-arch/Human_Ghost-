@@ -206,6 +206,7 @@ namespace HumanGhost.Editor.Presentation
             private readonly DataTable<HealthDisplayConfig> _table;
             public HealthCatalog(params HealthDisplayConfig[] rows) => _table = new DataTable<HealthDisplayConfig>(rows, row => row.ID);
             public IReadOnlyDataTable<T> GetTable<T>() => (IReadOnlyDataTable<T>)(object)_table;
+            public T GetDefinition<T>() where T : class => throw new InvalidOperationException("체력 표시 검사에는 단일 JSON 정의가 없습니다.");
         }
     }
 }

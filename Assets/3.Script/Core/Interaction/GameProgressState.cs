@@ -13,6 +13,12 @@ namespace HumanGhost.Gameplay
         public StageProgress Progress { get; private set; } = new StageProgress();
         public MonsterRewards Rewards { get; private set; }
         public UpgradeSession Upgrades { get; private set; }
+        public GalimgilRewards Galimgil { get; private set; }
+        public void ConnectGalimgil(GalimgilRewards galimgil)
+        {
+            if (Galimgil != null) throw new InvalidOperationException("갈림길 보상은 이미 연결됐습니다.");
+            Galimgil = galimgil ?? throw new ArgumentNullException(nameof(galimgil));
+        }
         public void ConnectUpgrades(UpgradeSession upgrades)
         {
             if (Upgrades != null) throw new InvalidOperationException("세션의 강화는 이미 연결됐습니다.");
@@ -53,6 +59,7 @@ namespace HumanGhost.Gameplay
             if (snapshot == null) throw new ArgumentNullException(nameof(snapshot));
             Rewards?.Restore(snapshot.Rewards);
             Upgrades?.Restore(snapshot.Upgrades);
+            Galimgil?.Restore(snapshot.Galimgil);
             Progress = new StageProgress();
             foreach (int id in snapshot.ClearedStages) Progress.Clear(id);
             Replace(_openedGates, snapshot.OpenedGates);

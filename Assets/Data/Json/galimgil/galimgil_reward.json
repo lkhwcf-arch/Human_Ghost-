@@ -1,0 +1,28 @@
+{
+  "_note": "갈림길 보상(11/10 김현호, 개발 협의). 혼만 줌. 보상 혼 = 버림(baseSoul + 잡은 수 × soulPerKill + 상호작용 수 × soulPerInteraction). 잡은 수 = countStages 맵의 저장된 처치 기록(killedMonsters, 몬스터마다 한 번만, 죽고 다시 잡아도 안 늘어남). 갈림길이 산길 끝·협곡 앞이라 산길(8002)만 셈(11/10 김현호, 중간보스가 생기면 바뀔 수 있음). 상호작용 수 = 상호작용한 오브젝트 수(오브젝트마다 한 번만). 지금은 고정식, 나중에 비율식(최대 보상 × 잡은 수 ÷ max count)으로 바꿀 수 있음(30마리 기준 결과 같음). 전부 잡으면 30 × 3 = 90, 처치 혼 188과 합쳐 278 = 서낭당 비용 348(비율식)의 80%, 3단계까지(stats/shrine/shrine_level.json). 등급은 화면에 안 보여 줌(나중에 등급별 아이템 보상에 씀). DeployData로 Assets/Data/Json/galimgil에 검사 후 자동 배포. 갈림길 첫 도착 때 1회 지급(개발 확정).",
+  "soulCurrencyId": 1,
+  "baseSoul": 0,
+  "soulPerKill": 3,
+  "soulPerInteraction": 3,
+  "rounding": "floor",
+  "countStages": [
+    8002
+  ],
+  "showGrade": false,
+  "grades": [
+    {
+      "grade": "HIGH",
+      "minKillCount": 27,
+      "_note": "[제안] 30마리 중 90% 이상"
+    },
+    {
+      "grade": "MID",
+      "minKillCount": 15,
+      "_note": "[제안] 50% 이상"
+    },
+    {
+      "grade": "LOW",
+      "minKillCount": 0
+    }
+  ]
+}

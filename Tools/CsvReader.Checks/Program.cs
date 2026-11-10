@@ -66,6 +66,8 @@ internal static class Program
         ErrorPopupDataChecks.Run(Check);
         ErrorLogDispatchChecks.Run(Check);
         await DataBootstrapperChecks.RunAsync(Check);
+        await ShrineDefinitionChecks.RunAsync(Check);
+        GalimgilDefinitionChecks.Run(Check);
         Console.WriteLine($"검사 {_checks}개 통과");
     }
 }

@@ -118,6 +118,7 @@ namespace HumanGhost.Gameplay.Preview
         private void OnParrySucceeded(int milliseconds) => _parryFeedback?.Show(milliseconds,
             _playerBody.bounds.center + Vector3.right * (_actor.Facing * 0.5f));
         public bool IsReady => _subscribed;
+        private void OnParrySucceeded(int milliseconds) => _feedback?.OnParry(milliseconds);
         public PlayerRuntime Player => _player;
         public BossRuntime Boss => _boss;
 
@@ -188,6 +189,7 @@ namespace HumanGhost.Gameplay.Preview
                 MoveToArrival();
                 ConnectCutsceneData();
                 ConnectStageObjects(catalog);
+                ConnectGalimgilArrivals();
                 if (_savePoint != null) _savePoint.GetComponent<ShrineInteract>().SetActive(_progress.HasActiveShrine(_stageId));
                 ConnectGameLayer(catalog);
                 _actor.RollRequested += OnRoll;
@@ -599,8 +601,14 @@ namespace HumanGhost.Gameplay.Preview
             foreach (PreviewMonsterDriver driver in _monsterDrivers) driver.PlayerDodged += OnPlayerDodged;
             if (_hud != null)
             {
-                CanvasGroup healthGroup = _healthAnchorRoot != null ? _healthAnchorRoot.GetComponentInParent<Canvas>().GetComponent<CanvasGroup>() : null;
-                if (healthGroup == null && _healthAnchorRoot != null) healthGroup = _healthAnchorRoot.GetComponentInParent<Canvas>().gameObject.AddComponent<CanvasGroup>();
+                CanvasGroup healthGroup = null;
+                if (_healthAnchorRoot != null)
+                {
+                    Canvas canvas = _healthAnchorRoot.GetComponentInParent<Canvas>();
+                    if (canvas == null) throw new InvalidOperationException("체력 표시 앵커의 부모 Canvas가 없습니다.");
+                    healthGroup = canvas.GetComponent<CanvasGroup>();
+                    if (healthGroup == null) healthGroup = canvas.gameObject.AddComponent<CanvasGroup>();
+                }
                 _hud.Connect(_actor, _boss.Actor, catalog.GetTable<Language>().Get(30006).KO, _boss.Actor.Poise, _showBossGauge && _bossActive, healthGroup);
                 _actor.StaminaRefused += _hud.FlashStamina;
             }

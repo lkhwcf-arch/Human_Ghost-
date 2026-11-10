@@ -5,12 +5,14 @@ namespace HumanGhost.Data.Definitions
     {
         public int ID { get; }
         public int TextID { get; }
+        public int Category { get; }
         public int DeathLossRate { get; }
         public bool ContentEnabled { get; }
-        public Currency(int id, int textID, int deathLossRate, bool contentEnabled)
+        public Currency(int id, int textID, int deathLossRate, bool contentEnabled, int category = 0)
         {
             ID = id;
             TextID = textID;
+            Category = category;
             DeathLossRate = deathLossRate;
             ContentEnabled = contentEnabled;
         }

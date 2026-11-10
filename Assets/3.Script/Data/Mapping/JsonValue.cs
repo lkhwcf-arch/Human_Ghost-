@@ -5,6 +5,7 @@ namespace HumanGhost.Data.Mapping
 {
     public static class JsonValue
     {
+        public static T Read<T>(JToken row, string name) => (T)Parse(row[name], typeof(T));
         public static object Parse(JToken value, Type type)
         {
             Type underlying = Nullable.GetUnderlyingType(type);

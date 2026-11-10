@@ -40,6 +40,17 @@ namespace HumanGhost.Data.Infrastructure
             await loader.LoadCharactersAsync<EliteState, Elite>(catalog, (common, states) => new Elite(common, states), row => row.ID, token, "UnitID");
             await loader.LoadJsonAsync(catalog, "Item", reader.Read<Item>, row => row.ID, token);
             await loader.LoadGroupsAsync<PlayerState>(catalog, token, "UnitID");
+            var shrineReader = new HumanGhost.Data.Mapping.ShrineDefinitionReader();
+            var shrineLevel = await loader.ReadJsonAsync("shrine_level", shrineReader.ReadLevel, token);
+            var shrineStats = new System.Collections.Generic.List<ShrineStatDefinition>();
+            shrineStats.Add(await loader.ReadJsonAsync("AttackSpeed", shrineReader.ReadStat, token));
+            shrineStats.Add(await loader.ReadJsonAsync("Crit", shrineReader.ReadStat, token));
+            shrineStats.Add(await loader.ReadJsonAsync("Dodge", shrineReader.ReadStat, token));
+            shrineStats.Add(await loader.ReadJsonAsync("ParryStamina", shrineReader.ReadStat, token));
+            shrineStats.Add(await loader.ReadJsonAsync("StaminaRegen", shrineReader.ReadStat, token));
+            catalog.RegisterDefinition(new ShrineDefinitions(shrineLevel, shrineStats));
+            var galimgilReader = new HumanGhost.Data.Mapping.GalimgilDefinitionReader();
+            catalog.RegisterDefinition(await loader.ReadJsonAsync("galimgil_reward", galimgilReader.Read, token));
             await Task.CompletedTask;
             return catalog;
         }

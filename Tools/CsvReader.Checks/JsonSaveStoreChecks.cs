@@ -19,7 +19,7 @@ internal static class JsonSaveStoreChecks
             new[] { new MonsterSpawnId(8002, 101, 2) }, new RewardSnapshot(120,
                 new System.Collections.Generic.Dictionary<int, int> { [1] = 30, [2] = 7 }),
             new UpgradeSnapshot(2, new System.Collections.Generic.Dictionary<string, int> { ["Crit"] = 1 },
-                new System.Collections.Generic.Dictionary<string, int> { ["HERB_HEAL"] = 1 }));
+                new System.Collections.Generic.Dictionary<string, int> { ["HERB_HEAL"] = 1 }), new GalimgilSnapshot(1, new[] { 101, 101, 102 }));
         try
         {
             check((await store.ReadAsync()).Count == 0 && !Directory.Exists(directory));
@@ -53,20 +53,37 @@ internal static class JsonSaveStoreChecks
             check(!await restored.SaveAutomaticAsync(9002, Snapshot(999)));
             check(snapshot.DefeatedMonsters.Single().Equals(new MonsterSpawnId(8002, 101, 2)));
             check(snapshot.Rewards.Experience == 120 && snapshot.Rewards.Balances[1] == 30 && snapshot.Rewards.Balances[2] == 7);
+            check(snapshot.Galimgil.Claimed == 1 && snapshot.Galimgil.InteractedObjects.SequenceEqual(new[] { 101, 102 }));
             check(snapshot.Upgrades.ShrineLevel == 2 && snapshot.Upgrades.ShrineSteps["Crit"] == 1
                 && snapshot.Upgrades.TableSteps["HERB_HEAL"] == 1);
             check(records.Single(record => record.Slot == 7).WithExistingGates(_ => false).Snapshot.Rewards.Experience == 120);
 
             string path = Path.Combine(directory, "slot-7.json");
             string original = File.ReadAllText(path, Encoding.UTF8);
+            var oldCurrency = JObject.Parse(original);
+            var balances = (JObject)oldCurrency["Snapshot"]["Rewards"]["Balances"];
+            balances.Property("1").Replace(new JProperty("6301", 30));
+            balances.Property("2").Replace(new JProperty("6302", 7));
+            File.WriteAllText(path, oldCurrency.ToString(), new UTF8Encoding(false));
+            var migrated = (await store.ReadAsync()).Single(record => record.Slot == 7).Snapshot.Rewards;
+            check(migrated.Balances[1] == 30 && migrated.Balances[2] == 7 && !migrated.Balances.ContainsKey(6301));
+            check(File.ReadAllText(path, Encoding.UTF8) == oldCurrency.ToString());
+            balances["1"] = 30;
+            File.WriteAllText(path, oldCurrency.ToString(), new UTF8Encoding(false));
+            bool conflict = false;
+            try { await store.ReadAsync(); } catch (InvalidDataException) { conflict = true; }
+            check(conflict && File.ReadAllText(path, Encoding.UTF8) == oldCurrency.ToString());
+            File.WriteAllText(path, original, new UTF8Encoding(false));
             var legacy = JObject.Parse(original);
             ((JObject)legacy["Snapshot"]).Remove("DefeatedMonsters");
             ((JObject)legacy["Snapshot"]).Remove("Rewards");
             ((JObject)legacy["Snapshot"]).Remove("Upgrades");
+            ((JObject)legacy["Snapshot"]).Remove("Galimgil");
             File.WriteAllText(path, legacy.ToString(), new UTF8Encoding(false));
             check((await store.ReadAsync()).Single(record => record.Slot == 7).Snapshot.DefeatedMonsters.Count == 0);
             check((await store.ReadAsync()).Single(record => record.Slot == 7).Snapshot.Rewards.Experience == 0);
             check((await store.ReadAsync()).Single(record => record.Slot == 7).Snapshot.Upgrades.ShrineLevel == 1);
+            check((await store.ReadAsync()).Single(record => record.Slot == 7).Snapshot.Galimgil.Claimed == 0);
             check(File.ReadAllText(path, Encoding.UTF8) == legacy.ToString());
             File.WriteAllText(path, original, new UTF8Encoding(false));
             check(!File.ReadAllBytes(path).Take(3).SequenceEqual(new byte[] { 0xef, 0xbb, 0xbf }));

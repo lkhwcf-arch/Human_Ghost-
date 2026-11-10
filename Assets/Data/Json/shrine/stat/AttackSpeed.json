@@ -1,0 +1,26 @@
+{
+  "_note": "공격 속도(평타 시간 줄임, 만분율) [제안 11/9]. 서낭당에서 고르면 1단계씩 오름. value = 그 단계에서 더하는 값. enabled=false면 지스타 선택지에 안 나옴.",
+  "statType": "AttackSpeed",
+  "textId": 30228,
+  "target": "평타 시간(개발 설정 PlayerCombatSettings) × (1 − 합계/10000)",
+  "enabled": true,
+  "maxStep": 4,
+  "steps": [
+    {
+      "step": 1,
+      "value": 600
+    },
+    {
+      "step": 2,
+      "value": 600
+    },
+    {
+      "step": 3,
+      "value": 600
+    },
+    {
+      "step": 4,
+      "value": 600
+    }
+  ]
+}

@@ -54,12 +54,6 @@ namespace HumanGhost.Gameplay
             int step = _shrine.GetStep(key);
             return checked((int)stat.Steps.Where(pair => pair.Key <= step).Sum(pair => (long)pair.Value));
         }
-        public int GetTableValue(string target)
-        {
-            var rows = _upgrades.Where(row => row.Target == target).ToArray();
-            if (rows.Length == 0) return 0;
-            int step = _table.GetStep(target);
-            return checked((int)rows.Where(row => row.Step <= step).Sum(row => (long)row.Value));
-        }
+        public int GetTableValue(string target) => _table.GetValue(target);
     }
 }
