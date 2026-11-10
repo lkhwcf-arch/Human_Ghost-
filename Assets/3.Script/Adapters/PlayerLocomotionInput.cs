@@ -64,7 +64,9 @@ namespace HumanGhost.Gameplay.Adapters
         {
             if (_locked || _modalBlocked || _unlockFrame < 0 || Time.frameCount <= _unlockFrame) return;
             _unlockFrame = -1;
-            SetDirection(_subscribed ? Math.Sign(_moveAction.ReadValue<Vector2>().x) : 0);
+            Vector2 value = _subscribed ? _moveAction.ReadValue<Vector2>() : Vector2.zero;
+            SetDirection(Math.Sign(value.x));
+            _vertical = value.y > 0.5f ? 1 : value.y < -0.5f ? -1 : 0;
         }
 
         public void Initialize(PlayerLocomotion locomotion) => InitializeCore(locomotion, null);
