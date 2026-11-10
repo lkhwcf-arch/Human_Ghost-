@@ -69,6 +69,7 @@ namespace HumanGhost.Gameplay.Preview
             if (snapshot == null) return;
             if (snapshot.Hp == 0) throw new InvalidOperationException("사망 상태 기록으로는 이어하기를 시작할 수 없습니다.");
             _catalog.GetTable<Stage>().Get(snapshot.StageId);
+            foreach (int id in snapshot.OpenedGates) _catalog.GetTable<GateConfig>().Get(id);
             _progress.Restore(snapshot);
         }
 
@@ -87,8 +88,7 @@ namespace HumanGhost.Gameplay.Preview
                     var records = await store.ReadAsync();
                     cancellation.ThrowIfCancellationRequested();
                     RequireSaveRuntime();
-                    var gates = _catalog.GetTable<GateConfig>();
-                    context = GameSaveContext.Create(records, store, 1, id => gates.TryGet(id, out _), progress: _progress);
+                    context = GameSaveContext.Create(records, store, 1, progress: _progress);
                     GameSaveContext.Set(context);
                     sceneContext = context;
                 }

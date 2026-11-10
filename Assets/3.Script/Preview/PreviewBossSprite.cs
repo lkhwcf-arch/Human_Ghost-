@@ -23,14 +23,6 @@ namespace HumanGhost.Gameplay.Preview
             foreach (AttackSpec hit in _boss.Combat.CurrentPattern.Hits) total += hit.TotalTime;
             return total / 1000f;
         }
-        protected override bool TryGetAnimationTime(StateKey state, AnimationClip animation, out float time)
-        {
-            var combat = _boss.Combat;
-            if (combat != null && combat.IsAttacking && combat.CurrentPattern.Key == state)
-                return TryMapAttackTime(state, animation, combat.HitIndex, combat.CurrentPattern.Hits[combat.HitIndex],
-                    combat.HitElapsed, combat.PullVelocity != 0, out time);
-            time = 0f; return false;
-        }
         protected override void UpdateFacing()
         {
             var actor = _boss.Actor;

@@ -15,28 +15,28 @@ MonoBehaviour:
   _attacks:
   - _windup: 120
     _active: 80
-    _recovery: 130
-    _comboWindow: 130
+    _recovery: 250
+    _comboWindow: 200
     _extraDamage: 0
     _poiseDamage: 8
     _staminaCost: 10
   - _windup: 120
     _active: 80
-    _recovery: 130
-    _comboWindow: 130
+    _recovery: 250
+    _comboWindow: 200
     _extraDamage: 0
     _poiseDamage: 8
     _staminaCost: 10
   - _windup: 120
     _active: 80
-    _recovery: 130
-    _comboWindow: 130
+    _recovery: 250
+    _comboWindow: 200
     _extraDamage: 0
     _poiseDamage: 8
     _staminaCost: 10
   - _windup: 200
     _active: 100
-    _recovery: 250
+    _recovery: 400
     _comboWindow: 0
     _extraDamage: 10
     _poiseDamage: 16

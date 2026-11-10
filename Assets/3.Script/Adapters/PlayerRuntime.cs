@@ -14,14 +14,6 @@ namespace HumanGhost.Gameplay.Adapters
         private MillisecondClock _clock;
         private System.Random _hitRandom;
         public PlayerActor Actor { get; private set; }
-        // 이동 조립자가 공급하는 절벽 기어오르기 표시 진행률. -1이면 실행 중이 아닙니다.
-        public float ClimbProgress { get; private set; } = -1f;
-        public void SetClimbProgress(float progress)
-        {
-            if (float.IsNaN(progress) || float.IsInfinity(progress) || progress < -1f || progress > 1f)
-                throw new ArgumentOutOfRangeException(nameof(progress));
-            ClimbProgress = progress;
-        }
         // 이 플레이어가 공격자일 때의 회피·치명 난수입니다.
         public Func<int, int, int> HitRandom { get; private set; }
         public event Action<string> PresentationCue;
@@ -41,11 +33,6 @@ namespace HumanGhost.Gameplay.Adapters
             if (Actor != null) throw new InvalidOperationException("이미 초기화된 플레이어입니다.");
             if (_combat == null || _input == null) throw new InvalidOperationException("전투 설정과 입력 어댑터를 연결하세요.");
             var actor = new PlayerActor(catalog.GetTable<Player>().Get(_playerId), _combat.CreateAttacks(), grounded, currentStamina);
-            PlayerAction actions = null;
-            foreach (PlayerAction entry in catalog.GetTable<PlayerAction>().All)
-                if (entry.PlayerID == _playerId) { if (actions != null) throw new InvalidOperationException("추가 행동 프로필이 중복됩니다."); actions = entry; }
-            if (actions != null) actor.ConfigureActions(actions);
-            actor.ActionCue += NotifyPresentationCue;
             _input.Initialize(actor);
             _hitRandom = new System.Random(Environment.TickCount ^ GetInstanceID());
             HitRandom = _hitRandom.Next;
@@ -88,14 +75,8 @@ namespace HumanGhost.Gameplay.Adapters
             // 비활성화 중 플레이어 Tick이 멈추므로 남은 일반몹 구속을 즉시 정리합니다.
             if (Actor?.BoundBy != null) Actor.ReleaseBind(Actor.BoundBy);
             Actor?.ReleaseChain();
-            Actor?.CancelCombatAction();
-            ClimbProgress = -1f;
         }
-        private void OnDestroy()
-        {
-            if (Actor != null) Actor.ActionCue -= NotifyPresentationCue;
-            Destroyed?.Invoke();
-        }
+        private void OnDestroy() => Destroyed?.Invoke();
         private void Update()
         {
             if (Actor == null) return;

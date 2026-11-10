@@ -17,7 +17,6 @@ namespace HumanGhost.Gameplay.Adapters
         private InputActionAsset _ownedAsset;
         internal InputActionAsset Source => _move?.action?.actionMap?.asset;
         private InputAction _moveAction, _jumpAction, _attackAction, _rollAction, _interactAction, _skillAction, _herbAction;
-        private PlayerParryInput _parryInput;
         private int _vertical;
         public int VerticalDirection => _vertical;
         private PlayerLocomotion _locomotion;
@@ -107,7 +106,6 @@ namespace HumanGhost.Gameplay.Adapters
             if (_rollAction != null) _rollAction.AddBinding("<Gamepad>/buttonEast");
             KeyboardControls.Apply(_ownedAsset);
             _locomotion = locomotion; _actor = actor;
-            if (actor != null) _parryInput = new PlayerParryInput(actor, () => IsBlocked);
             if (isActiveAndEnabled) Subscribe();
         }
 
@@ -124,7 +122,6 @@ namespace HumanGhost.Gameplay.Adapters
             if (_interactAction != null) _interactAction.started -= OnInteract;
             if (_skillAction != null) _skillAction.performed -= OnSkill;
             if (_herbAction != null) _herbAction.performed -= OnHerb;
-            _parryInput?.Disable();
             _subscribed = false;
             _vertical = 0;
             _ownedAsset.Disable();
@@ -135,7 +132,6 @@ namespace HumanGhost.Gameplay.Adapters
         private void OnDestroy()
         {
             OnDisable();
-            _parryInput?.Dispose();
             if (_ownedAsset == null) return;
             if (Application.isPlaying) Destroy(_ownedAsset); else DestroyImmediate(_ownedAsset);
             _ownedAsset = null;
@@ -150,7 +146,6 @@ namespace HumanGhost.Gameplay.Adapters
             _jumpAction.performed += OnJump;
             if (_actor != null)
             {
-                _parryInput.Enable();
                 if (_attackAction != null) { _attackAction.performed += OnAttack; _attackAction.Enable(); }
                 if (_rollAction != null) { _rollAction.performed += OnRoll; _rollAction.Enable(); }
                 // Interact 액션은 Hold라 누른 순간(started)에 받습니다.

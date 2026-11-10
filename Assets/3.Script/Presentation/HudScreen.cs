@@ -35,7 +35,6 @@ namespace HumanGhost.Gameplay.Presentation
         private float _bossHealth;
         private int _shownHerbs = -1, _shownCooldown = -1;
         private bool? _shownSkill;
-        private KeyboardLayout? _shownLayout;
 
         public void Connect(PlayerActor player, BossPoise boss, string bossName, int bossMaxPoise, bool showBossGauge, params CanvasGroup[] alsoFade)
         {
@@ -66,8 +65,6 @@ namespace HumanGhost.Gameplay.Presentation
             PlayerActor player = _player;
             _scope.Add(() => player.DisplayChanged -= invalidate);
             player.DisplayChanged += invalidate;
-            _scope.Add(() => HumanGhost.Gameplay.Adapters.KeyboardControls.Changed -= invalidate);
-            HumanGhost.Gameplay.Adapters.KeyboardControls.Changed += invalidate;
             if (_boss != null)
             {
                 BossPoise boss = _boss;
@@ -120,21 +117,15 @@ namespace HumanGhost.Gameplay.Presentation
         }
         private void RefreshData()
         {
-            bool wasd = HumanGhost.Gameplay.Adapters.KeyboardControls.Layout == KeyboardLayout.Wasd;
-            if (_shownLayout != HumanGhost.Gameplay.Adapters.KeyboardControls.Layout)
-            {
-                _shownLayout = HumanGhost.Gameplay.Adapters.KeyboardControls.Layout;
-                _shownHerbs = _shownCooldown = -1;
-            }
             RefreshStamina(_player.Stamina.Current);
             RefreshBoss();
-            if (_shownHerbs != _player.HerbCount) { _shownHerbs = _player.HerbCount; _herbs.text = (wasd ? "I" : "Q") + "  약초 " + _shownHerbs; }
+            if (_shownHerbs != _player.HerbCount) { _shownHerbs = _player.HerbCount; _herbs.text = "Q  약초 " + _shownHerbs; }
             if (_shownSkill != _player.HasSkill) { _shownSkill = _player.HasSkill; _skill.gameObject.SetActive(_player.HasSkill); _shownCooldown = -1; }
             int cooldown = _player.SkillCooldownSeconds;
             if (_player.HasSkill && cooldown != _shownCooldown)
             {
                 _shownCooldown = cooldown;
-                _skill.text = (wasd ? "U" : "Z") + "  결박 가르기 " + (cooldown > 0 ? cooldown + "초" : "");
+                _skill.text = "Z  결박 가르기 " + (cooldown > 0 ? cooldown + "초" : "");
             }
         }
 

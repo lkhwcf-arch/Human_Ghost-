@@ -13,15 +13,13 @@ namespace HumanGhost.Gameplay
         private readonly ActorStateMachine _states;
         private int _direction;
         private bool _isGrounded;
-        private bool _actionBlocked;
-        internal void SetActionBlocked(bool blocked) => _actionBlocked = blocked;
 
         public PlayerDefinition Definition { get; }
         public StateKey CurrentState => _states.Current;
         public bool IsGrounded => _isGrounded;
         public int Direction => _direction;
         // 시트의 tile_x100/초 단위 그대로. Unity 월드 단위 변환은 어댑터 책임입니다.
-        public bool CanMove => !_actionBlocked && (CurrentState == StateKey.Idle || CurrentState == StateKey.Walk || CurrentState == StateKey.Jump);
+        public bool CanMove => CurrentState == StateKey.Idle || CurrentState == StateKey.Walk || CurrentState == StateKey.Jump;
         public int HorizontalSpeed => CanMove ? _direction * Definition.MoveSpeed : 0;
         public int JumpHeight => Definition.JumpHeight;
         public event Action<StateKey> StateChanged

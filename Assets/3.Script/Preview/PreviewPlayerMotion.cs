@@ -10,7 +10,7 @@ namespace HumanGhost.Gameplay.Preview
     {
         private const int _coyoteMilliseconds = 100;
         private const int _jumpBufferMilliseconds = 100;
-        private const int _fallDamage = int.MaxValue;
+        private const int _fallDamage = 10;
         private readonly PlayerRuntime _player;
         private readonly Action<string> _playSound;
         private readonly PreviewCollision _collision;
@@ -26,10 +26,6 @@ namespace HumanGhost.Gameplay.Preview
         private bool _airborne;
         private Transform _hangEdge;
         private int _hangSide;
-        private const int _ledgeClimbMilliseconds = 680;
-        private int _climbElapsed = -1;
-        private Vector3 _climbFrom, _climbTo;
-        public bool IsClimbingLedge => _climbElapsed >= 0;
         private readonly System.Collections.Generic.List<LadderClimbArea> _ladders = new System.Collections.Generic.List<LadderClimbArea>();
         private LadderClimbArea _ladder;
         private Bounds _lastLadderArea;
@@ -119,7 +115,7 @@ namespace HumanGhost.Gameplay.Preview
 
         public void OnVerticalPressed(int direction)
         {
-            if (!IsHanging || IsClimbingLedge) return;
+            if (!IsHanging) return;
             if (direction > 0) Climb(); else Drop();
         }
 
@@ -151,13 +147,7 @@ namespace HumanGhost.Gameplay.Preview
             return false;
         }
 
-        public void StopClimbing() { CancelLedgeClimb(); LeaveLadder(false); }
-        private void CancelLedgeClimb()
-        {
-            if (!IsClimbingLedge) return;
-            _climbElapsed = -1; _player.SetClimbProgress(-1f);
-            _player.NotifyPresentationCue("ClimbExit");
-        }
+        public void StopClimbing() => LeaveLadder(false);
         private void LeaveLadder(bool atTop)
         {
             if (ReferenceEquals(_ladder, null)) return;
@@ -213,8 +203,7 @@ namespace HumanGhost.Gameplay.Preview
         {
             if (!_airborne || IsHanging) return false;
             Vector3 position = _player.transform.position;
-            if (!_hangEdges.TryFind(position, out Transform edge, out int side)) return false;
-            if (!_player.Actor.TryHang(side)) return false;
+            if (!_hangEdges.TryFind(position, out Transform edge, out int side) || !_player.Actor.TryHang()) return false;
             _hangEdge = edge; _hangSide = side;
             _motion.StopRoll(); _motion.SetVerticalSpeed();
             _player.SetPosition(_hangEdges.HangPosition(edge, side, position.z));
@@ -223,11 +212,11 @@ namespace HumanGhost.Gameplay.Preview
 
         private void Climb()
         {
-            if (IsClimbingLedge || !IsHanging || !_player.Actor.IsHanging) return;
-            _climbFrom = _player.transform.position;
-            _climbTo = _hangEdges.ClimbPosition(_hangEdge, _hangSide, _climbFrom.z);
-            _climbElapsed = 0; _player.SetClimbProgress(0f);
-            _motion.StopRoll(); _motion.SetVerticalSpeed();
+            _player.SetPosition(_hangEdges.ClimbPosition(_hangEdge, _hangSide, _player.transform.position.z));
+            _hangEdge = null;
+            _airborne = false; _motion.SetVerticalSpeed();
+            _player.SetGrounded(true);
+            _player.Actor.EndHang();
             _player.NotifyPresentationCue("Climb");
             _playSound?.Invoke("PLAYER_CLIMB");
         }
@@ -245,27 +234,6 @@ namespace HumanGhost.Gameplay.Preview
             int milliseconds = _clock.Advance(seconds);
             if (milliseconds == 0) return;
             PlayerActor actor = _player.Actor;
-            if (IsClimbingLedge)
-            {
-                if (!actor.IsHanging || _hangEdge == null)
-                { CancelLedgeClimb(); _hangEdge = null; _airborne = true; _motion.SetVerticalSpeed(); }
-                else
-                {
-                    _climbElapsed += Math.Min(milliseconds, _ledgeClimbMilliseconds - _climbElapsed);
-                    float progress = (float)_climbElapsed / _ledgeClimbMilliseconds;
-                    Vector3 climbPosition = _climbFrom;
-                    climbPosition.y = Mathf.Lerp(_climbFrom.y, _climbTo.y, Mathf.Clamp01(progress / 0.65f));
-                    climbPosition.x = Mathf.Lerp(_climbFrom.x, _climbTo.x, Mathf.Clamp01((progress - 0.65f) / 0.35f));
-                    _player.SetPosition(climbPosition); _player.SetClimbProgress(progress);
-                    if (_climbElapsed == _ledgeClimbMilliseconds)
-                    {
-                        CancelLedgeClimb(); _hangEdge = null;
-                        _airborne = false; _coyoteRemaining = _jumpBufferRemaining = 0;
-                        _player.SetGrounded(true); actor.EndHang();
-                    }
-                    return;
-                }
-            }
             if (MoveLadder(milliseconds / 1000f)) return;
             if (IsHanging)
             {
@@ -352,7 +320,7 @@ namespace HumanGhost.Gameplay.Preview
             _player.Actor.NotifyLanded(IntegerPosition.ToData(fallUnits));
         }
 
-        // 구덩이 낙하는 즉사입니다. 컷씬 피해 차단 중에는 기존 안전 위치로 복귀합니다.
+        // 구덩이 앞에서 다시 섭니다(HP 10 감소, 10 이하면 낙사). 암전 300ms는 L08 가정입니다.
         private void ApplyFall(Vector3 respawn, float z)
         {
             if (_player.Actor.ApplyFall(_fallDamage)) return;

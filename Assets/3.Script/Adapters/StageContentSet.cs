@@ -15,6 +15,16 @@ namespace HumanGhost.Gameplay.Adapters
             public GameObject Map = null;
             public TextAsset Spawn = null;
             [Min(0.1f)] public float CameraSize = 5.625f;
+            public BackgroundPosition[] BackgroundPositions = Array.Empty<BackgroundPosition>();
+        }
+
+        [Serializable]
+        public sealed class BackgroundPosition
+        {
+            public string Path;
+            public bool UseLocalX;
+            public float LocalX;
+            public float LocalY;
         }
 
         [Serializable]

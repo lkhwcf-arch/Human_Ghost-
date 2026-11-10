@@ -40,9 +40,7 @@ namespace HumanGhost.Gameplay.Preview
         }
         private bool _onLadder;
         private int _ladderDirection;
-        protected override float AnimationDelta => _player != null && _player.Actor != null &&
-            (_player.Actor.IsParrying || _player.Actor.IsHanging && !_onLadder) ? 0f :
-            _onLadder ? Time.deltaTime * _ladderDirection : base.AnimationDelta;
+        protected override float AnimationDelta => _onLadder ? Time.deltaTime * _ladderDirection : base.AnimationDelta;
         private AnimationClip _action;
         private float _actionElapsed;
         private int _facing = 1;
@@ -63,8 +61,6 @@ namespace HumanGhost.Gameplay.Preview
         }
         private void OnPresentationCue(string cue)
         {
-            if (cue == "ClimbExit") { _action = null; RestartAnimation(); return; }
-            if (cue == "Parry") { _action = null; RestartAnimation(); return; }
             if (cue == "LadderExit") { _onLadder = false; _ladderDirection = 0; return; }
             if (cue == "LadderUp" || cue == "LadderDown" || cue == "LadderHold")
             {
@@ -98,8 +94,6 @@ namespace HumanGhost.Gameplay.Preview
 
         protected override AnimationClip SelectAnimation(StateKey state)
         {
-            if (_player.Actor.IsParrying) return base.SelectAnimation(StateKey.Attack1);
-            if (_player.ClimbProgress >= 0f && state == StateKey.Hang && _climb != null) return _climb;
             if (_onLadder && state == StateKey.Hang && _ladderClimb != null) return _ladderClimb;
             if (_action != null)
             {
@@ -109,15 +103,6 @@ namespace HumanGhost.Gameplay.Preview
             return state == StateKey.Attack1 && _airAttack != null &&
                 (!_player.Actor.Locomotion.IsGrounded || CurrentAnimation == _airAttack)
                 ? _airAttack : base.SelectAnimation(state);
-        }
-        protected override bool TryGetAnimationTime(StateKey state, AnimationClip animation, out float time)
-        {
-            if (state == StateKey.Hang && !_onLadder)
-            {
-                time = _player.ClimbProgress >= 0f && animation == _climb ? _player.ClimbProgress * _climb.length : 0f;
-                return true;
-            }
-            time = 0f; return false;
         }
         protected override float Duration(StateKey state)
         {
@@ -150,7 +135,7 @@ namespace HumanGhost.Gameplay.Preview
 
         protected override void UpdateFacing()
         {
-            _facing = _player.Actor.Facing;
+            if (_player.Actor.Locomotion.Direction != 0) _facing = _player.Actor.Locomotion.Direction;
             Renderer.flipX = _sourceFacesLeft ? _facing > 0 : _facing < 0;
         }
     }
