@@ -11,6 +11,18 @@ namespace HumanGhost.Gameplay
         private readonly HashSet<int> _viewedCutscenes = new HashSet<int>();
         private readonly HashSet<MonsterSpawnId> _defeatedMonsters = new HashSet<MonsterSpawnId>();
         public StageProgress Progress { get; private set; } = new StageProgress();
+        public MonsterRewards Rewards { get; private set; }
+        public UpgradeSession Upgrades { get; private set; }
+        public void ConnectUpgrades(UpgradeSession upgrades)
+        {
+            if (Upgrades != null) throw new InvalidOperationException("세션의 강화는 이미 연결됐습니다.");
+            Upgrades = upgrades ?? throw new ArgumentNullException(nameof(upgrades));
+        }
+        public void ConnectRewards(MonsterRewards rewards)
+        {
+            if (Rewards != null) throw new InvalidOperationException("세션의 자동 보상은 이미 연결됐습니다.");
+            Rewards = rewards ?? throw new ArgumentNullException(nameof(rewards));
+        }
         public int CurrentStage { get; private set; } = StageExitRules.VillageStage;
         public int ShrineId { get; private set; }
         public bool CheckpointPassed => ShrineId != 0;
@@ -39,6 +51,8 @@ namespace HumanGhost.Gameplay
         public void Restore(SaveSnapshot snapshot)
         {
             if (snapshot == null) throw new ArgumentNullException(nameof(snapshot));
+            Rewards?.Restore(snapshot.Rewards);
+            Upgrades?.Restore(snapshot.Upgrades);
             Progress = new StageProgress();
             foreach (int id in snapshot.ClearedStages) Progress.Clear(id);
             Replace(_openedGates, snapshot.OpenedGates);
@@ -50,6 +64,7 @@ namespace HumanGhost.Gameplay
         }
         public void RestartAfterDeath(SaveSnapshot lastSaved)
         {
+            if (Rewards != null && !Rewards.ApplyDeathLoss()) throw new InvalidOperationException("사망 재화 손실을 적용하지 못했습니다.");
             _defeatedMonsters.Clear();
             if (lastSaved != null) _defeatedMonsters.UnionWith(lastSaved.DefeatedMonsters);
             ClearCarriedVitals();

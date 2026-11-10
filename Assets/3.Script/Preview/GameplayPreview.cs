@@ -168,6 +168,8 @@ namespace HumanGhost.Gameplay.Preview
                 _bossDriver = !_bossActive || _boss.Combat == null ? null : new PreviewBossDriver(_boss, _player, _bossBody, _playerBody,
                     _worldUnitsPerTile, _bossRangeTiles, _bossSecondRangeTiles, _bossSightTiles);
                 _actor = _player.Actor;
+                _actor.ApplyLevel(_progress.Rewards.CurrentLevel);
+                _actor.ParrySucceeded += OnParrySucceeded;
                 if (_motion == null) _motion = new PreviewPlayerMotion(_player, _groundY, _useMapCollision, _playerHalfSize, GetMarkers(),
                     _actor.Definition.JumpHeight, Mathf.RoundToInt(_jumpSeconds * 1000f),
                     key => _playerAudio?.PlayAnimationSound(key));
@@ -187,6 +189,7 @@ namespace HumanGhost.Gameplay.Preview
                 _actor.SkillStarted += OnRoll;
                 _player.EnableSkill(catalog.GetTable<Skill>().Get(_skillId), new ContentAccess(_progress.Progress.IsCleared));
                 _player.EnableHerbs(catalog.GetTable<Buff>().Get(_herbBuffId));
+                _actor.ApplyUpgrades(_progress.Upgrades);
                 RestoreCarriedVitals();
                 if (_audio != null)
                 {
@@ -733,7 +736,7 @@ namespace HumanGhost.Gameplay.Preview
             Keyboard keyboard = Keyboard.current;
             if (keyboard == null) return;
             if (keyboard.hKey.wasPressedThisFrame)
-                { if (_bossActive) _actor.ReceiveHit(CombatMath.Damage(_boss.Actor.Definition, _actor.Definition, 0, false)); }
+                { if (_bossActive) _actor.ReceiveHit(CombatMath.Damage(_boss.Actor.Definition, _actor.CombatStats, 0, false)); }
         }
 
         private void RefreshLabels()

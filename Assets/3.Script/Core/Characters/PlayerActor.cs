@@ -116,6 +116,7 @@ namespace HumanGhost.Gameplay
         public void ConfigureHerbs(int heal, int useTime, int charges)
         {
             var herbs = new PlayerHerbs(heal, useTime, charges);
+            _baseHerbHeal = heal; _baseHerbCharges = charges;
             if (_herbs != null) _herbs.Changed -= NotifyDisplayChanged;
             _herbs = herbs;
             _herbs.Changed += NotifyDisplayChanged;
@@ -128,7 +129,7 @@ namespace HumanGhost.Gameplay
         // 맵 이동처럼 같은 진행을 이어 갈 때 HP·약초를 되돌립니다. 살아 있는 값만 받습니다. 약초 연결 뒤 호출합니다.
         public void RestoreVitals(int health, int herbs)
         {
-            if (health <= 0 || health > Definition.HP) throw new ArgumentOutOfRangeException(nameof(health));
+            if (health <= 0 || health > MaxHealth) throw new ArgumentOutOfRangeException(nameof(health));
             if (_herbs == null) throw new InvalidOperationException("약초 연결이 필요합니다.");
             _herbs.Restore(herbs);
             Health = health;
@@ -138,7 +139,7 @@ namespace HumanGhost.Gameplay
         // 사용 시간 뒤 회복합니다. 그 사이 맞으면 취소되고 개수는 줄어든 채입니다. 체력이 가득하면 쓰지 않습니다.
         public bool TryUseHerb()
         {
-            if (_herbs == null || IsDead || !Locomotion.CanMove || Health >= Definition.HP || !_herbs.TryConsume()) return false;
+            if (_herbs == null || IsDead || !Locomotion.CanMove || Health >= MaxHealth || !_herbs.TryConsume()) return false;
             _elapsed = 0; _duration = _herbs.UseTime;
             States.Call(StateKey.Heal);
             if (_duration == 0) FinishHerb();
@@ -147,7 +148,7 @@ namespace HumanGhost.Gameplay
 
         private void FinishHerb()
         {
-            Health = Math.Min(Definition.HP, Health + _herbs.Heal);
+            Health = Math.Min(MaxHealth, Health + _herbs.Heal);
             HealthChanged?.Invoke(Health);
             Locomotion.Resume();
         }
@@ -372,21 +373,21 @@ namespace HumanGhost.Gameplay
         {
             if (target == null) throw new ArgumentNullException(nameof(target));
             // 결박 가르기는 회피 확률을 굴리지 않습니다(C07).
-            HitOutcome outcome = HitRoll.Resolve(_attackWindow, targetId, _usingSkill ? 0 : target.Definition.Dodge, Definition.Crit,
+            HitOutcome outcome = HitRoll.Resolve(_attackWindow, targetId, _usingSkill ? 0 : target.Definition.Dodge, CombatStats.Crit,
                 target.IsDead || target.IsInvulnerable, true, random, !_usingSkill && dodged, critical);
             if (outcome < HitOutcome.Hit) return outcome;
-            int damage = CombatMath.Damage(Definition, target.Definition, CurrentAttack.ExtraDamage, outcome == HitOutcome.Critical);
+            int damage = CombatMath.Damage(CombatStats, target.Definition, CurrentAttack.ExtraDamage, outcome == HitOutcome.Critical);
             return target.ReceiveHit(damage, CurrentAttack.PoiseDamage) ? outcome : HitOutcome.None;
         }
 
         private HitOutcome HitMonster(int targetId, MonsterActor target, Func<int, int, int> random, bool dodged, bool critical)
         {
             if (target == null) throw new ArgumentNullException(nameof(target));
-            HitOutcome outcome = HitRoll.Resolve(_attackWindow, targetId, _usingSkill ? 0 : target.Definition.Dodge, Definition.Crit,
+            HitOutcome outcome = HitRoll.Resolve(_attackWindow, targetId, _usingSkill ? 0 : target.Definition.Dodge, CombatStats.Crit,
                 target.IsDead, true, random, !_usingSkill && dodged, critical);
             if (outcome < HitOutcome.Hit) return outcome;
             bool isCritical = outcome == HitOutcome.Critical;
-            int damage = CombatMath.Damage(Definition, target.Definition, CurrentAttack.ExtraDamage, isCritical);
+            int damage = CombatMath.Damage(CombatStats, target.Definition, CurrentAttack.ExtraDamage, isCritical);
             return target.ReceiveHit(damage, isCritical) ? outcome : HitOutcome.None;
         }
 

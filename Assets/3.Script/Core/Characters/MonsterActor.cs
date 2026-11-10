@@ -133,16 +133,32 @@ namespace HumanGhost.Gameplay
         {
             if (target == null) throw new ArgumentNullException(nameof(target));
             bool grab = _pattern != null && _pattern.IsGrab;
+            if (!IsDead && !grab && target.TryParryContact(_attackWindow, targetId, direction))
+            {
+                ClearPattern(); _waitRemaining = 0;
+                _stunRemaining = target.ParryStunTime;
+                States.Call(StateKey.Stun);
+                return HitOutcome.Parried;
+            }
+            HitOutcome outcome = HitRoll.Resolve(_attackWindow, targetId, target.CombatStats.Dodge, Definition.Crit,
             HitOutcome outcome = HitRoll.Resolve(_attackWindow, targetId, target.Definition.Dodge, Definition.Crit,
                 target.IsDead || target.IsInvulnerable, !grab, random, dodged, critical);
             if (outcome < HitOutcome.Hit) return outcome;
             if (!grab)
             {
                 bool isCritical = outcome == HitOutcome.Critical;
+                int damage = CombatMath.Damage(Definition, target.CombatStats, _pattern.Attack.ExtraDamage, isCritical);
+                if (!target.ReceiveHit(damage, isCritical)) return HitOutcome.None;
+                if (_pattern.IsCharge)
+                {
+                    _elapsed = _pattern.Attack.Windup + _pattern.Attack.Active;
+                    SetAttackActive(false);
+                }
+                return outcome;
                 int damage = CombatMath.Damage(Definition, target.Definition, _pattern.Attack.ExtraDamage, isCritical);
                 return target.ReceiveHit(damage, isCritical) ? outcome : HitOutcome.None;
             }
-            int grabDamage = CombatMath.Damage(Definition, target.Definition, _pattern.Attack.ExtraDamage, false);
+            int grabDamage = CombatMath.Damage(Definition, target.CombatStats, _pattern.Attack.ExtraDamage, false);
             if (!target.TryBind(this, _pattern.BindTime, _pattern.BindPresses, grabDamage)) return HitOutcome.None;
             // 잡는 동안 패턴 시간을 멈추고, 플레이어가 풀려나면 후딜로 이어갑니다. 사망 대상은 잡지 않습니다.
             _holding = target.IsDead ? null : target;

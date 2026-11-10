@@ -12,10 +12,25 @@ namespace HumanGhost.Gameplay
         private int _sinceConsume;
         // StaminaRegen(초당) × ms 중 아직 1 미만으로 남은 회복량입니다. 0~999.
         private int _regenRemainder;
+        private int _regenBonus;
+        public void SetRegenBonus(int bonus)
+        {
+            if ((long)Definition.StaminaRegen + bonus < 0 || (long)Definition.StaminaRegen + bonus > int.MaxValue)
+                throw new ArgumentOutOfRangeException(nameof(bonus));
+            _regenBonus = bonus;
+        }
 
         public PlayerDefinition Definition { get; }
         public int Current => _current;
-        public int Max => Definition.StaminaMax;
+        public int Max { get; private set; }
+        public void SetMaximum(int maximum)
+        {
+            if (maximum < 0) throw new ArgumentOutOfRangeException(nameof(maximum));
+            if (Max == maximum) return;
+            Max = maximum;
+            _current = Math.Min(_current, Max);
+            Changed?.Invoke(_current);
+        }
         // 값은 변경 후 현재량입니다.
         public event Action<int> Changed;
 
@@ -27,6 +42,7 @@ namespace HumanGhost.Gameplay
                 throw new ArgumentException("스태미나 정의 값은 음수일 수 없습니다.", nameof(definition));
             if (current < 0 || current > definition.StaminaMax) throw new ArgumentOutOfRangeException(nameof(current));
             _current = current;
+            Max = definition.StaminaMax;
             _sinceConsume = definition.StaminaRegenDelay;
         }
 
@@ -55,7 +71,7 @@ namespace HumanGhost.Gameplay
             if (regenMilliseconds == 0) return;
             if (_current >= Max) { _regenRemainder = 0; return; }
 
-            long amount = (long)Definition.StaminaRegen * regenMilliseconds + _regenRemainder;
+            long amount = ((long)Definition.StaminaRegen + _regenBonus) * regenMilliseconds + _regenRemainder;
             long next = _current + amount / _millisecondsPerSecond;
             _regenRemainder = (int)(amount % _millisecondsPerSecond);
             if (next >= Max) { next = Max; _regenRemainder = 0; }

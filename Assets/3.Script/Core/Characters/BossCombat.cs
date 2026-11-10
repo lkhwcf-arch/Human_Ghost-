@@ -136,17 +136,23 @@ namespace HumanGhost.Gameplay
         {
             if (target == null) throw new ArgumentNullException(nameof(target));
             HitOutcome outcome = HitRoll.Resolve(_attackWindow, targetId, target.Definition.Dodge, Boss.Definition.Crit,
+            if (!IsBlocked && _pattern != null && !_pattern.IsChain && target.TryParryContact(_attackWindow, targetId, direction))
+            {
+                Boss.ReceiveHit(0, target.ParryPoiseDamage);
+                return HitOutcome.Parried;
+            }
+            HitOutcome outcome = HitRoll.Resolve(_attackWindow, targetId, target.CombatStats.Dodge, Boss.Definition.Crit,
                 IsBlocked || target.IsDead || target.IsInvulnerable, true, random, dodged, critical);
             if (outcome < HitOutcome.Hit) return outcome;
             bool isCritical = outcome == HitOutcome.Critical;
             if (_pattern.IsChain)
             {
-                int chainDamage = CombatMath.Damage(Boss.Definition, target.Definition, _pattern.Hits[_hit].ExtraDamage, false);
+                int chainDamage = CombatMath.Damage(Boss.Definition, target.CombatStats, _pattern.Hits[_hit].ExtraDamage, false);
                 if (!target.TryChainBind(_pattern.BindTime, _pattern.BindPresses, chainDamage)) return HitOutcome.None;
                 _chained = target.IsDead ? null : target;
                 return outcome;
             }
-            int damage = CombatMath.Damage(Boss.Definition, target.Definition, _pattern.Hits[_hit].ExtraDamage, isCritical);
+            int damage = CombatMath.Damage(Boss.Definition, target.CombatStats, _pattern.Hits[_hit].ExtraDamage, isCritical);
             return target.ReceiveHit(damage, isCritical) ? outcome : HitOutcome.None;
         }
 

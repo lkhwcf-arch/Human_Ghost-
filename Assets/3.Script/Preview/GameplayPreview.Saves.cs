@@ -34,18 +34,36 @@ namespace HumanGhost.Gameplay.Preview
             Action moved = scope.Guard(() => _shrineCheckPending = true);
             scope.Add(() => player.SpatialChanged -= moved); player.SpatialChanged += moved;
             _shrineCheckPending = true;
+            MonsterRewards rewards = _progress.Rewards;
+            Action applyLevel = scope.Guard(() => _actor.ApplyLevel(rewards.CurrentLevel));
+            Action<int, int> leveledUp = (before, after) => applyLevel();
+            scope.Add(() => rewards.LeveledUp -= leveledUp); rewards.LeveledUp += leveledUp;
+            UpgradeSession upgrades = _progress.Upgrades;
+            Action effectsChanged = scope.Guard(() => _actor.ApplyUpgrades(upgrades));
+            scope.Add(() => upgrades.EffectsChanged -= effectsChanged); upgrades.EffectsChanged += effectsChanged;
             if (_stage == null) return;
             foreach (var pair in _stage.MonsterIds)
             {
                 MonsterActor actor = pair.Key.Actor;
                 MonsterSpawnId id = pair.Value;
-                Action<int> changed = scope.Guard<int>(health => { if (health == 0) _progress.MarkMonsterDefeated(id); });
+                Action<int> changed = scope.Guard<int>(health =>
+                {
+                    if (health == 0 && !_progress.HasDefeatedMonster(id)
+                        && !_progress.Rewards.TryGrant(id, actor.Definition.ID, _progress))
+                        throw new InvalidOperationException($"몬스터 {actor.Definition.ID}의 자동 보상을 지급하지 못했습니다.");
+                });
                 scope.Add(() => actor.HealthChanged -= changed); actor.HealthChanged += changed;
             }
         }
 
         private void ImportEntryProgress()
         {
+            if (_progress.Rewards == null)
+                _progress.ConnectRewards(new MonsterRewards(_catalog.GetTable<Currency>().All,
+                    _catalog.GetTable<MonsterReward>().All, _catalog.GetTable<PlayerLevel>().All));
+            if (_progress.Upgrades == null)
+                _progress.ConnectUpgrades(new UpgradeSession(_progress.Rewards.Wallet,
+                    _catalog.GetDefinition<ShrineDefinitions>(), _catalog.GetTable<Upgrade>().All));
             var context = GameSaveContext.Current;
             SaveSnapshot snapshot = context != null && context.EntryPending ? context.Entry?.Snapshot : null;
             if (snapshot == null) return;
@@ -139,7 +157,7 @@ namespace HumanGhost.Gameplay.Preview
             {
                 _progress.ActivateShrine(savePointId);
                 _savePoint.GetComponent<ShrineInteract>().SetActive(true);
-                if (rest) RestorePlayerVitals(_actor.Definition.HP, _catalog.GetTable<Buff>().Get(_herbBuffId).Charges);
+                if (rest) RestorePlayerVitals(_actor.MaxHealth, _actor.HerbCapacity);
                 await flow.SaveAutomaticAsync(savePointId, rest);
                 if (rest && this != null && isActiveAndEnabled && ReferenceEquals(lifetime, _saveLifetime))
                 {
@@ -170,7 +188,7 @@ namespace HumanGhost.Gameplay.Preview
                 _actor.Health, _actor.HerbCount,
                 _progress.Progress.GetCleared(),
                 _progress.ActiveShrines, _progress.OpenedGates, _progress.ViewedCutscenes, Array.Empty<int>(),
-                _progress.DefeatedMonsters);
+                _progress.DefeatedMonsters, _progress.Rewards.Capture(), _progress.Upgrades.Capture());
         }
         public Task PrepareAsync(SaveSnapshot snapshot, CancellationToken cancellation)
         {
@@ -182,6 +200,7 @@ namespace HumanGhost.Gameplay.Preview
         public void Apply(SaveSnapshot snapshot)
         {
             RequireSaveRuntime();
+            _actor.ApplyLevel(_progress.Rewards.CurrentLevel);
             RestorePlayerVitals(snapshot.Hp, snapshot.Herbs);
             _player.SetPosition(new IntegerPosition(IntegerPosition.FromData(snapshot.PositionX), IntegerPosition.FromData(snapshot.PositionY)));
         }

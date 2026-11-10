@@ -16,7 +16,10 @@ internal static class JsonSaveStoreChecks
         var store = new JsonSaveStore(directory, 1);
         SaveSnapshot Snapshot(int x) => new SaveSnapshot(8003, 8001, x, -125, 50, 2,
             new[] { 8001, 8002 }, new[] { 8001 }, new[] { 8101 }, new[] { 18001 }, new[] { 9001 },
-            new[] { new MonsterSpawnId(8002, 101, 2) });
+            new[] { new MonsterSpawnId(8002, 101, 2) }, new RewardSnapshot(120,
+                new System.Collections.Generic.Dictionary<int, int> { [1] = 30, [2] = 7 }),
+            new UpgradeSnapshot(2, new System.Collections.Generic.Dictionary<string, int> { ["Crit"] = 1 },
+                new System.Collections.Generic.Dictionary<string, int> { ["HERB_HEAL"] = 1 }));
         try
         {
             check((await store.ReadAsync()).Count == 0 && !Directory.Exists(directory));
@@ -49,13 +52,21 @@ internal static class JsonSaveStoreChecks
                 && snapshot.ViewedCutscenes.Single() == 18001);
             check(!await restored.SaveAutomaticAsync(9002, Snapshot(999)));
             check(snapshot.DefeatedMonsters.Single().Equals(new MonsterSpawnId(8002, 101, 2)));
+            check(snapshot.Rewards.Experience == 120 && snapshot.Rewards.Balances[1] == 30 && snapshot.Rewards.Balances[2] == 7);
+            check(snapshot.Upgrades.ShrineLevel == 2 && snapshot.Upgrades.ShrineSteps["Crit"] == 1
+                && snapshot.Upgrades.TableSteps["HERB_HEAL"] == 1);
+            check(records.Single(record => record.Slot == 7).WithExistingGates(_ => false).Snapshot.Rewards.Experience == 120);
 
             string path = Path.Combine(directory, "slot-7.json");
             string original = File.ReadAllText(path, Encoding.UTF8);
             var legacy = JObject.Parse(original);
             ((JObject)legacy["Snapshot"]).Remove("DefeatedMonsters");
+            ((JObject)legacy["Snapshot"]).Remove("Rewards");
+            ((JObject)legacy["Snapshot"]).Remove("Upgrades");
             File.WriteAllText(path, legacy.ToString(), new UTF8Encoding(false));
             check((await store.ReadAsync()).Single(record => record.Slot == 7).Snapshot.DefeatedMonsters.Count == 0);
+            check((await store.ReadAsync()).Single(record => record.Slot == 7).Snapshot.Rewards.Experience == 0);
+            check((await store.ReadAsync()).Single(record => record.Slot == 7).Snapshot.Upgrades.ShrineLevel == 1);
             check(File.ReadAllText(path, Encoding.UTF8) == legacy.ToString());
             File.WriteAllText(path, original, new UTF8Encoding(false));
             check(!File.ReadAllBytes(path).Take(3).SequenceEqual(new byte[] { 0xef, 0xbb, 0xbf }));
