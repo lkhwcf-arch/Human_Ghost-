@@ -268,7 +268,7 @@ MonoBehaviour:
   - _state: 10001
     _clip: {fileID: 7400000, guid: 3b858049ac4d2d54a8804bd46299d30c, type: 2}
   - _state: 10002
-    _clip: {fileID: 7400000, guid: 3334a1f7516430b42bf8cda4683e3c2e, type: 2}
+    _clip: {fileID: 7400000, guid: 7734a825ff1cc4443a84209dfbc0de79, type: 2}
   - _state: 10003
     _clip: {fileID: 7400000, guid: f0e4e12d609dc4448ae2067b4f8cec2b, type: 2}
   - _state: 10004
