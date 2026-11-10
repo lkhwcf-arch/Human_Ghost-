@@ -767,10 +767,10 @@ TextureImporter:
         serializedVersion: 2
         x: 0
         y: 256
-        width: 256
+        width: 299
         height: 256
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      alignment: 9
+      pivot: {x: 0.42809364, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData:
       outline: []
@@ -787,12 +787,12 @@ TextureImporter:
       name: AnimFrame_009
       rect:
         serializedVersion: 2
-        x: 256
+        x: 299
         y: 256
-        width: 256
+        width: 213
         height: 256
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      alignment: 9
+      pivot: {x: 0.39906102, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData:
       outline: []
