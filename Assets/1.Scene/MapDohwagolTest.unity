@@ -127,8 +127,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 2375674213620268925}
   - component: {fileID: 64223848}
+  - component: {fileID: 2375674213620268925}
   - component: {fileID: 64223849}
   - component: {fileID: 64223850}
   m_Layer: 0
@@ -262,8 +262,6 @@ MonoBehaviour:
     _sprite: {fileID: -1893156959280369655, guid: be0d4de6fbca9d24d9d1bde4c0547025, type: 3}
   - _state: 10009
     _sprite: {fileID: -5996818224257555532, guid: 52b445a585e6a5e4284ed536d8ad78db, type: 3}
-  _player: {fileID: 383945511}
-  _sourceFacesLeft: 1
   _animations:
   - _state: 10001
     _clip: {fileID: 7400000, guid: 3b858049ac4d2d54a8804bd46299d30c, type: 2}
@@ -307,10 +305,15 @@ MonoBehaviour:
     _clip: {fileID: 7400000, guid: f0e4e12d609dc4448ae2067b4f8cec2b, type: 2}
   - _state: 10024
     _clip: {fileID: 7400000, guid: 1a9e9385eb4c7794998724cf388f9018, type: 2}
+  _player: {fileID: 383945511}
+  _sourceFacesLeft: 1
   _airAttack: {fileID: 7400000, guid: 48d243d972470124a82dfcc472b4a601, type: 2}
   _climb: {fileID: 7400000, guid: 6d2bf8909bcce0d4781c45984a4d084e, type: 2}
   _save: {fileID: 7400000, guid: 8b98f4955cee7ad408645c317b727aa1, type: 2}
   _ladderClimb: {fileID: 7400000, guid: 60a3b3700f40ddf48b66b1c5d414951a, type: 2}
+  _climbStartScale: 0.95
+  _hangScale: 1.4
+  _hangVerticalOffset: -0.1
 --- !u!114 &98765001
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1711,7 +1714,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!102 &1148959759
 TextMesh:
   serializedVersion: 3
@@ -2039,7 +2042,6 @@ MonoBehaviour:
   _bossRangeTiles: 2.5
   _bossSecondRangeTiles: 3.5
   _bossSightTiles: 10
-  _skillUnlocked: 0
   _skillId: 7001
   _herbBuffId: 14001
   _restartOnDeath: 1
@@ -2047,7 +2049,6 @@ MonoBehaviour:
   _textbox: {fileID: 1860715229}
   _refugeeDialogue: {fileID: 11400000, guid: e67aba8cf1541df4897f5285f5bdadb7, type: 2}
   _loadingPrefab: {fileID: 3761807582481786817, guid: 188d0ad953f19334e8d652c4986defc1, type: 3}
-  _skillUnlockStageId: 8005
   _speed: {fileID: 1213176970}
   _followCamera: {fileID: 99334893}
   _audio: {fileID: 1422224046}
@@ -2065,6 +2066,7 @@ MonoBehaviour:
   _hangEdgeRoot: {fileID: 0}
   _combatMinX: -8.5
   _combatMaxX: 34
+  _cutscenes: {fileID: 0}
   _manualSavePrefab: {fileID: 90020, guid: c9dc5f691d6f4673b88d6a19b085f970, type: 3}
   _shrinePrefab: {fileID: 900010, guid: 186c9274c99d22b488420c7b2c1cb015, type: 3}
   _shrineModalBinding: {fileID: 880009001}
@@ -4112,28 +4114,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!1660057539 &9223372036854775807
-SceneRoots:
-  m_ObjectHideFlags: 0
-  m_Roots:
-  - {fileID: 99334892}
-  - {fileID: 1209537063}
-  - {fileID: 145074741}
-  - {fileID: 383945507}
-  - {fileID: 1780465631}
-  - {fileID: 870480712}
-  - {fileID: 1148959761}
-  - {fileID: 2022453803}
-  - {fileID: 1284713605}
-  - {fileID: 1541771625}
-  - {fileID: 1213176966}
-  - {fileID: 1997375534}
-  - {fileID: 1860715228}
-  - {fileID: 1422224045}
-  - {fileID: 710683868}
-  - {fileID: 2104232678}
-  - {fileID: 1516668411}
-  - {fileID: 987919510}
 --- !u!95 &2375674213620268925
 Animator:
   serializedVersion: 7
@@ -4156,3 +4136,25 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!1660057539 &9223372036854775807
+SceneRoots:
+  m_ObjectHideFlags: 0
+  m_Roots:
+  - {fileID: 99334892}
+  - {fileID: 1209537063}
+  - {fileID: 145074741}
+  - {fileID: 383945507}
+  - {fileID: 1780465631}
+  - {fileID: 870480712}
+  - {fileID: 1148959761}
+  - {fileID: 2022453803}
+  - {fileID: 1284713605}
+  - {fileID: 1541771625}
+  - {fileID: 1213176966}
+  - {fileID: 1997375534}
+  - {fileID: 1860715228}
+  - {fileID: 1422224045}
+  - {fileID: 710683868}
+  - {fileID: 2104232678}
+  - {fileID: 1516668411}
+  - {fileID: 987919510}
