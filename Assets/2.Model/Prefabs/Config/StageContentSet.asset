@@ -17,16 +17,6 @@ MonoBehaviour:
     Map: {fileID: 100001, guid: a9d93d3e22fb8b44db67d590d32fdeb6, type: 3}
     Spawn: {fileID: 4900000, guid: c5c3cb20834dbe44486ebc4c47a1bf54, type: 3}
     CameraSize: 5.625
-    BackgroundPositions:
-    - Path: Background/Sky
-      UseLocalX: 1
-      LocalX: 48
-    - Path: Background/Sky
-      LocalY: 5.3
-    - Path: "Background/Mountains/\uBA3C\uC0B0"
-      LocalY: -0.5
-    - Path: Background/Mountains/Fog_Far
-      LocalY: -1.3
   - StageId: 8002
     Map: {fileID: 100001, guid: 31e12a1d470681a45963f2f06d08cc23, type: 3}
     Spawn: {fileID: 4900000, guid: 436d1538fc7da474698595c5e3f2d02c, type: 3}

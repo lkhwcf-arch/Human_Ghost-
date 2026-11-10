@@ -2055,6 +2055,7 @@ MonoBehaviour:
   _pause: {fileID: 1213176969}
   _parallax: {fileID: 99334894}
   _feedbackTextPrefab: {fileID: 2646885145586538906, guid: f70c93bc54b2c5541bf9be1f110dc40f, type: 3}
+  _parryImpactPrefab: {fileID: 7401457905273330935, guid: 9bf738f7ed8dab84397f0abe5238ee19, type: 3}
   _showBossGauge: 1
   _stageId: 8001
   _content: {fileID: 11400000, guid: 36deeec44f058ca4ca5eb6e01cd959ea, type: 2}

@@ -193,28 +193,65 @@ MonoBehaviour:
   _animations:
   - _state: 10001
     _clip: {fileID: 7400000, guid: a2fc3d8aca3551d4495dd7cb180a0925, type: 2}
+    _hitFrames: []
   - _state: 10002
     _clip: {fileID: 7400000, guid: 51d17e760bfccfb4baf9e75d4566527c, type: 2}
+    _hitFrames: []
   - _state: 10003
     _clip: {fileID: 7400000, guid: a5b38263de94b7f4ea637c5230be312d, type: 2}
+    _hitFrames: []
   - _state: 10004
     _clip: {fileID: 7400000, guid: 4dd8b761ca7a65a42a50a6f2960d93d8, type: 2}
+    _hitFrames:
+    - _hit: 0
+      _first: 0
+      _contact: 6
+      _recovery: 8
+      _end: 13
   - _state: 10005
     _clip: {fileID: 7400000, guid: b45417b280ede844eabdf02cb2286618, type: 2}
+    _hitFrames:
+    - _hit: 0
+      _first: 0
+      _contact: 8
+      _recovery: 10
+      _end: 13
+    - _hit: 1
+      _first: 13
+      _contact: 21
+      _recovery: 24
+      _end: 26
   - _state: 10006
     _clip: {fileID: 7400000, guid: 80c1aa041b85e9e45b8330a69232a1ad, type: 2}
+    _hitFrames:
+    - _hit: 0
+      _first: 0
+      _contact: 8
+      _recovery: 10
+      _end: 13
   - _state: 10008
     _clip: {fileID: 7400000, guid: a5b38263de94b7f4ea637c5230be312d, type: 2}
+    _hitFrames: []
   - _state: 10009
     _clip: {fileID: 7400000, guid: 4dd8b761ca7a65a42a50a6f2960d93d8, type: 2}
+    _hitFrames:
+    - _hit: 0
+      _first: 0
+      _contact: 6
+      _recovery: 8
+      _end: 13
   - _state: 10014
     _clip: {fileID: 7400000, guid: a5b38263de94b7f4ea637c5230be312d, type: 2}
+    _hitFrames: []
   - _state: 10016
     _clip: {fileID: 7400000, guid: 509bf33ef2807b0499773fcd88eefda5, type: 2}
+    _hitFrames: []
   - _state: 10019
     _clip: {fileID: 7400000, guid: a5b38263de94b7f4ea637c5230be312d, type: 2}
+    _hitFrames: []
   - _state: 10023
     _clip: {fileID: 7400000, guid: a2fc3d8aca3551d4495dd7cb180a0925, type: 2}
+    _hitFrames: []
 --- !u!1 &4241154001942279107
 GameObject:
   m_ObjectHideFlags: 0
