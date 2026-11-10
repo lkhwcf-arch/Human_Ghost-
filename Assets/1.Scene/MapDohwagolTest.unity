@@ -2055,7 +2055,6 @@ MonoBehaviour:
   _pause: {fileID: 1213176969}
   _parallax: {fileID: 99334894}
   _feedbackTextPrefab: {fileID: 2646885145586538906, guid: f70c93bc54b2c5541bf9be1f110dc40f, type: 3}
-  _parryImpactPrefab: {fileID: 7401457905273330935, guid: 9bf738f7ed8dab84397f0abe5238ee19, type: 3}
   _showBossGauge: 1
   _stageId: 8001
   _content: {fileID: 11400000, guid: 36deeec44f058ca4ca5eb6e01cd959ea, type: 2}
@@ -2067,7 +2066,7 @@ MonoBehaviour:
   _combatMinX: -8.5
   _combatMaxX: 34
   _manualSavePrefab: {fileID: 90020, guid: c9dc5f691d6f4673b88d6a19b085f970, type: 3}
-  _shrinePrefab: {fileID: 900010, guid: cef95eb48552d778e19b6706a45e3951, type: 3}
+  _shrinePrefab: {fileID: 900010, guid: 186c9274c99d22b488420c7b2c1cb015, type: 3}
   _shrineModalBinding: {fileID: 880009001}
 --- !u!4 &1213176966
 Transform:

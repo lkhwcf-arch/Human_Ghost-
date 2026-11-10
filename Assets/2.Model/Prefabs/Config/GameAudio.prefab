@@ -357,9 +357,6 @@ MonoBehaviour:
   - _key: SFX_CRIT
     _clip: {fileID: 8300000, guid: 6660350fde5e66444a470c4d92c55088, type: 3}
     _soundId: 0
-  - _key: SFX_PARRY
-    _clip: {fileID: 8300000, guid: 6660350fde5e66444a470c4d92c55088, type: 3}
-    _soundId: 0
   - _key: SFX_MISS
     _clip: {fileID: 8300000, guid: 101851675a8d6da49b0bb12001a3e5d4, type: 3}
     _soundId: 0

@@ -80,8 +80,6 @@ namespace HumanGhost.Gameplay.Preview
         private PreviewMonsterDriver[] _monsterDrivers = Array.Empty<PreviewMonsterDriver>();
         private PreviewDeathRestart _deathRestart;
         private PreviewCombatFeedback _feedback;
-        private PreviewParryFeedback _parryFeedback;
-        [SerializeField] private SpriteClipEffect _parryImpactPrefab = null;
         private PlayerAnimationAudio _playerAudio;
         private readonly PreviewPresentation _presentation = new PreviewPresentation();
         private SubscriptionScope _interactionScope;
@@ -115,8 +113,6 @@ namespace HumanGhost.Gameplay.Preview
             if (_pause != null) _pause.SetModalBlocked(blocked);
         }
 
-        private void OnParrySucceeded(int milliseconds) => _parryFeedback?.Show(milliseconds,
-            _playerBody.bounds.center + Vector3.right * (_actor.Facing * 0.5f));
         public bool IsReady => _subscribed;
         private void OnParrySucceeded(int milliseconds) => _feedback?.OnParry(milliseconds);
         public PlayerRuntime Player => _player;
@@ -237,7 +233,6 @@ namespace HumanGhost.Gameplay.Preview
             _presentation.Reset();
             _feedback?.Dispose();
             _feedback = null;
-            _parryFeedback?.Dispose(); _parryFeedback = null;
             DisconnectSaves();
             if (_data != null) _data.Initialized -= OnDataReady;
             // 초기화 도중 실패해도 이미 연결한 소비자는 반드시 해제합니다.
@@ -591,8 +586,6 @@ namespace HumanGhost.Gameplay.Preview
             _lastHealth = _actor.Health;
             _feedback?.Dispose();
             _feedback = new PreviewCombatFeedback(_speed, _followCamera, _audio, _feedbackTextPrefab, catalog.GetTable<Language>().Get(30021).KO);
-            _parryFeedback?.Dispose();
-            _parryFeedback = new PreviewParryFeedback(_speed, _followCamera, _audio, _parryImpactPrefab);
             if (_bossDriver != null)
             {
                 _bossDriver.PlayerHit += OnBossHitPlayer;
@@ -687,7 +680,6 @@ namespace HumanGhost.Gameplay.Preview
             StepSavePoint();
             _gates?.Step(_actor, _attackWindow.bounds, _playerBody.bounds, ShowGateHint);
             _feedback?.Step(Time.unscaledDeltaTime, Time.deltaTime);
-            _parryFeedback?.Step(Time.unscaledDeltaTime);
         }
 
         private void ShowGateHint() { if (_textbox != null) _textbox.ShowObjective("결박이 길을 막고 있다. Z(결박 가르기)로 베어 내자"); }

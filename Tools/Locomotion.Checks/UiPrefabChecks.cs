@@ -25,7 +25,8 @@ internal static class UiPrefabChecks
         check(shrineRoot.Contains("m_LocalScale: {x: 1, y: 1, z: 1}") && shrineRoot.Contains("m_AnchorMax: {x: 1, y: 1}"));
         check(shrine.Contains("HumanGhost.Gameplay.Presentation.ShrineScreen") && shrine.Contains("_pipOn:") && shrine.Contains("_pipOff:"));
         string map = Read("Assets/1.Scene/MapDohwagolTest.unity");
-        check(Regex.IsMatch(map, @"_shrinePrefab: \{fileID: 900010, guid: cef95eb48552d778e19b6706a45e3951, type: 3\}"));
+        Match shrineGuid = Regex.Match(Read("Assets/2.Model/Prefabs/UI/ShrineScreen.prefab.meta"), @"(?m)^guid: ([a-f0-9]{32})\r?$");
+        check(shrineGuid.Success && map.Contains("_shrinePrefab: {fileID: 900010, guid: " + shrineGuid.Groups[1].Value + ", type: 3}"));
         Match modal = Regex.Match(map, @"_shrineModalBinding: \{fileID: (\d+)\}");
         check(modal.Success && Regex.IsMatch(map, @"(?m)^--- !u!114 &" + modal.Groups[1].Value + @"\r?$"));
     }
