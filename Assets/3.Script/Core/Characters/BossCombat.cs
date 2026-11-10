@@ -23,6 +23,7 @@ namespace HumanGhost.Gameplay
         public BossPattern CurrentPattern => _pattern;
         // 현재 패턴 안 타격 순번(0부터). 패턴이 없으면 -1.
         public int HitIndex => _pattern == null ? -1 : _hit;
+        public int HitElapsed => _pattern == null ? 0 : _elapsed;
         public bool IsAttacking => _pattern != null;
         public bool IsAttackActive => _attackWindow.IsActive;
         public bool IsWaiting => _waitRemaining > 0;
