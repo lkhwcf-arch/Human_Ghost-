@@ -317,14 +317,16 @@ namespace HumanGhost.Gameplay.Preview
             else if (direction > 0) OnInteract();
         }
 
-        private void OnAdvance() { if (_pause == null || !_pause.IsOpen) _textbox.Advance(); }
+        private void OnAdvance() { if (!_leaving && !LoadingScreen.IsActive && (_pause == null || !_pause.IsOpen)) _textbox.Advance(); }
         private void OnTextboxChanged(bool open) => SetGameInputLocked(open);
 
+        private bool _loadingLocked;
         private void SetGameInputLocked(bool locked)
         {
+            _loadingLocked = LoadingScreen.IsActive;
             _motion?.DiscardBufferedInput();
             _input.DiscardBufferedInput();
-            _input.SetLocked(locked || _saveLocked || _leaving || _actor.IsDead || (_textbox != null && _textbox.IsOpen) || (_pause != null && _pause.IsOpen));
+            _input.SetLocked(locked || _loadingLocked || _saveLocked || _leaving || _actor.IsDead || (_textbox != null && _textbox.IsOpen) || (_pause != null && _pause.IsOpen));
         }
         private void OnPlayerHealthChanged(int health) { if (_textbox != null) _textbox.Close(); }
 
@@ -368,7 +370,7 @@ namespace HumanGhost.Gameplay.Preview
 
         private void GoToStage(int stageId, string anchor)
         {
-            if (_modalBlocked || _saveLocked || _leaving || _loadingPrefab == null) return;
+            if (_modalBlocked || _saveLocked || _leaving || LoadingScreen.IsActive || _loadingPrefab == null) return;
             var access = new ContentAccess(_progress.Progress.IsCleared);
             if (access.Evaluate(_catalog.GetTable<Stage>().Get(stageId)) != ContentAccessResult.Allowed) return;
             // 로딩 준비 실패 시 기존 임시 상태와 입력을 먼저 망가뜨리지 않습니다.
@@ -640,11 +642,11 @@ namespace HumanGhost.Gameplay.Preview
         }
 
         // 사망·암전·해체·결박 가르기 중에는 열지 않습니다(O04·O04_1). 텍스트박스가 열려 있어도 열 수 있습니다.
-        private bool CanPause() => (!_saveLocked || _saveFailed) && !_modalBlocked && !_leaving && _actor != null && !_actor.IsDead && !PreviewScreenFade.IsActive && _actor.CurrentState != StateKey.Execute && _actor.CurrentState != StateKey.Skill1;
+        private bool CanPause() => (!_saveLocked || _saveFailed) && !_modalBlocked && !_leaving && !LoadingScreen.IsActive && _actor != null && !_actor.IsDead && !PreviewScreenFade.IsActive && _actor.CurrentState != StateKey.Execute && _actor.CurrentState != StateKey.Skill1;
 
         private void ReturnToTitle()
         {
-            if (_leaving) return;
+            if (_leaving || LoadingScreen.IsActive) return;
             if (_loadingPrefab == null) throw new InvalidOperationException("타이틀 복귀에 사용할 씬 이동 화면이 연결되지 않았습니다.");
             Instantiate(_loadingPrefab).BeginFade(_titleScene);
             _leaving = true;
@@ -708,9 +710,11 @@ namespace HumanGhost.Gameplay.Preview
 
         private void LateUpdate()
         {
+            // 도착 준비 후에도 로딩 화면이 닫힐 때까지 이동·출구 판정을 재개하지 않습니다.
+            if (_subscribed && _loadingLocked != LoadingScreen.IsActive) SetGameInputLocked(false);
             StepShrineClose();
             StepCutsceneFlow();
-            if (_modalBlocked || _saveLocked || !_subscribed || !_player.isActiveAndEnabled || (_bossActive && !_boss.isActiveAndEnabled)) return;
+            if (_modalBlocked || _saveLocked || _leaving || LoadingScreen.IsActive || !_subscribed || !_player.isActiveAndEnabled || (_bossActive && !_boss.isActiveAndEnabled)) return;
             if (_actor.Locomotion.Direction != 0) _facing = _actor.Locomotion.Direction;
             _deathRestart?.Step(_actor, Time.deltaTime);
             StepExecution(Time.deltaTime);
