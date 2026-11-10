@@ -18,6 +18,15 @@ namespace HumanGhost.Gameplay.Preview
             return 0f;
         }
 
+        protected override bool TryGetAnimationTime(StateKey state, AnimationClip animation, out float time)
+        {
+            var actor = _monster.Actor;
+            var pattern = actor.CurrentPattern;
+            if (pattern != null && pattern.Key == state)
+                return TryMapAttackTime(state, animation, 0, pattern.Attack, actor.AttackElapsed, actor.IsHolding, out time);
+            time = 0f; return false;
+        }
+
         public float DeathDuration
         {
             get { var clip = base.SelectAnimation(StateKey.Dead); return clip != null ? clip.length : 0.6f; }
