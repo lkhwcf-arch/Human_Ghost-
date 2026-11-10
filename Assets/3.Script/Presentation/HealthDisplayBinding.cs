@@ -63,10 +63,10 @@ namespace HumanGhost.Gameplay.Presentation
             {
                 // 이벤트 호출 목록에 남아 있어도 이전 대상·이전 활성 주기의 결과는 적용하지 않습니다.
                 if (_active && generation == _generation && ReferenceEquals(_source, source))
-                    _show(source.Health, source.Definition.HP);
+                    _show(source.Health, source.MaxHealth);
             };
             source.HealthChanged += _handler;
-            try { _show(source.Health, source.Definition.HP); }
+            try { _show(source.Health, source.MaxHealth); }
             catch
             {
                 Disconnect();

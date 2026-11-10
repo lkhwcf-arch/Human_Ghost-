@@ -44,10 +44,13 @@ namespace HumanGhost.Gameplay
         public IReadOnlyList<int> ViewedCutscenes { get; }
         public IReadOnlyList<int> UsedSavePoints { get; }
         public IReadOnlyList<MonsterSpawnId> DefeatedMonsters { get; }
+        public RewardSnapshot Rewards { get; }
+        public UpgradeSnapshot Upgrades { get; }
 
         public SaveSnapshot(int stageId, int shrineId, int positionX, int positionY, int hp, int herbs,
             IEnumerable<int> clearedStages, IEnumerable<int> activeShrines, IEnumerable<int> openedGates,
-            IEnumerable<int> viewedCutscenes, IEnumerable<int> usedSavePoints, IEnumerable<MonsterSpawnId> defeatedMonsters = null)
+            IEnumerable<int> viewedCutscenes, IEnumerable<int> usedSavePoints, IEnumerable<MonsterSpawnId> defeatedMonsters = null,
+            RewardSnapshot rewards = null, UpgradeSnapshot upgrades = null)
         {
             if (stageId <= 0 || shrineId < 0 || hp < 0 || herbs < 0)
                 throw new ArgumentOutOfRangeException(nameof(stageId), "저장 위치와 자원 값이 유효하지 않습니다.");
@@ -57,6 +60,8 @@ namespace HumanGhost.Gameplay
             PositionY = positionY;
             Hp = hp;
             Herbs = herbs;
+            Rewards = rewards ?? new RewardSnapshot();
+            Upgrades = upgrades ?? new UpgradeSnapshot();
             ClearedStages = CopyIds(clearedStages);
             ActiveShrines = CopyIds(activeShrines);
             OpenedGates = CopyIds(openedGates);
@@ -75,7 +80,7 @@ namespace HumanGhost.Gameplay
         // 저장 항목을 추가할 때 사본 생성의 전체 필드 전달은 이곳에서만 관리합니다.
         private SaveSnapshot Copy(IEnumerable<int> savePoints, IEnumerable<int> openedGates) => new SaveSnapshot(
             StageId, ShrineId, PositionX, PositionY, Hp, Herbs,
-            ClearedStages, ActiveShrines, openedGates, ViewedCutscenes, savePoints, DefeatedMonsters);
+            ClearedStages, ActiveShrines, openedGates, ViewedCutscenes, savePoints, DefeatedMonsters, Rewards, Upgrades);
 
         private static IReadOnlyList<int> CopyIds(IEnumerable<int> source)
         {

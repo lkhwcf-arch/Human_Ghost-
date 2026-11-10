@@ -5,9 +5,10 @@ namespace HumanGhost.Gameplay
     // 약초(C04) 개수와 회복 값만 소유합니다. Buff 14001 Value·UseTime·Charges를 받습니다.
     public sealed class PlayerHerbs
     {
-        private readonly int _charges;
+        private int _charges;
+        public int Capacity => _charges;
         public int Count { get; private set; }
-        public int Heal { get; }
+        public int Heal { get; private set; }
         public int UseTime { get; }
         public event Action Changed;
 
@@ -27,6 +28,13 @@ namespace HumanGhost.Gameplay
         }
 
         public void Refill() => SetCount(_charges);
+        public void Configure(int heal, int charges)
+        {
+            if (heal <= 0 || charges < 0) throw new ArgumentOutOfRangeException(nameof(heal));
+            if (Heal == heal && _charges == charges) return;
+            Heal = heal; _charges = charges; Count = Math.Min(Count, charges);
+            Changed?.Invoke();
+        }
 
         public void Restore(int count)
         {

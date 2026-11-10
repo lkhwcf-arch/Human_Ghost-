@@ -21,6 +21,7 @@ internal static class Program
             IntegerMotionChecks.Run(Check);
             GameProgressChecks.Run(Check);
             ProgressionChecks.Run(Check);
+            RewardChecks.Run(definition, Check);
             PriorityChecks.Run(definition, Check);
             AttackAnimationChecks.Run(Check);
             Player changed = ReadPlayer(args[0], checked(definition.MoveSpeed + 1), checked(definition.JumpHeight + 1));

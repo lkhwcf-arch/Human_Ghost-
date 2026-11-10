@@ -7,9 +7,12 @@ namespace HumanGhost.Gameplay
     internal sealed class PlayerCombo
     {
         private readonly AttackSpec[] _attacks;
+        private readonly AttackSpec[] _originalAttacks;
+        private AttackSpec _current;
+        private int _timeReduction;
         public int Index { get; private set; } = -1;
         public bool Queued { get; private set; }
-        public AttackSpec Current => Index >= 0 ? _attacks[Index] : null;
+        public AttackSpec Current => Index >= 0 ? _current : null;
 
         public PlayerCombo(IReadOnlyList<AttackSpec> attacks)
         {
@@ -17,6 +20,22 @@ namespace HumanGhost.Gameplay
             _attacks = new AttackSpec[5];
             for (int i = 0; i < _attacks.Length; i++)
                 _attacks[i] = attacks[i] ?? throw new ArgumentException("빈 공격 설정입니다.", nameof(attacks));
+            _originalAttacks = (AttackSpec[])_attacks.Clone();
+        }
+
+        public void SetTimeReduction(int reduction)
+        {
+            reduction = Math.Max(0, Math.Min(10000, reduction));
+            if (_timeReduction == reduction) return;
+            _timeReduction = reduction;
+            int Scale(int time) => (int)(((long)time * (10000 - reduction) + 5000) / 10000);
+            for (int i = 0; i < _attacks.Length; i++)
+            {
+                AttackSpec original = _originalAttacks[i];
+                _attacks[i] = new AttackSpec(Math.Max(1, Scale(original.Windup)), Math.Max(1, Scale(original.Active)),
+                    Scale(original.Recovery), Math.Min(Scale(original.Recovery), Scale(original.ComboWindow)),
+                    original.ExtraDamage, original.PoiseDamage, original.StaminaCost);
+            }
         }
 
         public AttackSpec GetAttack(int index) => _attacks[index];
@@ -25,6 +44,7 @@ namespace HumanGhost.Gameplay
         {
             if (index < 0 || index >= _attacks.Length) throw new ArgumentOutOfRangeException(nameof(index));
             Index = index;
+            _current = _attacks[index];
             Queued = false;
         }
 

@@ -32,7 +32,7 @@ namespace HumanGhost.Gameplay
                 if (_combo.Index >= 3 || _elapsed < start || _elapsed >= start + CurrentAttack.ComboWindow) return false;
             }
             else if (!Locomotion.CanMove) return false;
-            if (!Stamina.TryConsume(_parry.StaminaCost)) { StaminaRefused?.Invoke(); return false; }
+            if (!Stamina.TryConsume((int)Math.Max(0, Math.Min(int.MaxValue, (long)_parry.StaminaCost + _parryCostDelta)))) { StaminaRefused?.Invoke(); return false; }
             ClearAttack();
             _parry.TryBegin(); _parryLocked = true;
             Locomotion.SetActionBlocked(true);

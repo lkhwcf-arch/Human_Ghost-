@@ -83,8 +83,15 @@ namespace HumanGhost.Gameplay.Adapters
                 if (reader.Read()) throw new InvalidDataException("저장 내용 뒤에 추가 데이터가 있습니다.");
                 // 기존 버전 1 기록에는 개별 처치 목록이 없습니다. 없는 필드만 빈 목록으로 확장합니다.
                 if (document["Version"]?.Type == JTokenType.Integer && (int)document["Version"] == 1
-                    && document["Snapshot"] is JObject snapshot && snapshot.Property("DefeatedMonsters") == null)
-                    snapshot.Add("DefeatedMonsters", new JArray());
+                    && document["Snapshot"] is JObject snapshot)
+                {
+                    if (snapshot.Property("DefeatedMonsters") == null) snapshot.Add("DefeatedMonsters", new JArray());
+                    if (snapshot.Property("Rewards") == null)
+                        snapshot.Add("Rewards", new JObject { ["Experience"] = 0, ["Balances"] = new JObject() });
+                    if (snapshot.Property("Upgrades") == null)
+                        snapshot.Add("Upgrades", new JObject { ["ShrineLevel"] = 1,
+                            ["ShrineSteps"] = new JObject(), ["TableSteps"] = new JObject() });
+                }
                 CheckIntegerValues(document);
                 var record = document.ToObject<SaveRecord>(JsonSerializer.Create(_settings));
                 CheckVersion(record);
