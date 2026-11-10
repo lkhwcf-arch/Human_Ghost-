@@ -14,13 +14,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Data.Infrastructure.GameDataAssets
   _csvFiles:
   - {fileID: 4900000, guid: bccdc58736c432142b118d3171a8355f, type: 3}
+  - {fileID: 4900000, guid: 9c9a32db03736ae469dbbf141f70cecd, type: 3}
   - {fileID: 4900000, guid: c7472a9573d6b3f4880dc5f469469f11, type: 3}
   - {fileID: 4900000, guid: 8c1751e5ac41f0a48b1208c0d7cbbf55, type: 3}
   - {fileID: 4900000, guid: 4b46b172f51d451da9db84a03e2e14ca, type: 3}
   - {fileID: 4900000, guid: 1ec7d395e745403f8b9c81a3daebb6f6, type: 3}
   - {fileID: 4900000, guid: 4f7887967d2f2914e878c0e0b0c3b831, type: 3}
   - {fileID: 4900000, guid: 06697fd3810c4164e837ee40b5f8da97, type: 3}
+  - {fileID: 4900000, guid: 61c2c65bb6c79af4593cce6066f83b20, type: 3}
   - {fileID: 4900000, guid: 6bc0a141a982f054da8c1645e7e10a87, type: 3}
+  - {fileID: 4900000, guid: c4971aa879f7c4e48bb74ca6da3505e3, type: 3}
+  - {fileID: 4900000, guid: 272dd77f16a0700449facdca2e482a46, type: 3}
   - {fileID: 4900000, guid: aec8f4a51a115ac4799e0d4753d5f22b, type: 3}
   - {fileID: 4900000, guid: 1e2f38af5565cf7409fbf8bc81f19153, type: 3}
   - {fileID: 4900000, guid: d0077224012e4c5da001acfd0d1f6fda, type: 3}
@@ -28,6 +32,7 @@ MonoBehaviour:
   - {fileID: 4900000, guid: 63c6ca1bf58596043931009c1b4cd22e, type: 3}
   - {fileID: 4900000, guid: c71b4a4dae4f56f47baf4322822e1668, type: 3}
   - {fileID: 4900000, guid: c3dedd519736ad941a64c72445360d90, type: 3}
+  - {fileID: 4900000, guid: a4a4d444e1d6c9749aa6847c1c85acd1, type: 3}
   _jsonFiles:
   - {fileID: 4900000, guid: 633fd811c87132942a0b1057b68f6ca9, type: 3}
   - {fileID: 4900000, guid: 5d730ecaf6e9472448e256d04a5af220, type: 3}
