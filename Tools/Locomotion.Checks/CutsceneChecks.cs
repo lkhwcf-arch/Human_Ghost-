@@ -5,6 +5,28 @@ internal static class CutsceneChecks
 {
     public static void Run(Action<bool, string> check)
     {
+        var dialogue = new TextboxPlayback(new[] { "첫 문장", "다음 문장" }, 30);
+        dialogue.Tick(30);
+        check(dialogue.SkipLine() && dialogue.CurrentLine == "다음 문장" && dialogue.VisibleCharacters == 0,
+            "대사 스킵은 출력 중인 항목을 끝내고 다음 항목 로드");
+        check(dialogue.SkipLine() && dialogue.IsFinished && !dialogue.SkipLine(), "마지막 대사 스킵과 종료 후 중복 거부");
+        var ids = new[] { 101, 102 };
+        var translated = new TextboxPlayback(ids, id => id == 101 ? "첫 ID의 여러 줄\n내용" : "다음 ID", 30);
+        ids[1] = 999;
+        check(translated.CurrentTextId == 101 && translated.SkipLine() && translated.CurrentTextId == 102 &&
+            translated.CurrentLine == "다음 ID", "줄바꿈과 관계없이 Language ID 하나를 넘기고 원본 ID 목록 변경과 분리");
+        var singleVideo = new CutscenePlayback();
+        singleVideo.TryPlay(new CutsceneSequence("Mixed", new[] {
+            new CutsceneStep(CutsceneMedia.Video, "Video", 0),
+            new CutsceneStep(CutsceneMedia.Image, "Image", 1000)
+        }));
+        long oldVideo = singleVideo.StepToken;
+        check(singleVideo.SkipVideo() && singleVideo.StepIndex == 1 && singleVideo.IsRunning,
+            "영상 하나 스킵은 컷씬 전체를 끝내지 않음");
+        check(!singleVideo.ReportVideoEnded(oldVideo) && !singleVideo.SkipVideo(),
+            "이전 영상 종료 콜백과 그림의 영상 스킵 거부");
+        check(singleVideo.Skip() && singleVideo.EndReason == CutsceneEndReason.Skipped,
+            "다음 구간 준비 중에도 컷씬 전체 즉시 스킵");
         check(CutsceneEndReason.Completed.AllowsProgress() && CutsceneEndReason.Skipped.AllowsProgress()
             && !CutsceneEndReason.Cancelled.AllowsProgress() && !CutsceneEndReason.Failed.AllowsProgress(),
             "컷씬 완료·건너뛰기만 다음 진행을 허용하고 취소·실패는 진행하지 않음");
@@ -12,7 +34,7 @@ internal static class CutsceneChecks
             new CutsceneStep(CutsceneMedia.Image, "Ledger01", 4000),
             new CutsceneStep(CutsceneMedia.Image, "EndingCard", 3000, 30025, false)
         };
-        var sequence = new CutsceneSequence("Ledger", steps, 2000);
+        var sequence = new CutsceneSequence("Ledger", steps);
         steps[0] = null;
         check(sequence.Steps[0] != null, "재생 정의는 호출자의 목록 변경과 독립");
         var playback = new CutscenePlayback();
@@ -43,20 +65,14 @@ internal static class CutsceneChecks
         Start(sequence);
         check(playback.StepToken != first && !playback.MarkReady(first), "재시작 후 이전 준비 콜백 무시");
         playback.MarkReady(playback.StepToken);
-        playback.SetSkipHeld(true);
-        playback.Tick(1999);
-        check(playback.IsRunning && playback.SkipElapsedMs == 1999, "2000밀리초 직전에는 건너뛰지 않음");
-        playback.SetSkipHeld(false);
-        check(playback.SkipElapsedMs == 0, "키를 떼면 건너뛰기 누적 초기화");
-        playback.SetSkipHeld(true);
-        playback.Tick(2000);
-        check(result == CutsceneEndReason.Skipped && finished == 2, "유지 시간 충족 시 건너뛰기 종료");
+        check(playback.Skip() && result == CutsceneEndReason.Skipped && finished == 2, "입력 즉시 컷씬 전체 스킵");
+        check(!playback.Skip(), "종료된 컷씬의 중복 스킵 거부");
 
         Start(sequence, ready: true);
         check(playback.Advance() && playback.StepIndex == 1, "그림 다음 장 요청");
         check(playback.Cancel() && result == CutsceneEndReason.Cancelled, "준비 중에도 명시적 취소");
 
-        var video = new CutsceneSequence("Intro", new[] { new CutsceneStep(CutsceneMedia.Video, "IntroVideo", 0) }, 2000);
+        var video = new CutsceneSequence("Intro", new[] { new CutsceneStep(CutsceneMedia.Video, "IntroVideo", 0) });
         Start(video);
         long token = playback.StepToken;
         check(!playback.ReportVideoEnded(token), "준비 중 영상 종료 신호는 무시");

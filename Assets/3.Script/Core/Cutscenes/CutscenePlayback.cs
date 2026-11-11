@@ -6,13 +6,11 @@ namespace HumanGhost.Gameplay
     public sealed class CutscenePlayback
     {
         private int _elapsedMs;
-        private bool _skipHeld;
         public CutsceneSequence Sequence { get; private set; }
         public int StepIndex { get; private set; } = -1;
         public long StepToken { get; private set; }
         public CutscenePlaybackState State { get; private set; }
         public CutsceneEndReason? EndReason { get; private set; }
-        public int SkipElapsedMs { get; private set; }
         public string FailureMessage { get; private set; }
         public CutsceneStep Current => StepIndex < 0 ? null : Sequence.Steps[StepIndex];
         public bool IsRunning => State == CutscenePlaybackState.Preparing || State == CutscenePlaybackState.Playing;
@@ -27,8 +25,6 @@ namespace HumanGhost.Gameplay
             StepIndex = -1;
             EndReason = null;
             FailureMessage = null;
-            SkipElapsedMs = 0;
-            _skipHeld = false;
             BeginNext();
             return true;
         }
@@ -54,15 +50,18 @@ namespace HumanGhost.Gameplay
             return true;
         }
 
-        public void SetSkipHeld(bool held)
+        public bool Skip()
         {
-            if (!IsRunning || _skipHeld == held) return;
-            _skipHeld = held;
-            if (!held && SkipElapsedMs != 0)
-            {
-                SkipElapsedMs = 0;
-                Changed?.Invoke();
-            }
+            if (!IsRunning) return false;
+            End(CutsceneEndReason.Skipped);
+            return true;
+        }
+
+        public bool SkipVideo()
+        {
+            if (!IsRunning || Current.Media != CutsceneMedia.Video) return false;
+            BeginNext();
+            return true;
         }
 
         // 준비 시간은 표시 시간에 포함하지 않고, 새 구간이 준비되기 전 남은 프레임 시간을 넘기지 않습니다.
@@ -70,17 +69,11 @@ namespace HumanGhost.Gameplay
         {
             if (milliseconds < 0) throw new ArgumentOutOfRangeException(nameof(milliseconds));
             if (State != CutscenePlaybackState.Playing || milliseconds == 0) return;
-            if (_skipHeld)
-            {
-                SkipElapsedMs = AccumulateTime(SkipElapsedMs, milliseconds, Sequence.SkipHoldMs);
-                if (SkipElapsedMs == Sequence.SkipHoldMs) { End(CutsceneEndReason.Skipped); return; }
-            }
             if (Current.Media == CutsceneMedia.Image)
             {
                 _elapsedMs = AccumulateTime(_elapsedMs, milliseconds, Current.DurationMs);
                 if (_elapsedMs == Current.DurationMs) { BeginNext(); return; }
             }
-            if (_skipHeld) Changed?.Invoke();
         }
 
         public bool Cancel()
@@ -110,8 +103,6 @@ namespace HumanGhost.Gameplay
         private void End(CutsceneEndReason reason)
         {
             EndReason = reason;
-            _skipHeld = false;
-            SkipElapsedMs = 0;
             ChangeState(CutscenePlaybackState.Ended);
             Finished?.Invoke(reason);
         }

@@ -339,6 +339,11 @@ namespace HumanGhost.Gameplay.Preview
             TextboxScreen textbox = _textbox;
             PlayerActor actor = _actor;
             SubscriptionScope scope = _interactionScope;
+            var skip = new SkipKeyInput(
+                () => !scope.IsDisposed && !_modalBlocked && !_saveLocked && !_leaving && !LoadingScreen.IsActive &&
+                    (_pause == null || !_pause.IsOpen) && textbox != null && textbox.CanSkip(SkipScope.Dialogue),
+                () => textbox.TrySkip(SkipScope.Dialogue));
+            scope.Add(skip.Dispose);
             Action advance = scope.Guard(OnAdvance);
             Action<bool> openChanged = scope.Guard<bool>(OnTextboxChanged);
             Action<int> playerHealthChanged = scope.Guard<int>(OnPlayerHealthChanged);

@@ -22,7 +22,7 @@ namespace HumanGhost.Gameplay.Adapters
                 .Where(step => step.CutsceneID == cutsceneId).OrderBy(step => step.Order)
                 .Select(step => new CutsceneStep(Enum.Parse<CutsceneMedia>(step.MediaType),
                     step.ResourceAddress, step.DurationMs, step.TextID ?? 0, step.CanAdvance));
-            return new CutsceneSequence(definition.Key, steps, definition.SkipHoldMs);
+            return new CutsceneSequence(definition.Key, steps);
         }
     }
 }

@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
+using HumanGhost.Gameplay.Adapters;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace HumanGhost.Gameplay.Presentation
 {
     // 텍스트박스·목표 안내 띠·해금 알림(O10)입니다. 진행 규칙은 TextboxPlayback이 맡습니다. 프레임 그림은 공급 뒤 교체합니다.
-    public sealed class TextboxScreen : MonoBehaviour
+    public sealed class TextboxScreen : MonoBehaviour, ISkipTarget
     {
         private const int _millisecondsPerCharacter = 30;
         private const float _objectiveSeconds = 4f;
@@ -27,6 +28,7 @@ namespace HumanGhost.Gameplay.Presentation
         private int _shownCharacters = -1;
 
         public bool IsOpen => _playback != null;
+        public int CurrentTextId => _playback?.CurrentTextId ?? 0;
         public event Action<bool> OpenChanged;
 
         private void Awake()
@@ -37,7 +39,21 @@ namespace HumanGhost.Gameplay.Presentation
         public void Open(string speaker, IReadOnlyList<string> lines, Action closed)
         {
             if (IsOpen) return;
-            _playback = new TextboxPlayback(lines, _millisecondsPerCharacter);
+            OpenPlayback(speaker, new TextboxPlayback(lines, _millisecondsPerCharacter), closed);
+        }
+
+        // 새 대사는 Language ID 한 개를 한 항목으로 공급합니다. 기존 임시 문구로 대체하지 않습니다.
+        public void Open(int speakerTextId, IReadOnlyList<int> textIds, LanguageTextSource text, LanguageCode language, Action closed)
+        {
+            if (IsOpen) return;
+            if (text == null) throw new ArgumentNullException(nameof(text));
+            string speaker = speakerTextId == 0 ? "" : text.Read(speakerTextId, language);
+            OpenPlayback(speaker, new TextboxPlayback(textIds, id => text.Read(id, language), _millisecondsPerCharacter), closed);
+        }
+
+        private void OpenPlayback(string speaker, TextboxPlayback playback, Action closed)
+        {
+            _playback = playback;
             _closed = closed; _clock = default;
             _shownLine = null; _shownCharacters = -1;
             _speaker.text = speaker;
@@ -51,6 +67,14 @@ namespace HumanGhost.Gameplay.Presentation
             if (_playback == null) return;
             _playback.Advance();
             if (_playback.IsFinished) Close(); else Refresh();
+        }
+
+        public bool CanSkip(SkipScope scope) => scope == SkipScope.Dialogue && isActiveAndEnabled && IsOpen;
+        public bool TrySkip(SkipScope scope)
+        {
+            if (!CanSkip(scope) || !_playback.SkipLine()) return false;
+            if (_playback.IsFinished) Close(); else Refresh();
+            return true;
         }
 
         public void Close()
