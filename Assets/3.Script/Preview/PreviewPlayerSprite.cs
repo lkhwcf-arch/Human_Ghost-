@@ -86,7 +86,7 @@ namespace HumanGhost.Gameplay.Preview
             // 크기·높이 보정은 이동과 같이 양 끝을 감속합니다. 프레임 선택은 TryGetAnimationTime의 선형 진행률을 그대로 씁니다.
             float progress = hanging ? Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(_player.ClimbProgress)) : 0f;
             float scale = hanging && _player.ClimbProgress >= 0f ? Mathf.Lerp(_climbStartScale * _hangScale, 1f, progress) :
-                hanging ? (_onLadder ? _climbStartScale : _hangScale) : 1f;
+                hanging ? (_onLadder ? 1f : _hangScale) : 1f;
             if (Renderer != null)
             {
                 Renderer.transform.localScale = _baseScale * scale;
@@ -122,7 +122,7 @@ namespace HumanGhost.Gameplay.Preview
                 return true;
             }
             var actor = _player.Actor;
-            if (actor.IsAttacking)
+            if (actor.IsAttacking || (state == StateKey.Skill1 && actor.CurrentAttack != null))
             {
                 if (!actor.IsAirAttacking && TryMapAttackTime(state, animation, 0, actor.CurrentAttack, actor.AttackElapsed, false, out time)) return true;
                 time = actor.AttackElapsed / (float)actor.CurrentAttack.TotalTime * animation.length;

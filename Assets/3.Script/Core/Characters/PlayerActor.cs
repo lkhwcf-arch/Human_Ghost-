@@ -36,7 +36,7 @@ namespace HumanGhost.Gameplay
         public bool IsDead => Health == 0;
         public bool IsAttacking => _combo.Index >= 0;
         public bool IsAirAttacking => _combo.Index == 4;
-        public int AttackElapsed => IsAttacking ? _elapsed : 0;
+        public int AttackElapsed => IsAttacking || _usingSkill ? _elapsed : 0;
         // 공중 평타는 행동 잠금을 유지하면서 수평 조작만 허용합니다.
         public int HorizontalMoveSpeed => CurrentState == StateKey.Heal ? HealMoveSpeed :
             IsAirAttacking && !Locomotion.IsGrounded ? Locomotion.Direction * Definition.MoveSpeed : Locomotion.HorizontalSpeed;
