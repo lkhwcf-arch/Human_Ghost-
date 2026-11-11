@@ -55,7 +55,7 @@ namespace HumanGhost.Gameplay.Adapters
             catch (Exception error) { Debug.LogException(error, this); }
         }
         private void OnAttack(int index)
-            => PlayAnimationSound(_actor.Locomotion.IsGrounded ? "PLAYER_ATTACK" : "PLAYER_JUMP_ATTACK");
+            => PlayAnimationSound(index == 4 ? "PLAYER_JUMP_ATTACK" : "PLAYER_ATTACK_" + (index + 1));
         private void OnHealthChanged(int health)
         {
             if (health < _health)

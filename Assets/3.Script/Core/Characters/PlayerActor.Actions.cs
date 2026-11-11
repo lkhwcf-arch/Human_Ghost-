@@ -59,7 +59,7 @@ namespace HumanGhost.Gameplay
             if (!_parry.IsActive) FinishAction();
         }
 
-        private void FinishAction() { CancelCombatAction(); Locomotion.Resume(); }
+        private void FinishAction() { CancelCombatAction(); ResumeMovement(); }
 
         public void CancelCombatAction()
         {

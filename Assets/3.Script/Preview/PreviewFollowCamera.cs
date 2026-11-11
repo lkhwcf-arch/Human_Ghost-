@@ -1,3 +1,4 @@
+using HumanGhost.Gameplay.Adapters;
 using UnityEngine;
 
 namespace HumanGhost.Gameplay.Preview
@@ -13,6 +14,8 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField, InspectorName("카메라 최저 높이")] private float _minY = 0f;
         [SerializeField, InspectorName("대상 기준 카메라 높이")] private float _heightOffset = 2f;
         [SerializeField, InspectorName("따라가기 시간 (초)"), Min(0f)] private float _smoothSeconds = 0.12f;
+        [SerializeField, InspectorName("바라보는 쪽 여백"), Min(0f)] private float _lookAhead = 0.8f;
+        private PlayerRuntime _player;
         private Camera _camera;
         private Vector2 _velocity;
         private float _shakeRemaining;
@@ -21,14 +24,38 @@ namespace HumanGhost.Gameplay.Preview
         private Vector3 _shakeOffset;
         private bool _fixed;
         private Vector2 _fixedPosition;
+        private float _baseSize;
         public bool ShakeEnabled { get; set; } = true;
+
+        // 테스트 전용 확대 배율입니다. 1보다 크면 더 확대합니다(화면 크기 = 스테이지 값 / 배율). 스테이지를 옮겨도 유지하고 Play마다 1로 돌아갑니다.
+        public const float MinTestZoom = 0.5f, MaxTestZoom = 2f;
+        public static float TestZoomScale { get; private set; } = 1f;
+        public float BaseSize => _baseSize;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetTestZoom() => TestZoomScale = 1f;
+
+        public void SetTestZoom(float scale)
+        {
+            TestZoomScale = Mathf.Clamp(scale, MinTestZoom, MaxTestZoom);
+            ApplySize();
+        }
+
+        private void ApplySize()
+        {
+            if (_baseSize <= 0f) return;
+            if (_camera == null) _camera = GetComponent<Camera>();
+            _camera.orthographicSize = _baseSize / TestZoomScale;
+        }
 
         // 스테이지를 조립한 뒤 범위를 정하고 대상으로 바로 옮깁니다.
         public void SetArea(float minX, float maxX, float minY, float size)
         {
+            _fixed = false;
             _minX = minX; _maxX = maxX; _minY = minY;
             _camera = GetComponent<Camera>();
-            _camera.orthographicSize = size;
+            _baseSize = size;
+            ApplySize();
             _velocity = Vector2.zero;
             if (_target != null) transform.position = GetGoal();
         }
@@ -38,7 +65,8 @@ namespace HumanGhost.Gameplay.Preview
             _fixed = true;
             _fixedPosition = position;
             _camera = GetComponent<Camera>();
-            _camera.orthographicSize = size;
+            _baseSize = size;
+            ApplySize();
             _velocity = Vector2.zero;
             transform.position = GetGoal();
         }
@@ -50,7 +78,11 @@ namespace HumanGhost.Gameplay.Preview
             _shakeStrength = strength; _shakeDuration = seconds; _shakeRemaining = seconds;
         }
 
-        private void Awake() => _camera = GetComponent<Camera>();
+        private void Awake()
+        {
+            _camera = GetComponent<Camera>();
+            if (_target != null) _player = _target.GetComponentInParent<PlayerRuntime>();
+        }
         private void OnEnable() { if (_target != null) transform.position = GetGoal(); }
 
         private void LateUpdate()
@@ -78,7 +110,8 @@ namespace HumanGhost.Gameplay.Preview
         {
             if (_fixed) return new Vector3(_fixedPosition.x, _fixedPosition.y, transform.position.z);
             float halfWidth = _camera.orthographicSize * _camera.aspect;
-            float x = _maxX - _minX <= halfWidth * 2f ? (_minX + _maxX) * 0.5f : Mathf.Clamp(_target.position.x, _minX + halfWidth, _maxX - halfWidth);
+            float focusX = _target.position.x + (_player != null && _player.Actor != null ? _player.Actor.Facing * _lookAhead : 0f);
+            float x = _maxX - _minX <= halfWidth * 2f ? (_minX + _maxX) * 0.5f : Mathf.Clamp(focusX, _minX + halfWidth, _maxX - halfWidth);
             return new Vector3(x, Mathf.Max(_minY, _target.position.y + _heightOffset), transform.position.z);
         }
     }

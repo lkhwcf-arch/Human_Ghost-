@@ -10,6 +10,9 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField, InspectorName("플레이어 런타임")] private PlayerRuntime _player = null;
         [SerializeField, InspectorName("원본이 왼쪽을 봄")] private bool _sourceFacesLeft = true;
         [SerializeField] private AnimationClip _airAttack = null;
+        [SerializeField] private AnimationClip _walk = null;
+        private bool _nonCombatArea;
+        public void SetNonCombatArea(bool value) { _nonCombatArea = value; RestartAnimation(); }
         [SerializeField] private AnimationClip _climb = null;
         [SerializeField] private AnimationClip _save = null;
         [SerializeField] private AnimationClip _ladderClimb = null;
@@ -51,7 +54,7 @@ namespace HumanGhost.Gameplay.Preview
         private void OnDisable()
         {
             if (_player != null) _player.PresentationCue -= OnPresentationCue;
-            _action = null; _onLadder = false; _ladderDirection = 0;
+            _action = null; _onLadder = false; _ladderDirection = 0; _nonCombatArea = false;
             if (Renderer != null)
             {
                 Renderer.transform.localScale = _baseScale;
@@ -94,7 +97,7 @@ namespace HumanGhost.Gameplay.Preview
 
         protected override AnimationClip SelectAnimation(StateKey state)
         {
-            if (_player.Actor.IsParrying) return base.SelectAnimation(StateKey.Attack1);
+            if (_player.Actor.IsParrying) return null;
             if (state == StateKey.Hang && _player.ClimbProgress >= 0f && _climb != null) return _climb;
             if (_onLadder && state == StateKey.Hang && _ladderClimb != null) return _ladderClimb;
             if (_action != null)
@@ -102,15 +105,21 @@ namespace HumanGhost.Gameplay.Preview
                 if (state == StateKey.Idle || state == StateKey.Walk) return _action;
                 _action = null;
             }
-            return state == StateKey.Attack1 && _airAttack != null &&
-                (!_player.Actor.Locomotion.IsGrounded || CurrentAnimation == _airAttack)
-                ? _airAttack : base.SelectAnimation(state);
+            if (_nonCombatArea && state == StateKey.Walk && _walk != null) return _walk;
+            return _player.Actor.IsAirAttacking && _airAttack != null ? _airAttack : base.SelectAnimation(state);
         }
         protected override bool TryGetAnimationTime(StateKey state, AnimationClip animation, out float time)
         {
             if (state == StateKey.Hang && _player.ClimbProgress >= 0f && animation == _climb)
             {
                 time = _player.ClimbProgress * animation.length;
+                return true;
+            }
+            var actor = _player.Actor;
+            if (actor.IsAttacking)
+            {
+                if (!actor.IsAirAttacking && TryMapAttackTime(state, animation, 0, actor.CurrentAttack, actor.AttackElapsed, false, out time)) return true;
+                time = actor.AttackElapsed / (float)actor.CurrentAttack.TotalTime * animation.length;
                 return true;
             }
             time = 0f; return false;
@@ -138,6 +147,8 @@ namespace HumanGhost.Gameplay.Preview
 
         protected override Sprite SelectFrame(StateKey state)
         {
+            if (_player != null && _player.Actor != null && _player.Actor.IsParrying)
+                return FindFrame(StateKey.Attack1) ?? Fallback;
             Sprite sprite = FindFrame(state);
             // 4타 원본이 없을 때만 이전 마무리 프레임을 재사용합니다.
             if (sprite == null && state == StateKey.Attack4) sprite = FindFrame(StateKey.Attack3);

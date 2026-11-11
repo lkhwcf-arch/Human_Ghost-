@@ -387,9 +387,18 @@ MonoBehaviour:
   - _key: PLAYER_HIT
     _clip: {fileID: 8300000, guid: 6553313311913e64faa55b9a893dad7c, type: 3}
     _soundId: 3007
-  - _key: PLAYER_ATTACK
-    _clip: {fileID: 8300000, guid: f38c81019fa50e643b5ade1ff8100941, type: 3}
-    _soundId: 3008
+  - _key: PLAYER_ATTACK_1
+    _clip: {fileID: 8300000, guid: f7a4996b5ff28ba4fa87e2704563e265, type: 3}
+    _soundId: 3024
+  - _key: PLAYER_ATTACK_2
+    _clip: {fileID: 8300000, guid: 89e778168afbbe747bf20344638f83bd, type: 3}
+    _soundId: 3025
+  - _key: PLAYER_ATTACK_3
+    _clip: {fileID: 8300000, guid: 2bef6dba437bd6845897fed86f9cdd62, type: 3}
+    _soundId: 3026
+  - _key: PLAYER_ATTACK_4
+    _clip: {fileID: 8300000, guid: 8ef785ebcc149034e830ee8931f03e47, type: 3}
+    _soundId: 3027
   - _key: PLAYER_JUMP_ATTACK
     _clip: {fileID: 8300000, guid: 8995f3b88a9ac7546b522fdbc4ae113f, type: 3}
     _soundId: 3009

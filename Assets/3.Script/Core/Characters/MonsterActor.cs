@@ -21,6 +21,8 @@ namespace HumanGhost.Gameplay
         private PlayerActor _holding;
         private int _elapsed;
         private int _stunRemaining;
+        private int _stunDuration;
+        public int StunDuration => CurrentState == StateKey.Stun ? _stunDuration : 0;
         private int _waitRemaining;
         private int _targetId;
         private int _distance;
@@ -93,7 +95,7 @@ namespace HumanGhost.Gameplay
             int stun = _pattern.WallStun;
             ClearPattern();
             if (stun == 0) { StartWait(); return true; }
-            _stunRemaining = stun;
+            _stunRemaining = _stunDuration = stun;
             States.Call(StateKey.Stun);
             return true;
         }
@@ -127,7 +129,7 @@ namespace HumanGhost.Gameplay
             if (stunMilliseconds <= 0) throw new ArgumentOutOfRangeException(nameof(stunMilliseconds));
             if (IsDead || !IsAttackActive || _pattern == null || _pattern.IsGrab) return false;
             ClearPattern(); _waitRemaining = 0;
-            _stunRemaining = stunMilliseconds;
+            _stunRemaining = _stunDuration = stunMilliseconds;
             States.Call(StateKey.Stun);
             Parried?.Invoke();
             return true;

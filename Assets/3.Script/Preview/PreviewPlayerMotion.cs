@@ -61,7 +61,7 @@ namespace HumanGhost.Gameplay.Preview
         public bool TryDropThrough()
         {
             if (IsHanging || _player.Actor.IsDead || !_player.Actor.Locomotion.CanMove) return false;
-            if (_airborne && !IsHanging) { _dropRequested = true; return false; }
+            if (_airborne) { _dropRequested = true; return false; }
             if (!_player.Actor.Locomotion.IsGrounded || !_collision.TryBeginDrop(_player.transform.position)) return false;
             _motion.SetVerticalSpeed(-IntegerPosition.UnitsPerTile);
             _airborne = true;
@@ -303,7 +303,7 @@ namespace HumanGhost.Gameplay.Preview
             if (_motion.IsRolling && canFinishRoll) return _motion.StepRoll(milliseconds);
             _motion.StopRoll();
             if (actor.IsDead) return 0;
-            int speed = state == StateKey.Heal ? actor.HealMoveSpeed : actor.Locomotion.HorizontalSpeed;
+            int speed = actor.HorizontalMoveSpeed;
             return _motion.StepHorizontal(speed, milliseconds);
         }
 
@@ -346,12 +346,13 @@ namespace HumanGhost.Gameplay.Preview
 
         private void Land(long fallUnits)
         {
+            bool airAttack = _player.Actor.IsAirAttacking;
             if (_airborne) _playSound?.Invoke("PLAYER_LAND");
             bool coreKnewAirborne = _coyoteRemaining <= 0;
             _airborne = false; _motion.SetVerticalSpeed(); _coyoteRemaining = 0;
             if (coreKnewAirborne) _player.SetGrounded(true);
             if (_jumpBufferRemaining > 0 && _player.Actor.TryJump()) { StartJump(); return; }
-            _player.Actor.NotifyLanded(IntegerPosition.ToData(fallUnits));
+            if (!airAttack) _player.Actor.NotifyLanded(IntegerPosition.ToData(fallUnits));
         }
 
         // 구덩이 앞에서 다시 섭니다(HP 10 감소, 10 이하면 낙사). 암전 300ms는 L08 가정입니다.

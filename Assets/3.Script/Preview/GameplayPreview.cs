@@ -185,6 +185,8 @@ namespace HumanGhost.Gameplay.Preview
                 _input.VerticalPressed += OnVertical;
                 ConnectInteraction(catalog);
                 MoveToArrival();
+                // 걷기 표시는 장부방만, 나머지 전투 스테이지는 달리기 표시입니다.
+                _player.GetComponentInChildren<PreviewPlayerSprite>(true)?.SetNonCombatArea(_stageId == StageExitRules.LedgerStage);
                 ConnectCutsceneData();
                 ConnectStageObjects(catalog);
                 ConnectGalimgilArrivals();
@@ -293,7 +295,7 @@ namespace HumanGhost.Gameplay.Preview
         // 임시 판정: 공격 범위 사각형과 보스/일반몹 사각형 겹침. 창 열림 순간과 매 프레임 호출하며 중복은 창 등록이 막습니다.
         private void CheckPlayerHits()
         {
-            if (_actor.Locomotion.Direction != 0) _facing = _actor.Locomotion.Direction;
+            _facing = _actor.Facing;
             _attackWindow.transform.localPosition = new Vector3(_facing * 0.95f, 0f, 0.1f);
             if (!_actor.IsAttackActive) return;
             if (_bossActive && _attackWindow.bounds.Intersects(_bossBody.bounds))
@@ -501,9 +503,8 @@ namespace HumanGhost.Gameplay.Preview
                     _stageId == StageExitRules.VillageStage ? "장부방을 살펴보자" : "남은 요괴가 있다");
             if (_followCamera != null)
             {
-                // 보스방은 바닥 아래를 비추지 않게 맵 기준 높이에 고정합니다.
-                if (_stageId == BossStage) _followCamera.SetFixed(new Vector2(_stage.Area.center.x, _stage.MapRoot.position.y + _stage.CameraSize), _stage.CameraSize);
-                else _followCamera.SetArea(_stage.Area.min.x + 1f, _stage.Area.max.x - 1f, _stage.MapRoot.position.y + 4f, _stage.CameraSize);
+                // 2026-11-11 사용자 확정: 보스방도 필드와 같은 확대 추적 구도를 씁니다(기존 L09_1 고정 구도 대체).
+                _followCamera.SetArea(_stage.Area.min.x + 1f, _stage.Area.max.x - 1f, _stage.MapRoot.position.y + 4f, _stage.CameraSize);
             }
         }
 
@@ -721,7 +722,7 @@ namespace HumanGhost.Gameplay.Preview
             StepShrineClose();
             StepCutsceneFlow();
             if (_modalBlocked || _saveLocked || _leaving || LoadingScreen.IsActive || !_subscribed || !_player.isActiveAndEnabled || (_bossActive && !_boss.isActiveAndEnabled)) return;
-            if (_actor.Locomotion.Direction != 0) _facing = _actor.Locomotion.Direction;
+            _facing = _actor.Facing;
             _deathRestart?.Step(_actor, Time.deltaTime);
             StepExecution(Time.deltaTime);
             // 암전 중 입력은 받지 않습니다(O09).
@@ -737,7 +738,9 @@ namespace HumanGhost.Gameplay.Preview
             // 몬스터 이동 후 플레이어 판정을 확인합니다(기존 순서 유지).
             foreach (PreviewMonsterDriver monster in _monsterDrivers)
                 if (monster.NeedsStep) monster.Step(Time.deltaTime, combatMin, combatMax);
-            _bossDriver?.Step(Time.deltaTime, combatMin, combatMax);
+            // 보스는 고정 한계 대신 실제 맵 범위에서 막습니다. 고정 한계는 맵1 기준이라 보스방 돌진이 벽을 지나쳤습니다.
+            // 보스방 좌우 벽 두께 1(카메라 범위와 같은 기준)을 빼 벽 안쪽 면에서 멈추고 벽 충돌을 알립니다.
+            _bossDriver?.Step(Time.deltaTime, _stage != null ? _stage.Area.min.x + 1f : combatMin, _stage != null ? _stage.Area.max.x - 1f : combatMax);
             CheckPlayerHits();
             HandlePreviewKeys();
             RefreshLabels();

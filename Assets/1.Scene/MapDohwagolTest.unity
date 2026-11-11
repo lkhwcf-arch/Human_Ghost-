@@ -221,7 +221,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d8cdd18fcb38a4e4ea4740886b7552b8, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Preview.PreviewPlayerSprite
   _renderer: {fileID: 64223849}
   _fallback: {fileID: 6236005101687474386, guid: 0d0809dfcb8b5c14e9b8e2a2cf330dbb, type: 3}
@@ -237,11 +237,11 @@ MonoBehaviour:
   - _state: 10012
     _sprite: {fileID: 3137629870729736486, guid: a4553ded57ec1cd49ba27e5d579aa305, type: 3}
   - _state: 10004
-    _sprite: {fileID: -628782492656998927, guid: 5c9ea7e9a158c2f46ae5ac50607d6a36, type: 3}
+    _sprite: {fileID: -537362482, guid: 5c9ea7e9a158c2f46ae5ac50607d6a36, type: 3}
   - _state: 10005
-    _sprite: {fileID: -4389691020275629737, guid: ac884abc78b74a647a4a773730d77470, type: 3}
+    _sprite: {fileID: -672366897, guid: 5c9ea7e9a158c2f46ae5ac50607d6a36, type: 3}
   - _state: 10006
-    _sprite: {fileID: -8036877766719260563, guid: 5c9ea7e9a158c2f46ae5ac50607d6a36, type: 3}
+    _sprite: {fileID: -1498515430, guid: 5c9ea7e9a158c2f46ae5ac50607d6a36, type: 3}
   - _state: 10003
     _sprite: {fileID: -5184609124103884336, guid: 50ed3468206252640a1c95f8aeb0b305, type: 3}
   - _state: 10008
@@ -273,14 +273,29 @@ MonoBehaviour:
     _clip: {fileID: 7400000, guid: f0e4e12d609dc4448ae2067b4f8cec2b, type: 2}
     _hitFrames: []
   - _state: 10004
-    _clip: {fileID: 7400000, guid: d40f180eac9351946b0010496fe962ea, type: 2}
-    _hitFrames: []
+    _clip: {fileID: 7400000, guid: 3b84c4bb6345d814898d23395e96bdfc, type: 2}
+    _hitFrames:
+    - _hit: 0
+      _first: 0
+      _contact: 2
+      _recovery: 4
+      _end: 5
   - _state: 10005
-    _clip: {fileID: 7400000, guid: 1a9e9385eb4c7794998724cf388f9018, type: 2}
-    _hitFrames: []
+    _clip: {fileID: 7400000, guid: 38f43ab1f264fc842a9d9a7ea2d307a0, type: 2}
+    _hitFrames:
+    - _hit: 0
+      _first: 0
+      _contact: 1
+      _recovery: 3
+      _end: 5
   - _state: 10006
-    _clip: {fileID: 7400000, guid: d40f180eac9351946b0010496fe962ea, type: 2}
-    _hitFrames: []
+    _clip: {fileID: 7400000, guid: ec051d2f85ac1fd46b87cbc7c420db0e, type: 2}
+    _hitFrames:
+    - _hit: 0
+      _first: 0
+      _contact: 1
+      _recovery: 4
+      _end: 6
   - _state: 10007
     _clip: {fileID: 7400000, guid: 84b7f78dc4081fd4fb800c772bbb2f2e, type: 2}
     _hitFrames: []
@@ -324,11 +339,17 @@ MonoBehaviour:
     _clip: {fileID: 7400000, guid: f0e4e12d609dc4448ae2067b4f8cec2b, type: 2}
     _hitFrames: []
   - _state: 10024
-    _clip: {fileID: 7400000, guid: 1a9e9385eb4c7794998724cf388f9018, type: 2}
-    _hitFrames: []
+    _clip: {fileID: 7400000, guid: fb6b16c38e93ed040a11af74eda7c17b, type: 2}
+    _hitFrames:
+    - _hit: 0
+      _first: 0
+      _contact: 1
+      _recovery: 3
+      _end: 8
   _player: {fileID: 383945511}
   _sourceFacesLeft: 1
   _airAttack: {fileID: 7400000, guid: 48d243d972470124a82dfcc472b4a601, type: 2}
+  _walk: {fileID: 7400000, guid: 3334a1f7516430b42bf8cda4683e3c2e, type: 2}
   _climb: {fileID: 7400000, guid: 6d2bf8909bcce0d4781c45984a4d084e, type: 2}
   _save: {fileID: 7400000, guid: 8b98f4955cee7ad408645c317b727aa1, type: 2}
   _ladderClimb: {fileID: 7400000, guid: 60a3b3700f40ddf48b66b1c5d414951a, type: 2}
@@ -345,7 +366,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a98995db06b44f1e97581c87a7246c7d, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: 
   _prefab: {fileID: 205, guid: d9cc625c4b464a8298bfb7cbcac32c0f, type: 3}
   _popupId: 15008
@@ -380,7 +401,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalCameraData
   m_RenderShadows: 1
   m_RequiresDepthTextureOption: 2
@@ -498,14 +519,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b7e91c34a2d64f08913c5ea0d7f2c416, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Preview.PreviewFollowCamera
   _target: {fileID: 383945508}
   _minX: -10
   _maxX: 70
   _minY: 1.8
-  _heightOffset: 1.35
+  _heightOffset: 2.8
   _smoothSeconds: 0.12
+  _lookAhead: 0.8
 --- !u!114 &99334894
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -516,7 +538,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e57e5a049f1ce7dbe70fbed60e7f7eb1, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Preview.PreviewParallax
   _camera: {fileID: 99334892}
 --- !u!1001 &112427744
@@ -650,7 +672,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3625321bd46c7d2439fe22e8babe2610, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Data.Infrastructure.GameDataInitializer
   _assets: {fileID: 11400000, guid: ab5b1d3665bfa564e8e3da28a2d90b04, type: 2}
 --- !u!4 &145074741
@@ -861,7 +883,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 51982ca989f305e418baea6fa9a06431, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Adapters.PlayerRuntime
 --- !u!1 &476682237
 GameObject:
@@ -1239,7 +1261,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 32ee1b732446896955617e220dc92b80, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Presentation.HudScreen
 --- !u!1 &780261428
 GameObject:
@@ -1540,7 +1562,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 28d109645c034911b3961b6924f19a8c, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: 
   _initializer: {fileID: 145074740}
   _events: {fileID: 987919509}
@@ -1577,7 +1599,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 01614664b831546d2ae94a42149d80ac, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.UI.InputSystemUIInputModule
   m_SendPointerHoverToParent: 1
   m_MoveRepeatDelay: 0.5
@@ -1608,7 +1630,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 76c392e42b5098c458856cdf6ecaaaa1, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.EventSystems.EventSystem
   m_FirstSelected: {fileID: 0}
   m_sendNavigationEvents: 1
@@ -2039,7 +2061,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 98e5d467b39736740a9d86a5eb04416a, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Preview.GameplayPreview
   _data: {fileID: 145074740}
   _player: {fileID: 383945511}
@@ -2117,7 +2139,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9e4b1d7ac0f3425d86e27b5c31a8d0f6, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Preview.DataLoadViewer
   _data: {fileID: 145074740}
   _content: {fileID: 11400000, guid: 36deeec44f058ca4ca5eb6e01cd959ea, type: 2}
@@ -2131,7 +2153,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 55e824ab16398f7deca0259b1347f6e5, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Adapters.PlayerInteractor
   _targetRoot: {fileID: 0}
   _promptPrefab: {fileID: 2646885145586538906, guid: f70c93bc54b2c5541bf9be1f110dc40f, type: 3}
@@ -2148,7 +2170,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d5aedd6d6f1e4c05c2e549804e5e658f, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Adapters.PauseMenuHost
   _screen: {fileID: 2104232679}
   _settingsScreen: {fileID: 1516668412}
@@ -2163,7 +2185,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: baeee5921e7c175892d4345115d6f867, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Adapters.GameSpeedController
 --- !u!1 &1244890266
 GameObject:
@@ -2426,7 +2448,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1b947b58c524bcea6efa2be0ecaafe44, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Adapters.GameAudio
 --- !u!1 &1476514181
 GameObject:
@@ -2714,7 +2736,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 216f095e0822f971dd05268582136e5a, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Presentation.SettingsScreen
 --- !u!1 &1541771622
 GameObject:
@@ -3267,7 +3289,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 393d4b00fc0497245846f50e265c2ae6, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Adapters.BossRuntime
 --- !u!1 &1783869852
 GameObject:
@@ -3555,7 +3577,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: aa3cd9f06b8ed4c231f57ae0689ceb3a, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Presentation.TextboxScreen
 --- !u!1 &1989721440
 GameObject:
@@ -3676,7 +3698,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fad470945e2243f2ba6e2a89efa5aee5, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Presentation.HealthDisplayHost
 --- !u!114 &1997375532
 MonoBehaviour:
@@ -3688,7 +3710,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.CanvasScaler
   m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
@@ -4044,7 +4066,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 650c3705720b68bafde2a8b90d3476ea, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Presentation.PauseScreen
 --- !u!1 &2135213318
 GameObject:

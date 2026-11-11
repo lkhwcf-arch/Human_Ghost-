@@ -35,6 +35,11 @@ namespace HumanGhost.Gameplay
         public bool IsHanging => CurrentState == StateKey.Hang;
         public bool IsDead => Health == 0;
         public bool IsAttacking => _combo.Index >= 0;
+        public bool IsAirAttacking => _combo.Index == 4;
+        public int AttackElapsed => IsAttacking ? _elapsed : 0;
+        // 공중 평타는 행동 잠금을 유지하면서 수평 조작만 허용합니다.
+        public int HorizontalMoveSpeed => CurrentState == StateKey.Heal ? HealMoveSpeed :
+            IsAirAttacking && !Locomotion.IsGrounded ? Locomotion.Direction * Definition.MoveSpeed : Locomotion.HorizontalSpeed;
         public bool IsAttackActive => _attackWindow.IsActive;
         public AttackSpec CurrentAttack => _usingSkill ? _skill.Attack : _combo.Current;
         // 결박 가르기(C07) 해금·연결 여부와 남은 쿨타임(ms)입니다.
@@ -81,10 +86,18 @@ namespace HumanGhost.Gameplay
         public void SetMove(int direction)
         {
             Locomotion.SetMove(direction);
-            if (direction != 0 && !IsActionBusy && !IsHanging) _facing = direction;
+            if (direction != 0 && !IsActionBusy && !IsHanging && !IsAttacking && !_usingSkill) _facing = direction;
         }
 
         public bool TryJump() => !IsDead && Locomotion.TryJump();
+
+        public void SetGrounded(bool grounded)
+        {
+            Locomotion.SetGrounded(grounded);
+            if (!grounded || !IsAirAttacking) return;
+            ClearAttack();
+            ResumeMovement();
+        }
 
         // 공중에서 외부가 모서리를 확인한 뒤 요청합니다. 매달린 동안 공격·구르기·이동은 막히고 스태미나를 쓰지 않습니다.
         public bool TryHang(int facing = 0)
@@ -100,8 +113,7 @@ namespace HumanGhost.Gameplay
         public bool EndHang()
         {
             if (!IsHanging) return false;
-            Locomotion.Resume();
-            if (Locomotion.Direction != 0) _facing = Locomotion.Direction;
+            ResumeMovement();
             return true;
         }
 
@@ -153,7 +165,7 @@ namespace HumanGhost.Gameplay
         {
             Health = Math.Min(MaxHealth, Health + _herbs.Heal);
             HealthChanged?.Invoke(Health);
-            Locomotion.Resume();
+            ResumeMovement();
         }
 
         // 스태미나를 쓰지 않습니다. 보스 사슬에 잡힌 동안에도 쓸 수 있고 사슬을 끊습니다. 매달리기·일반몹 구속 중에는 쓸 수 없습니다.
@@ -220,7 +232,7 @@ namespace HumanGhost.Gameplay
             _elapsed = 0; _duration = Definition.RollTime;
             States.Call(StateKey.Roll);
             RollRequested?.Invoke(_facing, Definition.RollDistance, Definition.RollTime);
-            if (_duration == 0) Locomotion.Resume();
+            if (_duration == 0) ResumeMovement();
             return true;
         }
 
@@ -242,7 +254,7 @@ namespace HumanGhost.Gameplay
             {
                 _duration = critical ? Definition.CritHitStunTime : Definition.HitStunTime;
                 States.Change(new HitState(critical));
-                if (_duration == 0) Locomotion.Resume();
+                if (_duration == 0) ResumeMovement();
             }
             HealthChanged?.Invoke(Health);
             return true;
@@ -327,7 +339,7 @@ namespace HumanGhost.Gameplay
             if (CurrentState != StateKey.Execute || _executionTarget == null) return false;
             _executionTarget.CompleteExecution(restorePoise);
             _executionTarget = null;
-            Locomotion.Resume();
+            ResumeMovement();
             return true;
         }
 
@@ -351,7 +363,7 @@ namespace HumanGhost.Gameplay
                 {
                     if (_elapsed == spec.Windup) SetAttackActive(true);
                     if (_elapsed == spec.Windup + spec.Active) SetAttackActive(false);
-                    if (_elapsed == spec.TotalTime) { ClearAttack(); Locomotion.Resume(); }
+                    if (_elapsed == spec.TotalTime) { ClearAttack(); ResumeMovement(); }
                 }
                 else if (IsAttacking)
                 {
@@ -362,14 +374,14 @@ namespace HumanGhost.Gameplay
                         int next = _combo.Index + 1;
                         bool chain = _combo.Queued && _combo.Index < 3;
                         ClearAttack();
-                        if (!chain || !StartAttack(next)) Locomotion.Resume();
+                        if (!chain || !StartAttack(next)) ResumeMovement();
                     }
                 }
                 else if (_elapsed == _duration)
                 {
                     if (CurrentState == StateKey.Bound) EndBind();
                     else if (CurrentState == StateKey.Heal) FinishHerb();
-                    else Locomotion.Resume();
+                    else ResumeMovement();
                 }
             }
         }
@@ -399,7 +411,13 @@ namespace HumanGhost.Gameplay
         private void EndBind()
         {
             BoundBy = null; _bindPresses = 0;
+            ResumeMovement();
+        }
+
+        private void ResumeMovement()
+        {
             Locomotion.Resume();
+            if (Locomotion.Direction != 0) _facing = Locomotion.Direction;
         }
 
         private void AdvanceTime(int milliseconds)

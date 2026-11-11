@@ -81,7 +81,7 @@ namespace HumanGhost.Gameplay.Adapters
         {
             if (Actor == null) throw new InvalidOperationException("플레이어 초기화가 필요합니다.");
             bool previous = Actor.Locomotion.IsGrounded;
-            Actor.Locomotion.SetGrounded(grounded);
+            Actor.SetGrounded(grounded);
             if (previous != grounded) NotifySpatialStateChanged();
         }
 

@@ -29,10 +29,10 @@ namespace HumanGhost.Gameplay.Adapters
         // 전투 C02_1의 4타 시작값. 공중 체세는 최신 전달 메모의 8을 사용합니다. 기획은 설정 에셋에서 수정하고 다음 런타임 초기화에 반영합니다.
         [SerializeField] private AttackSetup[] _attacks =
         {
-            new AttackSetup(120, 80, 250, 200, 0, 8, 10),
-            new AttackSetup(120, 80, 250, 200, 0, 8, 10),
-            new AttackSetup(120, 80, 250, 200, 0, 8, 10),
-            new AttackSetup(200, 100, 400, 0, 10, 16, 10),
+            new AttackSetup(88, 59, 183, 147, 0, 8, 10),
+            new AttackSetup(88, 59, 183, 147, 0, 8, 10),
+            new AttackSetup(88, 59, 183, 147, 0, 8, 10),
+            new AttackSetup(157, 79, 314, 0, 10, 16, 10),
             new AttackSetup(100, 80, 200, 0, -2, 8, 10)
         };
 

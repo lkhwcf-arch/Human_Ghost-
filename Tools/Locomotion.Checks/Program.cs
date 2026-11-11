@@ -25,6 +25,7 @@ internal static class Program
             GalimgilChecks.Run(Check);
             PriorityChecks.Run(definition, Check);
             AttackAnimationChecks.Run(Check);
+            PlayerAttackChecks.Run(definition, Check);
             Player changed = ReadPlayer(args[0], checked(definition.MoveSpeed + 1), checked(definition.JumpHeight + 1));
             var changedActor = new PlayerLocomotion(changed, true);
             changedActor.SetMove(-1);
