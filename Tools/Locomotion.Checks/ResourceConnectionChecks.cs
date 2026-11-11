@@ -28,6 +28,13 @@ internal static class ResourceConnectionChecks
             return assets[guid][0];
         }
         var parser = new CsvParser();
+        string title = File.ReadAllText(Path.Combine(root, "Assets/2.Model/Prefabs/UI/TitleScreen.prefab"));
+        Match videoFile = Regex.Match(title, @"(?m)^  _videoFile: (.+)\r?$");
+        check(videoFile.Success, "타이틀 영상의 파일 상대 경로가 없습니다.");
+        string streamingRoot = Path.GetFullPath(Path.Combine(root, "Assets/StreamingAssets")) + Path.DirectorySeparatorChar;
+        string videoPath = Path.GetFullPath(Path.Combine(streamingRoot, videoFile.Groups[1].Value.Trim()));
+        check(videoPath.StartsWith(streamingRoot, StringComparison.Ordinal) && File.Exists(videoPath)
+            && new FileInfo(videoPath).Length > 0, "타이틀 영상이 StreamingAssets 내부에 없거나 비어 있습니다: " + videoPath);
         var stages = parser.Read(File.ReadAllText(Path.Combine(root, "Assets/Data/Csv/Stage.csv"))).Rows
             .ToDictionary(row => int.Parse(row.Get("ID")));
         var monsters = parser.Read(File.ReadAllText(Path.Combine(root, "Assets/Data/Csv/Monster.csv"))).Rows
