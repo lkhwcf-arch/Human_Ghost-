@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 5517365610474405789}
   - component: {fileID: 5575821580772885430}
   - component: {fileID: 185703874276196534}
+  - component: {fileID: 2306616214565242971}
   m_Layer: 0
   m_Name: Air_Platform_2
   m_TagString: Untagged
@@ -99,6 +100,19 @@ PlatformEffector2D:
   m_UseSideFriction: 0
   m_UseSideBounce: 0
   m_SideArc: 1
+--- !u!114 &2306616214565242971
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2484433185737253104}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b429bec1522b71c45a4519375bb3048c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Preview.DropThroughPlatform
+  _allowed: 1
 --- !u!1 &4055980054384008588
 GameObject:
   m_ObjectHideFlags: 0

@@ -46,6 +46,9 @@ namespace HumanGhost.Gameplay.Preview
         protected override float AnimationDelta => _onLadder ? Time.deltaTime * _ladderDirection : base.AnimationDelta;
         private AnimationClip _action;
         private float _actionElapsed;
+        // 아래 점프는 도약 웅크림(0~2)을 건너뛰고 공중 몸말기(3~5)에서 낙하 프레임(6)으로 넘어가 착지까지 유지합니다.
+        private const float _dropStartTime = 0.3f, _dropFallTime = 0.6f, _dropBlendSeconds = 0.2f;
+        private float _dropElapsed = -1f;
         protected override void OnEnable()
         {
             base.OnEnable();
@@ -54,7 +57,7 @@ namespace HumanGhost.Gameplay.Preview
         private void OnDisable()
         {
             if (_player != null) _player.PresentationCue -= OnPresentationCue;
-            _action = null; _onLadder = false; _ladderDirection = 0; _nonCombatArea = false;
+            _action = null; _onLadder = false; _ladderDirection = 0; _nonCombatArea = false; _dropElapsed = -1f;
             if (Renderer != null)
             {
                 Renderer.transform.localScale = _baseScale;
@@ -65,6 +68,7 @@ namespace HumanGhost.Gameplay.Preview
         {
             if (cue == "Parry" || cue == "ActionExit" || cue == "ClimbExit") { _action = null; RestartAnimation(); return; }
             if (cue == "LadderExit") { _onLadder = false; _ladderDirection = 0; return; }
+            if (cue == "DropThrough") { _dropElapsed = 0f; _action = null; RestartAnimation(); return; }
             if (cue == "LadderUp" || cue == "LadderDown" || cue == "LadderHold")
             {
                 if (!_onLadder) RestartAnimation();
@@ -94,6 +98,7 @@ namespace HumanGhost.Gameplay.Preview
             }
             base.LateUpdate();
             if (_action != null && (_actionElapsed += Time.deltaTime) >= _action.length) _action = null;
+            if (_dropElapsed >= 0f) _dropElapsed = _player != null && _player.Actor != null && _player.Actor.CurrentState == StateKey.Jump ? _dropElapsed + Time.deltaTime : -1f;
         }
 
         protected override AnimationClip SelectAnimation(StateKey state)
@@ -121,6 +126,11 @@ namespace HumanGhost.Gameplay.Preview
             {
                 if (!actor.IsAirAttacking && TryMapAttackTime(state, animation, 0, actor.CurrentAttack, actor.AttackElapsed, false, out time)) return true;
                 time = actor.AttackElapsed / (float)actor.CurrentAttack.TotalTime * animation.length;
+                return true;
+            }
+            if (state == StateKey.Jump && _dropElapsed >= 0f)
+            {
+                time = Mathf.Lerp(_dropStartTime, _dropFallTime, _dropElapsed / _dropBlendSeconds);
                 return true;
             }
             time = 0f; return false;

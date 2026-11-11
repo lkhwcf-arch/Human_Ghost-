@@ -10,7 +10,8 @@ namespace HumanGhost.Gameplay.Preview
     {
         private const int _coyoteMilliseconds = 100;
         private const int _jumpBufferMilliseconds = 100;
-        private const int _fallDamage = 10;
+        // K04 R6·K16add R9·L01 R13: 낙사는 HP와 무관한 즉사입니다.
+        private const int _fallDamage = int.MaxValue;
         private readonly PlayerRuntime _player;
         private readonly Action<string> _playSound;
         private readonly PreviewCollision _collision;
@@ -70,6 +71,7 @@ namespace HumanGhost.Gameplay.Preview
             _dropRequested = false;
             _peakY = _player.Position.Y;
             _player.SetGrounded(false);
+            _player.NotifyPresentationCue("DropThrough");
             return true;
         }
 
@@ -338,6 +340,7 @@ namespace HumanGhost.Gameplay.Preview
                 _dropRequested = false; _jumpBufferRemaining = 0;
                 _coyoteRemaining = 0; _motion.SetVerticalSpeed(-IntegerPosition.UnitsPerTile);
                 _player.SetGrounded(false);
+                _player.NotifyPresentationCue("DropThrough");
                 return landY - IntegerPosition.FromData(1);
             }
             _dropRequested = false;
@@ -356,7 +359,7 @@ namespace HumanGhost.Gameplay.Preview
             if (!airAttack) _player.Actor.NotifyLanded(IntegerPosition.ToData(fallUnits));
         }
 
-        // 구덩이 앞에서 다시 섭니다(HP 10 감소, 10 이하면 낙사). 암전 300ms는 L08 가정입니다.
+        // 구덩이에 닿으면 즉사해 기존 사망 흐름으로 넘깁니다. 컷씬 피해 차단 중에만 구덩이 앞에서 다시 섭니다(암전 300ms는 L08 가정).
         private void ApplyFall(Vector3 respawn, float z)
         {
             if (_player.Actor.ApplyFall(_fallDamage)) return;

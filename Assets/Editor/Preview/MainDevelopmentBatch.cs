@@ -18,7 +18,8 @@ namespace HumanGhost.EditorTools
                 throw new InvalidOperationException("Play 종료·컴파일 완료 후 실행해 주세요.");
             if (SceneManager.GetActiveScene().isDirty)
                 throw new InvalidOperationException("현재 씬의 저장하지 않은 변경을 먼저 확인해 주세요.");
-            foreach (int number in new[] { 3, 4, 5, 7, 8, 10, 12 }) BindDropPolicy(number);
+            // K18add R3 허용7종에 사용자 확정(11/11)으로 도화골 Air_Platform_1/2를 더합니다.
+            foreach (int number in new[] { 1, 2, 3, 4, 5, 7, 8, 10, 12 }) BindDropPolicy(number);
             NpcDialogue dialogue = BuildDialogue();
             string previous = SceneManager.GetActiveScene().path;
             foreach (string name in new[] { "MapDohwagolTest", "GameplayPreview" })
