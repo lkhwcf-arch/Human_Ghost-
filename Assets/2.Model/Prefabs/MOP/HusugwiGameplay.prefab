@@ -8,8 +8,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 4431834088010252383}
   - component: {fileID: 1185859332554086695}
+  - component: {fileID: 4431834088010252383}
   - component: {fileID: 5443279662782439812}
   m_Layer: 0
   m_Name: PreviewSprite
@@ -33,6 +33,28 @@ Transform:
   m_Children: []
   m_Father: {fileID: 2588694104025351059}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!95 &4431834088010252383
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1256115982110655389}
+  m_Enabled: 0
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 0}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage:
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!212 &5443279662782439812
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -137,7 +159,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b450a6f96d12b4745a97add2547973b3, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Adapters.MonsterRuntime
   _monsterId: 3001
   _patterns: {fileID: 11400000, guid: 983de56bb0d2481c9cfd5fd2929e48a6, type: 2}
@@ -151,11 +173,94 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 51ad19b83d5fac64595e86589895ee05, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Preview.MonsterPreviewLabel
   _runtime: {fileID: 2212268001790328552}
   _label: {fileID: 3058059833604738365}
   _displayName: "\uD5C8\uC218\uADC0"
+--- !u!114 &604006214194673792
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2804006214194673792}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a4d82f6e13b74c59b0e27f91c6d3a805, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  _renderer: {fileID: 5443279662782439812}
+  _fallback: {fileID: 2478190543172875839, guid: 1a42ad625eeb9eb46aa92144fbc8a361, type: 3}
+  _frames:
+  - _state: 10002
+    _sprite: {fileID: 852854943403322650, guid: cdfa558b2eac95e44bbd0cc7b319436e, type: 3}
+  - _state: 10003
+    _sprite: {fileID: -5795420617020302518, guid: 1f83f22b06708f54b8892bd7b99b4514, type: 3}
+  - _state: 10004
+    _sprite: {fileID: -631280861080028621, guid: 8c370e7b2c0353a4197d4fc1cac0a2a8, type: 3}
+  - _state: 10005
+    _sprite: {fileID: 55437460097370947, guid: 8d391838ff2ae1447a4ff79cba4a72a6, type: 3}
+  - _state: 10007
+    _sprite: {fileID: 952818350102794430, guid: 5bec1aacab6f4554db042e376a36ad23, type: 3}
+  - _state: 10008
+    _sprite: {fileID: 7456078196956146284, guid: b2b24e4a44414d343b17a3011b27d194, type: 3}
+  - _state: 10019
+    _sprite: {fileID: 7755199611440857709, guid: a58d16d24ed5b4b4bbb446b69a73d9fc, type: 3}
+  - _state: 10015
+    _sprite: {fileID: 3189917877515256400, guid: 8396d911a8abcc54fb948282d4a00219, type: 3}
+  - _state: 10016
+    _sprite: {fileID: 8202977276693823444, guid: e1f093330bf73d1469c443f1a49e6f4a, type: 3}
+  _animations:
+  - _state: 10001
+    _clip: {fileID: 7400000, guid: 79ec959f93bd7c34b8d7c0ed2aab3b7d, type: 2}
+    _hitFrames: []
+  - _state: 10002
+    _clip: {fileID: 7400000, guid: eb1a58c4e88faa9479413c5652502bd8, type: 2}
+    _hitFrames: []
+  - _state: 10003
+    _clip: {fileID: 7400000, guid: 9a162cf54dbc44c4da843616c5dedc46, type: 2}
+    _hitFrames: []
+  - _state: 10004
+    _clip: {fileID: 7400000, guid: 9da7103ec5728594d82644c856b63ca5, type: 2}
+    _hitFrames:
+    - _hit: 0
+      _first: 0
+      _contact: 7
+      _recovery: 8
+      _end: 13
+  - _state: 10005
+    _clip: {fileID: 7400000, guid: 81bcb67d085e2294bb0d86165f7f2918, type: 2}
+    _hitFrames:
+    - _hit: 0
+      _first: 0
+      _contact: 20
+      _recovery: 22
+      _end: 25
+  - _state: 10007
+    _clip: {fileID: 7400000, guid: a82823fc26f10e548bd393a198bf29af, type: 2}
+    _hitFrames: []
+  - _state: 10008
+    _clip: {fileID: 7400000, guid: 7f513c4663003d5408b15ea9415feaea, type: 2}
+    _hitFrames: []
+  - _state: 10009
+    _clip: {fileID: 7400000, guid: 9da7103ec5728594d82644c856b63ca5, type: 2}
+    _hitFrames:
+    - _hit: 0
+      _first: 0
+      _contact: 7
+      _recovery: 8
+      _end: 13
+  - _state: 10015
+    _clip: {fileID: 7400000, guid: d18b3b3feedfed640bf6babed09ab4dc, type: 2}
+    _hitFrames: []
+  - _state: 10016
+    _clip: {fileID: 7400000, guid: 723844867ecdb3d4b99e0c964f9f772c, type: 2}
+    _hitFrames: []
+  - _state: 10019
+    _clip: {fileID: 7400000, guid: 45a4b175e2801194ab9b5ead50d099e0, type: 2}
+    _hitFrames: []
+  _monster: {fileID: 2212268001790328552}
 --- !u!1 &3601632721913491720
 GameObject:
   m_ObjectHideFlags: 0
@@ -383,82 +488,3 @@ TextMesh:
   m_Color:
     serializedVersion: 2
     rgba: 4294967295
---- !u!114 &604006214194673792
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2804006214194673792}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a4d82f6e13b74c59b0e27f91c6d3a805, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
-  _monster: {fileID: 2212268001790328552}
-  _renderer: {fileID: 5443279662782439812}
-  _fallback: {fileID: 2478190543172875839, guid: 1a42ad625eeb9eb46aa92144fbc8a361, type: 3}
-  _frames:
-  - _state: 10002
-    _sprite: {fileID: 852854943403322650, guid: cdfa558b2eac95e44bbd0cc7b319436e, type: 3}
-  - _state: 10003
-    _sprite: {fileID: -5795420617020302518, guid: 1f83f22b06708f54b8892bd7b99b4514, type: 3}
-  - _state: 10004
-    _sprite: {fileID: -631280861080028621, guid: 8c370e7b2c0353a4197d4fc1cac0a2a8, type: 3}
-  - _state: 10005
-    _sprite: {fileID: 55437460097370947, guid: 8d391838ff2ae1447a4ff79cba4a72a6, type: 3}
-  - _state: 10007
-    _sprite: {fileID: 952818350102794430, guid: 5bec1aacab6f4554db042e376a36ad23, type: 3}
-  - _state: 10008
-    _sprite: {fileID: 7456078196956146284, guid: b2b24e4a44414d343b17a3011b27d194, type: 3}
-  - _state: 10019
-    _sprite: {fileID: 7755199611440857709, guid: a58d16d24ed5b4b4bbb446b69a73d9fc, type: 3}
-  - _state: 10015
-    _sprite: {fileID: 3189917877515256400, guid: 8396d911a8abcc54fb948282d4a00219, type: 3}
-  - _state: 10016
-    _sprite: {fileID: 8202977276693823444, guid: e1f093330bf73d1469c443f1a49e6f4a, type: 3}
-  _animations:
-  - _state: 10001
-    _clip: {fileID: 7400000, guid: 79ec959f93bd7c34b8d7c0ed2aab3b7d, type: 2}
-  - _state: 10002
-    _clip: {fileID: 7400000, guid: eb1a58c4e88faa9479413c5652502bd8, type: 2}
-  - _state: 10003
-    _clip: {fileID: 7400000, guid: 9a162cf54dbc44c4da843616c5dedc46, type: 2}
-  - _state: 10004
-    _clip: {fileID: 7400000, guid: 9da7103ec5728594d82644c856b63ca5, type: 2}
-  - _state: 10005
-    _clip: {fileID: 7400000, guid: 81bcb67d085e2294bb0d86165f7f2918, type: 2}
-  - _state: 10007
-    _clip: {fileID: 7400000, guid: a82823fc26f10e548bd393a198bf29af, type: 2}
-  - _state: 10008
-    _clip: {fileID: 7400000, guid: 7f513c4663003d5408b15ea9415feaea, type: 2}
-  - _state: 10009
-    _clip: {fileID: 7400000, guid: 9da7103ec5728594d82644c856b63ca5, type: 2}
-  - _state: 10015
-    _clip: {fileID: 7400000, guid: d18b3b3feedfed640bf6babed09ab4dc, type: 2}
-  - _state: 10016
-    _clip: {fileID: 7400000, guid: 723844867ecdb3d4b99e0c964f9f772c, type: 2}
-  - _state: 10019
-    _clip: {fileID: 7400000, guid: 45a4b175e2801194ab9b5ead50d099e0, type: 2}
---- !u!95 &4431834088010252383
-Animator:
-  serializedVersion: 7
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1256115982110655389}
-  m_Enabled: 0
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 0}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_AnimatePhysics: 0
-  m_WarningMessage:
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0

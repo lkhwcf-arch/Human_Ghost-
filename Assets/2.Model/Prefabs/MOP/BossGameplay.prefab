@@ -41,8 +41,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 3554857252992891677}
   - component: {fileID: 1737173322645125178}
+  - component: {fileID: 3554857252992891677}
   - component: {fileID: 6237389046124455517}
   m_Layer: 0
   m_Name: PreviewSprite
@@ -66,6 +66,28 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1582662635946005552}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!95 &3554857252992891677
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1923802054995148918}
+  m_Enabled: 0
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 0}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage:
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!212 &6237389046124455517
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -186,35 +208,74 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cc5efb128da0f6e453b79c028abe0d5c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Preview.PreviewBossSprite
-  _boss: {fileID: 818725543056190857}
   _renderer: {fileID: 6237389046124455517}
-  _body: {fileID: 3777643855908687980}
-  _bodyOffsetX: 0.87
+  _fallback: {fileID: 0}
+  _frames: []
   _animations:
   - _state: 10001
     _clip: {fileID: 7400000, guid: a2fc3d8aca3551d4495dd7cb180a0925, type: 2}
+    _hitFrames: []
   - _state: 10002
     _clip: {fileID: 7400000, guid: 51d17e760bfccfb4baf9e75d4566527c, type: 2}
+    _hitFrames: []
   - _state: 10003
     _clip: {fileID: 7400000, guid: a5b38263de94b7f4ea637c5230be312d, type: 2}
+    _hitFrames: []
   - _state: 10004
     _clip: {fileID: 7400000, guid: 4dd8b761ca7a65a42a50a6f2960d93d8, type: 2}
+    _hitFrames:
+    - _hit: 0
+      _first: 0
+      _contact: 6
+      _recovery: 8
+      _end: 13
   - _state: 10005
     _clip: {fileID: 7400000, guid: b45417b280ede844eabdf02cb2286618, type: 2}
+    _hitFrames:
+    - _hit: 0
+      _first: 0
+      _contact: 8
+      _recovery: 10
+      _end: 13
+    - _hit: 1
+      _first: 13
+      _contact: 21
+      _recovery: 24
+      _end: 26
   - _state: 10006
     _clip: {fileID: 7400000, guid: 80c1aa041b85e9e45b8330a69232a1ad, type: 2}
+    _hitFrames:
+    - _hit: 0
+      _first: 0
+      _contact: 8
+      _recovery: 10
+      _end: 13
   - _state: 10008
     _clip: {fileID: 7400000, guid: a5b38263de94b7f4ea637c5230be312d, type: 2}
+    _hitFrames: []
   - _state: 10009
     _clip: {fileID: 7400000, guid: 4dd8b761ca7a65a42a50a6f2960d93d8, type: 2}
+    _hitFrames:
+    - _hit: 0
+      _first: 0
+      _contact: 6
+      _recovery: 8
+      _end: 13
   - _state: 10014
     _clip: {fileID: 7400000, guid: a5b38263de94b7f4ea637c5230be312d, type: 2}
+    _hitFrames: []
   - _state: 10016
     _clip: {fileID: 7400000, guid: 509bf33ef2807b0499773fcd88eefda5, type: 2}
+    _hitFrames: []
   - _state: 10019
     _clip: {fileID: 7400000, guid: a5b38263de94b7f4ea637c5230be312d, type: 2}
+    _hitFrames: []
   - _state: 10023
     _clip: {fileID: 7400000, guid: a2fc3d8aca3551d4495dd7cb180a0925, type: 2}
+    _hitFrames: []
+  _boss: {fileID: 818725543056190857}
+  _body: {fileID: 3777643855908687980}
+  _bodyOffsetX: 0.87
 --- !u!1 &4241154001942279107
 GameObject:
   m_ObjectHideFlags: 0
@@ -408,25 +469,3 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!95 &3554857252992891677
-Animator:
-  serializedVersion: 7
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1923802054995148918}
-  m_Enabled: 0
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 0}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_AnimatePhysics: 0
-  m_WarningMessage:
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0

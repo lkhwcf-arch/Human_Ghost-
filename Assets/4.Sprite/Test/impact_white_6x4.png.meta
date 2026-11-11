@@ -1,0 +1,942 @@
+fileFormatVersion: 2
+guid: 588cd841d81d42e4a93fd3c7ddbda2ea
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 8942295954974873776
+    second: impact_white_6x4_0
+  - first:
+      213: 5776157418671107825
+    second: impact_white_6x4_1
+  - first:
+      213: -3686269490716212128
+    second: impact_white_6x4_2
+  - first:
+      213: -5061723483202417639
+    second: impact_white_6x4_3
+  - first:
+      213: 3362653452843151625
+    second: impact_white_6x4_4
+  - first:
+      213: 3243722557266555031
+    second: impact_white_6x4_5
+  - first:
+      213: 8825527848429672361
+    second: impact_white_6x4_6
+  - first:
+      213: -9030174083028376518
+    second: impact_white_6x4_7
+  - first:
+      213: 2114479308044995906
+    second: impact_white_6x4_8
+  - first:
+      213: 5158553888192445677
+    second: impact_white_6x4_9
+  - first:
+      213: -4763308993630572900
+    second: impact_white_6x4_10
+  - first:
+      213: 8906804026904491724
+    second: impact_white_6x4_11
+  - first:
+      213: 1971949653949872824
+    second: impact_white_6x4_12
+  - first:
+      213: 5668043444607941890
+    second: impact_white_6x4_13
+  - first:
+      213: -6785608390808689942
+    second: impact_white_6x4_14
+  - first:
+      213: 7960996476066835654
+    second: impact_white_6x4_15
+  - first:
+      213: -8936360806777126394
+    second: impact_white_6x4_16
+  - first:
+      213: 2289171396592531260
+    second: impact_white_6x4_17
+  - first:
+      213: -1325947218117009379
+    second: impact_white_6x4_18
+  - first:
+      213: -8785894025503719120
+    second: impact_white_6x4_19
+  - first:
+      213: 1134939616904954214
+    second: impact_white_6x4_20
+  - first:
+      213: -8174507804744892898
+    second: impact_white_6x4_21
+  - first:
+      213: 3620386409032457747
+    second: impact_white_6x4_22
+  - first:
+      213: -4439077044379431237
+    second: impact_white_6x4_23
+  - first:
+      213: 723793156231044037
+    second: impact_white_6x4_24
+  - first:
+      213: 7049289432050865800
+    second: impact_white_6x4_25
+  - first:
+      213: 2247838830807382638
+    second: impact_white_6x4_26
+  - first:
+      213: -828728909690532070
+    second: impact_white_6x4_27
+  - first:
+      213: 6299109994055483191
+    second: impact_white_6x4_28
+  - first:
+      213: -5908197543490134214
+    second: impact_white_6x4_29
+  - first:
+      213: -6910109096355867232
+    second: impact_white_6x4_30
+  - first:
+      213: 6555321121602314875
+    second: impact_white_6x4_31
+  - first:
+      213: -1707921425364870097
+    second: impact_white_6x4_32
+  - first:
+      213: -6692047603600935709
+    second: impact_white_6x4_33
+  - first:
+      213: 5847903891535106431
+    second: impact_white_6x4_34
+  - first:
+      213: -8820360418626331115
+    second: impact_white_6x4_35
+  - first:
+      213: -432060472456408810
+    second: impact_white_6x4_36
+  - first:
+      213: 7595447315442331084
+    second: impact_white_6x4_37
+  - first:
+      213: -4561427559023926864
+    second: impact_white_6x4_38
+  - first:
+      213: -8474055980089267602
+    second: impact_white_6x4_39
+  - first:
+      213: 7867286369198408951
+    second: impact_white_6x4_40
+  - first:
+      213: -2461186827537042200
+    second: impact_white_6x4_41
+  - first:
+      213: 2404197687290293222
+    second: impact_white_6x4_42
+  - first:
+      213: -3239141397264034982
+    second: impact_white_6x4_43
+  - first:
+      213: -3072169666842554641
+    second: impact_white_6x4_44
+  - first:
+      213: -8648829041256569172
+    second: impact_white_6x4_45
+  - first:
+      213: -6157624410907445769
+    second: impact_white_6x4_46
+  - first:
+      213: -7091500184219676970
+    second: impact_white_6x4_47
+  - first:
+      213: 2454090241871761900
+    second: impact_white_6x4_48
+  - first:
+      213: -5010330522423125305
+    second: impact_white_6x4_49
+  - first:
+      213: 4685531994707466869
+    second: impact_white_6x4_50
+  - first:
+      213: 2021606075948539276
+    second: impact_white_6x4_51
+  - first:
+      213: -7383716849074624609
+    second: impact_white_6x4_52
+  - first:
+      213: -7566144490181965580
+    second: impact_white_6x4_53
+  - first:
+      213: 4569542821442478468
+    second: impact_white_6x4_54
+  - first:
+      213: 7964887200461305963
+    second: impact_white_6x4_55
+  - first:
+      213: -2118609367110995410
+    second: impact_white_6x4_56
+  - first:
+      213: 2825189701598227339
+    second: impact_white_6x4_57
+  - first:
+      213: 7390208324705513825
+    second: impact_white_6x4_58
+  - first:
+      213: 1724922493278180785
+    second: impact_white_6x4_59
+  - first:
+      213: -3414813812269813458
+    second: impact_white_6x4_60
+  - first:
+      213: 46094695015901438
+    second: impact_white_6x4_61
+  - first:
+      213: -1716597151261864575
+    second: impact_white_6x4_62
+  - first:
+      213: -7105514862043367612
+    second: impact_white_6x4_63
+  - first:
+      213: -6020918571316323039
+    second: impact_white_6x4_64
+  - first:
+      213: 346620591851665669
+    second: impact_white_6x4_65
+  - first:
+      213: -2378426922627050470
+    second: impact_white_6x4_66
+  - first:
+      213: 6238599678239304572
+    second: impact_white_6x4_67
+  - first:
+      213: -7368229793012762139
+    second: impact_white_6x4_68
+  - first:
+      213: 7887047018220620591
+    second: impact_white_6x4_69
+  - first:
+      213: -3426859803948265771
+    second: impact_white_6x4_70
+  - first:
+      213: 4192361164790260607
+    second: impact_white_6x4_71
+  - first:
+      213: -5866879810918513479
+    second: impact_white_6x4_72
+  - first:
+      213: -73319952386507512
+    second: impact_white_6x4_73
+  - first:
+      213: -1470507125029748796
+    second: impact_white_6x4_74
+  - first:
+      213: 7331726877920737289
+    second: impact_white_6x4_75
+  - first:
+      213: -1999329451361968200
+    second: impact_white_6x4_76
+  - first:
+      213: 8038084172543638026
+    second: impact_white_6x4_77
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 0
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 291
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: ParryImpact_00
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1214
+        width: 291
+        height: 291
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0b890b0faca691c70800000000000000
+      internalID: 8942295954974873776
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ParryImpact_01
+      rect:
+        serializedVersion: 2
+        x: 291
+        y: 1214
+        width: 291
+        height: 291
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1fee0a2a198092050800000000000000
+      internalID: 5776157418671107825
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ParryImpact_02
+      rect:
+        serializedVersion: 2
+        x: 582
+        y: 1214
+        width: 291
+        height: 291
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 064008bcd6db7dcc0800000000000000
+      internalID: -3686269490716212128
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ParryImpact_03
+      rect:
+        serializedVersion: 2
+        x: 873
+        y: 1214
+        width: 291
+        height: 291
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 91c87786f4521c9b0800000000000000
+      internalID: -5061723483202417639
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ParryImpact_04
+      rect:
+        serializedVersion: 2
+        x: 1164
+        y: 1214
+        width: 291
+        height: 291
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 901f47fcf7b8aae20800000000000000
+      internalID: 3362653452843151625
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ParryImpact_05
+      rect:
+        serializedVersion: 2
+        x: 1455
+        y: 1214
+        width: 291
+        height: 291
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7907bc7da74040d20800000000000000
+      internalID: 3243722557266555031
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ParryImpact_06
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 923
+        width: 291
+        height: 291
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9a7d7f881d29a7a70800000000000000
+      internalID: 8825527848429672361
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ParryImpact_07
+      rect:
+        serializedVersion: 2
+        x: 291
+        y: 923
+        width: 291
+        height: 291
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a34a721f3806ea280800000000000000
+      internalID: -9030174083028376518
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ParryImpact_08
+      rect:
+        serializedVersion: 2
+        x: 582
+        y: 923
+        width: 291
+        height: 291
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 24d8fe84ab3285d10800000000000000
+      internalID: 2114479308044995906
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ParryImpact_09
+      rect:
+        serializedVersion: 2
+        x: 873
+        y: 923
+        width: 291
+        height: 291
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: decbb6c1e6dd69740800000000000000
+      internalID: 5158553888192445677
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ParryImpact_10
+      rect:
+        serializedVersion: 2
+        x: 1164
+        y: 923
+        width: 291
+        height: 291
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c9ee93715b355edb0800000000000000
+      internalID: -4763308993630572900
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ParryImpact_11
+      rect:
+        serializedVersion: 2
+        x: 1455
+        y: 923
+        width: 291
+        height: 291
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cc639ab72135b9b70800000000000000
+      internalID: 8906804026904491724
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ParryImpact_12
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 632
+        width: 291
+        height: 291
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8baf2ae23c5cd5b10800000000000000
+      internalID: 1971949653949872824
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ParryImpact_13
+      rect:
+        serializedVersion: 2
+        x: 291
+        y: 632
+        width: 291
+        height: 291
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 20d76577b7fe8ae40800000000000000
+      internalID: 5668043444607941890
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ParryImpact_14
+      rect:
+        serializedVersion: 2
+        x: 582
+        y: 632
+        width: 291
+        height: 291
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ae220f8ce1da4d1a0800000000000000
+      internalID: -6785608390808689942
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ParryImpact_15
+      rect:
+        serializedVersion: 2
+        x: 873
+        y: 632
+        width: 291
+        height: 291
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6cca916ad142b7e60800000000000000
+      internalID: 7960996476066835654
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ParryImpact_16
+      rect:
+        serializedVersion: 2
+        x: 1164
+        y: 632
+        width: 291
+        height: 291
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 602835f613babf380800000000000000
+      internalID: -8936360806777126394
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ParryImpact_17
+      rect:
+        serializedVersion: 2
+        x: 1455
+        y: 632
+        width: 291
+        height: 291
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c37f1e3b145c4cf10800000000000000
+      internalID: 2289171396592531260
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ParryImpact_18
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 341
+        width: 291
+        height: 291
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d10e731c70a499de0800000000000000
+      internalID: -1325947218117009379
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ParryImpact_19
+      rect:
+        serializedVersion: 2
+        x: 291
+        y: 341
+        width: 291
+        height: 291
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 031cf97feeb321680800000000000000
+      internalID: -8785894025503719120
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ParryImpact_20
+      rect:
+        serializedVersion: 2
+        x: 582
+        y: 341
+        width: 291
+        height: 291
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6614323819d10cf00800000000000000
+      internalID: 1134939616904954214
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ParryImpact_21
+      rect:
+        serializedVersion: 2
+        x: 873
+        y: 341
+        width: 291
+        height: 291
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e1eb58446705e8e80800000000000000
+      internalID: -8174507804744892898
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ParryImpact_22
+      rect:
+        serializedVersion: 2
+        x: 1164
+        y: 341
+        width: 291
+        height: 291
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 31e1804e1423e3230800000000000000
+      internalID: 3620386409032457747
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ParryImpact_23
+      rect:
+        serializedVersion: 2
+        x: 1455
+        y: 341
+        width: 291
+        height: 291
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bbe4c2782fa3562c0800000000000000
+      internalID: -4439077044379431237
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    outline: []
+    customData:
+    physicsShape: []
+    bones: []
+    spriteID: 7d7ab42dbe77bc547bac1e35cd6d8035
+    internalID: 0
+    vertices: []
+    indices:
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      ParryImpact_00: 8942295954974873776
+      ParryImpact_01: 5776157418671107825
+      ParryImpact_02: -3686269490716212128
+      ParryImpact_03: -5061723483202417639
+      ParryImpact_04: 3362653452843151625
+      ParryImpact_05: 3243722557266555031
+      ParryImpact_06: 8825527848429672361
+      ParryImpact_07: -9030174083028376518
+      ParryImpact_08: 2114479308044995906
+      ParryImpact_09: 5158553888192445677
+      ParryImpact_10: -4763308993630572900
+      ParryImpact_11: 8906804026904491724
+      ParryImpact_12: 1971949653949872824
+      ParryImpact_13: 5668043444607941890
+      ParryImpact_14: -6785608390808689942
+      ParryImpact_15: 7960996476066835654
+      ParryImpact_16: -8936360806777126394
+      ParryImpact_17: 2289171396592531260
+      ParryImpact_18: -1325947218117009379
+      ParryImpact_19: -8785894025503719120
+      ParryImpact_20: 1134939616904954214
+      ParryImpact_21: -8174507804744892898
+      ParryImpact_22: 3620386409032457747
+      ParryImpact_23: -4439077044379431237
+  mipmapLimitGroupName:
+  pSDRemoveMatte: 0
+  userData:
+  assetBundleName:
+  assetBundleVariant:

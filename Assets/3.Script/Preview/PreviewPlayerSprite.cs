@@ -60,7 +60,7 @@ namespace HumanGhost.Gameplay.Preview
         }
         private void OnPresentationCue(string cue)
         {
-            if (cue == "Parry" || cue == "ActionExit") { _action = null; RestartAnimation(); return; }
+            if (cue == "Parry" || cue == "ActionExit" || cue == "ClimbExit") { _action = null; RestartAnimation(); return; }
             if (cue == "LadderExit") { _onLadder = false; _ladderDirection = 0; return; }
             if (cue == "LadderUp" || cue == "LadderDown" || cue == "LadderHold")
             {
@@ -69,7 +69,7 @@ namespace HumanGhost.Gameplay.Preview
                 _action = null;
                 return;
             }
-            _action = cue == "Climb" ? _climb : cue == "Save" ? _save : null;
+            _action = cue == "Save" ? _save : null;
             _actionElapsed = 0f;
             if (_action != null) RestartAnimation();
         }
@@ -95,6 +95,7 @@ namespace HumanGhost.Gameplay.Preview
         protected override AnimationClip SelectAnimation(StateKey state)
         {
             if (_player.Actor.IsParrying) return base.SelectAnimation(StateKey.Attack1);
+            if (state == StateKey.Hang && _player.ClimbProgress >= 0f && _climb != null) return _climb;
             if (_onLadder && state == StateKey.Hang && _ladderClimb != null) return _ladderClimb;
             if (_action != null)
             {
@@ -104,6 +105,15 @@ namespace HumanGhost.Gameplay.Preview
             return state == StateKey.Attack1 && _airAttack != null &&
                 (!_player.Actor.Locomotion.IsGrounded || CurrentAnimation == _airAttack)
                 ? _airAttack : base.SelectAnimation(state);
+        }
+        protected override bool TryGetAnimationTime(StateKey state, AnimationClip animation, out float time)
+        {
+            if (state == StateKey.Hang && _player.ClimbProgress >= 0f && animation == _climb)
+            {
+                time = _player.ClimbProgress * animation.length;
+                return true;
+            }
+            time = 0f; return false;
         }
         protected override float Duration(StateKey state)
         {

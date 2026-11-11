@@ -80,6 +80,8 @@ namespace HumanGhost.Gameplay.Preview
         private PreviewMonsterDriver[] _monsterDrivers = Array.Empty<PreviewMonsterDriver>();
         private PreviewDeathRestart _deathRestart;
         private PreviewCombatFeedback _feedback;
+        private PreviewParryFeedback _parryFeedback;
+        [SerializeField] private SpriteClipEffect _parryImpactPrefab = null;
         private PlayerAnimationAudio _playerAudio;
         private readonly PreviewPresentation _presentation = new PreviewPresentation();
         private SubscriptionScope _interactionScope;
@@ -114,7 +116,7 @@ namespace HumanGhost.Gameplay.Preview
         }
 
         public bool IsReady => _subscribed;
-        private void OnParrySucceeded(int milliseconds) => _feedback?.OnParry(milliseconds);
+        private void OnParrySucceeded(int milliseconds) => _parryFeedback?.Show(milliseconds, _player.transform.position + Vector3.right * _actor.Facing * 0.6f);
         public PlayerRuntime Player => _player;
         public BossRuntime Boss => _boss;
 
@@ -233,6 +235,7 @@ namespace HumanGhost.Gameplay.Preview
             _presentation.Reset();
             _feedback?.Dispose();
             _feedback = null;
+            _parryFeedback?.Dispose(); _parryFeedback = null;
             DisconnectSaves();
             if (_data != null) _data.Initialized -= OnDataReady;
             // 초기화 도중 실패해도 이미 연결한 소비자는 반드시 해제합니다.
@@ -586,6 +589,8 @@ namespace HumanGhost.Gameplay.Preview
             _lastHealth = _actor.Health;
             _feedback?.Dispose();
             _feedback = new PreviewCombatFeedback(_speed, _followCamera, _audio, _feedbackTextPrefab, catalog.GetTable<Language>().Get(30021).KO);
+            _parryFeedback?.Dispose();
+            _parryFeedback = new PreviewParryFeedback(_speed, _followCamera, _audio, _parryImpactPrefab);
             if (_bossDriver != null)
             {
                 _bossDriver.PlayerHit += OnBossHitPlayer;
@@ -710,6 +715,7 @@ namespace HumanGhost.Gameplay.Preview
 
         private void LateUpdate()
         {
+            _parryFeedback?.Step(Time.unscaledDeltaTime);
             // 도착 준비 후에도 로딩 화면이 닫힐 때까지 이동·출구 판정을 재개하지 않습니다.
             if (_subscribed && _loadingLocked != LoadingScreen.IsActive) SetGameInputLocked(false);
             StepShrineClose();
