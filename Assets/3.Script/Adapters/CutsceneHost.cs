@@ -19,14 +19,24 @@ namespace HumanGhost.Gameplay.Adapters
         private int _prepareElapsedMs;
         private MillisecondClock _clock;
         public bool IsBusy => _scope != null;
+        public void ConnectModals(ErrorPopupSceneBinding modals)
+        {
+            if (IsBusy) throw new InvalidOperationException("컷씬 실행 중에는 모달 연결을 바꿀 수 없습니다.");
+            _modals = modals != null ? modals : throw new ArgumentNullException(nameof(modals));
+        }
 
-        public bool TryPlay(IReadOnlyDataCatalog data, int cutsceneId, GameAudio audio = null)
+        public bool TryPlay(IReadOnlyDataCatalog data, int cutsceneId, GameAudio audio = null, SkipScope? skipScope = null)
         {
             if (!isActiveAndEnabled || IsBusy || _result.HasValue) return false;
             if (_screen == null || !_screen.isActiveAndEnabled || _screen.IsRunning || _input == null
                 || !_input.gameObject.activeInHierarchy || _input.Screen != _screen || _modals == null || !_modals.isActiveAndEnabled)
                 throw new InvalidOperationException("컷씬 실행 담당의 활성 화면·같은 화면을 사용하는 입력·씬 공통 모달 연결을 확인해 주세요.");
             CutsceneSequence sequence = CutsceneSequenceSource.Create(data, cutsceneId);
+            if (skipScope.HasValue)
+            {
+                _input.enabled = false;
+                _input.SetScope(skipScope.Value);
+            }
             _input.Validate();
             var scope = new SubscriptionScope();
             _scope = scope;

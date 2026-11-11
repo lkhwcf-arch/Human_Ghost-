@@ -2440,6 +2440,7 @@ MonoBehaviour:
   _settingsPrefab: {fileID: 2276423292438099812, guid: 3630c8befda035a44bbae39d76ba4328, type: 3}
   _input: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   _newGameScene: MapDohwagolTest
+  _cutscenePrefab: {fileID: 1006, guid: d354d58fb3ac4cf29f2720b5b2038207, type: 3}
   _saveSubdirectory: Saves/Demo
   _saveVersion: 1
   _backgroundVideo: {fileID: 2069810174154099751}

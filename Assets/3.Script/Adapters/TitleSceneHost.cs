@@ -11,6 +11,7 @@ namespace HumanGhost.Gameplay.Adapters
     // 데이터 준비 뒤 메뉴·화면·입력을 조립합니다. 실행 담당은 외부에서 명시적으로 연결합니다.
     public sealed class TitleSceneHost : MonoBehaviour, IModalInputTarget
     {
+        public ErrorPopupSceneBinding Modals => _errors;
         [SerializeField] private GameDataInitializer _initializer = null;
         [SerializeField] private TitleScreen _screen = null;
         [SerializeField, InspectorName("에러 팝업 연결")] private ErrorPopupSceneBinding _errors = null;

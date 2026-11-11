@@ -16,10 +16,15 @@ namespace HumanGhost.Gameplay.Adapters
         private bool _blocked;
         public CutsceneScreen Screen => _screen;
         public bool IsReady => _ownedAdvance != null && _skip != null;
+        public void SetScope(SkipScope scope)
+        {
+            if (IsReady) throw new InvalidOperationException("컷씬 입력을 비활성화한 뒤 범위를 변경해 주세요.");
+            _scope = scope;
+        }
         public void Validate()
         {
-            if (_screen == null || _advance == null || _advance.action == null)
-                throw new InvalidOperationException("컷씬 화면과 다음 장 입력을 연결해 주세요.");
+            if (_screen == null)
+                throw new InvalidOperationException("컷씬 화면을 연결해 주세요.");
             if (_scope != SkipScope.Cutscene && _scope != SkipScope.Video)
                 throw new InvalidOperationException("컷씬 입력의 범위는 컷씬 전체 또는 영상 하나로 설정해 주세요.");
         }
@@ -29,7 +34,8 @@ namespace HumanGhost.Gameplay.Adapters
             Validate();
             try
             {
-                _ownedAdvance = _advance.action.Clone();
+                _ownedAdvance = _advance != null && _advance.action != null ? _advance.action.Clone()
+                    : new InputAction("AdvanceCutscene", InputActionType.Button, "<Keyboard>/x");
                 _ownedAdvance.performed += OnAdvance;
                 _ownedAdvance.Enable();
                 _skip = new SkipKeyInput(() => !_blocked && _screen != null && _screen.CanSkip(_scope), Skip);
