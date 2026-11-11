@@ -43,18 +43,15 @@ namespace HumanGhost.Gameplay
     {
         public string Key { get; }
         public IReadOnlyList<CutsceneStep> Steps { get; }
-        public int SkipHoldMs { get; }
 
-        public CutsceneSequence(string key, IEnumerable<CutsceneStep> steps, int skipHoldMs)
+        public CutsceneSequence(string key, IEnumerable<CutsceneStep> steps)
         {
             if (string.IsNullOrWhiteSpace(key)) throw new ArgumentException("컷씬 식별 키가 필요합니다.", nameof(key));
             if (steps == null) throw new ArgumentNullException(nameof(steps));
-            if (skipHoldMs <= 0) throw new ArgumentOutOfRangeException(nameof(skipHoldMs));
             var owned = new List<CutsceneStep>(steps);
             if (owned.Count == 0 || owned.Contains(null)) throw new ArgumentException("컷씬에는 유효한 재생 구간이 필요합니다.", nameof(steps));
             Key = key;
             Steps = owned.AsReadOnly();
-            SkipHoldMs = skipHoldMs;
         }
     }
 }

@@ -36,6 +36,7 @@ namespace HumanGhost.Gameplay.Adapters
         [SerializeField, InspectorName("저장 하위 폴더")] private string _saveSubdirectory = "Saves/Demo";
         [SerializeField, InspectorName("지원 저장 버전")] private int _saveVersion = 1;
         [SerializeField, InspectorName("공용 컷씬 실행 담당")] private CutsceneHost _cutscenes = null;
+        [SerializeField, InspectorName("공용 컷씬 프리팹")] private CutsceneHost _cutscenePrefab = null;
         private GameObject _menuRoot;
 
         public void SetModalBlocked(bool blocked)
@@ -232,7 +233,7 @@ namespace HumanGhost.Gameplay.Adapters
         private bool LoadRecord(SaveRecord record) => EnterGame(record);
         private bool EnterGame(SaveRecord record)
         {
-            if (_modalBlocked || _records == null || _saveStore == null) return false;
+            if (_modalBlocked || _introPending || LoadingScreen.IsActive || _records == null || _saveStore == null) return false;
             if (_data == null || _data.Data == null || _loadingPrefab == null) return false;
             var records = record == null ? _records : _records.Where(row => row.Slot != record.Slot).Append(record).ToArray();
             var gates = _data.Data.GetTable<HumanGhost.Data.Definitions.GateConfig>();

@@ -10,7 +10,7 @@ using UnityEngine.Video;
 namespace HumanGhost.Gameplay.Presentation
 {
     // 재생 규칙은 기존 코어가 담당합니다. 이 화면은 표시와 준비 리소스만 소유합니다.
-    public class CutsceneScreen : MonoBehaviour
+    public class CutsceneScreen : MonoBehaviour, ISkipTarget
     {
         [SerializeField, InspectorName("화면 캔버스")] private Canvas _canvas = null;
         [SerializeField, InspectorName("표시 묶음")] private CanvasGroup _group = null;
@@ -34,6 +34,8 @@ namespace HumanGhost.Gameplay.Presentation
         private bool _paused;
         public bool IsRunning => _playback.IsRunning;
         public event Action<CutsceneEndReason> Finished;
+        public event Action SkipAvailabilityChanged;
+        private void NotifySkipAvailability() => SkipAvailabilityChanged?.Invoke();
 
         public void Connect(LanguageTextSource text, LanguageCode language,
             IAssetSource<Sprite> images = null, IAssetSource<VideoClip> videos = null)
@@ -99,12 +101,22 @@ namespace HumanGhost.Gameplay.Presentation
         }
 
         public void Advance() => _playback.Advance();
-        public void SetSkipHeld(bool held) => _playback.SetSkipHeld(held);
+        public bool CanSkip(SkipScope scope) => isActiveAndEnabled && !_paused && IsRunning &&
+            (scope == SkipScope.Cutscene || scope == SkipScope.Video && _playback.Current.Media == CutsceneMedia.Video);
+        public bool TrySkip(SkipScope scope)
+        {
+            if (!CanSkip(scope)) return false;
+            bool skipped = scope == SkipScope.Cutscene ? _playback.Skip() : _playback.SkipVideo();
+            // 다음 표시는 기존 갱신에 맡기고 이전 영상은 즉시 정리합니다.
+            if (skipped) ReleaseDisplay();
+            return skipped;
+        }
         public void Cancel() { _playback.Cancel(); CompleteIfEnded(); }
         public void SetPaused(bool paused)
         {
             if (_paused == paused) return;
             _paused = paused;
+            NotifySkipAvailability();
             _clock = default;
             if (_video != null && _playback.State == CutscenePlaybackState.Playing)
             {
@@ -123,12 +135,18 @@ namespace HumanGhost.Gameplay.Presentation
             if (_group != null) { _group.alpha = 0f; _group.blocksRaycasts = false; }
         }
 
-        protected virtual void OnEnable() => _playback.Finished += OnFinished;
+        protected virtual void OnEnable()
+        {
+            _playback.Finished += OnFinished;
+            _playback.Changed += NotifySkipAvailability;
+        }
         private void OnFinished(CutsceneEndReason reason) => _finished = reason;
         protected virtual void OnDisable()
         {
             Disconnect();
             _playback.Finished -= OnFinished;
+            _playback.Changed -= NotifySkipAvailability;
+            NotifySkipAvailability();
         }
 
         protected virtual void Update()

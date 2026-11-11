@@ -113,6 +113,7 @@ namespace HumanGhost.Gameplay.Preview
             _motion?.DiscardBufferedInput();
             _input?.SetModalBlocked(blocked);
             if (_pause != null) _pause.SetModalBlocked(blocked);
+            RefreshDialogueSkipHint();
         }
 
         public bool IsReady => _subscribed;
@@ -323,12 +324,18 @@ namespace HumanGhost.Gameplay.Preview
         private void OnTextboxChanged(bool open) => SetGameInputLocked(open);
 
         private bool _loadingLocked;
+        private void RefreshDialogueSkipHint()
+        {
+            if (_textbox != null) _textbox.BlockSkipHint(_modalBlocked || _saveLocked || _leaving || LoadingScreen.IsActive ||
+                _actor == null || _actor.IsDead || (_pause != null && _pause.IsOpen));
+        }
         private void SetGameInputLocked(bool locked)
         {
             _loadingLocked = LoadingScreen.IsActive;
             _motion?.DiscardBufferedInput();
             _input.DiscardBufferedInput();
             _input.SetLocked(locked || _loadingLocked || _saveLocked || _leaving || _actor.IsDead || (_textbox != null && _textbox.IsOpen) || (_pause != null && _pause.IsOpen));
+            RefreshDialogueSkipHint();
         }
         private void OnPlayerHealthChanged(int health) { if (_textbox != null) _textbox.Close(); }
 
@@ -341,6 +348,14 @@ namespace HumanGhost.Gameplay.Preview
             TextboxScreen textbox = _textbox;
             PlayerActor actor = _actor;
             SubscriptionScope scope = _interactionScope;
+            textbox.ConnectSkipHint(new LanguageTextSource(catalog), LanguageCode.Korean);
+            scope.Add(textbox.DisconnectSkipHint);
+            RefreshDialogueSkipHint();
+            var skip = new SkipKeyInput(
+                () => !scope.IsDisposed && !_modalBlocked && !_saveLocked && !_leaving && !LoadingScreen.IsActive &&
+                    (_pause == null || !_pause.IsOpen) && textbox != null && textbox.CanSkip(SkipScope.Dialogue),
+                () => textbox.TrySkip(SkipScope.Dialogue));
+            scope.Add(skip.Dispose);
             Action advance = scope.Guard(OnAdvance);
             Action<bool> openChanged = scope.Guard<bool>(OnTextboxChanged);
             Action<int> playerHealthChanged = scope.Guard<int>(OnPlayerHealthChanged);

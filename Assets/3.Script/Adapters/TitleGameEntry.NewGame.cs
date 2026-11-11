@@ -69,15 +69,35 @@ namespace HumanGhost.Gameplay.Adapters
 
         private bool BeginNewGame()
         {
-            if (_data == null || _data.Data == null) return false;
+            if (_modalBlocked || _introPending || _records == null || _saveStore == null || LoadingScreen.IsActive ||
+                _data == null || _data.Data == null) return false;
             _introCutsceneId = CutsceneSequenceSource.FindId(_data.Data, CutsceneSequenceSource.IntroKey);
             if (_introCutsceneId == 0) return EnterGame(null);
-            if (_modalBlocked || _introPending || _records == null || _saveStore == null) return false;
-            if (_cutscenes == null || _data == null || _data.Data == null)
-                throw new InvalidOperationException("인트로의 공용 실행 담당과 초기화가 완료된 데이터를 연결해 주세요.");
-            if (!_cutscenes.TryPlay(_data.Data, _introCutsceneId, _audio)) return false;
+            PrepareCutscenes();
+            if (!_cutscenes.TryPlay(_data.Data, _introCutsceneId, _audio, SkipScope.Cutscene)) return false;
             _introPending = true;
             return true;
+        }
+
+        private void PrepareCutscenes()
+        {
+            if (_cutscenes != null) return;
+            if (_cutscenePrefab == null || _host == null || _host.Modals == null)
+                throw new InvalidOperationException("인트로의 공용 컷씬 프리팹과 타이틀 모달 연결을 준비해 주세요.");
+            var root = new GameObject("TitleCutsceneScope", typeof(RectTransform));
+            root.SetActive(false);
+            root.transform.SetParent(transform, false);
+            var rect = (RectTransform)root.transform;
+            rect.anchorMin = Vector2.zero; rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero; rect.offsetMax = Vector2.zero;
+            try
+            {
+                var cutscenes = Instantiate(_cutscenePrefab, root.transform);
+                cutscenes.ConnectModals(_host.Modals);
+                root.SetActive(true);
+                _cutscenes = cutscenes;
+            }
+            catch { root.SetActive(false); Destroy(root); throw; }
         }
 
         private void LateUpdate()

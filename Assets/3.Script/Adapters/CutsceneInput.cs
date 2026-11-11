@@ -5,68 +5,70 @@ using UnityEngine.InputSystem;
 
 namespace HumanGhost.Gameplay.Adapters
 {
-    // 공유 입력 에셋을 변경하지 않습니다. 컷씬이 진행 중일 때만 선택한 명령을 전달합니다.
+    // 다음 장 입력은 유지하고 Enter는 공통 입력을 통해 즉시 스킵합니다.
     public class CutsceneInput : MonoBehaviour
     {
         [SerializeField, InspectorName("컷씬 화면")] private CutsceneScreen _screen = null;
         [SerializeField, InspectorName("다음 장 입력")] private InputActionReference _advance = null;
-        [SerializeField, InspectorName("건너뛰기 유지 입력")] private InputActionReference _skip = null;
-        private InputAction _ownedAdvance, _ownedSkip;
+        [SerializeField, InspectorName("Enter 스킵 범위")] private SkipScope _scope = SkipScope.Cutscene;
+        [SerializeField, InspectorName("스킵 안내")] private SkipHint _hint = null;
+        private InputAction _ownedAdvance;
+        private SkipKeyInput _skip;
         private bool _blocked;
         public CutsceneScreen Screen => _screen;
-        public bool IsReady => _ownedAdvance != null && _ownedSkip != null;
+        public bool IsReady => _ownedAdvance != null && _skip != null;
+        public void SetScope(SkipScope scope)
+        {
+            if (IsReady) throw new InvalidOperationException("컷씬 입력을 비활성화한 뒤 범위를 변경해 주세요.");
+            _scope = scope;
+        }
         public void Validate()
         {
-            if (_screen == null || _advance == null || _skip == null || _advance.action == null || _skip.action == null)
-                throw new InvalidOperationException("컷씬 화면·다음 장·건너뛰기 입력을 연결해 주세요.");
+            if (_screen == null)
+                throw new InvalidOperationException("컷씬 화면을 연결해 주세요.");
+            if (_scope != SkipScope.Cutscene && _scope != SkipScope.Video)
+                throw new InvalidOperationException("컷씬 입력의 범위는 컷씬 전체 또는 영상 하나로 설정해 주세요.");
         }
-        public void SetBlocked(bool blocked)
+        public void ConnectHint(LanguageTextSource text, LanguageCode language)
         {
-            _blocked = blocked;
-            if (blocked && _screen != null) _screen.SetSkipHeld(false);
+            if (_hint == null) throw new InvalidOperationException("컷씬의 공용 스킵 안내를 연결해 주세요.");
+            _hint.Connect(_screen, _scope, text, language);
+            _hint.SetBlocked(_blocked);
         }
-
+        public void SetBlocked(bool blocked) { _blocked = blocked; if (_hint != null) _hint.SetBlocked(blocked); }
         protected virtual void OnEnable()
         {
             Validate();
             try
             {
-                _ownedAdvance = _advance.action.Clone();
-                _ownedSkip = _skip.action.Clone();
+                _ownedAdvance = _advance != null && _advance.action != null ? _advance.action.Clone()
+                    : new InputAction("AdvanceCutscene", InputActionType.Button, "<Keyboard>/x");
                 _ownedAdvance.performed += OnAdvance;
-                _ownedSkip.performed += OnSkip;
-                _ownedSkip.canceled += OnSkip;
                 _ownedAdvance.Enable();
-                _ownedSkip.Enable();
+                _skip = new SkipKeyInput(() => !_blocked && _screen != null && _screen.CanSkip(_scope), Skip);
             }
             catch { Release(); throw; }
         }
-
         private void OnAdvance(InputAction.CallbackContext context)
         {
+            // Enter를 다음 장에도 배정했더라도 즉시 스킵과 이중 실행하지 않습니다.
+            if (context.control?.device is Keyboard keyboard &&
+                (context.control == keyboard.enterKey || context.control == keyboard.numpadEnterKey)) return;
             if (!_blocked && _screen != null && _screen.IsRunning) _screen.Advance();
         }
-        private void OnSkip(InputAction.CallbackContext context)
+        private void Skip()
         {
-            if (!_blocked && _screen != null && _screen.IsRunning) _screen.SetSkipHeld(context.ReadValueAsButton());
+            try { _screen.TrySkip(_scope); }
+            catch (Exception error) { Debug.LogException(error, this); }
         }
         protected virtual void OnDisable() => Release();
         private void Release()
         {
-            if (_screen != null) _screen.SetSkipHeld(false);
-            if (_ownedAdvance != null)
-            {
-                _ownedAdvance.performed -= OnAdvance;
-                _ownedAdvance.Dispose();
-                _ownedAdvance = null;
-            }
-            if (_ownedSkip != null)
-            {
-                _ownedSkip.performed -= OnSkip;
-                _ownedSkip.canceled -= OnSkip;
-                _ownedSkip.Dispose();
-                _ownedSkip = null;
-            }
+            if (_hint != null) _hint.Disconnect();
+            _skip?.Dispose(); _skip = null;
+            if (_ownedAdvance == null) return;
+            _ownedAdvance.performed -= OnAdvance;
+            _ownedAdvance.Dispose(); _ownedAdvance = null;
         }
     }
 }
