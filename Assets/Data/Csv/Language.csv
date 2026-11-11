@@ -42,7 +42,7 @@ ID,KO,EN
 30041,효과음,Sound Effects
 30042,카메라 흔들림,Camera Shake
 30043,언어,Language
-30044,길게 눌러 건너뛰기,Hold to skip
+30044,Enter키를 누르면 스킵됩니다.,Press Enter to skip.
 30045,곧 처음 화면으로 돌아갑니다,Returning to title soon
 30046,바꾼 옵션을 적용할까요?,Apply changes?
 30047,켜기,On
@@ -107,3 +107,35 @@ ID,KO,EN
 30230,회피 확률,Evasion Chance
 30231,패링 기력 소모,Parry Stamina Cost
 30232,어두도,Eodudo
+30070,장부방을 살펴보자,Examine the Jangbubang
+30071,남은 요괴가 있다,Spirits still remain
+30233,버선,Beoseon
+30234,마스터 음량,Master Volume
+30235,화면 모드,Display Mode
+30236,창모드,Windowed
+30237,전체 화면,Fullscreen
+30238,키보드 조작,Keyboard Layout
+30239,조작 방식을 고르세요,Choose your controls
+30240,A (방향키),A (Arrow Keys)
+30241,B (WASD),B (WASD)
+30242,방향키,Arrow Keys
+30243,왼쪽 스틱,Left Stick
+30244,아래 점프,Drop Down
+30245,위,Up
+30246,기술,Skill
+30247,약초 강화,Herb Upgrades
+30248,지닌 혼,Hon Held
+30249,지닌 엽전,Yeopjeon Held
+30250,바치기,Offer
+30251,강화하기,Upgrade
+30252,사용 가능한 강화가 없습니다.,No upgrades available.
+30253,{0} / {1} 단계,Step {0} / {1}
+30254,바칠 혼,Hon to Offer
+30255,필요 엽전,Yeopjeon Needed
+30256,남는 혼,Hon Left
+30257,남는 엽전,Yeopjeon Left
+30258,지금은 강화할 수 없습니다.,Cannot upgrade right now.
+30259,시간 -{0}%,Time -{0}%
+30260,{0}초,{0}s
+30261,지금은 저장할 수 없습니다.,Cannot save right now.
+30262,이미 살펴본 명부다.,You have already examined the ledger.

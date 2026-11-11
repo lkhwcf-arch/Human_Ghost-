@@ -20,6 +20,7 @@ namespace HumanGhost.Gameplay.Presentation
         [SerializeField] private Text _objectiveText = null;
         [SerializeField] private GameObject _notice = null;
         [SerializeField] private Text _noticeText = null;
+        [SerializeField, InspectorName("스킵 안내")] private SkipHint _skipHint = null;
         private TextboxPlayback _playback;
         private Action _closed;
         private float _objectiveRemaining, _noticeRemaining;
@@ -30,6 +31,16 @@ namespace HumanGhost.Gameplay.Presentation
         public bool IsOpen => _playback != null;
         public int CurrentTextId => _playback?.CurrentTextId ?? 0;
         public event Action<bool> OpenChanged;
+        public event Action SkipAvailabilityChanged;
+        public void ConnectSkipHint(LanguageTextSource text, LanguageCode language)
+        {
+            if (_skipHint == null) throw new InvalidOperationException("대사 화면의 공용 스킵 안내를 연결해 주세요.");
+            _skipHint.Connect(this, SkipScope.Dialogue, text, language);
+        }
+        public void BlockSkipHint(bool blocked) { if (_skipHint != null) _skipHint.SetBlocked(blocked); }
+        public void DisconnectSkipHint() { if (_skipHint != null) _skipHint.Disconnect(); }
+        private void OnEnable() => SkipAvailabilityChanged?.Invoke();
+        private void OnDisable() => SkipAvailabilityChanged?.Invoke();
 
         private void Awake()
         {
@@ -48,6 +59,7 @@ namespace HumanGhost.Gameplay.Presentation
             if (IsOpen) return;
             if (text == null) throw new ArgumentNullException(nameof(text));
             string speaker = speakerTextId == 0 ? "" : text.Read(speakerTextId, language);
+            if (_skipHint != null) _skipHint.Connect(this, SkipScope.Dialogue, text, language);
             OpenPlayback(speaker, new TextboxPlayback(textIds, id => text.Read(id, language), _millisecondsPerCharacter), closed);
         }
 
@@ -60,6 +72,7 @@ namespace HumanGhost.Gameplay.Presentation
             _box.SetActive(true);
             Refresh();
             OpenChanged?.Invoke(true);
+            SkipAvailabilityChanged?.Invoke();
         }
 
         public void Advance()
@@ -81,6 +94,7 @@ namespace HumanGhost.Gameplay.Presentation
         {
             if (_playback == null) return;
             _playback = null;
+            SkipAvailabilityChanged?.Invoke();
             _box.SetActive(false);
             OpenChanged?.Invoke(false);
             Action closed = _closed;

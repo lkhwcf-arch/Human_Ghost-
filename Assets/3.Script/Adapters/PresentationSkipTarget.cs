@@ -11,18 +11,20 @@ namespace HumanGhost.Gameplay.Adapters
         private bool _running;
         private bool _executing;
         public event Action Skipped;
-        public void Begin() { if (!_executing) _running = true; }
-        public void Complete() => _running = false;
+        public event Action SkipAvailabilityChanged;
+        public void Begin() { if (!_executing) { _running = true; SkipAvailabilityChanged?.Invoke(); } }
+        public void Complete() { _running = false; SkipAvailabilityChanged?.Invoke(); }
         public bool CanSkip(SkipScope scope) => scope == SkipScope.Presentation && isActiveAndEnabled && _running && !_executing;
         public bool TrySkip(SkipScope scope)
         {
             if (!CanSkip(scope)) return false;
             _running = false;
             _executing = true;
+            SkipAvailabilityChanged?.Invoke();
             try { _applyFinalState.Invoke(); Skipped?.Invoke(); }
             finally { _executing = false; }
             return true;
         }
-        protected virtual void OnDisable() => _running = false;
+        protected virtual void OnDisable() { _running = false; SkipAvailabilityChanged?.Invoke(); }
     }
 }

@@ -11,6 +11,7 @@ namespace HumanGhost.Gameplay.Adapters
         [SerializeField, InspectorName("컷씬 화면")] private CutsceneScreen _screen = null;
         [SerializeField, InspectorName("다음 장 입력")] private InputActionReference _advance = null;
         [SerializeField, InspectorName("Enter 스킵 범위")] private SkipScope _scope = SkipScope.Cutscene;
+        [SerializeField, InspectorName("스킵 안내")] private SkipHint _hint = null;
         private InputAction _ownedAdvance;
         private SkipKeyInput _skip;
         private bool _blocked;
@@ -28,7 +29,13 @@ namespace HumanGhost.Gameplay.Adapters
             if (_scope != SkipScope.Cutscene && _scope != SkipScope.Video)
                 throw new InvalidOperationException("컷씬 입력의 범위는 컷씬 전체 또는 영상 하나로 설정해 주세요.");
         }
-        public void SetBlocked(bool blocked) => _blocked = blocked;
+        public void ConnectHint(LanguageTextSource text, LanguageCode language)
+        {
+            if (_hint == null) throw new InvalidOperationException("컷씬의 공용 스킵 안내를 연결해 주세요.");
+            _hint.Connect(_screen, _scope, text, language);
+            _hint.SetBlocked(_blocked);
+        }
+        public void SetBlocked(bool blocked) { _blocked = blocked; if (_hint != null) _hint.SetBlocked(blocked); }
         protected virtual void OnEnable()
         {
             Validate();
@@ -57,6 +64,7 @@ namespace HumanGhost.Gameplay.Adapters
         protected virtual void OnDisable() => Release();
         private void Release()
         {
+            if (_hint != null) _hint.Disconnect();
             _skip?.Dispose(); _skip = null;
             if (_ownedAdvance == null) return;
             _ownedAdvance.performed -= OnAdvance;

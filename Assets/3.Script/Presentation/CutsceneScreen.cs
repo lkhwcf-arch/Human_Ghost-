@@ -34,6 +34,8 @@ namespace HumanGhost.Gameplay.Presentation
         private bool _paused;
         public bool IsRunning => _playback.IsRunning;
         public event Action<CutsceneEndReason> Finished;
+        public event Action SkipAvailabilityChanged;
+        private void NotifySkipAvailability() => SkipAvailabilityChanged?.Invoke();
 
         public void Connect(LanguageTextSource text, LanguageCode language,
             IAssetSource<Sprite> images = null, IAssetSource<VideoClip> videos = null)
@@ -114,6 +116,7 @@ namespace HumanGhost.Gameplay.Presentation
         {
             if (_paused == paused) return;
             _paused = paused;
+            NotifySkipAvailability();
             _clock = default;
             if (_video != null && _playback.State == CutscenePlaybackState.Playing)
             {
@@ -132,12 +135,18 @@ namespace HumanGhost.Gameplay.Presentation
             if (_group != null) { _group.alpha = 0f; _group.blocksRaycasts = false; }
         }
 
-        protected virtual void OnEnable() => _playback.Finished += OnFinished;
+        protected virtual void OnEnable()
+        {
+            _playback.Finished += OnFinished;
+            _playback.Changed += NotifySkipAvailability;
+        }
         private void OnFinished(CutsceneEndReason reason) => _finished = reason;
         protected virtual void OnDisable()
         {
             Disconnect();
             _playback.Finished -= OnFinished;
+            _playback.Changed -= NotifySkipAvailability;
+            NotifySkipAvailability();
         }
 
         protected virtual void Update()

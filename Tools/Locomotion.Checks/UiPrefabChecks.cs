@@ -22,6 +22,11 @@ internal static class UiPrefabChecks
         check(cutscene.Contains("_screen: {fileID: 1004}") && cutscene.Contains("_input: {fileID: 1005}") &&
             cutscene.Contains("_videoImage: {fileID: 3003}") && cutscene.Contains("_scope: 0"));
         check(RootRect(cutscene).Contains("m_LocalScale: {x: 1, y: 1, z: 1}"));
+        check(cutscene.Contains("_hint: {fileID: 900100}") && cutscene.Contains("_textId: 30044"));
+        string textbox = Read("Assets/2.Model/Prefabs/UI/TextboxScreen.prefab");
+        check(textbox.Contains("_skipHint: {fileID: 900100}") && textbox.Contains("_label: {fileID: 900113}"));
+        string skipHint = Read("Assets/2.Model/Prefabs/UI/SkipHint.prefab");
+        check(skipHint.Contains("_textId: 30044") && skipHint.Contains("m_RaycastTarget: 0"));
         Match reference = Regex.Match(title, @"_errors: \{fileID: (\d+)\}");
         check(reference.Success && Regex.IsMatch(title, @"(?m)^--- !u!114 &" + reference.Groups[1].Value + @"\r?$"));
         string scene = Read("Assets/1.Scene/Title.unity");

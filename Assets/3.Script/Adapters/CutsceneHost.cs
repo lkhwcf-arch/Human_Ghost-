@@ -60,7 +60,9 @@ namespace HumanGhost.Gameplay.Adapters
                 scope.Add(() => { if (_modals != null) _modals.ModalChanged -= modalChanged; });
                 _modals.ModalChanged += modalChanged;
                 _input.enabled = false;
-                _screen.Connect(new LanguageTextSource(data), LanguageCode.Korean);
+                var text = new LanguageTextSource(data);
+                _screen.Connect(text, LanguageCode.Korean);
+                _input.ConnectHint(text, LanguageCode.Korean);
                 SetErrorBlocked(_modals.HasOtherModalOwner(this));
                 Prepare(sequence, scope, _preparation.Token);
                 return true;
