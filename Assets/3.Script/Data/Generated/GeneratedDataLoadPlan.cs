@@ -19,6 +19,7 @@ namespace HumanGhost.Data.Infrastructure
             await loader.LoadCsvAsync<HealthDisplayConfig>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<Language>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<MonsterReward>(catalog, row => row.ID, token);
+            await loader.LoadCsvAsync<MonsterSkill>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<PlayerAction>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<PlayerLevel>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<Popup>(catalog, row => row.ID, token);
@@ -27,6 +28,7 @@ namespace HumanGhost.Data.Infrastructure
             await loader.LoadCsvAsync<Stage>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<StageLayer>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<State>(catalog, row => row.ID, token);
+            await loader.LoadCsvAsync<StatusEffect>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<Upgrade>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<Monster>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<Player>(catalog, row => row.ID, token);
@@ -39,6 +41,7 @@ namespace HumanGhost.Data.Infrastructure
             await loader.LoadCharactersAsync<BossState, Boss>(catalog, (common, states) => new Boss(common, states), row => row.ID, token, "UnitID");
             await loader.LoadCharactersAsync<EliteState, Elite>(catalog, (common, states) => new Elite(common, states), row => row.ID, token, "UnitID");
             await loader.LoadJsonAsync(catalog, "Item", reader.Read<Item>, row => row.ID, token);
+            await loader.LoadGroupsAsync<MonsterState>(catalog, token, "UnitID");
             await loader.LoadGroupsAsync<PlayerState>(catalog, token, "UnitID");
             var shrineReader = new HumanGhost.Data.Mapping.ShrineDefinitionReader();
             var shrineLevel = await loader.ReadJsonAsync("shrine_level", shrineReader.ReadLevel, token);

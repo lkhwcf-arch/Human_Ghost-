@@ -11,10 +11,14 @@
       "Monsters": [
         {
           "MonsterCode": 3001,
-          "MonsterCount": 4,
+          "MonsterCount": 5,
           "Points": [
             [
               1450,
+              0
+            ],
+            [
+              3650,
               0
             ],
             [
@@ -22,30 +26,26 @@
               0
             ],
             [
-              7500,
-              0
+              9350,
+              200
             ],
             [
-              9350,
+              9950,
               200
             ]
           ]
         },
         {
           "MonsterCode": 3002,
-          "MonsterCount": 3,
+          "MonsterCount": 2,
           "Points": [
             [
-              3650,
+              7600,
               0
             ],
             [
-              7300,
-              0
-            ],
-            [
-              9950,
-              200
+              8950,
+              -100
             ]
           ]
         },

@@ -1,0 +1,26 @@
+[
+  {
+    "UnitID": 1002,
+    "States": [
+      {
+        "ID": 20001,
+        "UnitID": 1002,
+        "Category": "Stun",
+        "Immune": false,
+        "Duration": 0
+      }
+    ]
+  },
+  {
+    "UnitID": 1003,
+    "States": [
+      {
+        "ID": 20002,
+        "UnitID": 1003,
+        "Category": "Knockback",
+        "Immune": true,
+        "Duration": 0
+      }
+    ]
+  }
+]
