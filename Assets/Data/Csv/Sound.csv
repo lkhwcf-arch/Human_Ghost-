@@ -6,7 +6,6 @@ ID,Address,Category,Volume,Loop,FadeInMs,FadeOutMs
 3005,Assets/8.Audio/SFX/player_Run(1),2,10000,N,0,0
 3006,Assets/8.Audio/SFX/player_Run(2),2,10000,N,0,0
 3007,Assets/8.Audio/SFX/player_Hit,2,10000,N,0,0
-3008,Assets/8.Audio/SFX/player_Attack_Sword,2,10000,N,0,0
 3009,Assets/8.Audio/SFX/player_JumpAttack,2,10000,N,0,0
 3010,Assets/8.Audio/SFX/player_BackEvade,2,10000,N,0,0
 3011,Assets/8.Audio/SFX/player_evada,2,10000,N,0,0
@@ -22,3 +21,7 @@ ID,Address,Category,Volume,Loop,FadeInMs,FadeOutMs
 3021,Assets/8.Audio/SFX/player_Heal,2,10000,N,0,0
 3022,Assets/8.Audio/SFX/player_Climb,2,10000,N,0,0
 3023,Assets/8.Audio/SFX/player_Save,2,10000,N,0,0
+3024,Assets/8.Audio/SFX/Player_attack1,2,10000,N,0,0
+3025,Assets/8.Audio/SFX/Player_attack2,2,10000,N,0,0
+3026,Assets/8.Audio/SFX/Player_attack3,2,10000,N,0,0
+3027,Assets/8.Audio/SFX/Player_attack4,2,10000,N,0,0
