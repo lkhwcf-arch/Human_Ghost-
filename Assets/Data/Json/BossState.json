@@ -5,8 +5,8 @@
       {
         "ID": 4001,
         "UnitID": 1006,
-        "IdleMin": 1390,
-        "IdleMax": 1390,
+        "IdleMin": 1000,
+        "IdleMax": 1000,
         "PoiseRegenDelay": 2000,
         "PoiseRegen": 15,
         "ExposeTime": 2000,
@@ -20,8 +20,8 @@
       {
         "ID": 4002,
         "UnitID": 1006,
-        "IdleMin": 890,
-        "IdleMax": 890,
+        "IdleMin": 600,
+        "IdleMax": 600,
         "PoiseRegenDelay": 2000,
         "PoiseRegen": 15,
         "ExposeTime": 2000,

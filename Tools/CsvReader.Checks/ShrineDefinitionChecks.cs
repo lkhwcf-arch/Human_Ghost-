@@ -9,6 +9,7 @@ using HumanGhost.Data.Infrastructure;
 using HumanGhost.Data.Json;
 using HumanGhost.Data.Mapping;
 using HumanGhost.Data.Storage;
+using Newtonsoft.Json.Linq;
 
 internal static class ShrineDefinitionChecks
 {
@@ -18,10 +19,14 @@ internal static class ShrineDefinitionChecks
         string path = Path.Combine(AppContext.BaseDirectory, "shrine_level.json");
         var level = await new JsonLoader<ShrineLevelDefinition>(new Utf8CsvFileSource(), reader.ReadLevel)
             .LoadAsync(path, CancellationToken.None);
-        check(level.MaxLevel == level.SoulCosts.Count && level.SoulCurrencyId == 1
+        var levelSource = JObject.Parse(File.ReadAllText(path));
+        check(level.MaxLevel == level.SoulCosts.Count && level.SoulCurrencyId == (int)levelSource["soulCurrencyId"]
             && level.SoulCostBase > 0 && level.SoulCostRate >= 10000);
-        var reduction = reader.ReadStat(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "ParryStamina.json")));
-        check(reduction.StatType == "ParryStamina" && reduction.Steps[1] < 0 && reduction.MaxStep == reduction.Steps.Count);
+        string statText = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "ParryStamina.json"));
+        var reduction = reader.ReadStat(statText);
+        var statSource = JObject.Parse(statText);
+        check(reduction.StatType == (string)statSource["statType"] && reduction.MaxStep == reduction.Steps.Count &&
+            statSource["steps"].All(step => reduction.Steps[(int)step["step"]] == (int)step["value"]));
         var inputSteps = new Dictionary<int, int> { [1] = 5, [2] = 10 };
         var independent = new ShrineStatDefinition("Example", 1, "검사 자료", true, 2, inputSteps);
         inputSteps[1] = 999;

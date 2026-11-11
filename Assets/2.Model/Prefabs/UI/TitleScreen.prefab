@@ -2590,7 +2590,7 @@ VideoPlayer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4344522693437650082}
   m_Enabled: 1
-  m_VideoClip: {fileID: 32900000, guid: 9cd6953417458d84ba8d0d416f7bd046, type: 3}
+  m_VideoClip: {fileID: 0}
   m_TargetCameraAlpha: 1
   m_TargetCamera3DLayout: 0
   m_TargetCamera: {fileID: 0}
@@ -2600,7 +2600,7 @@ VideoPlayer:
   m_TargetMaterialProperty: <noninit>
   m_RenderMode: 4
   m_AspectRatio: 2
-  m_DataSource: 0
+  m_DataSource: 1
   m_TimeUpdateMode: 2
   m_PlaybackSpeed: 1
   m_AudioOutputMode: 0
@@ -2630,3 +2630,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Presentation.TitleVideoBackground
   _video: {fileID: 2237371848806975571}
   _image: {fileID: 4992686493370495535}
+  _videoFile: Video/HG_BackGround.mp4

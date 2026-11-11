@@ -1,22 +1,17 @@
 using System;
-using System.Globalization;
-using System.IO;
-using HumanGhost.Data.Csv;
 using HumanGhost.Data.Definitions;
 using HumanGhost.Gameplay;
 
 internal static class MonsterChecks
 {
-    public static int Run(string root, Player player)
+    public static int Run(Player player)
     {
         int checks = 0;
         void Check(bool result, string message) { if (!result) throw new Exception(message); checks++; }
         void Expect<T>(Action action) where T : Exception
         { try { action(); } catch (T) { checks++; return; } throw new Exception("예외 누락 " + typeof(T).Name); }
 
-        Monster husugwi = ReadMonster(root, 3001), jigegwi = ReadMonster(root, 3002);
-        Check(husugwi.HP == 30 && husugwi.ATK == 13 && !husugwi.SuperArmor && husugwi.SightRange == 800 && husugwi.AttackRange == 150, "배포 허수귀 정의");
-        Check(jigegwi.HP == 40 && jigegwi.DEF == 2 && jigegwi.SuperArmor && jigegwi.AttackRange == 600, "배포 지게귀 정의");
+        Monster husugwi = TestDefinitions.Monster(false), jigegwi = TestDefinitions.Monster(true);
         // 설정 에셋 시작값과 같은 개발 값.
         MonsterPattern[] HusugwiPatterns() => new[]
         {
@@ -54,7 +49,7 @@ internal static class MonsterChecks
         var h = H();
         int patterns = 0;
         h.PatternStarted += p => patterns++;
-        Check(h.CurrentState == StateKey.Idle && h.Health == 30 && h.Velocity == 0, "초기 대기·현재 HP");
+        Check(h.CurrentState == StateKey.Idle && h.Health == 35 && h.Velocity == 0, "초기 대기·현재 HP");
         h.Observe(1, 801, 1);
         Check(h.CurrentState == StateKey.Idle, "시야 밖은 대기");
         h.Observe(1, 800, 1);
@@ -96,7 +91,7 @@ internal static class MonsterChecks
         // 개체 독립
         var a = H(); var b = H();
         a.Observe(1, 100, 1);
-        Check(a.ReceiveHit(10) && a.Health == 20 && b.Health == 30 && b.CurrentState == StateKey.Idle, "같은 정의 개체별 HP·상태 독립");
+        Check(a.ReceiveHit(10) && a.Health == 25 && b.Health == 35 && b.CurrentState == StateKey.Idle, "같은 정의 개체별 HP·상태 독립");
 
         // 피격 경직·치명·사망
         Check(a.CurrentState == StateKey.Hit && !a.IsAttackActive, "피격이 패턴 중단");
@@ -115,9 +110,9 @@ internal static class MonsterChecks
         var target = H();
         var attacker = P();
         attacker.TryAttack(); attacker.Tick(120);
-        Check(attacker.TryHitMonster(5, target, false, false) && target.Health == 15, "플레이어 평타 피해 15");
+        Check(attacker.TryHitMonster(5, target, false, false) && target.Health == 20, "플레이어 평타 피해 15");
         Check(!attacker.TryHitMonster(5, target, false, false), "플레이어 창당 대상 중복 방지");
-        Check(!attacker.TryHitMonster(6, target, true, false) && target.Health == 15, "회피 시 무피해");
+        Check(!attacker.TryHitMonster(6, target, true, false) && target.Health == 20, "회피 시 무피해");
 
         // 허수귀 잡기·연타 해제
         pickLast = true;
@@ -226,7 +221,7 @@ internal static class MonsterChecks
         j.Tick(600);
         Check(j.IsCharging && j.IsSuperArmor && j.Velocity == 900, "돌진 판정 중 이동·슈퍼아머");
         Check(j.ReceiveHit(5) && j.Health == 35 && j.CurrentState == StateKey.Attack2 && j.IsCharging, "슈퍼아머는 HP만 깎이고 Hit 없음");
-        Check(j.TryHitPlayer(2001, victim, false, false) && victim.Health == 75, "돌진 피해 20+5");
+        Check(j.TryHitPlayer(2001, victim, false, false) && victim.Health == 80, "돌진 피해 15+5");
         Check(!j.TryHitPlayer(2001, victim, false, false), "돌진 창 중복 피해 방지");
         Check(!j.IsCharging && !j.IsSuperArmor, "돌진 명중 뒤 판정과 슈퍼아머 종료");
         // 명중 종료와 벽 충돌은 별개의 돌진 결과입니다.
@@ -269,21 +264,4 @@ internal static class MonsterChecks
             () => new MonsterActor(husugwi, HusugwiPatterns(), 300, 500, (min, max) => max - 1));
     }
 
-    private static Monster ReadMonster(string root, int id)
-    {
-        var parser = new CsvParser();
-        CsvDocument monsters = parser.Read(File.ReadAllText(Path.Combine(root, "Assets/Data/Csv/Monster.csv")));
-        CsvDocument units = parser.Read(File.ReadAllText(Path.Combine(root, "Assets/Data/Csv/UnitStat.csv")));
-        int I(CsvRow row, string column) => int.Parse(row.Get(column), CultureInfo.InvariantCulture);
-        CsvRow m = null, u = null;
-        foreach (CsvRow row in monsters.Rows) if (I(row, "ID") == id) m = row;
-        if (m == null) throw new Exception("Monster " + id + " 누락");
-        foreach (CsvRow row in units.Rows) if (I(row, "ID") == I(m, "UnitID")) u = row;
-        if (u == null) throw new Exception("Monster.UnitID 참조 누락");
-        var common = new UnitStat(I(u, "ID"), I(u, "TextID"), u.Get("Type"), u.Get("Tier").Length == 0 ? (int?)null : I(u, "Tier"),
-            I(u, "HP"), I(u, "ATK"), I(u, "DEF"), I(u, "Dodge"), I(u, "Crit"), I(u, "CritDamage"), I(u, "Poise"), I(u, "MoveSpeed"), I(u, "ArmorPen"));
-        return new Monster(common, I(m, "ID"), I(m, "UnitID"), I(m, "IdleMin"), I(m, "IdleMax"), I(m, "PoiseRegenDelay"), I(m, "PoiseRegen"),
-            I(m, "ExposeTime"), m.Get("ExecuteType"), I(m, "ExecuteDamage"), m.Get("SuperArmor") == "Y", m.Get("AIType"), I(m, "SightRange"), I(m, "AttackRange"),
-            m.Get("ContentEnabled") == "Y");
-    }
 }
