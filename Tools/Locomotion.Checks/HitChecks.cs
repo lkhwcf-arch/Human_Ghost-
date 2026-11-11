@@ -43,7 +43,7 @@ internal static class HitChecks
             return new BossPoise(new Boss(common,new[]{phase}),phase);
         }
         MonsterActor Jigegwi() => new MonsterActor(jigegwi, new[] { new MonsterPattern(StateKey.Attack1, 150, new AttackSpec(500, 100, 500, 0, 0, 0, 0)) }, 300, 500, (min, max) => min);
-        Check(player.Dodge == 500 && player.Crit == 1200 && player.CritDamage == 6 && player.ATK == 15 && jigegwi.Dodge == 400 && jigegwi.DEF == 2, "배포 회피·치명 정의");
+        Check(player.Dodge == 500 && player.Crit == 1200 && player.CritDamage == 6 && player.ATK == 15 && jigegwi.Dodge == 400 && jigegwi.DEF == 2, "확률 경계 검사 전용 예제 정의");
 
         // 플레이어→일반몹: 상대 Dodge 400, 공격자 Crit 1200. 성공 조건은 난수 < 확률.
         var j = Jigegwi();

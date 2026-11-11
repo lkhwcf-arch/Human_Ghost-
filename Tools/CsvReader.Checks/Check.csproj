@@ -6,6 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="*.cs" />
+    <Compile Include="../../Assets/3.Script/Core/**/*.cs" />
     <Compile Include="../../Assets/3.Script/Common/Csv/*.cs" />
     <Compile Include="../../Assets/3.Script/Common/Text/*.cs" />
     <Compile Include="../../Assets/3.Script/Common/Json/*.cs" />
@@ -14,15 +15,11 @@
     <Compile Include="../../Assets/3.Script/Data/Infrastructure/DataBootstrapper.cs" />
     <Compile Include="../../Assets/3.Script/Data/Infrastructure/BootstrapTableLoader.cs" />
     <Compile Include="../../Assets/3.Script/Data/Mapping/*.cs" />
-    <Compile Include="../../Assets/3.Script/Core/Cutscenes/*.cs" />
-    <Compile Include="../../Assets/3.Script/Core/Saves/*.cs" />
     <Compile Include="../../Assets/3.Script/Adapters/JsonSaveStore.cs" />
     <Compile Include="../../Assets/3.Script/Adapters/AtomicTextFile.cs" />
     <Compile Include="../../Assets/3.Script/Adapters/CutsceneSequenceSource.cs" />
     <Compile Include="../../Assets/3.Script/Adapters/LanguageTextSource.cs" />
     <Compile Include="../../Assets/3.Script/Adapters/ErrorLogDispatcher.cs" />
-    <Compile Include="../../Assets/3.Script/Core/Settings/LanguageCode.cs" />
-    <Compile Include="../../Assets/3.Script/Core/Feedback/ErrorPopupDetails.cs" />
     <Compile Include="../../Assets/3.Script/Data/Storage/*.cs" />
     <Compile Include="../../Assets/3.Script/Data/Generated/*.cs" />
     <Compile Include="../../Assets/3.Script/Data/*.cs" />

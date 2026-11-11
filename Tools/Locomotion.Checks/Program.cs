@@ -1,8 +1,5 @@
 using System;
-using System.Globalization;
-using System.IO;
 using System.Threading.Tasks;
-using HumanGhost.Data.Csv;
 using HumanGhost.Data.Definitions;
 using HumanGhost.Gameplay;
 using HumanGhost.Gameplay.States;
@@ -16,7 +13,7 @@ internal static class Program
         try
         {
             if (args.Length != 1) throw new ArgumentException("Unity 프로젝트 루트가 필요합니다.");
-            Player definition = ReadPlayer(args[0]);
+            Player definition = TestDefinitions.Player();
             CheckLocomotion(definition);
             IntegerMotionChecks.Run(Check);
             GameProgressChecks.Run(Check);
@@ -26,7 +23,7 @@ internal static class Program
             PriorityChecks.Run(definition, Check);
             AttackAnimationChecks.Run(Check);
             PlayerAttackChecks.Run(definition, Check);
-            Player changed = ReadPlayer(args[0], checked(definition.MoveSpeed + 1), checked(definition.JumpHeight + 1));
+            Player changed = TestDefinitions.Player(checked(definition.MoveSpeed + 1), checked(definition.JumpHeight + 1));
             var changedActor = new PlayerLocomotion(changed, true);
             changedActor.SetMove(-1);
             Check(changedActor.HorizontalSpeed == -changed.MoveSpeed, "데이터 속도 변경 반영");
@@ -34,7 +31,7 @@ internal static class Program
             CheckStateLifetime();
             CheckStamina(definition);
             _checks += CombatChecks.Run(definition);
-            _checks += MonsterChecks.Run(args[0], definition);
+            _checks += MonsterChecks.Run(definition);
             _checks += BossChecks.Run(definition);
             _checks += HealthDisplayChecks.Run(definition);
             _checks += NotificationChecks.Run(definition);
@@ -45,6 +42,7 @@ internal static class Program
             SoundPlaybackChecks.Run(Check);
             await SoundPreparationChecks.RunAsync(Check);
             UiPrefabChecks.Run(args[0], value => Check(value, "공용 설정·오류 팝업의 표시 배치와 타이틀 연결"));
+            ResourceConnectionChecks.Run(args[0], Check);
             CutsceneChecks.Run(Check);
             SaveChecks.Run(Check);
             SaveGameFlowChecks.Run(Check);
@@ -83,7 +81,7 @@ internal static class Program
         Expect<ArgumentOutOfRangeException>(() => first.SetMove(2));
         Check(first.Direction == -1 && first.HorizontalSpeed == -definition.MoveSpeed, "잘못된 입력은 기존 요청 보존");
         Check(first.TryJump() && !first.IsGrounded && first.CurrentState == StateKey.Jump, "지상 점프 승인");
-        Check(first.JumpHeight == definition.JumpHeight, "배포된 점프 높이 사용");
+        Check(first.JumpHeight == definition.JumpHeight, "정의의 점프 높이 사용");
         Check(!first.TryJump(), "공중 재점프 거부");
         first.SetMove(1);
         Check(first.CurrentState == StateKey.Jump && first.HorizontalSpeed == definition.MoveSpeed, "공중 이동 요청");
@@ -226,25 +224,4 @@ internal static class Program
             p.HangAuto, p.InputBuffer, p.StartWeapon);
     }
 
-    // 검사 전용 조립입니다. 운영용 로더·조회 저장소가 아닙니다.
-    private static Player ReadPlayer(string root, int? moveSpeed = null, int? jumpHeight = null)
-    {
-        var parser = new CsvParser();
-        CsvDocument players = parser.Read(File.ReadAllText(Path.Combine(root, "Assets/Data/Csv/Player.csv")));
-        CsvDocument units = parser.Read(File.ReadAllText(Path.Combine(root, "Assets/Data/Csv/UnitStat.csv")));
-        CsvRow p = players.Rows[0];
-        int I(CsvRow row, string column) => int.Parse(row.Get(column), CultureInfo.InvariantCulture);
-        CsvRow u = null;
-        foreach (CsvRow row in units.Rows) if (I(row, "ID") == I(p, "UnitID")) u = row;
-        if (u == null) throw new Exception("Player.UnitID 참조 누락");
-        var common = new UnitStat(I(u, "ID"), I(u, "TextID"), u.Get("Type"),
-            u.Get("Tier").Length == 0 ? (int?)null : I(u, "Tier"),
-            I(u, "HP"), I(u, "ATK"), I(u, "DEF"), I(u, "Dodge"), I(u, "Crit"),
-            I(u, "CritDamage"), I(u, "Poise"), moveSpeed ?? I(u, "MoveSpeed"), I(u, "ArmorPen"));
-        return new Player(common, I(p, "ID"), I(p, "UnitID"), I(p, "StaminaMax"), I(p, "StaminaRegen"),
-            I(p, "StaminaRegenDelay"), I(p, "RollDistance"), I(p, "RollTime"), I(p, "RollIFrame"),
-            I(p, "RollStamina"), jumpHeight ?? I(p, "JumpHeight"), I(p, "HitStunTime"), I(p, "HitIFrame"),
-            I(p, "CritHitStunTime"), I(p, "LandFallHeight"), I(p, "LandTime"), p.Get("HangAuto") == "Y",
-            I(p, "InputBuffer"), I(p, "StartWeapon"));
-    }
 }

@@ -9,6 +9,7 @@ using HumanGhost.Data.Definitions;
 using HumanGhost.Data.Infrastructure;
 using HumanGhost.Data.Mapping;
 using HumanGhost.Data.Storage;
+using Newtonsoft.Json.Linq;
 
 internal static class DataBootstrapperChecks
 {
@@ -52,10 +53,12 @@ internal static class DataBootstrapperChecks
         check(result.GetTable<HealthDisplayConfig>().All.Select(row => row.AnchorName).SequenceEqual(
             new CsvParser().Read(File.ReadAllText(ResolvePath("HealthDisplayConfig.csv"))).Rows.Select(row => row.Get("AnchorName"))));
         check(result.GetTable<Player>().All.All(player => player.HP == result.GetTable<UnitStat>().Get(player.UnitID).HP));
-        check(result.GetDefinition<GalimgilRewardDefinition>().SoulPerKill == 3);
+        check(result.GetDefinition<GalimgilRewardDefinition>() != null);
+        DeploymentConnectionChecks.Run(result, check);
         check(result.GetTable<Boss>().All.All(boss => boss.States.All(state => state.UnitID == boss.ID)));
-        check(result.GetTable<UnitStateGroup<PlayerState>>().Count == 1);
-        check(result.GetTable<Elite>().Count == 0 && result.GetTable<UnitStateGroup<EliteState>>().Count == 0);
+        check(result.GetTable<UnitStateGroup<PlayerState>>().Count == JArray.Parse(File.ReadAllText(ResolvePath("PlayerState.json"))).Count);
+        int eliteCount = JArray.Parse(File.ReadAllText(ResolvePath("EliteState.json"))).Count;
+        check(result.GetTable<Elite>().Count == eliteCount && result.GetTable<UnitStateGroup<EliteState>>().Count == eliteCount);
         await bootstrapper.InitializeAsync(CancellationToken.None);
         check(files.Count == expectedFiles && notifications == 1);
 

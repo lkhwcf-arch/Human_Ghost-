@@ -1,22 +1,17 @@
 using System;
-using System.Globalization;
-using System.IO;
-using HumanGhost.Data.Csv;
 using HumanGhost.Data.Definitions;
 using HumanGhost.Gameplay;
 
 internal static class MonsterChecks
 {
-    public static int Run(string root, Player player)
+    public static int Run(Player player)
     {
         int checks = 0;
         void Check(bool result, string message) { if (!result) throw new Exception(message); checks++; }
         void Expect<T>(Action action) where T : Exception
         { try { action(); } catch (T) { checks++; return; } throw new Exception("예외 누락 " + typeof(T).Name); }
 
-        Monster husugwi = ReadMonster(root, 3001), jigegwi = ReadMonster(root, 3002);
-        Check(husugwi.HP == 35 && husugwi.ATK == 13 && !husugwi.SuperArmor && husugwi.SightRange == 800 && husugwi.AttackRange == 150, "배포 허수귀 정의");
-        Check(jigegwi.HP == 40 && jigegwi.DEF == 2 && jigegwi.SuperArmor && jigegwi.AttackRange == 600, "배포 지게귀 정의");
+        Monster husugwi = TestDefinitions.Monster(false), jigegwi = TestDefinitions.Monster(true);
         // 설정 에셋 시작값과 같은 개발 값.
         MonsterPattern[] HusugwiPatterns() => new[]
         {
@@ -269,21 +264,4 @@ internal static class MonsterChecks
             () => new MonsterActor(husugwi, HusugwiPatterns(), 300, 500, (min, max) => max - 1));
     }
 
-    private static Monster ReadMonster(string root, int id)
-    {
-        var parser = new CsvParser();
-        CsvDocument monsters = parser.Read(File.ReadAllText(Path.Combine(root, "Assets/Data/Csv/Monster.csv")));
-        CsvDocument units = parser.Read(File.ReadAllText(Path.Combine(root, "Assets/Data/Csv/UnitStat.csv")));
-        int I(CsvRow row, string column) => int.Parse(row.Get(column), CultureInfo.InvariantCulture);
-        CsvRow m = null, u = null;
-        foreach (CsvRow row in monsters.Rows) if (I(row, "ID") == id) m = row;
-        if (m == null) throw new Exception("Monster " + id + " 누락");
-        foreach (CsvRow row in units.Rows) if (I(row, "ID") == I(m, "UnitID")) u = row;
-        if (u == null) throw new Exception("Monster.UnitID 참조 누락");
-        var common = new UnitStat(I(u, "ID"), I(u, "TextID"), u.Get("Type"), u.Get("Tier").Length == 0 ? (int?)null : I(u, "Tier"),
-            I(u, "HP"), I(u, "ATK"), I(u, "DEF"), I(u, "Dodge"), I(u, "Crit"), I(u, "CritDamage"), I(u, "Poise"), I(u, "MoveSpeed"), I(u, "ArmorPen"));
-        return new Monster(common, I(m, "ID"), I(m, "UnitID"), I(m, "IdleMin"), I(m, "IdleMax"), I(m, "PoiseRegenDelay"), I(m, "PoiseRegen"),
-            I(m, "ExposeTime"), m.Get("ExecuteType"), I(m, "ExecuteDamage"), m.Get("SuperArmor") == "Y", m.Get("AIType"), I(m, "SightRange"), I(m, "AttackRange"),
-            m.Get("ContentEnabled") == "Y");
-    }
 }

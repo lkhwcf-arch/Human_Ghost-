@@ -33,7 +33,12 @@ try {
         foreach ($file in $references) {
             $items += '<Reference Include="' + $file.BaseName + '"><HintPath>' + [Security.SecurityElement]::Escape($file.FullName) + '</HintPath><Private>false</Private></Reference>'
         }
-        $xml = '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework><LangVersion>9.0</LangVersion><EnableDefaultCompileItems>false</EnableDefaultCompileItems><TreatWarningsAsErrors>true</TreatWarningsAsErrors><AssemblyName>Assembly-CSharp</AssemblyName></PropertyGroup><ItemGroup><Compile Include="' + [Security.SecurityElement]::Escape((Join-Path $projectRoot 'Assets\3.Script\**\*.cs')) + '"/><Compile Include="' + [Security.SecurityElement]::Escape((Join-Path $projectRoot 'Assets\Editor\**\*.cs')) + '"/>' + ($items -join '') + '</ItemGroup></Project>'
+        $sources = '<Compile Include="' + [Security.SecurityElement]::Escape((Join-Path $projectRoot 'Assets\3.Script\**\*.cs')) + '"/>'
+        # 편집기 전용 소스는 Unity와 동일하게 편집기 조건에서만 검사합니다.
+        if ($env:DefineConstants -match 'UNITY_EDITOR') {
+            $sources += '<Compile Include="' + [Security.SecurityElement]::Escape((Join-Path $projectRoot 'Assets\Editor\**\*.cs')) + '"/>'
+        }
+        $xml = '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework><LangVersion>9.0</LangVersion><EnableDefaultCompileItems>false</EnableDefaultCompileItems><TreatWarningsAsErrors>true</TreatWarningsAsErrors><AssemblyName>Assembly-CSharp</AssemblyName></PropertyGroup><ItemGroup>' + $sources + ($items -join '') + '</ItemGroup></Project>'
         $compileRoot = Join-Path $workRoot 'UnityCompile'
         New-Item -ItemType Directory -Path $compileRoot -Force | Out-Null
         $project = Join-Path $compileRoot 'UnityCompile.csproj'
