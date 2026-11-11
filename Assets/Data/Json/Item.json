@@ -34,7 +34,7 @@
   },
   {
     "ID": 6101,
-    "TextID": null,
+    "TextID": 30233,
     "ItemType": "Armor",
     "Category": 2,
     "StatJson": "6101.json",
@@ -45,7 +45,7 @@
   },
   {
     "ID": 6201,
-    "TextID": null,
+    "TextID": 30022,
     "ItemType": "Consumable",
     "Category": 1,
     "StatJson": "6201.json",
