@@ -12,7 +12,7 @@ internal static class GalimgilDefinitionChecks
         var value = new GalimgilDefinitionReader().Read(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "galimgil_reward.json")));
         check(value.SoulCurrencyId == 1 && value.BaseSoul == 0 && value.SoulPerKill == 3 && value.SoulPerInteraction == 3);
         check(value.CountStages.SequenceEqual(new[] { 8002 }) && !value.ShowGrade);
-        check(value.Grades.Select(row => row.MinKillCount).SequenceEqual(new[] { 27, 15, 0 }));
+        check(value.Grades.Select(row => row.MinKillCount).SequenceEqual(new[] { 8, 5, 0 }));
         var stages = new List<int> { 8002 };
         var grades = new List<GalimgilGrade> { new GalimgilGrade("LOW", 0) };
         var copy = new GalimgilRewardDefinition(1, 0, 3, 3, false, stages, grades);

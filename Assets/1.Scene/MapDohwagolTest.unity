@@ -261,7 +261,7 @@ MonoBehaviour:
   - _state: 10010
     _sprite: {fileID: -1893156959280369655, guid: be0d4de6fbca9d24d9d1bde4c0547025, type: 3}
   - _state: 10009
-    _sprite: {fileID: -5996818224257555532, guid: 52b445a585e6a5e4284ed536d8ad78db, type: 3}
+    _sprite: {fileID: -7795064702741753446, guid: cefebf7d22bdc3249880358d357fa18b, type: 3}
   _animations:
   - _state: 10001
     _clip: {fileID: 7400000, guid: 3b858049ac4d2d54a8804bd46299d30c, type: 2}
@@ -303,8 +303,13 @@ MonoBehaviour:
     _clip: {fileID: 7400000, guid: cc3de20f8d416da4a8114f1d071446a9, type: 2}
     _hitFrames: []
   - _state: 10009
-    _clip: {fileID: 7400000, guid: 76121100b8a8b4342961da25cd9e12c4, type: 2}
-    _hitFrames: []
+    _clip: {fileID: 7400000, guid: cf8098940b5cc1d42b61be257790ebd0, type: 2}
+    _hitFrames:
+    - _hit: 0
+      _first: 0
+      _contact: 2
+      _recovery: 6
+      _end: 9
   - _state: 10010
     _clip: {fileID: 7400000, guid: 248a234fbd364404fa4e62d475e4eb2e, type: 2}
     _hitFrames: []
@@ -352,7 +357,7 @@ MonoBehaviour:
   _walk: {fileID: 7400000, guid: 3334a1f7516430b42bf8cda4683e3c2e, type: 2}
   _climb: {fileID: 7400000, guid: 6d2bf8909bcce0d4781c45984a4d084e, type: 2}
   _save: {fileID: 7400000, guid: 8b98f4955cee7ad408645c317b727aa1, type: 2}
-  _ladderClimb: {fileID: 7400000, guid: 60a3b3700f40ddf48b66b1c5d414951a, type: 2}
+  _ladderClimb: {fileID: 7400000, guid: 5392c94f525b63e4090fd11907bcc578, type: 2}
   _climbStartScale: 0.95
   _hangScale: 1.4
   _hangVerticalOffset: -0.1
@@ -367,7 +372,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a98995db06b44f1e97581c87a7246c7d, type: 3}
   m_Name:
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier:
   _prefab: {fileID: 205, guid: d9cc625c4b464a8298bfb7cbcac32c0f, type: 3}
   _popupId: 15008
 --- !u!1 &99334888
@@ -478,7 +483,7 @@ Camera:
   far clip plane: 100
   field of view: 60
   orthographic: 1
-  orthographic size: 5.625
+  orthographic size: 4.3
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
@@ -503,7 +508,7 @@ Transform:
   m_GameObject: {fileID: 99334888}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.8, z: -10}
+  m_LocalPosition: {x: 0, y: 4, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -524,7 +529,7 @@ MonoBehaviour:
   _target: {fileID: 383945508}
   _minX: -10
   _maxX: 70
-  _minY: 1.8
+  _minY: 4
   _heightOffset: 2.8
   _smoothSeconds: 0.12
   _lookAhead: 0.8
@@ -844,6 +849,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8215628244172261762, guid: e160ce09bcc40174182f59cbd11cb299, type: 3}
+      propertyPath: _source
+      value:
+      objectReference: {fileID: 64223849}
     - target: {fileID: 9131643940364289076, guid: e160ce09bcc40174182f59cbd11cb299, type: 3}
       propertyPath: m_Name
       value: Player
@@ -1563,7 +1572,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 28d109645c034911b3961b6924f19a8c, type: 3}
   m_Name:
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier:
   _initializer: {fileID: 145074740}
   _events: {fileID: 987919509}
   _prefab: {fileID: 302, guid: 7a22dd1f074c4ea796b04fde302080f7, type: 3}
