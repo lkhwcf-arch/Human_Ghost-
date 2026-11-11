@@ -293,11 +293,40 @@ namespace HumanGhost.Gameplay.Preview
             if (active && _player.isActiveAndEnabled) CheckPlayerHits();
         }
 
+        // 테스트 전용 공격 판정 배율입니다(길이·높이, 기본 1, Play마다 1). 플레이어 쪽 끝은 고정하고 길이는 앞으로만 늘립니다.
+        public const float MinAttackScale = 0.25f, MaxAttackScale = 3f;
+        public static float AttackLengthScale { get; private set; } = 1f;
+        public static float AttackHeightScale { get; private set; } = 1f;
+        private Vector3 _attackBaseScale;
+        private bool _attackBaseKnown;
+        // 기존 기준: 중심 0.95, 기본 길이의 절반만큼 플레이어 쪽 끝.
+        private float AttackNearEdge => 0.95f - _attackBaseScale.x * 0.5f;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetAttackScale() => AttackLengthScale = AttackHeightScale = 1f;
+
+        public static void SetTestAttackScale(float length, float height)
+        {
+            AttackLengthScale = Mathf.Clamp(length, MinAttackScale, MaxAttackScale);
+            AttackHeightScale = Mathf.Clamp(height, MinAttackScale, MaxAttackScale);
+        }
+
+        // 월드 기준 현재 판정 크기입니다(테스트 창 표시용).
+        public Vector2 AttackWindowWorldSize => _attackWindow != null && _attackWindow.sprite != null
+            ? Vector2.Scale(_attackWindow.sprite.bounds.size, _attackWindow.transform.lossyScale) : Vector2.zero;
+
+        private void ApplyAttackWindowSize()
+        {
+            if (!_attackBaseKnown) { _attackBaseScale = _attackWindow.transform.localScale; _attackBaseKnown = true; }
+            _attackWindow.transform.localScale = new Vector3(_attackBaseScale.x * AttackLengthScale, _attackBaseScale.y * AttackHeightScale, _attackBaseScale.z);
+        }
+
         // 임시 판정: 공격 범위 사각형과 보스/일반몹 사각형 겹침. 창 열림 순간과 매 프레임 호출하며 중복은 창 등록이 막습니다.
         private void CheckPlayerHits()
         {
             _facing = _actor.Facing;
-            _attackWindow.transform.localPosition = new Vector3(_facing * 0.95f, 0f, 0.1f);
+            ApplyAttackWindowSize();
+            _attackWindow.transform.localPosition = new Vector3(_facing * (AttackNearEdge + _attackWindow.transform.localScale.x * 0.5f), 0f, 0.1f);
             if (!_actor.IsAttackActive) return;
             if (_bossActive && _attackWindow.bounds.Intersects(_bossBody.bounds))
                 _feedback?.OnPlayerHit(_actor.TryHitBoss(_bossTargetId, _boss.Actor, _player.HitRandom), null, _boss.transform.position);

@@ -256,8 +256,9 @@ namespace HumanGhost.Gameplay.Preview
                     _climbElapsed += Math.Min(milliseconds, _ledgeClimbMilliseconds - _climbElapsed);
                     float progress = (float)_climbElapsed / _ledgeClimbMilliseconds;
                     Vector3 climbPosition = _climbFrom;
-                    climbPosition.y = Mathf.Lerp(_climbFrom.y, _climbTo.y, Mathf.Clamp01(progress / 0.65f));
-                    climbPosition.x = Mathf.Lerp(_climbFrom.x, _climbTo.x, Mathf.Clamp01((progress - 0.65f) / 0.35f));
+                    // 위로 끌어올리기와 앞으로 넘어가기를 겹치고 양 끝을 감속해 꺾임 없이 이어지게 합니다.
+                    climbPosition.y = Mathf.SmoothStep(_climbFrom.y, _climbTo.y, Mathf.Clamp01(progress / 0.7f));
+                    climbPosition.x = Mathf.SmoothStep(_climbFrom.x, _climbTo.x, Mathf.Clamp01((progress - 0.4f) / 0.6f));
                     _player.SetPosition(climbPosition); _player.SetClimbProgress(progress);
                     if (_climbElapsed == _ledgeClimbMilliseconds)
                     {

@@ -79,7 +79,8 @@ namespace HumanGhost.Gameplay.Preview
         protected override void LateUpdate()
         {
             bool hanging = _player != null && _player.Actor != null && _player.Actor.IsHanging;
-            float progress = hanging ? Mathf.Clamp01(_player.ClimbProgress) : 0f;
+            // 크기·높이 보정은 이동과 같이 양 끝을 감속합니다. 프레임 선택은 TryGetAnimationTime의 선형 진행률을 그대로 씁니다.
+            float progress = hanging ? Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(_player.ClimbProgress)) : 0f;
             float scale = hanging && _player.ClimbProgress >= 0f ? Mathf.Lerp(_climbStartScale * _hangScale, 1f, progress) :
                 hanging ? (_onLadder ? _climbStartScale : _hangScale) : 1f;
             if (Renderer != null)
