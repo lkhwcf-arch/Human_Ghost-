@@ -1,0 +1,127 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function analyst() {
+      return request.auth != null
+        && request.auth.token.firebase.sign_in_provider == 'google.com'
+        && request.auth.token.email_verified == true
+        && get(/databases/$(database)/documents/telemetryReaders/$(request.auth.uid)).data.enabled == true;
+    }
+    function validEvent(d, eventId) {
+      return d.keys().hasAll(['EventId','EventName','Category','SchemaVersion','AnonymousId','SessionId','BuildVersion','BuildMode','DataVersion','TimestampMs','ElapsedMs','Fields','OwnerUid'])
+        && d.keys().hasOnly(['EventId','EventName','Category','SchemaVersion','AnonymousId','SessionId','BuildVersion','BuildMode','DataVersion','TimestampMs','ElapsedMs','Fields','OwnerUid'])
+        && d.EventId == eventId && eventId.matches('^[0-9a-f]{32}$')
+        && d.OwnerUid == request.auth.uid
+        && d.AnonymousId is string && d.AnonymousId.matches('^[0-9a-f]{32}$')
+        && d.SessionId is string && d.SessionId.matches('^[0-9a-f]{32}$')
+        && d.EventName is string && d.EventName.size() <= 80
+        && d.BuildVersion is string && d.BuildVersion.size() <= 100
+        && d.BuildMode in ['development','release']
+        && d.DataVersion is string && d.DataVersion.size() <= 100
+        && d.TimestampMs is int && d.TimestampMs > 0 && d.TimestampMs <= request.time.toMillis() + 300000
+        && d.ElapsedMs is int && d.ElapsedMs >= 0 && d.ElapsedMs <= 9007199254740991
+        && d.SchemaVersion is int && d.Fields is map
+        && ((d.EventName == "session_start" && d.Category == "statistics" && d.SchemaVersion == 1
+        && d.Fields.keys().hasOnly([])
+        && true)
+          || (d.EventName == "session_end" && d.Category == "statistics" && d.SchemaVersion == 1
+        && d.Fields.keys().hasOnly([])
+        && true)
+          || (d.EventName == "scene_enter" && d.Category == "statistics" && d.SchemaVersion == 1
+        && d.Fields.keys().hasOnly(["scene"])
+        && (!("scene" in d.Fields) || (d.Fields["scene"] is string && d.Fields["scene"].size() <= 8192)))
+          || (d.EventName == "scene_leave" && d.Category == "statistics" && d.SchemaVersion == 1
+        && d.Fields.keys().hasOnly(["scene"])
+        && (!("scene" in d.Fields) || (d.Fields["scene"] is string && d.Fields["scene"].size() <= 8192)))
+          || (d.EventName == "stage_enter" && d.Category == "statistics" && d.SchemaVersion == 1
+        && d.Fields.keys().hasOnly(["stage_id","position_x","position_y","level","experience"])
+        && (!("stage_id" in d.Fields) || (d.Fields["stage_id"] is int && d.Fields["stage_id"] >= 1 && d.Fields["stage_id"] <= 9007199254740991))
+        && (!("position_x" in d.Fields) || (d.Fields["position_x"] is int && d.Fields["position_x"] >= -9007199254740991 && d.Fields["position_x"] <= 9007199254740991))
+        && (!("position_y" in d.Fields) || (d.Fields["position_y"] is int && d.Fields["position_y"] >= -9007199254740991 && d.Fields["position_y"] <= 9007199254740991))
+        && (!("level" in d.Fields) || (d.Fields["level"] is int && d.Fields["level"] >= 1 && d.Fields["level"] <= 9007199254740991))
+        && (!("experience" in d.Fields) || (d.Fields["experience"] is int && d.Fields["experience"] >= 0 && d.Fields["experience"] <= 9007199254740991)))
+          || (d.EventName == "stage_leave" && d.Category == "statistics" && d.SchemaVersion == 1
+        && d.Fields.keys().hasOnly(["stage_id","position_x","position_y","dead"])
+        && (!("stage_id" in d.Fields) || (d.Fields["stage_id"] is int && d.Fields["stage_id"] >= 1 && d.Fields["stage_id"] <= 9007199254740991))
+        && (!("position_x" in d.Fields) || (d.Fields["position_x"] is int && d.Fields["position_x"] >= -9007199254740991 && d.Fields["position_x"] <= 9007199254740991))
+        && (!("position_y" in d.Fields) || (d.Fields["position_y"] is int && d.Fields["position_y"] >= -9007199254740991 && d.Fields["position_y"] <= 9007199254740991))
+        && (!("dead" in d.Fields) || (d.Fields["dead"] is bool)))
+          || (d.EventName == "player_death" && d.Category == "statistics" && d.SchemaVersion == 1
+        && d.Fields.keys().hasOnly(["stage_id","position_x","position_y","level"])
+        && (!("stage_id" in d.Fields) || (d.Fields["stage_id"] is int && d.Fields["stage_id"] >= 1 && d.Fields["stage_id"] <= 9007199254740991))
+        && (!("position_x" in d.Fields) || (d.Fields["position_x"] is int && d.Fields["position_x"] >= -9007199254740991 && d.Fields["position_x"] <= 9007199254740991))
+        && (!("position_y" in d.Fields) || (d.Fields["position_y"] is int && d.Fields["position_y"] >= -9007199254740991 && d.Fields["position_y"] <= 9007199254740991))
+        && (!("level" in d.Fields) || (d.Fields["level"] is int && d.Fields["level"] >= 1 && d.Fields["level"] <= 9007199254740991)))
+          || (d.EventName == "currency_changed" && d.Category == "statistics" && d.SchemaVersion == 1
+        && d.Fields.keys().hasOnly(["stage_id","currency_id","delta","balance"])
+        && (!("stage_id" in d.Fields) || (d.Fields["stage_id"] is int && d.Fields["stage_id"] >= 1 && d.Fields["stage_id"] <= 9007199254740991))
+        && (!("currency_id" in d.Fields) || (d.Fields["currency_id"] is int && d.Fields["currency_id"] >= 1 && d.Fields["currency_id"] <= 9007199254740991))
+        && (!("delta" in d.Fields) || (d.Fields["delta"] is int && d.Fields["delta"] >= -9007199254740991 && d.Fields["delta"] <= 9007199254740991))
+        && (!("balance" in d.Fields) || (d.Fields["balance"] is int && d.Fields["balance"] >= 0 && d.Fields["balance"] <= 9007199254740991)))
+          || (d.EventName == "currency_snapshot" && d.Category == "statistics" && d.SchemaVersion == 1
+        && d.Fields.keys().hasOnly(["stage_id","currency_id","balance"])
+        && (!("stage_id" in d.Fields) || (d.Fields["stage_id"] is int && d.Fields["stage_id"] >= 1 && d.Fields["stage_id"] <= 9007199254740991))
+        && (!("currency_id" in d.Fields) || (d.Fields["currency_id"] is int && d.Fields["currency_id"] >= 1 && d.Fields["currency_id"] <= 9007199254740991))
+        && (!("balance" in d.Fields) || (d.Fields["balance"] is int && d.Fields["balance"] >= 0 && d.Fields["balance"] <= 9007199254740991)))
+          || (d.EventName == "level_up" && d.Category == "statistics" && d.SchemaVersion == 1
+        && d.Fields.keys().hasOnly(["stage_id","before_level","level","experience"])
+        && (!("stage_id" in d.Fields) || (d.Fields["stage_id"] is int && d.Fields["stage_id"] >= 1 && d.Fields["stage_id"] <= 9007199254740991))
+        && (!("before_level" in d.Fields) || (d.Fields["before_level"] is int && d.Fields["before_level"] >= 1 && d.Fields["before_level"] <= 9007199254740991))
+        && (!("level" in d.Fields) || (d.Fields["level"] is int && d.Fields["level"] >= 1 && d.Fields["level"] <= 9007199254740991))
+        && (!("experience" in d.Fields) || (d.Fields["experience"] is int && d.Fields["experience"] >= 0 && d.Fields["experience"] <= 9007199254740991)))
+          || (d.EventName == "route_selected" && d.Category == "statistics" && d.SchemaVersion == 1
+        && d.Fields.keys().hasOnly(["stage_id","junction_id","route_id","destination_stage_id","level"])
+        && (!("stage_id" in d.Fields) || (d.Fields["stage_id"] is int && d.Fields["stage_id"] >= 1 && d.Fields["stage_id"] <= 9007199254740991))
+        && (!("junction_id" in d.Fields) || (d.Fields["junction_id"] is int && d.Fields["junction_id"] >= 1 && d.Fields["junction_id"] <= 9007199254740991))
+        && (!("route_id" in d.Fields) || (d.Fields["route_id"] is int && d.Fields["route_id"] >= 1 && d.Fields["route_id"] <= 9007199254740991))
+        && (!("destination_stage_id" in d.Fields) || (d.Fields["destination_stage_id"] is int && d.Fields["destination_stage_id"] >= 1 && d.Fields["destination_stage_id"] <= 9007199254740991))
+        && (!("level" in d.Fields) || (d.Fields["level"] is int && d.Fields["level"] >= 1 && d.Fields["level"] <= 9007199254740991)))
+          || (d.EventName == "monster_defeated" && d.Category == "statistics" && d.SchemaVersion == 1
+        && d.Fields.keys().hasOnly(["stage_id","monster_id","placement_id","sequence"])
+        && (!("stage_id" in d.Fields) || (d.Fields["stage_id"] is int && d.Fields["stage_id"] >= 1 && d.Fields["stage_id"] <= 9007199254740991))
+        && (!("monster_id" in d.Fields) || (d.Fields["monster_id"] is int && d.Fields["monster_id"] >= 1 && d.Fields["monster_id"] <= 9007199254740991))
+        && (!("placement_id" in d.Fields) || (d.Fields["placement_id"] is int && d.Fields["placement_id"] >= 1 && d.Fields["placement_id"] <= 9007199254740991))
+        && (!("sequence" in d.Fields) || (d.Fields["sequence"] is int && d.Fields["sequence"] >= 1 && d.Fields["sequence"] <= 9007199254740991)))
+          || (d.EventName == "item_acquired" && d.Category == "statistics" && d.SchemaVersion == 1
+        && d.Fields.keys().hasOnly(["stage_id","item_id","quantity"])
+        && (!("stage_id" in d.Fields) || (d.Fields["stage_id"] is int && d.Fields["stage_id"] >= 1 && d.Fields["stage_id"] <= 9007199254740991))
+        && (!("item_id" in d.Fields) || (d.Fields["item_id"] is int && d.Fields["item_id"] >= 1 && d.Fields["item_id"] <= 9007199254740991))
+        && (!("quantity" in d.Fields) || (d.Fields["quantity"] is int && d.Fields["quantity"] >= 1 && d.Fields["quantity"] <= 9007199254740991)))
+          || (d.EventName == "item_consumed" && d.Category == "statistics" && d.SchemaVersion == 1
+        && d.Fields.keys().hasOnly(["stage_id","item_id","quantity"])
+        && (!("stage_id" in d.Fields) || (d.Fields["stage_id"] is int && d.Fields["stage_id"] >= 1 && d.Fields["stage_id"] <= 9007199254740991))
+        && (!("item_id" in d.Fields) || (d.Fields["item_id"] is int && d.Fields["item_id"] >= 1 && d.Fields["item_id"] <= 9007199254740991))
+        && (!("quantity" in d.Fields) || (d.Fields["quantity"] is int && d.Fields["quantity"] >= 1 && d.Fields["quantity"] <= 9007199254740991)))
+          || (d.EventName == "game_error" && d.Category == "errors" && d.SchemaVersion == 1
+        && d.Fields.keys().hasOnly(["kind","message","stack","scene"])
+        && (!("kind" in d.Fields) || (d.Fields["kind"] is string && d.Fields["kind"].size() <= 8192))
+        && (!("message" in d.Fields) || (d.Fields["message"] is string && d.Fields["message"].size() <= 8192))
+        && (!("stack" in d.Fields) || (d.Fields["stack"] is string && d.Fields["stack"].size() <= 8192))
+        && (!("scene" in d.Fields) || (d.Fields["scene"] is string && d.Fields["scene"].size() <= 8192))));
+    }
+    match /telemetryEvents/{eventId} {
+      allow create: if request.auth != null
+        && request.auth.token.firebase.sign_in_provider == 'anonymous'
+        && validEvent(request.resource.data, eventId);
+      allow read: if analyst();
+      allow update, delete: if false;
+    }
+    match /telemetryReaders/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid
+        && request.auth.token.firebase.sign_in_provider == 'google.com';
+      allow list, write: if false;
+    }
+    // 배포 전 확인한 기존 game_logs 계약을 보존합니다. 새 통계 기록과 별도 컬렉션입니다.
+    match /game_logs/{logId} {
+      allow read, update, delete: if false;
+      allow create: if request.auth != null
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.stage is string
+        && request.resource.data.stage.size() <= 50
+        && request.resource.data.score is int
+        && request.resource.data.playTime is number;
+    }
+
+    match /{document=**} { allow read, write: if false; }
+  }
+}

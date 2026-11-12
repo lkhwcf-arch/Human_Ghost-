@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using HumanGhost.Data.Definitions;
 using HumanGhost.Data.Infrastructure;
@@ -486,16 +487,20 @@ namespace HumanGhost.Gameplay.Preview
         private void ApplyWalkableSpans()
         {
             if (_stage == null) return;
+            // 몬스터마다 수백 번 검사하므로 결과 목록 하나를 준비 범위 안에서 재사용합니다.
+            var hits = new List<Collider2D>();
+            var filter = new ContactFilter2D { useTriggers = Physics2D.queriesHitTriggers };
+            filter.SetLayerMask(Physics2D.DefaultRaycastLayers);
             for (int i = 0; i < _monsters.Length; i++)
             {
                 SpriteRenderer body = _monsters[i].GetComponentInChildren<SpriteRenderer>(true);
                 float half = body.transform.lossyScale.y * 0.5f;
                 Vector2 feet = (Vector2)_monsters[i].transform.position + Vector2.down * half;
-                _monsterDrivers[i].UseWalkableSpan(FindSpanEnd(feet, half, -1), FindSpanEnd(feet, half, 1));
+                _monsterDrivers[i].UseWalkableSpan(FindSpanEnd(feet, half, -1, filter, hits), FindSpanEnd(feet, half, 1, filter, hits));
             }
         }
 
-        private static float FindSpanEnd(Vector2 feet, float halfHeight, int direction)
+        private static float FindSpanEnd(Vector2 feet, float halfHeight, int direction, ContactFilter2D filter, List<Collider2D> hits)
         {
             const float step = 0.25f;
             float x = feet.x;
@@ -503,15 +508,17 @@ namespace HumanGhost.Gameplay.Preview
             {
                 float next = x + direction * step;
                 // 앞이 막히거나 발밑이 비면 그 앞에서 멈춥니다.
-                if (IsSolid(new Vector2(next, feet.y + halfHeight)) || !IsSolid(new Vector2(next, feet.y - 0.1f))) break;
+                if (IsSolid(new Vector2(next, feet.y + halfHeight), filter, hits) || !IsSolid(new Vector2(next, feet.y - 0.1f), filter, hits)) break;
                 x = next;
             }
             return x;
         }
 
-        private static bool IsSolid(Vector2 point)
+        private static bool IsSolid(Vector2 point, ContactFilter2D filter, List<Collider2D> hits)
         {
-            foreach (Collider2D hit in Physics2D.OverlapPointAll(point))
+            hits.Clear();
+            Physics2D.OverlapPoint(point, filter, hits);
+            foreach (Collider2D hit in hits)
                 if (!hit.isTrigger && hit.GetComponentInParent<MonsterRuntime>() == null && hit.GetComponentInParent<PlayerRuntime>() == null) return true;
             return false;
         }

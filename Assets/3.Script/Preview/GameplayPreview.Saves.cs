@@ -210,6 +210,7 @@ namespace HumanGhost.Gameplay.Preview
         public void SetPlayable(bool playable)
         {
             RequireSaveRuntime();
+            if (playable) ConnectTelemetry();
             _saveLocked = !playable;
             if (_speed != null) _speed.State.SetPaused(!playable);
             SetGameInputLocked(!playable);
@@ -222,6 +223,7 @@ namespace HumanGhost.Gameplay.Preview
         }
         private void DisconnectSaves()
         {
+            DisconnectTelemetry();
             DisconnectGalimgilArrivals();
             DisconnectShrine();
             _progressScope?.Dispose(); _progressScope = null;

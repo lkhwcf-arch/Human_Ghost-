@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>인귀 플레이 통계</title></head><body>
+<header><div><small>인귀 · 플레이 기록 분석</small><h1>플레이 통계</h1><p>플레이 흐름과 어려운 구간을 같은 조건으로 비교합니다.</p></div>
+<div><span id="account">로그인 전</span> <button id="login">Google 로그인</button><button id="logout" hidden>로그아웃</button></div></header>
+<main>
+<section class="panel controls" aria-label="조회 조건">
+<label>시작일 (한국 시간)<input id="from" type="date"></label><label>종료일 (한국 시간)<input id="to" type="date"></label>
+<label>빌드 버전<input id="build" placeholder="전체 버전"></label><label>데이터 버전<input id="data" placeholder="전체 버전"></label>
+<label>빌드 종류<select id="mode"><option value="">전체</option><option value="development">테스트</option><option value="release">정식</option></select></label>
+<label>기록 형식 버전<input id="version" placeholder="전체 버전" type="number" min="1"></label>
+<button id="query" disabled>Firestore 조회</button><button id="more" disabled>다음 500개 읽기</button>
+<label class="local">로컬 기록 확인<input id="local" type="file" accept=".jsonl" multiple></label>
+</section>
+<div id="status" role="status">로그인하거나 로컬 기록을 열어 집계 결과를 확인하세요.</div>
+<div id="coverage" class="notice">아직 조회하지 않았습니다.</div>
+<section class="toolbar"><label>통계 항목<select id="metric"></select></label><button id="export" disabled>현재 조건 엑셀 다운로드</button></section>
+<section id="cards" class="cards"></section>
+<section class="grid"><div class="panel"><h2>항목별 비교</h2><p class="muted">상위 10개 · 막대를 선택하면 세부 기록을 봅니다.</p><div id="chart"></div></div>
+<div class="panel"><h2>통계 요약</h2><p class="muted">행을 선택하면 아래에 발생 기록을 표시합니다.</p><div id="summary" class="scroll"></div></div></section>
+<section class="panel"><h2>세부 기록</h2><p id="detail-caption" class="muted">요약 항목을 선택하세요.</p><div id="details" class="scroll"></div></section>
+<p class="footnote">게임 클라이언트의 관측 기록입니다. 마지막 관측 구간은 이탈 원인이나 클리어를 확정하지 않습니다. 아이템·갈림길은 실제 이벤트 연결 전까지 기록이 없습니다. 이 화면은 조회 중 집계하며 Cloud Functions를 사용하지 않습니다.</p>
+</main><script type="module" src="/src/main.js"></script></body></html>

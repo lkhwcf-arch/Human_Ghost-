@@ -8,6 +8,11 @@
   <ItemGroup>
     <Compile Include="*.cs" />
     <Compile Include="../../Assets/3.Script/Core/**/*.cs" />
+    <Compile Include="../../Assets/3.Script/FireBase/TelemetryRecords.cs" />
+    <Compile Include="../../Assets/3.Script/FireBase/GameplayTelemetryBinding.cs" />
+    <Compile Include="../../Assets/3.Script/FireBase/JsonTelemetryStore.cs" />
+    <Compile Include="../../Assets/3.Script/FireBase/TelemetryOutbox.cs" />
+    <Compile Include="../../Assets/3.Script/FireBase/FirebaseRestTransport.cs" />
     <Compile Include="../../Assets/3.Script/Presentation/HealthDisplayBinding.cs" />
     <Compile Include="../../Assets/3.Script/Adapters/SettingsApplication.cs" />
     <Compile Include="../../Assets/3.Script/Adapters/AssetLease.cs" />

@@ -1,0 +1,82 @@
+[
+  {
+    "path": "Assets/4.Sprite/Map/Art_New/Map3/ST03_BG_Canyon.png",
+    "before": 21576167,
+    "after": 21079624,
+    "saved": 496543,
+    "applied": true,
+    "verification": "c5d58f051b0b76bac3dbbee111b429e1bd140a0f11be9ef8084e56701962f3b6"
+  },
+  {
+    "path": "Assets/4.Sprite/Map/Art_New/Map2/ST02_BG_Mountains.png",
+    "before": 18805672,
+    "after": 18435323,
+    "saved": 370349,
+    "applied": true,
+    "verification": "416d9aacc9dc34336064ced1dc15ca63d5714adaf35e842cfcb0e0a8ca6fa3e5"
+  },
+  {
+    "path": "Assets/4.Sprite/Map/Art_New/Backgrounds/ST01_BG_Mountains.png",
+    "before": 12882368,
+    "after": 12363473,
+    "saved": 518895,
+    "applied": true,
+    "verification": "f026e634dc1fcdea6ecaa02030476c5656bd3acfd5add5ab866ddcfb1b6df8bc"
+  },
+  {
+    "path": "Assets/4.Sprite/Map/Art_New/Maps/Hyeopgok_R3c_Ground_0.png",
+    "before": 9757100,
+    "after": 9757100,
+    "saved": 0,
+    "applied": false,
+    "verification": "이미 압축된 파일 유지"
+  },
+  {
+    "path": "Assets/4.Sprite/Map/Art_New/Maps/Hyeopgok_R3c_Ground_1.png",
+    "before": 9351631,
+    "after": 9351631,
+    "saved": 0,
+    "applied": false,
+    "verification": "이미 압축된 파일 유지"
+  },
+  {
+    "path": "Assets/4.Sprite/Map/Art_New/Backgrounds/ST01_BG_Sky.png",
+    "before": 9025259,
+    "after": 8360108,
+    "saved": 665151,
+    "applied": true,
+    "verification": "dbe55a73254ebb39507f0ca3c24e10c542a3c66888cb133a7c2d201ce5632693"
+  },
+  {
+    "path": "Assets/4.Sprite/Map/Art_New/Maps/Sangil_R3c_Ground_0.png",
+    "before": 8696412,
+    "after": 8696412,
+    "saved": 0,
+    "applied": false,
+    "verification": "이미 압축된 파일 유지"
+  },
+  {
+    "path": "Assets/4.Sprite/Map/Art_New/Maps/Sangil_R3c_Ground_1.png",
+    "before": 7666885,
+    "after": 7666885,
+    "saved": 0,
+    "applied": false,
+    "verification": "이미 압축된 파일 유지"
+  },
+  {
+    "path": "Assets/4.Sprite/Map/Art_New/Maps/BossRoom_R3c_Ground.png",
+    "before": 5610646,
+    "after": 5610646,
+    "saved": 0,
+    "applied": false,
+    "verification": "이미 압축된 파일 유지"
+  },
+  {
+    "path": "Assets/4.Sprite/Map/Art_New/Maps/Dohwagol_R3c_Building_0.png",
+    "before": 4480146,
+    "after": 4480146,
+    "saved": 0,
+    "applied": false,
+    "verification": "이미 압축된 파일 유지"
+  }
+]

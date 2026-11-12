@@ -1,0 +1,10 @@
+    // 배포 전 확인한 기존 game_logs 계약을 보존합니다. 새 통계 기록과 별도 컬렉션입니다.
+    match /game_logs/{logId} {
+      allow read, update, delete: if false;
+      allow create: if request.auth != null
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.stage is string
+        && request.resource.data.stage.size() <= 50
+        && request.resource.data.score is int
+        && request.resource.data.playTime is number;
+    }

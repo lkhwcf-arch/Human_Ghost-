@@ -112,3 +112,10 @@ InitTestScene*.unity*
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
 .vscode
+
+# 통계 조회 도구의 복원·빌드 결과와 로컬 인증 캐시
+/Tools/TelemetryConsole/node_modules/
+/Tools/TelemetryConsole/dist/
+/Tools/TelemetryConsole/.firebase/
+/Tools/TelemetryConsole/public/firebase-config.json
+/Tools/TelemetryConsole/*debug.log

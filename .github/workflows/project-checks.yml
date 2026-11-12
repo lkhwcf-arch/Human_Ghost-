@@ -12,6 +12,38 @@ permissions:
   contents: read
 
 jobs:
+  telemetry:
+    name: 통계 집계·엑셀·Firestore 접근 규칙 검사
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: 검사 대상 코드 받기
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: 통계 조회 실행 환경 준비
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: Tools/TelemetryConsole/package-lock.json
+      - name: 공식 에뮬레이터 실행 환경 준비
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: 조회 도구 의존성 복원
+        working-directory: Tools/TelemetryConsole
+        run: npm ci --no-audit --no-fund
+      - name: 통계 집계와 엑셀 검사
+        working-directory: Tools/TelemetryConsole
+        run: npm test
+      - name: 정책·규칙 생성과 조회 화면 빌드
+        working-directory: Tools/TelemetryConsole
+        run: npm run build
+      - name: 운영과 분리된 Firestore 규칙 검사
+        working-directory: Tools/TelemetryConsole
+        run: npm run firebase -- emulators:exec --only firestore --project demo-humanghost "node --test tests/rules.emulator.mjs"
   checks:
     name: 데이터·게임 코어·빌드 공지 검사
     runs-on: windows-latest
@@ -31,6 +63,9 @@ jobs:
       - name: 빌드 공지 구성 검사
         shell: pwsh
         run: python -B -m unittest discover -s Tools/Automation -p "test_*.py"
+      - name: PNG 무손실 압축 계약 검사
+        shell: pwsh
+        run: python -B Tools/Resources/test_optimize_png.py
       - name: 검사 결과 요약
         if: always()
         shell: pwsh

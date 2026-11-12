@@ -43,6 +43,8 @@ internal static class Program
             await SoundPreparationChecks.RunAsync(Check);
             UiPrefabChecks.Run(args[0], value => Check(value, "공용 설정·오류 팝업의 표시 배치와 타이틀 연결"));
             ResourceConnectionChecks.Run(args[0], Check);
+            TelemetryChecks.Run(args[0], Check);
+            await TelemetryTransportChecks.RunAsync(Check);
             CutsceneChecks.Run(Check);
             SaveChecks.Run(Check);
             SaveGameFlowChecks.Run(Check);
