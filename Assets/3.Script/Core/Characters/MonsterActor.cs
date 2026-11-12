@@ -31,6 +31,7 @@ namespace HumanGhost.Gameplay
         public Monster Definition { get; }
         public ActorStateMachine States { get; }
         public int Health { get; private set; }
+        public bool KeepsHealth { get; }
         public StateKey CurrentState => States.Current;
         public bool IsDead => Health == 0;
         public int Facing { get; private set; } = 1;
@@ -54,7 +55,7 @@ namespace HumanGhost.Gameplay
         }
 
         // random(minInclusive, maxExclusive): 패턴 선택·대기 시간용 개체별 난수. 전역 난수를 쓰지 않습니다.
-        public MonsterActor(Monster definition, IReadOnlyList<MonsterPattern> patterns, int hitStun, int critHitStun, Func<int, int, int> random)
+        public MonsterActor(Monster definition, IReadOnlyList<MonsterPattern> patterns, int hitStun, int critHitStun, Func<int, int, int> random, bool keepHealth = false)
         {
             Definition = definition ?? throw new ArgumentNullException(nameof(definition));
             if (definition.HP <= 0 || definition.MoveSpeed < 0 || definition.SightRange < 0 || definition.AttackRange < 0 ||
@@ -68,6 +69,7 @@ namespace HumanGhost.Gameplay
             _hitStun = hitStun; _critHitStun = critHitStun;
             States = new ActorStateMachine(_idle);
             Health = definition.HP;
+            KeepsHealth = keepHealth;
         }
 
         // 외부 관측: 목표 개체ID(양수)·거리(tile_x100)·목표 방향(-1/0/1). 목표 사망/이탈 시 ClearTarget.
@@ -105,7 +107,7 @@ namespace HumanGhost.Gameplay
         {
             if (damage < 0) throw new ArgumentOutOfRangeException(nameof(damage));
             if (IsDead || damage == 0) return false;
-            Health = Math.Max(0, Health - damage);
+            if (!KeepsHealth) Health = Math.Max(0, Health - damage);
             if (IsDead)
             {
                 ClearPattern(); _stunRemaining = 0; _waitRemaining = 0;

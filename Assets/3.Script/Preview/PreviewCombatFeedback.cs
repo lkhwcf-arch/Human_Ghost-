@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using HumanGhost.Gameplay.Adapters;
+using HumanGhost.Gameplay.Presentation;
 using UnityEngine;
 
 namespace HumanGhost.Gameplay.Preview
@@ -16,6 +17,10 @@ namespace HumanGhost.Gameplay.Preview
         private readonly GameAudio _audio;
         private readonly TextMesh _textPrefab;
         private readonly string _dodgeText;
+        private readonly SpriteClipEffect _hitPrefab;
+        private readonly List<SpriteClipEffect> _impacts = new List<SpriteClipEffect>();
+        private readonly Stack<SpriteClipEffect> _impactPool = new Stack<SpriteClipEffect>();
+        private const int _maxRetainedImpacts = 16;
         private class FloatingText
         {
             public GameObject Root { get; set; }
@@ -27,13 +32,13 @@ namespace HumanGhost.Gameplay.Preview
         // 동시 표시는 제한하지 않고 대기 중인 표시만 최대 16개까지 보관합니다.
         private const int _maxRetainedTexts = 16;
 
-        public PreviewCombatFeedback(GameSpeedController speed, PreviewFollowCamera camera, GameAudio audio, TextMesh textPrefab, string dodgeText)
+        public PreviewCombatFeedback(GameSpeedController speed, PreviewFollowCamera camera, GameAudio audio, TextMesh textPrefab, string dodgeText, SpriteClipEffect hitPrefab = null)
         {
-            _speed = speed; _camera = camera; _audio = audio; _textPrefab = textPrefab; _dodgeText = dodgeText;
+            _speed = speed; _camera = camera; _audio = audio; _textPrefab = textPrefab; _dodgeText = dodgeText; _hitPrefab = hitPrefab;
         }
 
         // 플레이어가 적을 때린 결과입니다. 회피는 히트스톱이 없습니다.
-        public void OnPlayerHit(HitOutcome outcome, SpriteRenderer target, Vector3 position)
+        public void OnPlayerHit(HitOutcome outcome, SpriteRenderer target, Vector3 position, int direction = 1)
         {
             switch (outcome)
             {
@@ -45,11 +50,13 @@ namespace HumanGhost.Gameplay.Preview
                     _speed?.State.HitStop(_normalStop);
                     _camera?.Shake(0.06f, 0.08f);
                     AddFlash(target, Color.white);
+                    ShowImpact(target, position, direction);
                     break;
                 case HitOutcome.Critical:
                     _speed?.State.Critical(_criticalStop, _criticalSlow, _criticalSlowRate);
                     _camera?.Shake(0.14f, 0.14f);
                     AddFlash(target, new Color(1f, 0.15f, 0.15f));
+                    ShowImpact(target, position, direction);
                     _audio?.PlayEffect("SFX_CRIT");
                     break;
             }
@@ -77,6 +84,15 @@ namespace HumanGhost.Gameplay.Preview
         // 다른 표시가 색을 정한 뒤 마지막에 덮습니다.
         public void Step(float unscaledSeconds, float seconds)
         {
+            for (int i = _impacts.Count - 1; i >= 0; i--)
+            {
+                SpriteClipEffect impact = _impacts[i];
+                impact.Step(unscaledSeconds);
+                if (impact.IsPlaying) continue;
+                _impacts.RemoveAt(i);
+                if (_impactPool.Count < _maxRetainedImpacts) _impactPool.Push(impact);
+                else Object.Destroy(impact.gameObject);
+            }
             for (int i = _flashes.Count - 1; i >= 0; i--)
             {
                 Flash flash = _flashes[i];
@@ -95,6 +111,23 @@ namespace HumanGhost.Gameplay.Preview
                 if (_textPool.Count < _maxRetainedTexts) _textPool.Push(text);
                 else Object.Destroy(text.Root);
             }
+        }
+
+        private void ShowImpact(SpriteRenderer target, Vector3 position, int direction)
+        {
+            if (_hitPrefab == null) return;
+            SpriteClipEffect impact = null;
+            try
+            {
+                impact = _impactPool.Count > 0 ? _impactPool.Pop() : Object.Instantiate(_hitPrefab);
+                var renderer = impact.GetComponent<SpriteRenderer>();
+                renderer.flipX = direction > 0;
+                if (target != null) { renderer.sortingLayerID = target.sortingLayerID; renderer.sortingOrder = target.sortingOrder + 1; }
+                else { var source = _hitPrefab.GetComponent<SpriteRenderer>(); renderer.sortingLayerID = source.sortingLayerID; renderer.sortingOrder = source.sortingOrder; }
+                impact.Play((target != null ? target.bounds.center : position) + Vector3.right * (direction * 0.2f));
+                _impacts.Add(impact);
+            }
+            catch (System.Exception error) { Debug.LogException(error); if (impact != null) Object.Destroy(impact.gameObject); }
         }
 
         private void AddFlash(SpriteRenderer target, Color color)
@@ -123,6 +156,9 @@ namespace HumanGhost.Gameplay.Preview
         }
         public void Dispose()
         {
+            foreach (SpriteClipEffect impact in _impacts) if (impact != null) Object.Destroy(impact.gameObject);
+            foreach (SpriteClipEffect impact in _impactPool) if (impact != null) Object.Destroy(impact.gameObject);
+            _impacts.Clear(); _impactPool.Clear();
             foreach (FloatingText text in _texts) if (text.Root != null) Object.Destroy(text.Root);
             foreach (FloatingText text in _textPool) if (text.Root != null) Object.Destroy(text.Root);
             _texts.Clear(); _textPool.Clear(); _flashes.Clear();

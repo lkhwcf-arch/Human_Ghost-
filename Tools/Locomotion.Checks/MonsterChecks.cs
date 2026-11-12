@@ -45,6 +45,27 @@ internal static class MonsterChecks
         cinematicTarget.SetCutsceneDamageBlocked(false);
         Check(cinematicAttacker.TryHitPlayer(2001, cinematicTarget, CinematicRandom) == HitOutcome.Hit && cinematicRandomCalls == 2 && cinematicTarget.Health < player.HP, "컷씬 해제 후 같은 판정 창 정상 피해");
 
+        // 무한 체력은 피해를 인정하되 HP만 유지합니다. 기본 개체의 사망 규칙은 그대로입니다.
+        var dummy = new MonsterActor(husugwi, HusugwiPatterns(), 300, 500, Random, keepHealth: true);
+        int dummyHits = 0, dummyPatterns = 0;
+        dummy.HealthChanged += hp => dummyHits++;
+        dummy.PatternStarted += pattern => dummyPatterns++;
+        Check(dummy.KeepsHealth && !H().KeepsHealth, "무한 체력은 명시한 개체에만 적용");
+        for (int i = 0; i < 20; i++)
+        {
+            Check(dummy.ReceiveHit(int.MaxValue, i % 2 == 1) && dummy.Health == husugwi.HP && !dummy.IsDead,
+                "반복 최대 피해에도 살아 있고 실제 명중을 인정");
+            Check(dummy.CurrentState == (i % 2 == 1 ? StateKey.CritHit : StateKey.Hit), "무한 체력도 일반·치명 피격 상태 유지");
+            dummy.Tick(60000);
+            Check(dummy.CurrentState == StateKey.Idle && dummy.Velocity == 0 && !dummy.IsAttackActive,
+                "미관측 허수귀는 경직 후에도 이동·공격 없음");
+        }
+        Check(dummyHits == 20 && dummyPatterns == 0, "명중 통지20회·자율 공격0회");
+        Check(!dummy.ReceiveHit(0) && dummyHits == 20, "0피해는 통지하지 않음");
+        Expect<ArgumentOutOfRangeException>(() => dummy.ReceiveHit(-1));
+        var mortal = H();
+        Check(mortal.ReceiveHit(int.MaxValue) && mortal.IsDead, "기본 몬스터는 기존대로 사망");
+
         // 배회·발견·공격 거리 경계
         var h = H();
         int patterns = 0;

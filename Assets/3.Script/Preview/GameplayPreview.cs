@@ -82,6 +82,7 @@ namespace HumanGhost.Gameplay.Preview
         private PreviewCombatFeedback _feedback;
         private PreviewParryFeedback _parryFeedback;
         [SerializeField] private SpriteClipEffect _parryImpactPrefab = null;
+        [SerializeField] private SpriteClipEffect _hitImpactPrefab = null;
         private PlayerAnimationAudio _playerAudio;
         private readonly PreviewPresentation _presentation = new PreviewPresentation();
         private SubscriptionScope _interactionScope;
@@ -232,6 +233,9 @@ namespace HumanGhost.Gameplay.Preview
 
         private void OnDisable()
         {
+#if UNITY_EDITOR
+            ClearEditorHitDummy();
+#endif
             if (_actor != null) _actor.ParrySucceeded -= OnParrySucceeded;
             if (_playerAudio != null) _playerAudio.Disconnect();
             _playerAudio = null;
@@ -331,13 +335,16 @@ namespace HumanGhost.Gameplay.Preview
             _facing = _actor.Facing;
             ApplyAttackWindowSize();
             _attackWindow.transform.localPosition = new Vector3(_facing * (AttackNearEdge + _attackWindow.transform.localScale.x * 0.5f), 0f, 0.1f);
+#if UNITY_EDITOR
+            CheckEditorHitDummy();
+#endif
             if (!_actor.IsAttackActive) return;
             if (_bossActive && _attackWindow.bounds.Intersects(_bossBody.bounds))
-                _feedback?.OnPlayerHit(_actor.TryHitBoss(_bossTargetId, _boss.Actor, _player.HitRandom), null, _boss.transform.position);
+                _feedback?.OnPlayerHit(_actor.TryHitBoss(_bossTargetId, _boss.Actor, _player.HitRandom), null, _boss.transform.position, _actor.Facing);
             foreach (PreviewMonsterDriver monster in _monsterDrivers)
             {
                 HitOutcome outcome = monster.CheckPlayerHit();
-                if (_feedback != null) _feedback.OnPlayerHit(outcome, monster.Sprite, monster.Position);
+                if (_feedback != null) _feedback.OnPlayerHit(outcome, monster.Sprite, monster.Position, _actor.Facing);
             }
         }
 
@@ -637,7 +644,7 @@ namespace HumanGhost.Gameplay.Preview
             _combat = new CombatPresence(_combatHoldMilliseconds);
             _lastHealth = _actor.Health;
             _feedback?.Dispose();
-            _feedback = new PreviewCombatFeedback(_speed, _followCamera, _audio, _feedbackTextPrefab, catalog.GetTable<Language>().Get(30021).KO);
+            _feedback = new PreviewCombatFeedback(_speed, _followCamera, _audio, _feedbackTextPrefab, catalog.GetTable<Language>().Get(30021).KO, _hitImpactPrefab);
             _parryFeedback?.Dispose();
             _parryFeedback = new PreviewParryFeedback(_speed, _followCamera, _audio, _parryImpactPrefab);
             if (_bossDriver != null)
