@@ -178,7 +178,7 @@ namespace HumanGhost.Gameplay.Preview
                 _actor.ParrySucceeded += OnParrySucceeded;
                 if (_motion == null) _motion = new PreviewPlayerMotion(_player, _groundY, _useMapCollision, _playerHalfSize, GetMarkers(),
                     _actor.Definition.JumpHeight, Mathf.RoundToInt(_jumpSeconds * 1000f),
-                    key => _playerAudio?.PlayAnimationSound(key));
+                    key => _playerAudio?.PlayAnimationSound(key), _stageId == BossStage ? _stage?.MapRoot : null);
                 _input.TryDropThrough = _motion.TryDropThrough;
                 _input.SetModalBlocked(_modalBlocked);
                 _input.JumpAccepted += OnJump;

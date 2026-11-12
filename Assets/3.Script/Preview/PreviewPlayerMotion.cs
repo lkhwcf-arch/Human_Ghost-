@@ -40,12 +40,12 @@ namespace HumanGhost.Gameplay.Preview
 
         // markers: 호출자가 전달한 표식 묶음(매달리기 모서리·낙하 구역).
         public PreviewPlayerMotion(PlayerRuntime player, float groundY, bool useColliders, Vector2 halfSize,
-            Transform[] markers, int jumpHeight, int jumpMilliseconds, Action<string> playSound = null)
+            Transform[] markers, int jumpHeight, int jumpMilliseconds, Action<string> playSound = null, Transform dropThroughRoot = null)
         {
             _player = player != null ? player : throw new ArgumentNullException(nameof(player));
             _halfSize = halfSize;
             _playSound = playSound;
-            _collision = new PreviewCollision(useColliders, groundY, halfSize);
+            _collision = new PreviewCollision(useColliders, groundY, halfSize, dropThroughRoot);
             _hangEdges = new PreviewHangEdges(markers, halfSize);
             _fallZones = new PreviewFallZones(markers);
             foreach (Transform marker in markers ?? Array.Empty<Transform>())

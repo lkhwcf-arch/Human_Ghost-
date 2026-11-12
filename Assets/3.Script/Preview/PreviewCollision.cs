@@ -10,12 +10,13 @@ namespace HumanGhost.Gameplay.Preview
         private readonly bool _useColliders;
         private readonly float _flatFloorY;
         private readonly Vector2 _halfSize;
+        private readonly Transform _dropThroughRoot;
         private readonly RaycastHit2D[] _hits = new RaycastHit2D[16];
         private ContactFilter2D _filter;
 
-        public PreviewCollision(bool useColliders, float flatFloorY, Vector2 halfSize)
+        public PreviewCollision(bool useColliders, float flatFloorY, Vector2 halfSize, Transform dropThroughRoot = null)
         {
-            _useColliders = useColliders; _flatFloorY = flatFloorY; _halfSize = halfSize;
+            _useColliders = useColliders; _flatFloorY = flatFloorY; _halfSize = halfSize; _dropThroughRoot = dropThroughRoot;
             _filter = new ContactFilter2D { useTriggers = false, useLayerMask = true, layerMask = Physics2D.DefaultRaycastLayers };
             Physics2D.SyncTransforms();
         }
@@ -69,11 +70,17 @@ namespace HumanGhost.Gameplay.Preview
                 support = hit.collider;
                 nearest = hit.distance;
             }
-            if (support == null || !support.usedByEffector) return false;
-            DropThroughPlatform policy = support.GetComponentInParent<DropThroughPlatform>();
-            if (policy == null || !policy.Allowed) return false;
+            if (!CanDropThrough(support)) return false;
             _ignoredPlatform = support;
             return true;
+        }
+
+        private bool CanDropThrough(Collider2D support)
+        {
+            if (support == null || !support.usedByEffector) return false;
+            DropThroughPlatform policy = support.GetComponentInParent<DropThroughPlatform>();
+            // 명시 정책이 우선이며, 호출자가 허용한 맵 범위의 단방향 발판만 기본 허용합니다.
+            return policy != null ? policy.Allowed : _dropThroughRoot != null && support.transform.IsChildOf(_dropThroughRoot);
         }
 
         public bool FindFloor(Vector3 position, float distance, out float floorDistance)
@@ -95,7 +102,10 @@ namespace HumanGhost.Gameplay.Preview
             for (int i = 0; i < count; i++)
             {
                 RaycastHit2D hit = _hits[i];
-                if (hit.collider == _ignoredPlatform || hit.normal.y < 0.5f) continue;
+                if (hit.normal.y < 0.5f) continue;
+                // 이음새에서 같은 높이의 다른 조각에 다시 착지하지 않습니다. 아래층·금지 지면은 유지합니다.
+                if (_ignoredPlatform != null && (hit.collider == _ignoredPlatform ||
+                    (Mathf.Abs(hit.collider.bounds.max.y - _ignoredPlatform.bounds.max.y) <= Skin && CanDropThrough(hit.collider)))) continue;
                 // 단방향 발판은 발이 윗면보다 위에 있을 때만 밟습니다.
                 if (hit.collider.usedByEffector && feet < hit.collider.bounds.max.y - Skin) continue;
                 float value = Mathf.Max(0f, hit.distance - Skin);
