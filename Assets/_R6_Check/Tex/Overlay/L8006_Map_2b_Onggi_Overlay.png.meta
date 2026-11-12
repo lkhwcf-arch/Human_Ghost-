@@ -1,0 +1,442 @@
+fileFormatVersion: 2
+guid: acf2d22f50404fb48b8b0b9da3eaec26
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 6979120643463013596
+    second: L8006_Map_2b_Onggi_Overlay_0
+  - first:
+      213: 383659455591879795
+    second: L8006_Map_2b_Onggi_Overlay_1
+  - first:
+      213: 5608482966451455002
+    second: L8006_Map_2b_Onggi_Overlay_2
+  - first:
+      213: 3909018100167153195
+    second: L8006_Map_2b_Onggi_Overlay_3
+  - first:
+      213: -2998418104841397534
+    second: L8006_Map_2b_Onggi_Overlay_4
+  - first:
+      213: -2402125007663778151
+    second: L8006_Map_2b_Onggi_Overlay_5
+  - first:
+      213: -4683949316120912494
+    second: L8006_Map_2b_Onggi_Overlay_6
+  - first:
+      213: -5154690029619165036
+    second: L8006_Map_2b_Onggi_Overlay_7
+  - first:
+      213: -5347732892963302450
+    second: L8006_Map_2b_Onggi_Overlay_8
+  - first:
+      213: 3065596927880458923
+    second: L8006_Map_2b_Onggi_Overlay_9
+  - first:
+      213: -9154117923687687519
+    second: L8006_Map_2b_Onggi_Overlay_10
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 0
+  alignment: 1
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 48
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 8192
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: L8006_Map_2b_Onggi_Overlay_0
+      rect:
+        serializedVersion: 2
+        x: 2303
+        y: 999
+        width: 482
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cd4653e8f31dad060800000000000000
+      internalID: 6979120643463013596
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: L8006_Map_2b_Onggi_Overlay_1
+      rect:
+        serializedVersion: 2
+        x: 2879
+        y: 999
+        width: 290
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 374164dfd38035500800000000000000
+      internalID: 383659455591879795
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: L8006_Map_2b_Onggi_Overlay_2
+      rect:
+        serializedVersion: 2
+        x: 4511
+        y: 855
+        width: 146
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a140b200b8555dd40800000000000000
+      internalID: 5608482966451455002
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: L8006_Map_2b_Onggi_Overlay_3
+      rect:
+        serializedVersion: 2
+        x: 911
+        y: 807
+        width: 146
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b261901504f9f3630800000000000000
+      internalID: 3909018100167153195
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: L8006_Map_2b_Onggi_Overlay_4
+      rect:
+        serializedVersion: 2
+        x: 1151
+        y: 807
+        width: 242
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2ea14d4be9a7366d0800000000000000
+      internalID: -2998418104841397534
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: L8006_Map_2b_Onggi_Overlay_5
+      rect:
+        serializedVersion: 2
+        x: 2687
+        y: 807
+        width: 194
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9963e145800f9aed0800000000000000
+      internalID: -2402125007663778151
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: L8006_Map_2b_Onggi_Overlay_6
+      rect:
+        serializedVersion: 2
+        x: 3071
+        y: 759
+        width: 146
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 29ddda2e9e44ffeb0800000000000000
+      internalID: -4683949316120912494
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: L8006_Map_2b_Onggi_Overlay_7
+      rect:
+        serializedVersion: 2
+        x: 4271
+        y: 759
+        width: 146
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4984d419abcd678b0800000000000000
+      internalID: -5154690029619165036
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: L8006_Map_2b_Onggi_Overlay_8
+      rect:
+        serializedVersion: 2
+        x: 1487
+        y: 711
+        width: 146
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ec31041744909c5b0800000000000000
+      internalID: -5347732892963302450
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: L8006_Map_2b_Onggi_Overlay_9
+      rect:
+        serializedVersion: 2
+        x: 5375
+        y: 711
+        width: 146
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ba2f7d6e9203b8a20800000000000000
+      internalID: 3065596927880458923
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: L8006_Map_2b_Onggi_Overlay_10
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 5760
+        height: 673
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1aa1f8ebf3a06f080800000000000000
+      internalID: -9154117923687687519
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      L8006_Map_2b_Onggi_Overlay_0: 6979120643463013596
+      L8006_Map_2b_Onggi_Overlay_1: 383659455591879795
+      L8006_Map_2b_Onggi_Overlay_10: -9154117923687687519
+      L8006_Map_2b_Onggi_Overlay_2: 5608482966451455002
+      L8006_Map_2b_Onggi_Overlay_3: 3909018100167153195
+      L8006_Map_2b_Onggi_Overlay_4: -2998418104841397534
+      L8006_Map_2b_Onggi_Overlay_5: -2402125007663778151
+      L8006_Map_2b_Onggi_Overlay_6: -4683949316120912494
+      L8006_Map_2b_Onggi_Overlay_7: -5154690029619165036
+      L8006_Map_2b_Onggi_Overlay_8: -5347732892963302450
+      L8006_Map_2b_Onggi_Overlay_9: 3065596927880458923
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
