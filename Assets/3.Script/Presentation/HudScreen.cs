@@ -1,4 +1,5 @@
 using HumanGhost.Data.Definitions;
+using HumanGhost.Gameplay.Adapters;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,14 +9,17 @@ namespace HumanGhost.Gameplay.Presentation
     [DefaultExecutionOrder(1100)]
     public class HudScreen : MonoBehaviour
     {
-        private const float _dimAlpha = 0.25f;
+        private const float _dimAlpha = 0.7f;
         private const float _fadeSeconds = 0.3f;
         private const float _damageFlashSeconds = 0.25f;
         [SerializeField] private CanvasGroup _group = null;
         [SerializeField] private RectTransform _staminaFill = null;
         [SerializeField] private Image _staminaBack = null;
         [SerializeField] private Text _herbs = null;
+        [SerializeField] private Text _herbKey = null;
         [SerializeField] private Text _skill = null;
+        [SerializeField] private GameObject _skillIcon = null;
+        [SerializeField] private Text _skillKey = null;
         [SerializeField] private GameObject _bossRoot = null;
         [SerializeField] private Text _bossName = null;
         [SerializeField] private RectTransform _bossHealthFill = null;
@@ -65,6 +69,7 @@ namespace HumanGhost.Gameplay.Presentation
             PlayerActor player = _player;
             _scope.Add(() => player.DisplayChanged -= invalidate);
             player.DisplayChanged += invalidate;
+            _scope.Add(() => KeyboardControls.Changed -= invalidate); KeyboardControls.Changed += invalidate;
             if (_boss != null)
             {
                 BossPoise boss = _boss;
@@ -119,13 +124,20 @@ namespace HumanGhost.Gameplay.Presentation
         {
             RefreshStamina(_player.Stamina.Current);
             RefreshBoss();
-            if (_shownHerbs != _player.HerbCount) { _shownHerbs = _player.HerbCount; _herbs.text = "Q  약초 " + _shownHerbs; }
-            if (_shownSkill != _player.HasSkill) { _shownSkill = _player.HasSkill; _skill.gameObject.SetActive(_player.HasSkill); _shownCooldown = -1; }
+            if (_shownHerbs != _player.HerbCount) { _shownHerbs = _player.HerbCount; _herbs.text = (_herbKey == null ? "Q  약초 " : "") + _shownHerbs; }
+            if (_herbKey != null) _herbKey.text = KeyboardControls.Layout == KeyboardLayout.Wasd ? "I" : "Q";
+            if (_shownSkill != _player.HasSkill)
+            {
+                _shownSkill = _player.HasSkill; _skill.gameObject.SetActive(_player.HasSkill);
+                if (_skillIcon != null) _skillIcon.SetActive(_player.HasSkill);
+                _shownCooldown = -1;
+            }
+            if (_skillKey != null) _skillKey.transform.parent.gameObject.SetActive(KeyboardControls.Layout == KeyboardLayout.Wasd);
             int cooldown = _player.SkillCooldownSeconds;
             if (_player.HasSkill && cooldown != _shownCooldown)
             {
                 _shownCooldown = cooldown;
-                _skill.text = "Z  결박 가르기 " + (cooldown > 0 ? cooldown + "초" : "");
+                _skill.text = (_skillIcon == null ? "Z  결박 가르기 " : "") + (cooldown > 0 ? cooldown + "초" : "");
             }
         }
 
