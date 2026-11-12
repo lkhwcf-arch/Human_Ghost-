@@ -16,12 +16,14 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField] private AnimationClip _climb = null;
         [SerializeField] private AnimationClip _save = null;
         [SerializeField] private AnimationClip _ladderClimb = null;
+        [SerializeField, InspectorName("사다리 표시 배율"), Range(1f, 1.5f)] private float _ladderScale = 1.1f;
         [SerializeField, Range(0.5f, 1.5f)] private float _climbStartScale = 0.95f;
         [SerializeField, Range(1f, 2f)] private float _hangScale = 1.4f;
         [SerializeField, Range(-0.5f, 0f)] private float _hangVerticalOffset = -0.1f;
         private Vector3 _baseScale = Vector3.one;
         private Vector3 _basePosition;
         private float _hangTop;
+        private float _standingBottom;
         protected override bool AlignFeet => false;
         protected override void Awake()
         {
@@ -38,7 +40,8 @@ namespace HumanGhost.Gameplay.Preview
             idle.SampleAnimation(Renderer.gameObject, 0f);
             if (Renderer.sprite == null) return;
             Vector3 position = Renderer.transform.localPosition;
-            position.y = feet - PreviewPresentation.VisibleBottom(Renderer.sprite) * _baseScale.y;
+            _standingBottom = PreviewPresentation.VisibleBottom(Renderer.sprite);
+            position.y = feet - _standingBottom * _baseScale.y;
             Renderer.transform.localPosition = _basePosition = position;
         }
         private bool _onLadder;
@@ -86,11 +89,13 @@ namespace HumanGhost.Gameplay.Preview
             // 크기·높이 보정은 이동과 같이 양 끝을 감속합니다. 프레임 선택은 TryGetAnimationTime의 선형 진행률을 그대로 씁니다.
             float progress = hanging ? Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(_player.ClimbProgress)) : 0f;
             float scale = hanging && _player.ClimbProgress >= 0f ? Mathf.Lerp(_climbStartScale * _hangScale, 1f, progress) :
-                hanging ? (_onLadder ? 1f : _hangScale) : 1f;
+                hanging ? (_onLadder ? _ladderScale : _hangScale) : 1f;
             if (Renderer != null)
             {
                 Renderer.transform.localScale = _baseScale * scale;
                 Vector3 position = _basePosition;
+                // 기준 발 높이를 고정하며 전체 사다리 주기에 같은 배율을 씁니다.
+                if (hanging && _onLadder) position.y += (1f - scale) * _standingBottom * _baseScale.y;
                 // 손의 기존 높이를 기준으로 확대하고 절벽 자세만 조금 내립니다.
                 if (hanging && !_onLadder)
                     position.y += (1f - progress) * (_hangVerticalOffset - (_hangScale - 1f) * _hangTop * _baseScale.y);
