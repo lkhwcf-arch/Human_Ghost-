@@ -12,9 +12,11 @@ namespace HumanGhost.Data.Infrastructure
         {
             await loader.LoadCsvAsync<UnitStat>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<Buff>(catalog, row => row.ID, token);
+            await loader.LoadCsvAsync<CorruptionStep>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<Currency>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<Cutscene>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<CutsceneStep>(catalog, row => row.ID, token);
+            await loader.LoadCsvAsync<ExecuteReward>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<GateConfig>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<HealthDisplayConfig>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<Language>(catalog, row => row.ID, token);
