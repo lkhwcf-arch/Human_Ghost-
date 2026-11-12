@@ -204,6 +204,8 @@ namespace HumanGhost.Gameplay.Preview
                     _playerAudio = _player.GetComponent<PlayerAnimationAudio>();
                     if (_playerAudio == null) _playerAudio = _player.gameObject.AddComponent<PlayerAnimationAudio>();
                     _playerAudio.Connect(_player, key => { if (_audio != null) _audio.PlayEffect(key); });
+                    foreach (MonsterRuntime monster in _monsters)
+                        monster.GetComponent<MonsterAnimationAudio>()?.Connect(monster, _audio.PlayEffect);
                 }
                 _deathRestart = _restartOnDeath ? new PreviewDeathRestart(gameObject.scene.name, _progress, () => _saveSession?.CurrentSnapshot) : null;
                 // 판정 창이 한 프레임 안에 열리고 닫혀도 열리는 순간 한 번은 접촉을 확인합니다.
@@ -233,6 +235,8 @@ namespace HumanGhost.Gameplay.Preview
             if (_actor != null) _actor.ParrySucceeded -= OnParrySucceeded;
             if (_playerAudio != null) _playerAudio.Disconnect();
             _playerAudio = null;
+            foreach (MonsterRuntime monster in _monsters)
+                if (monster != null) monster.GetComponent<MonsterAnimationAudio>()?.Disconnect();
             DisconnectCutscenes();
             _deathRestart?.Dispose(); _deathRestart = null;
             _presentation.Reset();

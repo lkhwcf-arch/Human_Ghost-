@@ -30,10 +30,21 @@ namespace HumanGhost.Gameplay.Preview
         // 테스트 전용 확대 배율입니다. 1보다 크면 더 확대합니다(화면 크기 = 스테이지 값 / 배율). 스테이지를 옮겨도 유지하고 Play마다 1로 돌아갑니다.
         public const float MinTestZoom = 0.5f, MaxTestZoom = 2f;
         public static float TestZoomScale { get; private set; } = 1f;
+        public static Vector2 TestPositionOffset { get; private set; } = Vector2.zero;
         public float BaseSize => _baseSize;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void ResetTestZoom() => TestZoomScale = 1f;
+        private static void ResetTestOverrides() { TestZoomScale = 1f; TestPositionOffset = Vector2.zero; }
+
+        public void SetTestPositionOffset(Vector2 offset)
+        {
+            if (float.IsNaN(offset.x) || float.IsInfinity(offset.x) || float.IsNaN(offset.y) || float.IsInfinity(offset.y))
+                throw new System.ArgumentOutOfRangeException(nameof(offset));
+            TestPositionOffset = offset;
+            if (_camera == null) _camera = GetComponent<Camera>();
+            _velocity = Vector2.zero;
+            if (_target != null || _fixed) transform.position = GetGoal() + _shakeOffset;
+        }
 
         public void SetTestZoom(float scale)
         {
@@ -108,11 +119,12 @@ namespace HumanGhost.Gameplay.Preview
 
         private Vector3 GetGoal()
         {
-            if (_fixed) return new Vector3(_fixedPosition.x, _fixedPosition.y, transform.position.z);
+            if (_fixed) return new Vector3(_fixedPosition.x, _fixedPosition.y, transform.position.z) + (Vector3)TestPositionOffset;
             float halfWidth = _camera.orthographicSize * _camera.aspect;
             float focusX = _target.position.x + (_player != null && _player.Actor != null ? _player.Actor.Facing * _lookAhead : 0f);
             float x = _maxX - _minX <= halfWidth * 2f ? (_minX + _maxX) * 0.5f : Mathf.Clamp(focusX, _minX + halfWidth, _maxX - halfWidth);
-            return new Vector3(x, Mathf.Max(_minY, _target.position.y + _heightOffset), transform.position.z);
+            // 기본 구도에 더하는 테스트 이동량입니다. 맵 가장자리에서도 구도를 직접 비교할 수 있습니다.
+            return new Vector3(x, Mathf.Max(_minY, _target.position.y + _heightOffset), transform.position.z) + (Vector3)TestPositionOffset;
         }
     }
 }

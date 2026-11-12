@@ -125,6 +125,7 @@ GameObject:
   - component: {fileID: 8711519359393882842}
   - component: {fileID: 6256955658208690257}
   - component: {fileID: 695029493892967079}
+  - component: {fileID: 1586763236878798711}
   m_Layer: 0
   m_Name: JigegwiGameplay
   m_TagString: Untagged
@@ -261,6 +262,21 @@ MonoBehaviour:
     _clip: {fileID: 7400000, guid: 3d8a6482f189cc740842c9d87593b383, type: 2}
     _hitFrames: []
   _monster: {fileID: 8711519359393882842}
+--- !u!114 &1586763236878798711
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 795029493892967079}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9196d1c8bcb043278fbe22199946659d, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Adapters.MonsterAnimationAudio
+  _soundPrefix: M2
+  _separateCriticalHit: 0
+  _walkStepSeconds: 0.5
 --- !u!1 &2963929665991169041
 GameObject:
   m_ObjectHideFlags: 0

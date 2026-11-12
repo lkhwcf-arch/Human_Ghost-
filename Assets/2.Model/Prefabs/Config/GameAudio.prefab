@@ -447,6 +447,51 @@ MonoBehaviour:
   - _key: TITLE_BACKGROUND
     _clip: {fileID: 8300000, guid: 4dfbd978788b37a49b341af5d79447e1, type: 3}
     _soundId: 0
+  - _key: M1_ATTACK_1
+    _clip: {fileID: 8300000, guid: 76c030aced481bf43963c3cac9de93fe, type: 3}
+    _soundId: 3028
+  - _key: M1_ATTACK_2
+    _clip: {fileID: 8300000, guid: cd703318221c74045b6602bb2b7fdb28, type: 3}
+    _soundId: 3029
+  - _key: M1_WALK
+    _clip: {fileID: 8300000, guid: 1f75cdac5816aa04e86dd039a2349817, type: 3}
+    _soundId: 3030
+  - _key: M1_WALK
+    _clip: {fileID: 8300000, guid: 5018b7790b319de44b273647c47792e7, type: 3}
+    _soundId: 3031
+  - _key: M1_WALK
+    _clip: {fileID: 8300000, guid: b0f27fa82ab39024ca820566b5c178e7, type: 3}
+    _soundId: 3032
+  - _key: M1_WALK
+    _clip: {fileID: 8300000, guid: 6d7be2009e79fcd4da66963989ce561e, type: 3}
+    _soundId: 3033
+  - _key: M1_HIT
+    _clip: {fileID: 8300000, guid: e200d6f9353781f44933119411b86504, type: 3}
+    _soundId: 3034
+  - _key: M1_CRIT_HIT
+    _clip: {fileID: 8300000, guid: 5cc270fcc724a0a4da4cb0babaffb9b4, type: 3}
+    _soundId: 3035
+  - _key: M2_WALK
+    _clip: {fileID: 8300000, guid: 0d0d1b14d35c6fa42a2847c6f061bb0d, type: 3}
+    _soundId: 3036
+  - _key: M2_WALK
+    _clip: {fileID: 8300000, guid: 27ce0dd78819c3f4b87d8934bc69356b, type: 3}
+    _soundId: 3037
+  - _key: M2_WALK
+    _clip: {fileID: 8300000, guid: 45096d34458cfea4280f4a2009e3c103, type: 3}
+    _soundId: 3038
+  - _key: M2_WALK
+    _clip: {fileID: 8300000, guid: 0d836eb4446ad7f4a89c096457268bef, type: 3}
+    _soundId: 3039
+  - _key: M2_HIT
+    _clip: {fileID: 8300000, guid: 1df5a5fcc481abb44b9200d82130e265, type: 3}
+    _soundId: 3040
+  - _key: M2_ATTACK_1
+    _clip: {fileID: 8300000, guid: b04afe9f3950e1344b726059f6b032d9, type: 3}
+    _soundId: 3041
+  - _key: M2_ATTACK_2
+    _clip: {fileID: 8300000, guid: 3220f1808df73ba45aad60933844d37a, type: 3}
+    _soundId: 3042
   _musicA: {fileID: 748258672732590955}
   _musicB: {fileID: 1232308879320497956}
   _effects: {fileID: 1532842353738971575}

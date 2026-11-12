@@ -125,6 +125,7 @@ GameObject:
   - component: {fileID: 2212268001790328552}
   - component: {fileID: 1051700862961071815}
   - component: {fileID: 604006214194673792}
+  - component: {fileID: 6965768712322212286}
   m_Layer: 0
   m_Name: HusugwiGameplay
   m_TagString: Untagged
@@ -261,6 +262,21 @@ MonoBehaviour:
     _clip: {fileID: 7400000, guid: 45a4b175e2801194ab9b5ead50d099e0, type: 2}
     _hitFrames: []
   _monster: {fileID: 2212268001790328552}
+--- !u!114 &6965768712322212286
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2804006214194673792}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9196d1c8bcb043278fbe22199946659d, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Adapters.MonsterAnimationAudio
+  _soundPrefix: M1
+  _separateCriticalHit: 1
+  _walkStepSeconds: 0.5
 --- !u!1 &3601632721913491720
 GameObject:
   m_ObjectHideFlags: 0
