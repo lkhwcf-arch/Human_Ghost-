@@ -65,6 +65,7 @@ namespace HumanGhost.Gameplay.Preview
                 if (entry != null && entry.Sprite != null && !_framesByState.ContainsKey(entry.State)) _framesByState.Add(entry.State, entry.Sprite);
             _lookupReady = true;
         }
+        public float ExecutionDuration => SelectAnimation(StateKey.Execute)?.length ?? 0f;
         protected AnimationClip CurrentAnimation => _animation;
         protected void RestartAnimation() => _hasState = false;
         protected SpriteRenderer Renderer => _renderer;

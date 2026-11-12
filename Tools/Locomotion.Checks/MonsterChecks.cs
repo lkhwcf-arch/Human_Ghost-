@@ -270,6 +270,61 @@ internal static class MonsterChecks
         charging.Observe(1, 600, 1); charging.Tick(600); charging.Release();
         Check(!charging.IsSuperArmor && charging.Velocity == 0, "비활성화 시 돌진·슈퍼아머 해제");
 
+        // 해체: 제공 체세·노출 시간을 소비하며 HP0 사망이 우선합니다.
+        var poise = H();
+        Check(poise.Poise == husugwi.Poise && !poise.IsExposed && !poise.TryBeginExecution(), "일반몹 체세 초기화·노출 전 해체 거부");
+        Check(poise.ReceiveHit(0, poiseDamage: 8) && poise.Health == husugwi.HP && poise.Poise == 32, "체세 전용 피해");
+        poise.Tick(2000); Check(poise.Poise == 32, "회복 딜레이 경계");
+        poise.Tick(99); Check(poise.Poise == 32, "회복 정수 나머지 유지");
+        poise.Tick(1); Check(poise.Poise == 33, "시트 초당 체세 회복");
+        poise.ReceiveHit(1); poise.Tick(2000); Check(poise.Poise == 33, "HP 피해도 체세 회복 딜레이 초기화");
+        poise.Tick(int.MaxValue); Check(poise.Poise == husugwi.Poise, "긴 시간 최대 체세 상한");
+
+        var exposed = H(); exposed.Observe(1, 150, -1); exposed.Tick(400);
+        Check(exposed.IsAttackActive, "해체 검사 공격 창 열림");
+        Check(exposed.ReceiveHit(0, poiseDamage: 40) && exposed.IsExposed && !exposed.IsAttackActive && exposed.CurrentPattern == null, "체세0은 공격 취소·급소 노출");
+        exposed.Observe(1, 150, 1);
+        Check(exposed.IsExposed && exposed.Velocity == 0 && exposed.Facing == -1, "노출 중 관측이 AI·방향을 재개하지 않음");
+        exposed.Tick(1499); exposed.ReceiveHit(1);
+        Check(exposed.IsExposed && exposed.Poise == 0, "노출 중 피해는 노출 시간을 연장하지 않음");
+        exposed.Tick(1); Check(!exposed.IsExposed && exposed.Poise == 40, "1500ms 만료 시 체세 복구·AI 재개");
+
+        var parriedPoise = H(); parriedPoise.Observe(1, 150, 1); parriedPoise.Tick(400);
+        Check(parriedPoise.ReceiveParried(800, 8) && parriedPoise.Poise == 32 && parriedPoise.CurrentState == StateKey.Stun, "패링 경직과 체세 피해 동시 적용");
+        parriedPoise.Release(); parriedPoise.Observe(1, 150, 1); parriedPoise.Tick(400);
+        Check(parriedPoise.ReceiveParried(800, 40) && parriedPoise.IsExposed && parriedPoise.Velocity == 0, "패링 체세0은 노출 우선");
+
+        var executionVictim = H(); executionVictim.ReceiveHit(0, poiseDamage: 40);
+        var executor = P(); executor.SetGrounded(false);
+        Check(!executor.TryExecute(executionVictim, true) && executionVictim.IsExposed, "공중 해체 거부");
+        executor.SetGrounded(true);
+        Check(!executor.TryExecute(executionVictim, false) && executionVictim.IsExposed, "거리 밖 해체 거부");
+        executor.TryAttack(); Check(!executor.TryExecute(executionVictim, true), "공격 중 해체 거부");
+        executor.Tick(1000);
+        Check(executor.TryExecute(executionVictim, true) && executionVictim.IsInvulnerable && executor.IsInvulnerable, "일반몹 해체 양쪽 무적");
+        Check(!P().TryExecute(executionVictim, true) && !executor.TryExecute(executionVictim, true), "한 대상·실행자 중복 해체 거부");
+        int facing = executor.Facing; executor.SetMove(-facing);
+        Check(executor.Facing == facing && executor.HorizontalMoveSpeed == 0 && !executor.TryJump() && !executor.TryAttack() && !executor.TryRoll(), "해체 중 방향·이동·행동 고정");
+        Check(!executionVictim.ReceiveHit(int.MaxValue, poiseDamage: int.MaxValue) && !executor.ReceiveHit(100), "해체 중 실제 피해 거부");
+        executionVictim.Observe(1, 150, -1); executionVictim.Tick(60000); executor.Tick(60000);
+        Check(executionVictim.IsInvulnerable && executor.CurrentState == StateKey.Execute && executionVictim.Velocity == 0, "연출 완료 명령 전 시간·AI 정지");
+        int deaths = 0; executionVictim.HealthChanged += hp => { if (hp == 0) deaths++; };
+        Check(executor.CompleteExecution(true) && executionVictim.IsDead && executionVictim.WasExecuted && deaths == 1 && executor.Locomotion.CanMove, "KILL 완료·사망 통지1회·플레이어 해제");
+        Check(!executor.CompleteExecution(true) && !executionVictim.CompleteExecution(true) && deaths == 1, "완료 중복은 사망을 재통지하지 않음");
+
+        var cancelled = H(); cancelled.ReceiveHit(0, poiseDamage: 40); var cancelling = P(); cancelling.TryExecute(cancelled, true);
+        cancelling.CancelExecution();
+        Check(cancelled.IsExposed && !cancelled.IsInvulnerable && cancelled.Health == husugwi.HP && !cancelled.WasExecuted && cancelling.Locomotion.CanMove, "도중 취소는 피해 없이 양쪽 잠금 해제");
+        cancelled.Tick(1500); Check(cancelled.Poise == 40 && !cancelled.IsExposed, "취소 후 노출 만료 정상");
+        cancelled.ReceiveHit(int.MaxValue, poiseDamage: int.MaxValue);
+        Check(cancelled.IsDead && !cancelled.IsExposed && !cancelled.TryBeginExecution(), "HP0은 노출보다 사망 우선");
+        dummy.ReceiveHit(1, poiseDamage: int.MaxValue);
+        Check(dummy.Poise == husugwi.Poise && !dummy.IsExposed && !dummy.TryBeginExecution(), "이펙트 허수아비는 무한 체력·해체 제외 유지");
+        var releasedExecution = H(); releasedExecution.ReceiveHit(0, poiseDamage: 40); releasedExecution.TryBeginExecution(); releasedExecution.Release();
+        Check(!releasedExecution.IsInvulnerable && !releasedExecution.IsExposed && releasedExecution.Poise == husugwi.Poise, "비활성화·풀 반환은 해체 상태 정리");
+        Expect<ArgumentOutOfRangeException>(() => H().ReceiveHit(1, poiseDamage: -1));
+        Expect<ArgumentOutOfRangeException>(() => H().ReceiveParried(1, -1));
+
         // 입력·설정 경계
         Expect<ArgumentOutOfRangeException>(() => H().Observe(0, 1, 1));
         Expect<ArgumentOutOfRangeException>(() => H().Observe(1, -1, 1));

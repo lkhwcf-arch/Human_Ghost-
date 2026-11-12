@@ -14,7 +14,7 @@ namespace HumanGhost.Gameplay
         private int _duration;
         private int _invulnerableRemaining;
         private int _facing = 1;
-        private BossPoise _executionTarget;
+        private IExecutionTarget _executionTarget;
         private int _bindPresses;
         private bool _cutsceneDamageBlocked;
         private PlayerSkill _skill;
@@ -86,7 +86,7 @@ namespace HumanGhost.Gameplay
         public void SetMove(int direction)
         {
             Locomotion.SetMove(direction);
-            if (direction != 0 && !IsActionBusy && !IsHanging && !IsAttacking && !_usingSkill) _facing = direction;
+            if (direction != 0 && !IsActionBusy && !IsHanging && CurrentState != StateKey.Execute && !IsAttacking && !_usingSkill) _facing = direction;
         }
 
         public bool TryJump() => !IsDead && Locomotion.TryJump();
@@ -317,17 +317,17 @@ namespace HumanGhost.Gameplay
         public bool TryHitBoss(int targetId, BossPoise target, bool dodged, bool critical)
             => HitBoss(targetId, target, null, dodged, critical) >= HitOutcome.Hit;
 
-        // 일반몹은 HP만 깎습니다. 지스타 일반몹 체세·해체 없음.
+        // 일반몹에도 같은 공격 창의 HP·체세 피해를 함께 적용합니다.
         public HitOutcome TryHitMonster(int targetId, MonsterActor target, Func<int, int, int> random)
             => HitMonster(targetId, target, random ?? throw new ArgumentNullException(nameof(random)), false, false);
 
         public bool TryHitMonster(int targetId, MonsterActor target, bool dodged, bool critical)
             => HitMonster(targetId, target, null, dodged, critical) >= HitOutcome.Hit;
 
-        public bool TryExecute(BossPoise target, bool inRange)
+        public bool TryExecute(IExecutionTarget target, bool inRange)
         {
             if (target == null) throw new ArgumentNullException(nameof(target));
-            if (!inRange || IsDead || !Locomotion.CanMove || !target.TryBeginExecution()) return false;
+            if (!inRange || IsDead || _cutsceneDamageBlocked || !Locomotion.IsGrounded || !Locomotion.CanMove || !target.TryBeginExecution()) return false;
             _executionTarget = target;
             States.Change(new ExecuteState());
             return true;
@@ -341,6 +341,14 @@ namespace HumanGhost.Gameplay
             _executionTarget = null;
             ResumeMovement();
             return true;
+        }
+
+        public void CancelExecution()
+        {
+            if (_executionTarget == null) return;
+            _executionTarget.CancelExecution();
+            _executionTarget = null;
+            if (CurrentState == StateKey.Execute) ResumeMovement();
         }
 
         public void Tick(int milliseconds)
@@ -401,11 +409,11 @@ namespace HumanGhost.Gameplay
         {
             if (target == null) throw new ArgumentNullException(nameof(target));
             HitOutcome outcome = HitRoll.Resolve(_attackWindow, targetId, _usingSkill ? 0 : target.Definition.Dodge, CombatStats.Crit,
-                target.IsDead, true, random, !_usingSkill && dodged, critical);
+                target.IsDead || target.IsInvulnerable, true, random, !_usingSkill && dodged, critical);
             if (outcome < HitOutcome.Hit) return outcome;
             bool isCritical = outcome == HitOutcome.Critical;
             int damage = CombatMath.Damage(CombatStats, target.Definition, CurrentAttack.ExtraDamage, isCritical);
-            return target.ReceiveHit(damage, isCritical) ? outcome : HitOutcome.None;
+            return target.ReceiveHit(damage, isCritical, CurrentAttack.PoiseDamage) ? outcome : HitOutcome.None;
         }
 
         private void EndBind()

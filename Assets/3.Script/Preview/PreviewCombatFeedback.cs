@@ -57,7 +57,6 @@ namespace HumanGhost.Gameplay.Preview
                     _camera?.Shake(0.14f, 0.14f);
                     AddFlash(target, new Color(1f, 0.15f, 0.15f));
                     ShowImpact(target, position, direction);
-                    _audio?.PlayEffect("SFX_CRIT");
                     break;
             }
         }

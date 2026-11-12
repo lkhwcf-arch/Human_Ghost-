@@ -6,8 +6,8 @@ using HumanGhost.Gameplay.States;
 namespace HumanGhost.Gameplay
 {
     // 위치·충돌·시간·난수를 직접 읽지 않는 일반몹 AI 런타임. 관측과 정수 ms를 받아 상태·이동 요청을 결정합니다.
-    // 지스타 일반몹은 체세·해체 없음(10/30 확정).
-    public sealed class MonsterActor
+    // 체세·노출·해체는 제공된 Monster/UnitStat 값을 소비합니다.
+    public sealed class MonsterActor : IExecutionTarget
     {
         private readonly IdleState _idle = new IdleState();
         private readonly WalkState _walk = new WalkState();
@@ -27,11 +27,18 @@ namespace HumanGhost.Gameplay
         private int _targetId;
         private int _distance;
         private int _direction;
+        private int _sinceHit;
+        private int _poiseRemainder;
+        private int _exposedRemaining;
 
         public Monster Definition { get; }
         public ActorStateMachine States { get; }
         public int Health { get; private set; }
         public bool KeepsHealth { get; }
+        public int Poise { get; private set; }
+        public bool IsExposed => CurrentState == StateKey.Exposed;
+        public bool IsInvulnerable => CurrentState == StateKey.Execute;
+        public bool WasExecuted { get; private set; }
         public StateKey CurrentState => States.Current;
         public bool IsDead => Health == 0;
         public int Facing { get; private set; } = 1;
@@ -61,6 +68,11 @@ namespace HumanGhost.Gameplay
             if (definition.HP <= 0 || definition.MoveSpeed < 0 || definition.SightRange < 0 || definition.AttackRange < 0 ||
                 definition.IdleMin < 0 || definition.IdleMax < definition.IdleMin)
                 throw new ArgumentException("일반몹 HP·속도·거리·대기 범위를 확인하세요.", nameof(definition));
+            if (definition.Poise < 0 || definition.PoiseRegenDelay < 0 || definition.PoiseRegen < 0 ||
+                (definition.Poise > 0 && (definition.ExposeTime <= 0 ||
+                (definition.ExecuteType != "KILL" && definition.ExecuteType != "DAMAGE") ||
+                definition.ExecuteDamage < 0 || definition.ExecuteDamage > 10000)))
+                throw new ArgumentException("일반몹 체세·해체 정의를 확인하세요.", nameof(definition));
             if (patterns == null || patterns.Count == 0) throw new ArgumentException("패턴 설정이 필요합니다.", nameof(patterns));
             if (hitStun < 0 || critHitStun < 0) throw new ArgumentOutOfRangeException(nameof(hitStun));
             _patterns = new MonsterPattern[patterns.Count];
@@ -70,6 +82,7 @@ namespace HumanGhost.Gameplay
             States = new ActorStateMachine(_idle);
             Health = definition.HP;
             KeepsHealth = keepHealth;
+            Poise = definition.Poise;
         }
 
         // 외부 관측: 목표 개체ID(양수)·거리(tile_x100)·목표 방향(-1/0/1). 목표 사망/이탈 시 ClearTarget.
@@ -103,18 +116,20 @@ namespace HumanGhost.Gameplay
         }
 
         // 외부 판정이 확정한 HP 피해. 회피·방어 계산은 CombatMath/판정자 책임입니다.
-        public bool ReceiveHit(int damage, bool critical = false)
+        public bool ReceiveHit(int damage, bool critical = false, int poiseDamage = 0)
         {
-            if (damage < 0) throw new ArgumentOutOfRangeException(nameof(damage));
-            if (IsDead || damage == 0) return false;
+            if (damage < 0 || poiseDamage < 0) throw new ArgumentOutOfRangeException(nameof(damage));
+            if (IsDead || IsInvulnerable || (damage == 0 && poiseDamage == 0)) return false;
             if (!KeepsHealth) Health = Math.Max(0, Health - damage);
+            DamagePoise(poiseDamage);
             if (IsDead)
             {
                 ClearPattern(); _stunRemaining = 0; _waitRemaining = 0;
                 States.Change(new DeadState());
             }
             // 벽 충돌 허점(Stun)은 피해만 받고 남은 허점 시간을 유지합니다.
-            else if (!IsSuperArmor && CurrentState != StateKey.Stun)
+            else if (Definition.Poise > 0 && Poise == 0 && !IsExposed) Expose();
+            else if (!IsExposed && !IsSuperArmor && CurrentState != StateKey.Stun)
             {
                 ClearPattern(); _waitRemaining = 0;
                 _stunRemaining = critical ? _critHitStun : _hitStun;
@@ -126,13 +141,15 @@ namespace HumanGhost.Gameplay
         }
 
         // 판정자가 확정한 패링을 적용합니다. 표시 구독 없이도 전투 상태를 정리합니다.
-        public bool ReceiveParried(int stunMilliseconds)
+        public bool ReceiveParried(int stunMilliseconds, int poiseDamage = 0)
         {
-            if (stunMilliseconds <= 0) throw new ArgumentOutOfRangeException(nameof(stunMilliseconds));
+            if (stunMilliseconds <= 0 || poiseDamage < 0) throw new ArgumentOutOfRangeException(nameof(stunMilliseconds));
             if (IsDead || !IsAttackActive || _pattern == null || _pattern.IsGrab) return false;
             ClearPattern(); _waitRemaining = 0;
             _stunRemaining = _stunDuration = stunMilliseconds;
-            States.Call(StateKey.Stun);
+            DamagePoise(poiseDamage);
+            if (Definition.Poise > 0 && Poise == 0) Expose();
+            else States.Call(StateKey.Stun);
             Parried?.Invoke();
             return true;
         }
@@ -155,7 +172,7 @@ namespace HumanGhost.Gameplay
             bool grab = _pattern != null && _pattern.IsGrab;
             if (!IsDead && !grab && target.TryParryContact(_attackWindow, targetId, direction))
             {
-                ReceiveParried(target.ParryStunTime);
+                ReceiveParried(target.ParryStunTime, target.ParryPoiseDamage);
                 return HitOutcome.Parried;
             }
             HitOutcome outcome = HitRoll.Resolve(_attackWindow, targetId, target.CombatStats.Dodge, Definition.Crit,
@@ -185,12 +202,67 @@ namespace HumanGhost.Gameplay
         public void Release()
         {
             ClearPattern(); _stunRemaining = 0; _waitRemaining = 0; _targetId = 0;
+            Poise = Definition.Poise; _exposedRemaining = 0; _sinceHit = 0; _poiseRemainder = 0;
             if (!IsDead) States.Change(_idle);
+        }
+
+        private void DamagePoise(int damage)
+        {
+            if (!KeepsHealth) Poise = Math.Max(0, Poise - damage);
+            _sinceHit = 0; _poiseRemainder = 0;
+        }
+
+        private void Expose()
+        {
+            ClearPattern(); _stunRemaining = 0; _waitRemaining = 0;
+            _exposedRemaining = Definition.ExposeTime;
+            States.Call(StateKey.Exposed);
+        }
+
+        public bool TryBeginExecution()
+        {
+            if (IsDead || KeepsHealth || !IsExposed) return false;
+            States.Change(new ExecuteState());
+            return true;
+        }
+
+        public bool CompleteExecution(bool restorePoise)
+        {
+            if (!IsInvulnerable) return false;
+            int damage = Definition.ExecuteType == "KILL" ? Health : (int)((long)Definition.HP * Definition.ExecuteDamage / 10000);
+            Health = Math.Max(0, Health - damage);
+            WasExecuted = IsDead;
+            if (IsDead) States.Change(new DeadState());
+            else if (restorePoise) { Poise = Definition.Poise; EnterNeutral(); }
+            else Expose();
+            _sinceHit = 0; _poiseRemainder = 0;
+            HealthChanged?.Invoke(Health);
+            return true;
+        }
+
+        public bool CancelExecution()
+        {
+            if (!IsInvulnerable) return false;
+            States.Call(StateKey.Exposed);
+            return true;
         }
 
         public void Tick(int milliseconds)
         {
             if (milliseconds < 0) throw new ArgumentOutOfRangeException(nameof(milliseconds));
+            if (IsDead || IsInvulnerable || milliseconds == 0) return;
+            if (IsExposed)
+            {
+                if (milliseconds < _exposedRemaining) { _exposedRemaining -= milliseconds; return; }
+                milliseconds -= _exposedRemaining;
+                Poise = Definition.Poise; _poiseRemainder = 0;
+                EnterNeutral();
+            }
+            int delayed = Math.Min(milliseconds, Definition.PoiseRegenDelay - _sinceHit);
+            _sinceHit += delayed;
+            long amount = (long)Definition.PoiseRegen * (milliseconds - delayed) + _poiseRemainder;
+            Poise = (int)Math.Min(Definition.Poise, Poise + amount / 1000);
+            _poiseRemainder = Poise == Definition.Poise ? 0 : (int)(amount % 1000);
             while (milliseconds > 0 && !IsDead)
             {
                 if (_holding != null)
@@ -229,7 +301,7 @@ namespace HumanGhost.Gameplay
         // shortcut: 배회 이동 범위가 시트/기획에 없어 목표가 없으면 제자리 대기, 순찰 기획 확정 시 추가.
         private void Decide()
         {
-            if (IsDead || _pattern != null || _stunRemaining > 0 || _waitRemaining > 0) return;
+            if (IsDead || IsExposed || IsInvulnerable || _pattern != null || _stunRemaining > 0 || _waitRemaining > 0) return;
             if (_targetId == 0 || _distance > Definition.SightRange) { States.Change(_idle); return; }
             if (_direction != 0) Facing = _direction;
             if (_distance <= Definition.AttackRange)

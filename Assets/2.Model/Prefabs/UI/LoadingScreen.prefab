@@ -217,9 +217,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: -7849980079593035389, guid: 5d3d101848f36084d89b28d54fdccba9, type: 3}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -344,9 +344,7 @@ MonoBehaviour:
   _group: {fileID: 6815033595764327382}
   _background: {fileID: 2977618546792658206}
   _backgrounds:
-  - {fileID: 21300000, guid: f617e6e5e7865d94b927c9b86a8a1019, type: 3}
-  - {fileID: 21300000, guid: 289ee0949e4a87417515dfe5c071b9a9, type: 3}
-  - {fileID: 21300000, guid: 91cc8899dde3e54a702a41d2500245a1, type: 3}
+  - {fileID: -7849980079593035389, guid: 5d3d101848f36084d89b28d54fdccba9, type: 3}
   _tipBox: {fileID: 5764301936060637784}
   _tip: {fileID: 7370320695062745559}
   _seal: {fileID: 2533690238697502210}

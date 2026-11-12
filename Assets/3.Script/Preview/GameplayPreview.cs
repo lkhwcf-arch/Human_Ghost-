@@ -99,8 +99,8 @@ namespace HumanGhost.Gameplay.Preview
         private int _lastHealth;
         private bool _bossHitThisFrame;
         private const int _combatHoldMilliseconds = 3000;
-        // 해체 연출 원본 전까지 쓰는 개발 값입니다. 연출이 붙으면 그 완료 시점으로 교체합니다.
-        private const float _executionSeconds = 0.9f;
+        private PreviewPlayerSprite _playerSprite;
+        private SpatialRuntime _executingRuntime;
         private float _executionRemaining;
 
         private bool _modalBlocked;
@@ -189,7 +189,8 @@ namespace HumanGhost.Gameplay.Preview
                 ConnectInteraction(catalog);
                 MoveToArrival();
                 // 걷기 표시는 장부방만, 나머지 전투 스테이지는 달리기 표시입니다.
-                _player.GetComponentInChildren<PreviewPlayerSprite>(true)?.SetNonCombatArea(_stageId == StageExitRules.LedgerStage);
+                _playerSprite = _player.GetComponentInChildren<PreviewPlayerSprite>(true);
+                _playerSprite?.SetNonCombatArea(_stageId == StageExitRules.LedgerStage);
                 ConnectCutsceneData();
                 ConnectStageObjects(catalog);
                 ConnectGalimgilArrivals();
@@ -267,6 +268,7 @@ namespace HumanGhost.Gameplay.Preview
                 _actor.AttackWindowChanged -= OnPlayerAttackWindowChanged;
             }
             DisconnectInteraction();
+            _actor?.CancelExecution(); _executingRuntime = null;
             DisconnectGameLayer();
             _bossDriver?.Dispose();
             _bossDriver = null;
@@ -418,6 +420,8 @@ namespace HumanGhost.Gameplay.Preview
             {
                 MonsterActor monster = runtime.Actor;
                 scope.Add(() => monster.HealthChanged -= monsterHealthChanged); monster.HealthChanged += monsterHealthChanged;
+                scope.Add(() => monster.States.Changed -= stateChanged); monster.States.Changed += stateChanged;
+                scope.Add(() => runtime.SpatialChanged -= refresh); runtime.SpatialChanged += refresh;
             }
         }
         private void RequestInteractionRefresh() { if (_interactor != null) _interactor.RequestRefresh(); }
@@ -628,14 +632,48 @@ namespace HumanGhost.Gameplay.Preview
             if (_interactor != null) _interactor.Disconnect();
         }
 
-        private bool IsInExecutionRange()
-            => _bossActive && Vector2.Distance(_player.transform.position, _boss.transform.position) <= _executionRangeTiles * _worldUnitsPerTile;
-        private bool CanExecute() => _bossActive && _boss.Actor.IsExposed && IsInExecutionRange() && _actor.Locomotion.IsGrounded;
+        private IExecutionTarget FindExecutionTarget(out SpatialRuntime runtime)
+        {
+            runtime = null;
+            if (_actor == null || !_actor.Locomotion.IsGrounded || !_actor.Locomotion.CanMove) return null;
+            IExecutionTarget target = null;
+            float nearest = float.PositiveInfinity;
+            if (_bossActive) ConsiderExecution(_boss, _boss.Actor, ref runtime, ref target, ref nearest);
+            foreach (MonsterRuntime monster in _monsters)
+                ConsiderExecution(monster, monster.Actor, ref runtime, ref target, ref nearest);
+            return target;
+        }
+
+        private void ConsiderExecution(SpatialRuntime candidate, IExecutionTarget actor, ref SpatialRuntime runtime,
+            ref IExecutionTarget target, ref float nearest)
+        {
+            if (candidate == null || !candidate.isActiveAndEnabled || actor == null || !actor.IsExposed) return;
+            Vector2 offset = candidate.transform.position - _player.transform.position;
+            float distance = offset.sqrMagnitude;
+            float range = _executionRangeTiles * _worldUnitsPerTile;
+            if (offset.x * _actor.Facing < 0f || distance > range * range || distance >= nearest) return;
+            SpriteRenderer body = candidate.GetComponentInChildren<SpriteRenderer>(true);
+            if (body == null || body.bounds.min.y > _playerBody.bounds.max.y || body.bounds.max.y < _playerBody.bounds.min.y) return;
+            runtime = candidate; target = actor; nearest = distance;
+        }
+
+        private bool CanExecute() => FindExecutionTarget(out _) != null;
         private bool TryExecute()
         {
-            if (!_actor.Locomotion.IsGrounded || !_actor.TryExecute(_boss.Actor, IsInExecutionRange())) return false;
+            IExecutionTarget target = FindExecutionTarget(out SpatialRuntime runtime);
+            if (target == null) return false;
+            float duration = _playerSprite != null ? _playerSprite.ExecutionDuration : 0f;
+            if (duration <= 0f) throw new InvalidOperationException("플레이어 해체 애니메이션을 연결해 주세요.");
+            if (runtime is MonsterRuntime)
+            {
+                float victimDuration = runtime.GetComponentInChildren<PreviewMonsterSprite>(true)?.ExecutionDuration ?? 0f;
+                if (victimDuration <= 0f) throw new InvalidOperationException("일반몹 해체 애니메이션을 연결해 주세요.");
+                duration = Mathf.Max(duration, victimDuration);
+            }
+            if (!_actor.TryExecute(target, true)) return false;
+            _executingRuntime = runtime;
+            _executionRemaining = duration;
             _feedback?.OnExecute();
-            _executionRemaining = _executionSeconds;
             return true;
         }
 
@@ -778,6 +816,7 @@ namespace HumanGhost.Gameplay.Preview
 
         private void LateUpdate()
         {
+            if (_actor != null && _actor.CurrentState == StateKey.Execute) StepExecution(0f);
             _parryFeedback?.Step(Time.unscaledDeltaTime);
             // 도착 준비 후에도 로딩 화면이 닫힐 때까지 이동·출구 판정을 재개하지 않습니다.
             if (_subscribed && _loadingLocked != LoadingScreen.IsActive) SetGameInputLocked(false);
@@ -809,12 +848,15 @@ namespace HumanGhost.Gameplay.Preview
             StepGameLayer();
         }
 
-        // 해체는 완료 호출 전까지 플레이어·보스를 모두 멈춥니다. 일시정지·히트스톱 동안은 흐르지 않습니다.
+        // 해체는 양쪽 클립이 끝날 때까지 유지합니다. 일시정지·히트스톱 동안은 흐르지 않습니다.
         private void StepExecution(float seconds)
         {
             if (_actor.CurrentState != StateKey.Execute) return;
+            if (_player == null || !_player.isActiveAndEnabled || _executingRuntime == null || !_executingRuntime.isActiveAndEnabled)
+            { _actor.CancelExecution(); _executingRuntime = null; return; }
             _executionRemaining -= seconds;
-            if (_executionRemaining <= 0f) _actor.CompleteExecution(_restorePoiseAfterPreviewExecution);
+            if (_executionRemaining <= 0f)
+            { _actor.CompleteExecution(_restorePoiseAfterPreviewExecution); _executingRuntime = null; }
         }
 
         private void HandlePreviewKeys()

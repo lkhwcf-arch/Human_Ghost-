@@ -4,10 +4,19 @@ using HumanGhost.Gameplay.States;
 
 namespace HumanGhost.Gameplay
 {
-    // 지스타의 체세·해체 대상은 보스만입니다. 거리/연출은 외부 책임입니다.
+    // 일반몹·보스의 해체 계약입니다. 거리·입력·연출 시간은 호출자가 소유합니다.
+    public interface IExecutionTarget
+    {
+        bool IsExposed { get; }
+        bool TryBeginExecution();
+        bool CompleteExecution(bool restorePoise);
+        bool CancelExecution();
+    }
+
+    // 보스의 체세·해체 수치입니다. 거리/연출은 외부 책임입니다.
     // 페이즈: 시작 행보다 뒤인 BossState 행의 HPThreshold 이하로 HP가 내려가면 그 행으로 넘어갑니다(되돌아가지 않음).
     // 전환은 수치 행만 바꿉니다. 진행 중인 노출 시간·패턴은 유지하고 다음 대기·회복·노출·해체부터 새 행 값을 씁니다.
-    public sealed class BossPoise
+    public sealed class BossPoise : IExecutionTarget
     {
         private const int _ratioScale = 10000;
         private int _sinceHit;
@@ -111,6 +120,14 @@ namespace HumanGhost.Gameplay
             else if (restorePoise) States.Change(new IdleState());
             else { _exposedRemaining = Phase.ExposeTime; States.Call(StateKey.Exposed); }
             Notify(phaseChanged);
+            return true;
+        }
+
+        public bool CancelExecution()
+        {
+            if (!IsInvulnerable) return false;
+            States.Call(StateKey.Exposed);
+            Changed?.Invoke();
             return true;
         }
 

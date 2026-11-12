@@ -87,6 +87,7 @@ namespace HumanGhost.Gameplay.Preview
             }
             StepFire(seconds);
             if (_monster.IsDead) { IsEngaged = false; _body.color = Color.gray; _deathShown = true; return; }
+            if (_monster.IsExposed || _monster.IsInvulnerable) return;
             _projectile?.Step(seconds);
             PlayerActor actor = _player.Actor;
             int milliseconds = _clock.Advance(seconds);
@@ -138,7 +139,7 @@ namespace HumanGhost.Gameplay.Preview
             if (_monster.IsDead && !_fireChecked)
             {
                 _fireChecked = true;
-                GroundFire fire = _runtime.Patterns.CreateDeathFire();
+                GroundFire fire = _monster.WasExecuted ? null : _runtime.Patterns.CreateDeathFire();
                 if (fire != null)
                 {
                     float width = _runtime.Patterns.DeathFireHalfWidth / 50f * _worldUnitsPerTile;
