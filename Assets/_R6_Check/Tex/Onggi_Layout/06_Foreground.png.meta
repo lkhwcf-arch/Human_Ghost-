@@ -898,7 +898,37 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      06_Foreground_0: 4662819027626345980
+      06_Foreground_1: -2321781293774984138
+      06_Foreground_10: -1956764564148527513
+      06_Foreground_11: 1271121359739018079
+      06_Foreground_12: -4076702933846227507
+      06_Foreground_13: -8759757838520761905
+      06_Foreground_14: -8386373490232494727
+      06_Foreground_15: -197590173606606720
+      06_Foreground_16: 187865169052861593
+      06_Foreground_17: 6402884486977222680
+      06_Foreground_18: 72191296686137386
+      06_Foreground_19: -5794615052290547105
+      06_Foreground_2: 7848451014328735847
+      06_Foreground_20: -1349632552774076734
+      06_Foreground_21: 5787837733113656455
+      06_Foreground_22: -8597119766955445930
+      06_Foreground_23: 6945528064467999707
+      06_Foreground_24: -3960226334590942267
+      06_Foreground_25: 7421042745560321895
+      06_Foreground_26: -1759572389523885155
+      06_Foreground_27: -6207779625136674892
+      06_Foreground_28: 6311750485527117129
+      06_Foreground_29: 3750898819530901190
+      06_Foreground_3: -261588841869617599
+      06_Foreground_4: 3244119725915574238
+      06_Foreground_5: 5513776754684621357
+      06_Foreground_6: 8194624693833568784
+      06_Foreground_7: 3493665645689670148
+      06_Foreground_8: 2058288882274382902
+      06_Foreground_9: 5212725317630510858
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

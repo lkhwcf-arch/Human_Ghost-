@@ -173,7 +173,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      X01_Galimgil_0: 2454415090067514875
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

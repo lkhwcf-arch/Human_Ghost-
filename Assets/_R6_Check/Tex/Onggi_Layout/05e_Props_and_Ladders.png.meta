@@ -623,7 +623,26 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      05e_Props_and_Ladders_0: 9127185334788132538
+      05e_Props_and_Ladders_1: -1179289020167921267
+      05e_Props_and_Ladders_10: -7687245180583939749
+      05e_Props_and_Ladders_11: -644934802983176060
+      05e_Props_and_Ladders_12: 621163331026037912
+      05e_Props_and_Ladders_13: -3653229759051909008
+      05e_Props_and_Ladders_14: 4526267721271774075
+      05e_Props_and_Ladders_15: 7488121872072442175
+      05e_Props_and_Ladders_16: -1934654021128319168
+      05e_Props_and_Ladders_17: -613359093548032631
+      05e_Props_and_Ladders_18: -5581773319175190880
+      05e_Props_and_Ladders_2: 817012666853299065
+      05e_Props_and_Ladders_3: -8632506762488530988
+      05e_Props_and_Ladders_4: 8378414994523391923
+      05e_Props_and_Ladders_5: 1282801199302793296
+      05e_Props_and_Ladders_6: -6027999604057434515
+      05e_Props_and_Ladders_7: 1876415275618591813
+      05e_Props_and_Ladders_8: 5186092137875140935
+      05e_Props_and_Ladders_9: -9073381903870810825
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

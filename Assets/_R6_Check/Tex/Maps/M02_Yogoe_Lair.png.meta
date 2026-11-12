@@ -173,7 +173,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      M02_Yogoe_Lair_0: -8624383791152899015
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

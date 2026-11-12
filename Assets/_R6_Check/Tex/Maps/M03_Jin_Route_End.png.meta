@@ -173,7 +173,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      M03_Jin_Route_End_0: 1707670721947542664
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

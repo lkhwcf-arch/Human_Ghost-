@@ -173,7 +173,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      L8004_BossRoom_0: 391158325701936048
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
