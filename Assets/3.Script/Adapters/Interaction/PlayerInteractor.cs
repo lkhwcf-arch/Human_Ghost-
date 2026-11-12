@@ -20,6 +20,7 @@ namespace HumanGhost.Gameplay.Adapters
         private Func<bool> _canGrab, _tryGrab, _canExecute, _tryExecute;
         private TextMesh _prompt;
         private bool _promptHasKeyIcon;
+        private SpriteRenderer _promptKeyIcon, _investigationArtwork;
         private IInteractable _selected;
         private int? _shownPromptId;
         private string _shownPrompt;
@@ -35,7 +36,9 @@ namespace HumanGhost.Gameplay.Adapters
             _canGrab = canGrab; _tryGrab = tryGrab; _canExecute = canExecute; _tryExecute = tryExecute;
             PrepareRegistry();
             if (_prompt == null && _promptPrefab != null) { _prompt = Instantiate(_promptPrefab, transform); _prompt.gameObject.SetActive(false); }
-            _promptHasKeyIcon = _prompt != null && _prompt.GetComponentInChildren<SpriteRenderer>(true) != null;
+            _promptKeyIcon = _prompt != null ? _prompt.transform.Find("KeyIcon")?.GetComponent<SpriteRenderer>() : null;
+            _investigationArtwork = _prompt != null ? _prompt.transform.Find("InvestigationArtwork")?.GetComponent<SpriteRenderer>() : null;
+            _promptHasKeyIcon = _promptKeyIcon != null;
             StartBindings();
         }
 
@@ -145,7 +148,7 @@ namespace HumanGhost.Gameplay.Adapters
             {
                 int id = _selected.PromptTextId;
                 if (_shownPromptId != id) { _shownPromptId = id; _shownPrompt = "E " + _context.Text(id); }
-                ShowPrompt(_shownPrompt, (Vector3)_selected.Position + Vector3.up * _promptHeight);
+                ShowPrompt(_shownPrompt, (Vector3)_selected.Position + Vector3.up * _promptHeight, _selected is LedgerInteract);
             }
             else if (_prompt.gameObject.activeSelf)
                 _prompt.gameObject.SetActive(false);
@@ -156,9 +159,13 @@ namespace HumanGhost.Gameplay.Adapters
         private void OnDisable() => StopBindings();
         private void OnDestroy() => Disconnect();
 
-        private void ShowPrompt(string text, Vector3 position)
+        private void ShowPrompt(string text, Vector3 position, bool investigation = false)
         {
-            if (_promptHasKeyIcon) text = text == "E" ? "" : text.StartsWith("E ", StringComparison.Ordinal) ? text.Substring(2) : text;
+            bool artwork = investigation && _investigationArtwork != null;
+            if (_investigationArtwork != null) _investigationArtwork.enabled = artwork;
+            if (_promptKeyIcon != null) _promptKeyIcon.enabled = !artwork;
+            if (artwork) text = "";
+            else if (_promptHasKeyIcon) text = text == "E" ? "" : text.StartsWith("E ", StringComparison.Ordinal) ? text.Substring(2) : text;
             if (_prompt.text != text) _prompt.text = text;
             var next = new Vector3(position.x, position.y, _prompt.transform.position.z);
             if (_prompt.transform.position != next) _prompt.transform.position = next;
