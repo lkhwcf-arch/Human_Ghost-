@@ -8,21 +8,25 @@ namespace HumanGhost.Gameplay.Presentation
     {
         [SerializeField] private SpriteRenderer _renderer = null;
         [SerializeField] private AnimationClip _clip = null;
+        [SerializeField] private AnimationClip[] _variants = Array.Empty<AnimationClip>();
+        private readonly System.Random _random = new System.Random();
+        private AnimationClip _playingClip;
         private float _elapsed;
         public bool IsPlaying => gameObject.activeSelf;
         public void Play(Vector3 position)
         {
-            if (_renderer == null || _clip == null) throw new InvalidOperationException("단발 이펙트의 렌더러·클립을 연결하세요.");
+            _playingClip = _variants.Length == 0 ? _clip : _variants[_random.Next(_variants.Length)];
+            if (_renderer == null || _playingClip == null) throw new InvalidOperationException("단발 이펙트의 렌더러·클립을 연결하세요.");
             transform.position = position; _elapsed = 0f;
-            gameObject.SetActive(true); _clip.SampleAnimation(_renderer.gameObject, 0f);
+            gameObject.SetActive(true); _playingClip.SampleAnimation(_renderer.gameObject, 0f);
         }
         public void Step(float seconds)
         {
             if (float.IsNaN(seconds) || float.IsInfinity(seconds) || seconds < 0f) throw new ArgumentOutOfRangeException(nameof(seconds));
             if (!IsPlaying) return;
             _elapsed += seconds;
-            if (_elapsed >= _clip.length) { gameObject.SetActive(false); return; }
-            _clip.SampleAnimation(_renderer.gameObject, _elapsed);
+            if (_elapsed >= _playingClip.length) { gameObject.SetActive(false); return; }
+            _playingClip.SampleAnimation(_renderer.gameObject, _elapsed);
         }
     }
 }

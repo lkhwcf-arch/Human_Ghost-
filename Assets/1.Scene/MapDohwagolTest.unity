@@ -2119,6 +2119,7 @@ MonoBehaviour:
   _combatMinX: -8.5
   _combatMaxX: 34
   _parryImpactPrefab: {fileID: 7401457905273330935, guid: 9bf738f7ed8dab84397f0abe5238ee19, type: 3}
+  _hitImpactPrefab: {fileID: 2581699890305169595, guid: 36b209955ab68c640b2ababab310ae67, type: 3}
   _cutscenes: {fileID: 0}
   _manualSavePrefab: {fileID: 90020, guid: c9dc5f691d6f4673b88d6a19b085f970, type: 3}
   _shrinePrefab: {fileID: 900010, guid: 186c9274c99d22b488420c7b2c1cb015, type: 3}

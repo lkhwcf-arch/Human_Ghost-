@@ -23,7 +23,7 @@ namespace HumanGhost.Gameplay.Adapters
         public bool IsInitialized => Definition != null;
         public event Action<Monster> Initialized;
 
-        public void Initialize(IReadOnlyDataCatalog catalog)
+        public void Initialize(IReadOnlyDataCatalog catalog, bool keepHealth = false)
         {
             if (catalog == null) throw new ArgumentNullException(nameof(catalog));
             if (IsInitialized) throw new InvalidOperationException("이미 초기화된 일반 몬스터입니다.");
@@ -32,7 +32,7 @@ namespace HumanGhost.Gameplay.Adapters
             // 같은 프레임에 생성돼도 개체마다 다른 난수열을 쓰도록 인스턴스 ID를 섞습니다.
             _random = new System.Random(Environment.TickCount ^ GetInstanceID());
             _hitRandom = new System.Random(Environment.TickCount ^ ~GetInstanceID());
-            Actor = new MonsterActor(definition, _patterns.CreatePatterns(), _patterns.HitStun, _patterns.CritHitStun, _random.Next);
+            Actor = new MonsterActor(definition, _patterns.CreatePatterns(), _patterns.HitStun, _patterns.CritHitStun, _random.Next, keepHealth);
             HitRandom = _hitRandom.Next;
             Definition = definition;
             Initialized?.Invoke(definition);

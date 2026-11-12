@@ -60,7 +60,7 @@ namespace HumanGhost.Gameplay.Adapters
         }
         private void OnHealthChanged(int health)
         {
-            bool damaged = health < _health && health > 0;
+            bool damaged = (health < _health || _actor.KeepsHealth) && health > 0;
             _health = health;
             if (damaged) Play(_separateCriticalHit && _actor.CurrentState == StateKey.CritHit ? "CRIT_HIT" : "HIT");
         }
