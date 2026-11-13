@@ -76,14 +76,22 @@ namespace HumanGhost.Gameplay
             CurrentStage = snapshot.StageId; ShrineId = snapshot.ShrineId;
             ArrivalAnchor = null; ClearCarriedVitals();
         }
-        public void RestartAfterDeath(SaveSnapshot lastSaved)
+        public void RestartAfterDeath(SaveSnapshot lastSaved, int? stageAfterLedger = null)
         {
+            if (stageAfterLedger.HasValue && stageAfterLedger.Value <= 0) throw new ArgumentOutOfRangeException(nameof(stageAfterLedger));
             if (Rewards != null && !Rewards.ApplyDeathLoss()) throw new InvalidOperationException("사망 재화 손실을 적용하지 못했습니다.");
             _defeatedMonsters.Clear();
             if (lastSaved != null) _defeatedMonsters.UnionWith(lastSaved.DefeatedMonsters);
             ClearCarriedVitals();
             CurrentStage = CheckpointPassed ? ShrineId : StageExitRules.VillageStage;
             ArrivalAnchor = CheckpointPassed ? "Respawn_Seonangdang" : null;
+            // 조사 완료 뒤의 초반 사망은 장부방을 반복하지 않습니다. 후반 서낭당은 우선 유지합니다.
+            if (stageAfterLedger.HasValue && Progress.IsCleared(StageExitRules.LedgerStage)
+                && (CurrentStage == StageExitRules.VillageStage || CurrentStage == StageExitRules.LedgerStage))
+            {
+                CurrentStage = stageAfterLedger.Value;
+                ArrivalAnchor = null;
+            }
         }
         private static T[] Copy<T>(HashSet<T> source) { var result = new T[source.Count]; source.CopyTo(result); return result; }
         private static void Replace<T>(HashSet<T> target, IEnumerable<T> source) { target.Clear(); target.UnionWith(source); }

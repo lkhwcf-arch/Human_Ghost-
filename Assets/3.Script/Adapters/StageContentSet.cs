@@ -33,10 +33,22 @@ namespace HumanGhost.Gameplay.Adapters
             public int Code = 0;
             public MonsterRuntime Prefab = null;
         }
+        [Serializable]
+        public sealed class NpcEntry
+        {
+            public string Key = "";
+            public GameObject Prefab = null;
+        }
 
         [SerializeField] private StageEntry[] _stages = Array.Empty<StageEntry>();
         [SerializeField] private GameObject[] _platforms = Array.Empty<GameObject>();
         [SerializeField] private MonsterEntry[] _monsters = Array.Empty<MonsterEntry>();
+        [SerializeField] private NpcEntry[] _npcs = Array.Empty<NpcEntry>();
+        public GameObject GetNpc(string key)
+        {
+            foreach (NpcEntry entry in _npcs) if (entry.Key == key) return entry.Prefab;
+            return null;
+        }
 
         public StageEntry[] Stages => _stages;
 

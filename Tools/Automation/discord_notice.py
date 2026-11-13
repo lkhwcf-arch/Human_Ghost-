@@ -16,6 +16,8 @@ def BuildNotice(env):
     artifact = env.get("BUILD_ARTIFACT_URL", "")
     if test:
         title, description, color = "빌드 채널 연결 테스트", "빌드 전용 채널 연결을 확인했습니다. 게임 빌드는 실행하지 않았습니다.", 5025616
+    elif env.get("REVISION_RESULT", "success") != "success":
+        title, description, color = "빌드 리비전 확정 실패", "지정한 커밋·태그·브랜치를 가져오지 못했거나 작업이 취소됐습니다. 실행 기록을 확인해주세요.", 15158332
     elif checked == "success" and built == "success" and artifact:
         title, description, color = "Windows 빌드 완료", f"게임 파일을 내려받을 수 있습니다.\n[게임 파일 다운로드]({artifact})\n압축을 풀고 HumanGhost.exe를 실행하세요.", 5025616
     elif checked == "cancelled" or built == "cancelled":
@@ -28,8 +30,8 @@ def BuildNotice(env):
         "title": f"[클라이언트] {title}", "description": description, "color": color,
         "url": f"{env['GITHUB_SERVER_URL']}/{env['GITHUB_REPOSITORY']}/actions/runs/{env['GITHUB_RUN_ID']}",
         "fields": [
-            {"name": "브랜치", "value": env["GITHUB_REF_NAME"][:1024], "inline": True},
-            {"name": "커밋", "value": env["GITHUB_SHA"][:7], "inline": True},
+            {"name": "실행 브랜치", "value": env["GITHUB_REF_NAME"][:1024], "inline": True},
+            {"name": "게임 소스 커밋", "value": "빌드 없음" if test else env.get("BUILD_SOURCE_SHA") or ("확정 실패" if env.get("REVISION_RESULT", "success") != "success" else env["GITHUB_SHA"]), "inline": False},
             {"name": "빌드 번호", "value": env["GITHUB_RUN_NUMBER"], "inline": True},
             {"name": "빌드 종류", "value": modeNames[mode], "inline": True},
             {"name": "시작 장면", "value": env.get("BUILD_SCENE", "preview"), "inline": True},

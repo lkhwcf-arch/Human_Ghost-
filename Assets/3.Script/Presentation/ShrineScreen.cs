@@ -6,6 +6,7 @@ using HumanGhost.Data.Storage;
 using HumanGhost.Gameplay.Adapters;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 namespace HumanGhost.Gameplay.Presentation
 {
@@ -14,6 +15,13 @@ namespace HumanGhost.Gameplay.Presentation
     {
         [SerializeField] private Sprite _pipOn = null;
         [SerializeField] private Sprite _pipOff = null;
+        [SerializeField, InspectorName("공용 안내 팝업 프리팹")] private ConfirmationPopupScreen _noticePrefab = null;
+        [SerializeField, InspectorName("재화 부족 Language ID")] private int _insufficientTextId = 30225;
+        [SerializeField, InspectorName("닫기 Language ID")] private int _dismissTextId = 30052;
+        private ConfirmationPopupScreen _notice;
+        private GameObject _noticeRoot;
+        private EventSystem _events;
+        private bool _noticeOpen;
         private readonly Dictionary<string, Transform> _nodes = new Dictionary<string, Transform>();
         private ShrineMenu _menu;
         private GameProgressState _progress;
@@ -33,10 +41,11 @@ namespace HumanGhost.Gameplay.Presentation
             _blocked = blocked;
         }
 
-        public void Open(IReadOnlyDataCatalog data, GameProgressState progress, PlayerActor player, Action closed, Action<Exception> failed)
+        public void Open(IReadOnlyDataCatalog data, GameProgressState progress, PlayerActor player, Action closed, Action<Exception> failed, EventSystem events = null)
         {
             if (IsOpen) throw new InvalidOperationException("서낭당 화면이 이미 열려 있습니다.");
             _progress = progress; _player = player; _closed = closed; _failed = failed;
+            _events = events;
             _language = data.GetTable<Language>();
             _soulCurrencyId = data.GetDefinition<ShrineDefinitions>().Level.SoulCurrencyId;
             _menu = new ShrineMenu(progress.Upgrades, data.GetDefinition<ShrineDefinitions>(), data.GetTable<Upgrade>().All.ToArray());
@@ -98,10 +107,41 @@ namespace HumanGhost.Gameplay.Presentation
             Node(path).GetComponent<Text>().raycastTarget = true;
             MenuText.Connect(Node(path).gameObject, hover, click);
         }
-        private void Select(int index) => Execute(() => _menu.Select(index));
-        public void Move(int direction) => Execute(() => _menu.Move(direction));
-        public void Submit() => Execute(() => _menu.Submit());
-        public void Back() => Execute(() => _menu.Back());
+        private void Select(int index) => Execute(() => { if (!_noticeOpen) _menu.Select(index); });
+        public void Move(int direction) => Execute(() => { if (_noticeOpen) _notice.Move(direction); else _menu.Move(direction); });
+        public void Submit() => Execute(() =>
+        {
+            if (_noticeOpen) { _notice.Submit(); return; }
+            _menu.Submit();
+            if (_menu.Result == UpgradePurchaseResult.InsufficientFunds) ShowInsufficientFunds();
+        });
+        public void Back() => Execute(() => { if (_noticeOpen) _notice.RequestClose(); else _menu.Back(); });
+        private void ShowInsufficientFunds()
+        {
+            if (_noticeOpen) return;
+            if (_events == null || !_events.isActiveAndEnabled) throw new InvalidOperationException("서낭당 안내 팝업의 입력 시스템을 연결해 주세요.");
+            if (_notice == null)
+            {
+                _notice = UiPrefabScope.Create(_noticePrefab, transform, out _noticeRoot);
+                _noticeRoot.name = "ShrineNoticeScope";
+                _notice.gameObject.SetActive(false);
+                _notice.Accepted += CloseNotice;
+                _notice.CloseRequested += CloseNotice;
+                _noticeRoot.SetActive(true);
+            }
+            _notice.SetNotice(Text(_insufficientTextId), Text(_dismissTextId));
+            _notice.FitNoticeWithin(((RectTransform)Node("Panel")).rect.size * 0.8f);
+            _noticeOpen = true;
+            _notice.Show(_events, 1);
+            _openedFrame = Time.frameCount;
+        }
+        private void CloseNotice()
+        {
+            if (!_noticeOpen || _blocked || Time.frameCount == _openedFrame) return;
+            _noticeOpen = false;
+            if (_notice != null) _notice.Hide();
+            _openedFrame = Time.frameCount;
+        }
         private void Execute(Action command)
         {
             if (!IsOpen || _blocked || _commanding || Time.frameCount == _openedFrame) return;
@@ -212,10 +252,17 @@ namespace HumanGhost.Gameplay.Presentation
         }
         public void Hide()
         {
+            _noticeOpen = false;
+            if (_notice != null) _notice.Hide();
+            _events = null;
             _scope?.Dispose(); _scope = null; _menu = null; _progress = null; _player = null;
             _closed = null; _failed = null; _language = null;
             if (gameObject.activeSelf) gameObject.SetActive(false);
         }
         private void OnDisable() { if (IsOpen) { Action closed = _closed; Hide(); closed?.Invoke(); } }
+        private void OnDestroy()
+        {
+            if (_notice != null) { _notice.Accepted -= CloseNotice; _notice.CloseRequested -= CloseNotice; }
+        }
     }
 }

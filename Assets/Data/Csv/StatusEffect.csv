@@ -1,2 +1,5 @@
 ID,Category,Value,Duration,TickInterval,Stackable,TextID
 19001,Knockback,200,250,0,N,0
+19002,Knockback,100,200,0,N,0
+19003,Knockback,200,250,0,N,0
+19004,Knockback,300,300,0,N,0
