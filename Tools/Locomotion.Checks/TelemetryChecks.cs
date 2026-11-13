@@ -23,9 +23,11 @@ internal static class TelemetryChecks
     {
         var config = JObject.Parse(File.ReadAllText(Path.Combine(root, "Assets/StreamingAssets/Telemetry.json")));
         var rules = new Dictionary<string, TelemetryRule>();
-        foreach (string field in new[] { "capacity", "batchSize", "maxLocalBytes" })
+        foreach (string field in new[] { "capacity", "batchSize", "maxLocalBytes", "flushIntervalMs", "quitTimeoutMs" })
             check(config[field]?.Type == JTokenType.Integer && (long)config[field] > 0, "수집 정책의 양의 정수: " + field);
         check((int)config["batchSize"] <= (int)config["capacity"], "수집 묶음 크기는 메모리 한도 이하");
+        check((int)config["flushIntervalMs"] <= 420000 && (int)config["quitTimeoutMs"] <= 15000,
+            "예약 수집은 최대 7분·종료 대기는 유한한 범위");
         foreach (var entry in ((JObject)config["events"]).Properties())
         {
             var row = entry.Value;
@@ -79,6 +81,13 @@ internal static class TelemetryChecks
         int pending = recorder.PendingCount;
         rewards.Wallet.TryAdd(1, 1);
         check(recorder.PendingCount == pending, "해제 이후 구독 잔존 없음");
+        var closing = new TelemetryRecorder(rules, 8, 4, "closing", "build", "development", "data", () => 0, () => 0);
+        closing.Record("currency_changed", source);
+        closing.StopRecording();
+        check(!closing.Record("currency_changed", source) && closing.PendingCount == 1, "종료 전 스냅샷 뒤 추가 기록 차단");
+        var closingSink = new Sink();
+        check(closing.Flush(closingSink) && closingSink.Records.Count == 1 && closing.PendingCount == 0,
+            "기록을 멈춘 뒤에도 묶음 미만의 마지막 기록 보관");
         var full = new TelemetryRecorder(rules, 1, 1, "session", "build", "development", "data", () => 0, () => 0);
         full.Record("currency_changed", source);
         check(!full.Record("currency_changed", source) && full.RejectedCount == 1, "메모리 한도 초과는 게임 차단 없이 집계");

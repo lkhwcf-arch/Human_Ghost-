@@ -4,6 +4,8 @@
   "dataVersion": "unversioned",
   "capacity": 512,
   "batchSize": 32,
+  "flushIntervalMs": 420000,
+  "quitTimeoutMs": 5000,
   "maxLocalBytes": 20971520,
   "firebase": {
     "enabled": true,

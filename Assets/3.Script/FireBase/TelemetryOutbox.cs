@@ -82,7 +82,8 @@ namespace HumanGhost.Telemetry
         private readonly CancellationTokenSource _lifetime = new CancellationTokenSource();
         private readonly SemaphoreSlim _signal = new SemaphoreSlim(0, 1);
         private readonly int _retryMs;
-        private volatile bool _disposed;
+        private volatile bool _disposed, _finishing;
+        private readonly object _lifetimeGate = new object();
         public string LastFailure { get; private set; }
         public Task Completion { get; }
         public TelemetryUploader(TelemetryOutbox outbox, ITelemetryTransport transport, int retryMs)
@@ -113,7 +114,7 @@ namespace HumanGhost.Telemetry
                         try
                         {
                             string path = _outbox.Next();
-                            if (path == null) break;
+                            if (path == null) { if (_finishing) return; break; }
                             JArray records;
                             try { records = _outbox.Read(path); }
                             catch (JsonException)
@@ -138,14 +139,34 @@ namespace HumanGhost.Telemetry
                 }
             }
             catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { }
-            finally { _signal.Dispose(); _lifetime.Dispose(); }
+            finally
+            {
+                lock (_lifetimeGate)
+                {
+                    _disposed = true;
+                    _outbox.Pending -= Wake;
+                    _signal.Dispose(); _lifetime.Dispose();
+                }
+            }
+        }
+        // 호출자가 기록을 멈추고 대기 파일을 확정한 뒤 사용합니다.
+        public Task FinishAsync()
+        {
+            lock (_lifetimeGate)
+            {
+                if (!_disposed) { _finishing = true; Wake(); }
+                return Completion;
+            }
         }
         public void Dispose()
         {
-            if (_disposed) return;
-            _disposed = true;
-            _outbox.Pending -= Wake;
-            _lifetime.Cancel();
+            lock (_lifetimeGate)
+            {
+                if (_disposed) return;
+                _disposed = true;
+                _outbox.Pending -= Wake;
+                _lifetime.Cancel();
+            }
         }
     }
 }

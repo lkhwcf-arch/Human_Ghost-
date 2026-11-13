@@ -82,6 +82,9 @@ namespace HumanGhost.Telemetry
             _buildMode = buildMode; _dataVersion = dataVersion; _utcMs = utcMs; _elapsedMs = elapsedMs;
             _anonymousId = anonymousId;
         }
+        // 종료 전 마지막 묶음을 고정합니다. 이미 쌓인 기록은 계속 보관할 수 있습니다.
+        private bool _accepting = true;
+        public void StopRecording() { lock (_gate) _accepting = false; }
         public bool Record(string name, IDictionary<string, object> fields)
         {
             try
@@ -89,7 +92,7 @@ namespace HumanGhost.Telemetry
                 bool notify;
                 lock (_gate)
                 {
-                    if (!_rules.TryGetValue(name, out var rule) || !rule.Enabled) return false;
+                    if (!_accepting || !_rules.TryGetValue(name, out var rule) || !rule.Enabled) return false;
                     if (_pending.Count >= _capacity) { RejectedCount++; return false; }
                     _pending.Enqueue(new TelemetryRecord(name, rule, _sessionId, _buildVersion, _buildMode,
                         _dataVersion, _utcMs(), _elapsedMs(), fields, _anonymousId));

@@ -75,11 +75,22 @@ internal static class TelemetryTransportChecks
             var waiting = new WaitingTransport();
             var uploader = new TelemetryUploader(restored, waiting, 1);
             await waiting.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            Task finishing = uploader.FinishAsync();
+            check(!finishing.IsCompleted, "서버 확인 전 종료 전송 완료로 처리하지 않음");
             uploader.Dispose();
-            await uploader.Completion.WaitAsync(TimeSpan.FromSeconds(5));
+            await finishing.WaitAsync(TimeSpan.FromSeconds(5));
             check(File.Exists(path), "종료 취소 중 서버 확인 없는 파일은 제거하지 않음");
             restored.Acknowledge(path);
             check(restored.Next() == null, "서버 확인 뒤에만 대기열 제거");
+            restored.Write(new[] { record });
+            using (var http = new HttpClient(new Handler()))
+            {
+                var successful = new TelemetryUploader(restored, new FirebaseRestTransport(http, "검사프로젝트", "검사공개키"), 1);
+                await successful.FinishAsync().WaitAsync(TimeSpan.FromSeconds(5));
+                check(restored.Next() == null, "종료 대기 중 서버 확인을 받은 파일만 정리");
+                await successful.FinishAsync();
+                successful.Dispose();
+            }
             var withoutArchive = new TelemetryOutbox(Path.Combine(directory, "ArchiveFailure"), 1000000, new BrokenArchive());
             withoutArchive.Write(new[] { record });
             check(withoutArchive.ArchiveFailure != null && withoutArchive.Next() != null,
