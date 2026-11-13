@@ -10,6 +10,8 @@ namespace HumanGhost.Gameplay.Adapters
         private bool _hasPosition;
         private float _worldUnitsPerTile = 1f;
         public event Action SpatialChanged;
+        public event Action<bool> AvailabilityChanged;
+        protected void NotifyAvailability(bool available) => AvailabilityChanged?.Invoke(available);
         public IntegerPosition Position { get { EnsurePosition(); return _position; } }
         public void ConfigureSpatialScale(float worldUnitsPerTile)
         {

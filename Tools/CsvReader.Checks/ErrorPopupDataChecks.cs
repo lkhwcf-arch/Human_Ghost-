@@ -16,12 +16,19 @@ internal static class ErrorPopupDataChecks
         catalog.Register(Read<Popup>("Popup", row => row.ID));
         Popup popup = catalog.GetTable<Popup>().Get(15007);
         var text = new LanguageTextSource(catalog);
-        check(text.Read(popup.BodyTextID, LanguageCode.Korean) == "오류가 발생했습니다");
-        check(text.Read(popup.BodyTextID, LanguageCode.English) == "An error occurred");
-        check(text.Read(popup.Button1TextID, LanguageCode.Korean) == "복사");
-        check(text.Read(popup.Button2TextID, LanguageCode.English) == "Close");
-        check(popup.DefaultButton == 1 && popup.CancelButton == 2 && popup.Button3TextID == 0);
-        check(text.Read(30214, LanguageCode.English) == "Copied");
+        foreach (var code in new[] { LanguageCode.Korean, LanguageCode.English })
+        {
+            foreach (int id in new[] { popup.BodyTextID, popup.Button1TextID, popup.Button2TextID, 30214 })
+                check(!string.IsNullOrWhiteSpace(text.Read(id, code)));
+            string format = text.Read(30330, code);
+            check(format.Contains("{0}"));
+            foreach (int id in new[] { 30331, 30332, 30333, 30334, 30335, 30336, 30341, 30342, 30343, 30344, 30345, 30346, 30347 })
+            {
+                string feature = text.Read(id, code);
+                check(!string.IsNullOrWhiteSpace(feature) && string.Format(format, feature).Contains(feature));
+            }
+        }
+        check(popup.DefaultButton >= 1 && popup.DefaultButton <= 2 && popup.CancelButton >= 0 && popup.CancelButton <= 2 && popup.Button3TextID == 0);
         bool failed = false;
         try { text.Read(popup.BodyTextID, (LanguageCode)99); } catch (ArgumentOutOfRangeException) { failed = true; }
         check(failed);

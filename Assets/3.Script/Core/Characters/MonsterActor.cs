@@ -117,6 +117,11 @@ namespace HumanGhost.Gameplay
 
         // 외부 판정이 확정한 HP 피해. 회피·방어 계산은 CombatMath/판정자 책임입니다.
         public bool ReceiveHit(int damage, bool critical = false, int poiseDamage = 0)
+            => ReceiveDamage(damage, critical, poiseDamage, true);
+
+        public bool ReceiveFieldDamage(int damage) => ReceiveDamage(damage, false, 0, false);
+
+        private bool ReceiveDamage(int damage, bool critical, int poiseDamage, bool react)
         {
             if (damage < 0 || poiseDamage < 0) throw new ArgumentOutOfRangeException(nameof(damage));
             if (IsDead || IsInvulnerable || (damage == 0 && poiseDamage == 0)) return false;
@@ -128,8 +133,8 @@ namespace HumanGhost.Gameplay
                 States.Change(new DeadState());
             }
             // 벽 충돌 허점(Stun)은 피해만 받고 남은 허점 시간을 유지합니다.
-            else if (Definition.Poise > 0 && Poise == 0 && !IsExposed) Expose();
-            else if (!IsExposed && !IsSuperArmor && CurrentState != StateKey.Stun)
+            else if (react && Definition.Poise > 0 && Poise == 0 && !IsExposed) Expose();
+            else if (react && !IsExposed && !IsSuperArmor && CurrentState != StateKey.Stun)
             {
                 ClearPattern(); _waitRemaining = 0;
                 _stunRemaining = critical ? _critHitStun : _hitStun;

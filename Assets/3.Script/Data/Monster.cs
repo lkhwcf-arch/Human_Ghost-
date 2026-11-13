@@ -17,7 +17,8 @@ namespace HumanGhost.Data.Definitions
         public int SightRange { get; }
         public int AttackRange { get; }
         public bool ContentEnabled { get; }
-        public Monster(UnitStat common, int id, int unitID, int idleMin, int idleMax, int poiseRegenDelay, int poiseRegen, int exposeTime, string executeType, int executeDamage, bool superArmor, string aIType, int sightRange, int attackRange, bool contentEnabled)
+        public string EffectImmunities { get; }
+        public Monster(UnitStat common, int id, int unitID, int idleMin, int idleMax, int poiseRegenDelay, int poiseRegen, int exposeTime, string executeType, int executeDamage, bool superArmor, string aIType, int sightRange, int attackRange, bool contentEnabled, string effectImmunities = "")
             : base(common.HP, common.ATK, common.DEF, common.Dodge, common.Crit, common.CritDamage, common.Poise, common.MoveSpeed, common.ArmorPen)
         {
             ID = id;
@@ -34,6 +35,7 @@ namespace HumanGhost.Data.Definitions
             SightRange = sightRange;
             AttackRange = attackRange;
             ContentEnabled = contentEnabled;
+            EffectImmunities = effectImmunities ?? "";
         }
     }
 }

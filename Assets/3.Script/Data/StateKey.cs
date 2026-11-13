@@ -1,4 +1,4 @@
-// 자동 생성 파일입니다. 원본 시트를 수정한 뒤 다시 배포하세요.
+// 상태 시트에서 자동 생성합니다. 매 배포 갱신하므로 직접 수정하지 마세요.
 namespace HumanGhost.Data.Definitions
 {
     public enum StateKey

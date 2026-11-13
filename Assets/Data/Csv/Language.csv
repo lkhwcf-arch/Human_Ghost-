@@ -186,3 +186,17 @@ ID,KO,EN
 30320,가로베기,Horizontal Chop
 30321,되베기,Return Chop
 30322,내려찍기,Overhead Smash
+30330,오류가 발생하여 {0} 기능이 동작하지 않습니다.,An error occurred. The {0} feature is not working.
+30331,배경음 재생,Background Music
+30332,효과음 재생,Sound Effects
+30333,화면 연출,Visual Effects
+30334,상태 표시,Status Display
+30335,컷씬 재생,Cutscene
+30336,플레이 기록 전송,Play Data Upload
+30341,게임 데이터 불러오기,Game Data Loading
+30342,맵 불러오기,Map Loading
+30343,저장,Save
+30344,저장 기록 불러오기,Save Data Loading
+30345,맵 이동,Map Transition
+30346,전투,Combat
+30347,조작,Controls

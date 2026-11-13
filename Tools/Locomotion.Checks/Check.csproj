@@ -19,6 +19,8 @@
     <Compile Include="../../Assets/3.Script/Adapters/PreparedAssetStore.cs" />
     <Compile Include="../../Assets/3.Script/Adapters/StageLayoutReader.cs" />
     <Compile Include="../../Assets/3.Script/Data/*.cs" />
+    <Compile Include="../../Assets/3.Script/Data/Generated/Enums/*.cs" />
+    <Compile Include="../../Assets/3.Script/Adapters/FieldEffectData.cs" />
     <Compile Include="../../Assets/3.Script/Common/Csv/*.cs" />
     <Compile Include="../../Assets/3.Script/Common/Text/*.cs" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />

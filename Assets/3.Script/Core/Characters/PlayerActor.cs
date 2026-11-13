@@ -241,20 +241,29 @@ namespace HumanGhost.Gameplay
 
         // 외부 판정이 확정한 HP 피해를 받습니다. 회피·방어 계산은 CombatMath/판정자 책임입니다.
         public bool ReceiveHit(int damage, bool critical = false)
+            => ReceiveDamage(damage, critical, true);
+
+        // 필드 피해는 살아 있는 동안 행동을 끊지 않고 사망 시에만 공통 종료를 수행합니다.
+        public bool ReceiveFieldDamage(int damage) => ReceiveDamage(damage, false, false);
+
+        private bool ReceiveDamage(int damage, bool critical, bool react)
         {
             if (damage < 0) throw new ArgumentOutOfRangeException(nameof(damage));
             if (IsDead || IsInvulnerable || damage == 0) return false;
             Health = Math.Max(0, Health - damage);
-            ClearAttack();
-            BoundBy = null; _bindPresses = 0;
-            _elapsed = 0;
-            _invulnerableRemaining = Definition.HitIFrame;
-            if (IsDead) States.Change(new DeadState());
-            else
+            if (react || IsDead)
             {
-                _duration = critical ? Definition.CritHitStunTime : Definition.HitStunTime;
-                States.Change(new HitState(critical));
-                if (_duration == 0) ResumeMovement();
+                ClearAttack();
+                BoundBy = null; _bindPresses = 0;
+                _elapsed = 0;
+                _invulnerableRemaining = react ? Definition.HitIFrame : 0;
+                if (IsDead) States.Change(new DeadState());
+                else
+                {
+                    _duration = critical ? Definition.CritHitStunTime : Definition.HitStunTime;
+                    States.Change(new HitState(critical));
+                    if (_duration == 0) ResumeMovement();
+                }
             }
             HealthChanged?.Invoke(Health);
             return true;

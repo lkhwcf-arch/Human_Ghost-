@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using HumanGhost.Data.Definitions;
@@ -26,7 +26,6 @@ namespace HumanGhost.Gameplay.Presentation
         [SerializeField] private RectTransform _tipBox = null;
         [SerializeField] private Text _tip = null;
         [SerializeField] private RectTransform _seal = null;
-        [SerializeField] private Image _sealFill = null;
         private AsyncOperation _load;
         private Task<bool> _ready;
         private bool _begun;
@@ -55,7 +54,7 @@ namespace HumanGhost.Gameplay.Presentation
                 if (string.IsNullOrEmpty(sceneName)) throw new ArgumentException("이동할 씬이 필요합니다.", nameof(sceneName));
                 if (!Application.CanStreamedLevelBeLoaded(sceneName))
                     throw new InvalidOperationException("이동할 씬이 빌드 목록에 없거나 로딩할 수 없습니다: " + sceneName);
-                if (_group == null || _background == null || _tipBox == null || _tip == null || _seal == null || _sealFill == null)
+                if (_group == null || _background == null || _tipBox == null || _tip == null || _seal == null)
                     throw new InvalidOperationException("로딩 화면의 표시 참조를 모두 연결해 주세요.");
                 ScreenVisibility.RequireVisible(_group.GetComponentInParent<Canvas>());
                 _fadeOnly = fadeOnly;
@@ -123,6 +122,7 @@ namespace HumanGhost.Gameplay.Presentation
             try
             {
                 _elapsed += Math.Min(_clock.Advance(Time.unscaledDeltaTime), int.MaxValue - _elapsed);
+                if (!_fadeOnly) _seal.Rotate(0f, 0f, -240f * Time.unscaledDeltaTime);
                 if (_phase == 0)
                 {
                     float appear = Mathf.Clamp01(_elapsed / (float)_appearMs);
@@ -136,7 +136,7 @@ namespace HumanGhost.Gameplay.Presentation
                 {
                     float progress = _fadeOnly ? Mathf.Clamp01(_load.progress / 0.9f)
                         : LoadingTip.Progress(_load.progress / 0.9f, _elapsed / 1000f, _minimumMs / 1000f);
-                    if (!_fadeOnly) _sealFill.fillAmount = progress;
+
                     if (progress < 1f) return;
                     _elapsed = 0;
                     _phase = 2;
