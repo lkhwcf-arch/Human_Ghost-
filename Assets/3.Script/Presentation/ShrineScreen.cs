@@ -83,7 +83,7 @@ namespace HumanGhost.Gameplay.Presentation
             if (text == null) throw new InvalidOperationException($"서낭당 화면의 {path}에 글자 표시가 없습니다.");
             text.text = value;
         }
-        private string Text(int id) => _language.Get(id).KO;
+        private string Text(int id) => LanguageTextSource.Select(_language.Get(id));
         private void ConnectPointer()
         {
             if (_connected) return;

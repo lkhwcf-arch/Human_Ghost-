@@ -179,7 +179,12 @@ namespace HumanGhost.Gameplay.Adapters
             }
         }
 
-        private void Preview(GameSettings value) => _settingsChanged?.Invoke(value);
+        private void Preview(GameSettings value)
+        {
+            LanguageSettings.Apply(value.Language);
+            _settingsChanged?.Invoke(value);
+            if (_screen != null && _data != null) _screen.Prepare(_data);
+        }
 
         private void OnSettingsClosed(GameSettings result)
         {

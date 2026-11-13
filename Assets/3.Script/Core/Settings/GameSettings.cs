@@ -15,6 +15,7 @@ namespace HumanGhost.Gameplay
         public bool CameraShake { get; private set; } = true;
         public KeyboardLayout KeyboardLayout { get; private set; }
         public WindowMode WindowMode { get; private set; }
+        public LanguageCode Language { get; private set; }
 
         public GameSettings() { }
         public GameSettings(int music, int effects, bool cameraShake) { SetMusic(music); SetEffects(effects); CameraShake = cameraShake; }
@@ -42,13 +43,21 @@ namespace HumanGhost.Gameplay
             WindowMode = mode;
         }
 
+        public void SetLanguage(LanguageCode language)
+        {
+            if (language != LanguageCode.Korean && language != LanguageCode.English)
+                throw new ArgumentOutOfRangeException(nameof(language));
+            Language = language;
+        }
+
         public GameSettings Clone()
         {
             var copy = new GameSettings(Master, Music, Effects, CameraShake);
             copy.SetKeyboardLayout(KeyboardLayout);
             copy.SetWindowMode(WindowMode);
+            copy.SetLanguage(Language);
             return copy;
         }
-        public bool SameAs(GameSettings other) => other != null && Master == other.Master && Music == other.Music && Effects == other.Effects && CameraShake == other.CameraShake && KeyboardLayout == other.KeyboardLayout && WindowMode == other.WindowMode;
+        public bool SameAs(GameSettings other) => other != null && Master == other.Master && Music == other.Music && Effects == other.Effects && CameraShake == other.CameraShake && KeyboardLayout == other.KeyboardLayout && WindowMode == other.WindowMode && Language == other.Language;
     }
 }

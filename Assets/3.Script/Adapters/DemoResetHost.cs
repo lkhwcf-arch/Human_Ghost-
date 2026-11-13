@@ -73,8 +73,8 @@ namespace HumanGhost.Gameplay.Adapters
                 rect.anchorMin = Vector2.zero; rect.anchorMax = Vector2.one; rect.offsetMin = rect.offsetMax = Vector2.zero;
                 _owned.SetActive(false);
                 _screen = Instantiate(_prefab, _owned.transform);
-                _screen.SetText(text.Read(popup.BodyTextID, LanguageCode.Korean),
-                    text.Read(popup.Button1TextID, LanguageCode.Korean), text.Read(popup.Button2TextID, LanguageCode.Korean));
+                _screen.SetText(text.Read(popup.BodyTextID, LanguageSettings.Current),
+                    text.Read(popup.Button1TextID, LanguageSettings.Current), text.Read(popup.Button2TextID, LanguageSettings.Current));
                 _screen.SetBusy(false);
                 _screen.Accepted += Confirm;
                 _screen.CloseRequested += Close;

@@ -32,6 +32,25 @@ internal static class ErrorPopupDataChecks
         bool failed = false;
         try { text.Read(popup.BodyTextID, (LanguageCode)99); } catch (ArgumentOutOfRangeException) { failed = true; }
         check(failed);
+        LanguageCode original = LanguageSettings.Current;
+        int changes = 0;
+        Action changed = () => changes++;
+        LanguageSettings.Changed += changed;
+        try
+        {
+            LanguageSettings.Apply(LanguageCode.English);
+            check(text.Read(popup.BodyTextID) == catalog.GetTable<Language>().Get(popup.BodyTextID).EN);
+            int before = changes;
+            LanguageSettings.Apply(LanguageCode.English);
+            check(changes == before);
+            LanguageSettings.Apply(LanguageCode.Korean);
+            check(text.Read(popup.BodyTextID) == catalog.GetTable<Language>().Get(popup.BodyTextID).KO);
+            LanguageSettings.Changed -= changed;
+            before = changes;
+            LanguageSettings.Apply(LanguageCode.English);
+            check(changes == before);
+        }
+        finally { LanguageSettings.Changed -= changed; LanguageSettings.Apply(original); }
         string details = ErrorPopupDetails.Format(new ReportException(), 2, "TestScene", "Idle",
             new DateTimeOffset(2026, 11, 5, 12, 0, 0, TimeSpan.FromHours(9)), "기록 파일", "test.log");
         check(details.Contains("테스트 오류") && details.Contains("횟수: 2") && details.Contains("TestScene") && details.Contains("Idle"));

@@ -24,6 +24,6 @@ namespace HumanGhost.Gameplay.Adapters
             GoToStage = goToStage ?? throw new ArgumentNullException(nameof(goToStage));
         }
 
-        public string Text(int id) => Data.GetTable<Language>().Get(id).KO;
+        public string Text(int id) => LanguageTextSource.Select(Data.GetTable<Language>().Get(id));
     }
 }

@@ -42,7 +42,17 @@ namespace HumanGhost.Gameplay.Adapters
             if (!isActiveAndEnabled || _dialogues == null || _dialogueScope != null) return;
             _dialogueScope = new SubscriptionScope();
             DialogueRunner runner = _dialogues;
-            System.Action changed = _dialogueScope.Guard(NotifyChanged);
+            System.Action changed = _dialogueScope.Guard(() =>
+            {
+                try
+                {
+                    if (this == null || !isActiveAndEnabled) return;
+                    if (_nameLabel != null && _definition != null) _nameLabel.text = runner.ReadText(_definition.NameTextID);
+                    NotifyChanged();
+                }
+                catch (System.Exception error) { Debug.LogException(error, this); }
+            });
+            _dialogueScope.Add(() => LanguageSettings.Changed -= changed); LanguageSettings.Changed += changed;
             _dialogueScope.Add(() => runner.AvailabilityChanged -= changed); runner.AvailabilityChanged += changed;
         }
 

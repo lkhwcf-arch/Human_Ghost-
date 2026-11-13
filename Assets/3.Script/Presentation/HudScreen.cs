@@ -57,6 +57,8 @@ namespace HumanGhost.Gameplay.Presentation
             if (isActiveAndEnabled) Subscribe();
         }
 
+        public void SetBossName(string text) { if (_bossName != null) _bossName.text = text; }
+
         public void SetSkillName(string text) { if (_skillName != null) _skillName.text = text; }
 
         public void Disconnect() { Unsubscribe(); _player = null; _boss = null; _extraGroups = new CanvasGroup[0]; }

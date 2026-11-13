@@ -16,7 +16,7 @@ namespace HumanGhost.Gameplay.Preview
         private readonly PreviewFollowCamera _camera;
         private readonly GameAudio _audio;
         private readonly TextMesh _textPrefab;
-        private readonly string _dodgeText;
+        private string _dodgeText;
         private readonly SpriteClipEffect _hitPrefab;
         private readonly List<SpriteClipEffect> _impacts = new List<SpriteClipEffect>();
         private readonly Stack<SpriteClipEffect> _impactPool = new Stack<SpriteClipEffect>();
@@ -36,6 +36,8 @@ namespace HumanGhost.Gameplay.Preview
         {
             _speed = speed; _camera = camera; _audio = audio; _textPrefab = textPrefab; _dodgeText = dodgeText; _hitPrefab = hitPrefab;
         }
+
+        public void SetDodgeText(string text) => _dodgeText = text;
 
         // 플레이어가 적을 때린 결과입니다. 회피는 히트스톱이 없습니다.
         public void OnPlayerHit(HitOutcome outcome, SpriteRenderer target, Vector3 position, int direction = 1)

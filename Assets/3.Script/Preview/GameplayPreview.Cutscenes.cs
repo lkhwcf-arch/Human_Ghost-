@@ -90,7 +90,7 @@ namespace HumanGhost.Gameplay.Preview
                 if (!_ending.TryFinish()) return;
                 DemoEndingFlow flow = _ending;
                 _actor.SetCutsceneDamageBlocked(true);
-                _textbox.Open(0, _endingTextIds, new LanguageTextSource(_catalog), LanguageCode.Korean,
+                _textbox.Open(0, _endingTextIds, new LanguageTextSource(_catalog), LanguageSettings.Current,
                     () =>
                     {
                         if (this == null || !isActiveAndEnabled || !ReferenceEquals(_ending, flow)) return;

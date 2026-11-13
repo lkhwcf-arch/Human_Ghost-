@@ -75,8 +75,8 @@ namespace HumanGhost.Gameplay.Adapters
                 _modals.ModalChanged += modalChanged;
                 _input.enabled = false;
                 var text = new LanguageTextSource(data);
-                _screen.Connect(text, LanguageCode.Korean);
-                _input.ConnectHint(text, LanguageCode.Korean);
+                _screen.Connect(text, LanguageSettings.Current);
+                _input.ConnectHint(text, LanguageSettings.Current);
                 SetErrorBlocked(_modals.HasOtherModalOwner(this));
                 Prepare(sequence, scope, _preparation.Token);
                 return true;

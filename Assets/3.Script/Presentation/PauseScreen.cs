@@ -1,3 +1,4 @@
+using HumanGhost.Gameplay.Adapters;
 using System;
 using HumanGhost.Data.Definitions;
 using HumanGhost.Data.Storage;
@@ -32,15 +33,15 @@ namespace HumanGhost.Gameplay.Presentation
         {
             IReadOnlyDataTable<Language> language = data.GetTable<Language>();
             _language = language;
-            _title.text = language.Get(30032).KO;
-            _resume.text = language.Get(30033).KO;
-            _controls.text = language.Get(30034).KO;
-            _settings.text = language.Get(30030).KO;
-            _toTitle.text = language.Get(30035).KO;
+            _title.text = LanguageTextSource.Select(language.Get(30032));
+            _resume.text = LanguageTextSource.Select(language.Get(30033));
+            _controls.text = LanguageTextSource.Select(language.Get(30034));
+            _settings.text = LanguageTextSource.Select(language.Get(30030));
+            _toTitle.text = LanguageTextSource.Select(language.Get(30035));
             Popup popup = data.GetTable<Popup>().Get(_confirmPopup);
-            _confirmBody.text = language.Get(popup.BodyTextID).KO;
-            _confirmYes.text = language.Get(popup.Button1TextID).KO;
-            _confirmNo.text = language.Get(popup.Button2TextID).KO;
+            _confirmBody.text = LanguageTextSource.Select(language.Get(popup.BodyTextID));
+            _confirmYes.text = LanguageTextSource.Select(language.Get(popup.Button1TextID));
+            _confirmNo.text = LanguageTextSource.Select(language.Get(popup.Button2TextID));
             RefreshControls();
             if (_connected) return;
             _connected = true;
@@ -85,11 +86,11 @@ namespace HumanGhost.Gameplay.Presentation
         {
             if (_language == null) return;
             bool wasd = Adapters.KeyboardControls.Layout == KeyboardLayout.Wasd;
-            _controlsText.text = _language.Get(30058).KO + (wasd ? "  WASD" : "  방향키") + " / 왼쪽 스틱\n" +
-                _language.Get(30059).KO + (wasd ? "  K" : "  C") + " / A\n" +
-                _language.Get(30060).KO + (wasd ? "  J" : "  X") + " / X\n" +
-                _language.Get(30061).KO + (wasd ? "  L" : "  Space") + " / B\n" +
-                _language.Get(30062).KO + "  E / 위\n" + _language.Get(30022).KO +
+            _controlsText.text = LanguageTextSource.Select(_language.Get(30058)) + (wasd ? "  WASD" : "  방향키") + " / 왼쪽 스틱\n" +
+                LanguageTextSource.Select(_language.Get(30059)) + (wasd ? "  K" : "  C") + " / A\n" +
+                LanguageTextSource.Select(_language.Get(30060)) + (wasd ? "  J" : "  X") + " / X\n" +
+                LanguageTextSource.Select(_language.Get(30061)) + (wasd ? "  L" : "  Space") + " / B\n" +
+                LanguageTextSource.Select(_language.Get(30062)) + "  E / 위\n" + LanguageTextSource.Select(_language.Get(30022)) +
                 (wasd ? "  I" : "  Q") + " / LB\n결박 가르기" + (wasd ? "  U" : "  Z") +
                 " / Y\n아래 점프  " + (wasd ? "S+K" : "↓+C") + " / 아래+A";
         }

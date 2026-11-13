@@ -18,16 +18,17 @@ namespace HumanGhost.Gameplay.Adapters
         private readonly LanguageTextSource _text;
         private readonly Action<bool> _pause;
         private readonly Action<Exception> _failed;
-        private readonly LanguageCode _language;
+        private readonly LanguageCode? _language;
+        private LanguageCode Language => _language ?? LanguageSettings.Current;
         private object _owner;
         private bool? _pending;
         private bool _disposed;
         public bool IsRunning => !_disposed && _session.IsRunning;
         public bool CanPlay(int id) => !_disposed && _session.CanBegin(id);
         public event Action AvailabilityChanged;
-        public string ReadText(int id) => _text.Read(id, _language);
+        public string ReadText(int id) => _text.Read(id, Language);
         public DialogueRunner(IReadOnlyDataCatalog data, IReadOnlyList<TextAsset> assets, TextboxScreen screen, Action<bool> pause, Action<Exception> failed,
-            LanguageCode language = LanguageCode.Korean)
+            LanguageCode? language = null)
         {
             _screen = screen != null ? screen : throw new ArgumentNullException(nameof(screen));
             _text = new LanguageTextSource(data); _pause = pause ?? throw new ArgumentNullException(nameof(pause));
@@ -51,7 +52,7 @@ namespace HumanGhost.Gameplay.Adapters
             {
                 bool paused = _session.Current.PauseGame;
                 _pause(paused);
-                _screen.Open(lines, _text, _language, paused, () =>
+                _screen.Open(lines, _text, Language, paused, () =>
                 {
                     if (!_disposed) _pending = _screen != null && _screen.LastPlaybackCompleted;
                 });

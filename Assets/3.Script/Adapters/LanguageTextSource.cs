@@ -17,7 +17,13 @@ namespace HumanGhost.Gameplay.Adapters
 
         public virtual string Read(int textId, LanguageCode languageCode)
         {
-            Language row = _language.Get(textId);
+            return Select(_language.Get(textId), languageCode);
+        }
+
+        public string Read(int textId) => Read(textId, LanguageSettings.Current);
+        public static string Select(Language row) => Select(row, LanguageSettings.Current);
+        public static string Select(Language row, LanguageCode languageCode)
+        {
             switch (languageCode)
             {
                 case LanguageCode.Korean: return row.KO;

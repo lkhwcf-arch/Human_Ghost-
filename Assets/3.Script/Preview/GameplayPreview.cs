@@ -414,7 +414,7 @@ namespace HumanGhost.Gameplay.Preview
             TextboxScreen textbox = _textbox;
             PlayerActor actor = _actor;
             SubscriptionScope scope = _interactionScope;
-            textbox.ConnectSkipHint(new LanguageTextSource(catalog), LanguageCode.Korean);
+            textbox.ConnectSkipHint(new LanguageTextSource(catalog), LanguageSettings.Current);
             scope.Add(textbox.DisconnectSkipHint);
             RefreshDialogueSkipHint();
             var skip = new SkipKeyInput(
@@ -734,7 +734,7 @@ namespace HumanGhost.Gameplay.Preview
             _combat = new CombatPresence(_combatHoldMilliseconds);
             _lastHealth = _actor.Health;
             _feedback?.Dispose();
-            _feedback = new PreviewCombatFeedback(_speed, _followCamera, _audio, _feedbackTextPrefab, catalog.GetTable<Language>().Get(30021).KO, _hitImpactPrefab);
+            _feedback = new PreviewCombatFeedback(_speed, _followCamera, _audio, _feedbackTextPrefab, LanguageTextSource.Select(catalog.GetTable<Language>().Get(30021)), _hitImpactPrefab);
             _parryFeedback?.Dispose();
             _parryFeedback = new PreviewParryFeedback(_speed, _followCamera, _audio, _parryImpactPrefab);
             if (_bossDriver != null)
@@ -753,8 +753,8 @@ namespace HumanGhost.Gameplay.Preview
                     healthGroup = canvas.GetComponent<CanvasGroup>();
                     if (healthGroup == null) healthGroup = canvas.gameObject.AddComponent<CanvasGroup>();
                 }
-                _hud.Connect(_actor, _boss.Actor, catalog.GetTable<Language>().Get(30006).KO, _boss.Actor.Poise, _showBossGauge && _bossActive, healthGroup);
-                _hud.SetSkillName(catalog.GetTable<Language>().Get(catalog.GetTable<Skill>().Get(_skillId).TextID).KO);
+                _hud.Connect(_actor, _boss.Actor, LanguageTextSource.Select(catalog.GetTable<Language>().Get(30006)), _boss.Actor.Poise, _showBossGauge && _bossActive, healthGroup);
+                _hud.SetSkillName(LanguageTextSource.Select(catalog.GetTable<Language>().Get(catalog.GetTable<Skill>().Get(_skillId).TextID)));
                 _actor.StaminaRefused += _hud.FlashStamina;
             }
             _actor.HealthChanged += OnGameLayerHealthChanged;
@@ -808,6 +808,18 @@ namespace HumanGhost.Gameplay.Preview
 
         private void OnSettingsChanged(GameSettings value)
         {
+            LanguageSettings.Apply(value.Language);
+            if (_textbox != null) _textbox.ConnectSkipHint(new LanguageTextSource(_catalog), value.Language);
+            if (_catalog != null)
+            {
+                var text = new LanguageTextSource(_catalog);
+                _feedback?.SetDodgeText(text.Read(30021));
+                if (_hud != null)
+                {
+                    _hud.SetBossName(text.Read(30006));
+                    _hud.SetSkillName(text.Read(_catalog.GetTable<Skill>().Get(_skillId).TextID));
+                }
+            }
             KeyboardControls.SetLayout(value.KeyboardLayout);
             if (_audio != null) _audio.Apply(value);
             if (_followCamera != null) _followCamera.ShakeEnabled = value.CameraShake;
@@ -876,7 +888,7 @@ namespace HumanGhost.Gameplay.Preview
             if (_stageNamePending && CanPause() && (_textbox == null || !_textbox.IsOpen))
             {
                 _stageNamePending = false;
-                try { _textbox.ShowStageName(_catalog.GetTable<Language>().Get(_catalog.GetTable<Stage>().Get(_stageId).TextID).KO); }
+                try { _textbox.ShowStageName(LanguageTextSource.Select(_catalog.GetTable<Language>().Get(_catalog.GetTable<Stage>().Get(_stageId).TextID))); }
                 catch (Exception error) { Debug.LogException(error, this); }
             }
             _facing = _actor.Facing;

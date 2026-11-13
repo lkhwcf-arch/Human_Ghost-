@@ -19,6 +19,7 @@
     <Compile Include="../../Assets/3.Script/Adapters/AtomicTextFile.cs" />
     <Compile Include="../../Assets/3.Script/Adapters/CutsceneSequenceSource.cs" />
     <Compile Include="../../Assets/3.Script/Adapters/LanguageTextSource.cs" />
+    <Compile Include="../../Assets/3.Script/Adapters/LanguageSettings.cs" />
     <Compile Include="../../Assets/3.Script/Adapters/ErrorLogDispatcher.cs" />
     <Compile Include="../../Assets/3.Script/Data/Storage/*.cs" />
     <Compile Include="../../Assets/3.Script/Data/Generated/*.cs" />

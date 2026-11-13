@@ -1,3 +1,4 @@
+using HumanGhost.Gameplay.Adapters;
 using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -100,7 +101,7 @@ namespace HumanGhost.Gameplay.Presentation
             int id = LoadingTip.Pick(ids, _previousTipId, UnityEngine.Random.Range);
             _previousTipId = id;
             if (id == 0) { _tipBox.gameObject.SetActive(false); return; }
-            LoadingTip.Split(language.Get(id).KO, out string title, out string body);
+            LoadingTip.Split(LanguageTextSource.Select(language.Get(id)), out string title, out string body);
             _tip.text = title.Length == 0 ? "<color=#C8C2B6>" + body + "</color>"
                 : "<color=#ECE6DA><b>" + title + "</b></color><color=#C8C2B6>" + body + "</color>";
             Canvas.ForceUpdateCanvases();

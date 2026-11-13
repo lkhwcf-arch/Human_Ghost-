@@ -3,6 +3,7 @@ using HumanGhost.Data.Definitions;
 using HumanGhost.Data.Storage;
 using UnityEngine;
 using UnityEngine.UI;
+using HumanGhost.Gameplay.Adapters;
 
 namespace HumanGhost.Gameplay.Presentation
 {
@@ -21,9 +22,9 @@ namespace HumanGhost.Gameplay.Presentation
             public GameObject Root => _label.transform.parent.gameObject;
             public void SetText(IReadOnlyDataTable<Language> language)
             {
-                _label.text = language.Get(_textId).KO;
+                _label.text = LanguageTextSource.Select(language.Get(_textId));
                 // 이미지 항목도 문구를 유지해 이미지를 빼면 언어 표시로 돌아갑니다.
-                bool useImage = _labelImage != null && _labelImage.sprite != null;
+                bool useImage = LanguageSettings.Current == LanguageCode.Korean && _labelImage != null && _labelImage.sprite != null;
                 _label.enabled = !useImage;
                 _label.raycastTarget = !useImage;
                 if (_labelImage != null) _labelImage.enabled = useImage;
@@ -55,6 +56,7 @@ namespace HumanGhost.Gameplay.Presentation
         [SerializeField, InspectorName("확인 창 고른 답 색")] private Color _answerSelected = Color.white;
         [SerializeField, InspectorName("확인 창 안 고른 답 색")] private Color _answerNormal = new Color(0.55f, 0.53f, 0.5f);
         private TitleMenu _menu;
+        private IReadOnlyDataCatalog _data;
         private bool _pointerConnected;
 
         // 표시 소비자는 입력 위치만 알립니다. 메뉴 상태 변경은 호스트가 합니다.
@@ -79,24 +81,41 @@ namespace HumanGhost.Gameplay.Presentation
             Disconnect();
             if (menu == null) throw new ArgumentNullException(nameof(menu));
             if (data == null) throw new ArgumentNullException(nameof(data));
-            var language = data.GetTable<Language>();
-            var popup = data.GetTable<Popup>().Get(_newGamePopupId);
+            _data = data;
             ReadConfirmDefaultYes(data);
-            foreach (Entry entry in _entries) entry.SetText(language);
-            _question.text = language.Get(popup.BodyTextID).KO;
-            _yesLabel.text = language.Get(popup.Button1TextID).KO;
-            _noLabel.text = language.Get(popup.Button2TextID).KO;
-            _answerHint.text = $"↑↓ 고르기 · Enter / C / 패드 A 결정 · Esc / 패드 B: {_noLabel.text}";
             ConnectPointer();
             _menu = menu;
+            ApplyLanguage();
+            LanguageSettings.Changed += RefreshLanguage;
             _menuRoot.SetActive(true);
             Apply();
             if (isActiveAndEnabled) _menu.Changed += Render;
         }
 
+        private void RefreshLanguage()
+        {
+            if (this == null || _data == null || _menu == null) return;
+            try { ApplyLanguage(); }
+            catch (Exception error) { Debug.LogException(error, this); }
+        }
+
+        private void ApplyLanguage()
+        {
+            var language = _data.GetTable<Language>();
+            var popup = _data.GetTable<Popup>().Get(_newGamePopupId);
+            foreach (Entry entry in _entries) entry.SetText(language);
+            _question.text = LanguageTextSource.Select(language.Get(popup.BodyTextID));
+            _yesLabel.text = LanguageTextSource.Select(language.Get(popup.Button1TextID));
+            _noLabel.text = LanguageTextSource.Select(language.Get(popup.Button2TextID));
+            _answerHint.text = "↑↓ " + LanguageTextSource.Select(language.Get(30050)) + " · Enter / C / A "
+                + LanguageTextSource.Select(language.Get(30051)) + " · Esc / B: " + _noLabel.text;
+        }
+
         public void Disconnect()
         {
             if (_menu != null) _menu.Changed -= Render;
+            LanguageSettings.Changed -= RefreshLanguage;
+            _data = null;
             _menu = null;
             if (_menuRoot != null) _menuRoot.SetActive(false);
         }

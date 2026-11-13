@@ -47,7 +47,7 @@ namespace HumanGhost.Gameplay.Adapters
         public bool IsCapturing => _collector != null && _collector.IsActive;
 
         // 콜백은 이 팝업의 입력 잠금만 소유합니다. 실패한 작업의 재시도·게임 시간은 호출자가 결정합니다.
-        public virtual void Initialize(EventSystem events, Action<bool> setModalInput, IReadOnlyDataCatalog data, LanguageCode languageCode = LanguageCode.Korean, Func<string> readState = null)
+        public virtual void Initialize(EventSystem events, Action<bool> setModalInput, IReadOnlyDataCatalog data, LanguageCode? languageCode = null, Func<string> readState = null)
         {
             if (_menuInput != null) throw new InvalidOperationException("이미 초기화된 에러 팝업입니다.");
             if (events == null || setModalInput == null) throw new ArgumentNullException(nameof(events));
@@ -61,22 +61,23 @@ namespace HumanGhost.Gameplay.Adapters
         }
 
         // Popup의 버튼·본문 참조와 공용 언어 조회를 한 번 연결합니다.
-        public virtual void Configure(IReadOnlyDataCatalog data, LanguageCode languageCode = LanguageCode.Korean)
+        public virtual void Configure(IReadOnlyDataCatalog data, LanguageCode? languageCode = null)
         {
             if (_ownsInput) throw new InvalidOperationException("열린 에러 팝업은 닫은 뒤 언어를 변경해 주세요.");
             if (data == null) throw new ArgumentNullException(nameof(data));
+            LanguageCode selected = languageCode ?? LanguageSettings.Current;
             Popup popup = data.GetTable<Popup>().Get(_popupId);
             if (popup.Button2TextID == 0 || popup.Button3TextID != 0 || popup.DefaultButton < 1 || popup.DefaultButton > 2 || popup.CancelButton < 0 || popup.CancelButton > 2)
                 throw new InvalidOperationException("에러 알림은 복사·닫기 두 버튼 구성이 필요합니다.");
             var text = new LanguageTextSource(data);
-            string heading = text.Read(popup.BodyTextID, languageCode);
-            string copy = text.Read(popup.Button1TextID, languageCode);
-            string close = text.Read(popup.Button2TextID, languageCode);
-            string copied = text.Read(30214, languageCode);
-            string logLabel = text.Read(30212, languageCode);
+            string heading = text.Read(popup.BodyTextID, selected);
+            string copy = text.Read(popup.Button1TextID, selected);
+            string close = text.Read(popup.Button2TextID, selected);
+            string copied = text.Read(30214, selected);
+            string logLabel = text.Read(30212, selected);
             _popup = popup;
             _data = data;
-            _languageCode = languageCode;
+            _languageCode = selected;
             _heading = heading; _copyText = copy; _closeText = close; _copiedText = copied; _logLabel = logLabel;
         }
 
@@ -89,13 +90,14 @@ namespace HumanGhost.Gameplay.Adapters
             UnityEngine.Object context = null, string state = "")
         {
             var text = new LanguageTextSource(_data);
-            string notice = string.Format(text.Read(messageTextId, _languageCode), text.Read(featureTextId, _languageCode));
+            string notice = string.Format(text.Read(messageTextId), text.Read(featureTextId));
             return ReportCore(error, null, context, state, notice);
         }
 
         private bool ReportCore(Exception error, Action dismissed, UnityEngine.Object context, string state, string notice)
         {
             if (error == null) throw new ArgumentNullException(nameof(error));
+            if (!_ownsInput && _data != null && _languageCode != LanguageSettings.Current) Configure(_data);
             WriteError(error, context);
             _errorCount++;
             _notice = notice;

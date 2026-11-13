@@ -157,6 +157,7 @@ namespace HumanGhost.Gameplay.Adapters
 
         private void PreviewSettings(GameSettings value)
         {
+            LanguageSettings.Apply(value.Language);
             WindowModeApplication.Apply(value.WindowMode);
             _audio?.Apply(value);
         }

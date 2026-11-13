@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using HumanGhost.Data.Definitions;
 using HumanGhost.Data.Storage;
@@ -115,8 +115,8 @@ namespace HumanGhost.Gameplay.Adapters
             }
         }
 
-        private void ShowSlots(string status) => _screen.Show(_language.Get(_titleTextId).KO,
-            _flow.GetSlots(true), _language.Get(_emptyTextId).KO, status);
+        private void ShowSlots(string status) => _screen.Show(LanguageTextSource.Select(_language.Get(_titleTextId)),
+            _flow.GetSlots(true), LanguageTextSource.Select(_language.Get(_emptyTextId)), status);
 
         private void Select(int index)
         {
@@ -124,9 +124,9 @@ namespace HumanGhost.Gameplay.Adapters
             SaveSlotEntry entry = _flow.GetSlots(true)[index];
             bool overwrite = entry.Record != null;
             Popup popup = overwrite ? _overwritePopup : _savePopup;
-            string question = _language.Get(popup.BodyTextID).KO;
+            string question = LanguageTextSource.Select(_language.Get(popup.BodyTextID));
             if (overwrite) question += "\n" + SaveSlotScreen.FormatDate(entry.Record);
-            _screen.Confirm(question, _language.Get(popup.Button1TextID).KO, _language.Get(popup.Button2TextID).KO,
+            _screen.Confirm(question, LanguageTextSource.Select(_language.Get(popup.Button1TextID)), LanguageTextSource.Select(_language.Get(popup.Button2TextID)),
                 popup.DefaultButton == 1, false, accepted => { if (accepted) Save(entry.Slot, overwrite); });
         }
 
@@ -141,7 +141,7 @@ namespace HumanGhost.Gameplay.Adapters
             {
                 bool saved = await flow.SaveManualAsync(slot, overwriteConfirmed);
                 if (!IsCurrent(generation)) return;
-                ShowSlots(saved ? _language.Get(_successTextId).KO : "지금은 저장할 수 없습니다.");
+                ShowSlots(saved ? LanguageTextSource.Select(_language.Get(_successTextId)) : "지금은 저장할 수 없습니다.");
             }
             catch (Exception error)
             {

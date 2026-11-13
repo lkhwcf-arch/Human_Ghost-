@@ -98,7 +98,7 @@ internal static class GameLayerChecks
         pauseSettings.Select(SettingsRow.WindowMode);
         check(pauseSettings.Row == SettingsRow.Master, "일시정지에서 화면 모드 행 선택 차단");
         pauseSettings.Move(-1);
-        check(pauseSettings.Row == SettingsRow.KeyboardLayout, "일시정지 순환에 화면 모드 행 제외");
+        check(pauseSettings.Row == SettingsRow.Language, "일시정지 순환에 화면 모드 행 제외");
         var titleNavigation = new SettingsMenu(defaults, true);
         titleNavigation.Move(-1);
         check(titleNavigation.Row == SettingsRow.WindowMode, "타이틀 순환에 화면 모드 행 포함");
@@ -181,11 +181,25 @@ internal static class GameLayerChecks
         check(navigation.Row == SettingsRow.Music, "마스터 다음 배경음 선택");
         navigation.Move(-1);
         navigation.Move(-1);
-        check(navigation.Row == SettingsRow.KeyboardLayout, "설정 첫 행에서 위로 이동하면 마지막 조작 방식 행 선택");
+        check(navigation.Row == SettingsRow.Language, "설정 첫 행에서 위로 이동하면 언어 행 선택");
+        navigation.Move(-1);
+        check(navigation.Row == SettingsRow.KeyboardLayout, "언어 위에는 키보드 조작 행");
         navigation.Move(-1);
         check(navigation.Row == SettingsRow.CameraShake, "조작 방식 위에는 카메라 흔들림 행");
-        navigation.Move(2);
+        navigation.Move(3);
         check(navigation.Row == SettingsRow.Master, "설정 마지막 행 뒤 마스터로 순환");
+        var languageMenu = new SettingsMenu(defaults);
+        languageMenu.Select(SettingsRow.Language); languageMenu.Adjust(1);
+        check(languageMenu.Current.Language == LanguageCode.English && defaults.Language == LanguageCode.Korean, "언어 변경은 원본과 분리된 미리보기");
+        check(!languageMenu.RequestClose() && languageMenu.Answer(false).Language == LanguageCode.Korean, "언어 선택 취소는 원래 값 복구");
+        var languageCopy = languageMenu.Current.Clone();
+        check(languageCopy.Language == LanguageCode.English && !languageCopy.SameAs(defaults), "언어 복사·변경 비교에 포함");
+        var confirmedLanguage = new SettingsMenu(defaults);
+        confirmedLanguage.Select(SettingsRow.Language); confirmedLanguage.Adjust(-1); confirmedLanguage.RequestClose();
+        check(confirmedLanguage.Answer(true).Language == LanguageCode.English, "언어 선택 확인 결과 유지");
+        bool invalidLanguage = false;
+        try { languageCopy.SetLanguage((LanguageCode)99); } catch (ArgumentOutOfRangeException) { invalidLanguage = true; }
+        check(invalidLanguage, "미지원 언어 선택 거부");
         var pause = new PauseMenu(false);
         check(pause.Selected == PauseItem.Resume && pause.Submit() == PauseRequest.Close, "계속하기로 닫기");
         check(pause.Back() == PauseRequest.Close, "첫 화면 뒤로는 닫기");

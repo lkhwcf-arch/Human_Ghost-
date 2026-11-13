@@ -3,6 +3,7 @@ using HumanGhost.Data.Definitions;
 using HumanGhost.Data.Storage;
 using UnityEngine;
 using UnityEngine.UI;
+using HumanGhost.Gameplay.Adapters;
 
 namespace HumanGhost.Gameplay.Presentation
 {
@@ -11,8 +12,7 @@ namespace HumanGhost.Gameplay.Presentation
     {
         private const int _musicText = 30040, _effectsText = 30041, _shakeText = 30042, _onText = 30047, _offText = 30048, _confirmPopup = 15006;
         [SerializeField] private Text _master = null, _masterLeft = null, _masterRight = null;
-        [SerializeField, InspectorName("마스터 임시 문구")] private string _masterTitle = "마스터 음량";
-        [SerializeField, InspectorName("마스터 문구 ID (0=임시 문구)")] private int _masterTextId = 0;
+        [SerializeField, InspectorName("마스터 문구 ID (0=30234)")] private int _masterTextId = 0;
         [SerializeField] private Text _music = null;
         [SerializeField] private Text _effects = null;
         [SerializeField] private Text _shake = null;
@@ -20,12 +20,13 @@ namespace HumanGhost.Gameplay.Presentation
         [SerializeField] private Text _close = null;
         [SerializeField] private GameObject _confirm = null;
         [SerializeField] private Text _confirmBody = null, _confirmYes = null, _confirmNo = null;
-        [SerializeField] private Text _layout = null, _windowMode = null;
+        [SerializeField] private Text _layout = null, _windowMode = null, _languageChoice = null;
         [SerializeField] private bool _paperStyle = false;
         [SerializeField] private Slider[] _volumeSliders = Array.Empty<Slider>();
         [SerializeField] private GameObject[] _rowHighlights = Array.Empty<GameObject>();
         private SettingsMenu _menu;
         private IReadOnlyDataTable<Language> _language;
+        private Popup _confirmationData;
         private Action<GameSettings> _preview;
         private Action<GameSettings> _closed;
         private bool _connected;
@@ -48,10 +49,7 @@ namespace HumanGhost.Gameplay.Presentation
             try
             {
                 _language = data.GetTable<Language>();
-                Popup popup = data.GetTable<Popup>().Get(_confirmPopup);
-                _confirmBody.text = _language.Get(popup.BodyTextID).KO;
-                _confirmYes.text = _language.Get(popup.Button1TextID).KO;
-                _confirmNo.text = _language.Get(popup.Button2TextID).KO;
+                _confirmationData = data.GetTable<Popup>().Get(_confirmPopup);
                 _preview = preview; _closed = closed;
                 _openedFrame = Time.frameCount;
                 _menu = new SettingsMenu(settings, allowWindowMode);
@@ -84,8 +82,11 @@ namespace HumanGhost.Gameplay.Presentation
             // 기존 프리팹은 행을 복제하고 새 시안은 미리 배치한 행을 사용합니다.
             if (_layout == null) _layout = CreateRow("KeyboardLayout", -64f);
             if (_windowMode == null) _windowMode = CreateRow("WindowMode", -128f);
+            if (_languageChoice == null) _languageChoice = CreateRow("Language", -192f);
             if (_connected) return;
             _connected = true;
+            MenuText.Connect(_languageChoice.gameObject, () => Select(SettingsRow.Language),
+                () => { Select(SettingsRow.Language); Adjust(1); });
             MenuText.Connect(_windowMode.gameObject, () => Select(SettingsRow.WindowMode),
                 () => { Select(SettingsRow.WindowMode); Adjust(1); });
             MenuText.Connect(_layout.gameObject, () => Select(SettingsRow.KeyboardLayout),
@@ -145,7 +146,7 @@ namespace HumanGhost.Gameplay.Presentation
         {
             if (!CanInteract || _menu == null) return;
             if (_menu.IsConfirming) Answer(_menu.ConfirmYes);
-            else if (_menu.Row == SettingsRow.CameraShake || _menu.Row == SettingsRow.KeyboardLayout || _menu.Row == SettingsRow.WindowMode) Adjust(1);
+            else if (_menu.Row == SettingsRow.CameraShake || _menu.Row == SettingsRow.KeyboardLayout || _menu.Row == SettingsRow.WindowMode || _menu.Row == SettingsRow.Language) Adjust(1);
         }
 
         public void Back()
@@ -187,17 +188,23 @@ namespace HumanGhost.Gameplay.Presentation
         private void Render()
         {
             GameSettings value = _menu.Current;
+            string Text(int id) => LanguageTextSource.Select(_language.Get(id), value.Language);
+            _confirmBody.text = Text(_confirmationData.BodyTextID);
+            _confirmYes.text = Text(_confirmationData.Button1TextID);
+            _confirmNo.text = Text(_confirmationData.Button2TextID);
+            _languageChoice.text = Text(30043) + "  ◀ " + (value.Language == LanguageCode.Korean ? "KO" : "EN") + " ▶";
+            SetSelected(_languageChoice, _menu.Row == SettingsRow.Language);
             if (_windowMode != null && _windowMode.gameObject.activeSelf)
             {
-                _windowMode.text = "화면 모드  ◀ " + (value.WindowMode == WindowMode.Windowed ? "창모드" : "전체 화면") + " ▶";
+                _windowMode.text = Text(30235) + "  ◀ " + Text(value.WindowMode == WindowMode.Windowed ? 30236 : 30237) + " ▶";
                 SetSelected(_windowMode, _menu.Row == SettingsRow.WindowMode);
             }
-            _layout.text = "키보드 조작  " + (value.KeyboardLayout == KeyboardLayout.Arrows ? "A (방향키 · C/X/Space/Z/Q)" : "B (WASD · K/J/L/U/I)");
+            _layout.text = Text(30238) + "  " + Text(value.KeyboardLayout == KeyboardLayout.Arrows ? 30240 : 30241);
             SetSelected(_layout, _menu.Row == SettingsRow.KeyboardLayout);
-            RenderVolume(_master, _masterTextId == 0 ? _masterTitle : _language.Get(_masterTextId).KO, value.Master, SettingsRow.Master);
-            RenderVolume(_music, _language.Get(_musicText).KO, value.Music, SettingsRow.Music);
-            RenderVolume(_effects, _language.Get(_effectsText).KO, value.Effects, SettingsRow.Effects);
-            _shake.text = _language.Get(_shakeText).KO + "  " + _language.Get(value.CameraShake ? _onText : _offText).KO;
+            RenderVolume(_master, Text(_masterTextId == 0 ? 30234 : _masterTextId), value.Master, SettingsRow.Master);
+            RenderVolume(_music, Text(_musicText), value.Music, SettingsRow.Music);
+            RenderVolume(_effects, Text(_effectsText), value.Effects, SettingsRow.Effects);
+            _shake.text = Text(_shakeText) + "  " + Text(value.CameraShake ? _onText : _offText);
             SetSelected(_shake, _menu.Row == SettingsRow.CameraShake);
             for (int i = 0; i < _rowHighlights.Length; i++)
                 if (_rowHighlights[i] != null) _rowHighlights[i].SetActive(!_menu.IsConfirming && (int)_menu.Row == i);
