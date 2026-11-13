@@ -34,6 +34,9 @@ internal static class Program
             _checks += CombatChecks.Run(definition);
             _checks += MonsterChecks.Run(definition);
             _checks += BossChecks.Run(definition);
+            BossPhaseTwoChecks.Run(definition, Check);
+            BossHitReactionChecks.Run(definition, Check);
+            ExecutionRewardChecks.Run(Check);
             _checks += HealthDisplayChecks.Run(definition);
             _checks += NotificationChecks.Run(definition);
             _checks += ContentAccessChecks.Run();
@@ -47,6 +50,8 @@ internal static class Program
             TelemetryChecks.Run(args[0], Check);
             await TelemetryTransportChecks.RunAsync(Check);
             CutsceneChecks.Run(Check);
+            DemoEndingChecks.Run(Check);
+            DialogueChecks.Run(Check);
             SaveChecks.Run(Check);
             SaveGameFlowChecks.Run(Check);
             Console.WriteLine($"코어 검사 {_checks}개 통과. 플레이어 {definition.ID}, 공통 스탯 {definition.UnitID}");

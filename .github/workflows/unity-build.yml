@@ -113,27 +113,33 @@ jobs:
           if not Path("build/StandaloneWindows64/HumanGhost.exe").is_file():
               raise SystemExit("빌드 결과에 HumanGhost.exe가 없습니다.")
           print("게임 실행파일 생성을 확인했습니다.")
-      - name: 타이틀 영상 포함 확인
+      - name: 타이틀·컷씬 영상 포함 확인
         shell: python
         run: |
           from pathlib import Path
           import hashlib
           import re
+          import csv
           prefab = Path("Assets/2.Model/Prefabs/UI/TitleScreen.prefab").read_text(encoding="utf-8")
           match = re.search(r"^  _videoFile: (.+)$", prefab, re.MULTILINE)
           if not match:
               raise SystemExit("타이틀 영상의 파일 상대 경로가 없습니다.")
-          relative = match.group(1).strip()
           source_root = Path("Assets/StreamingAssets").resolve()
-          source = (source_root / relative).resolve()
-          if not source.is_relative_to(source_root) or not source.is_file():
-              raise SystemExit("타이틀 영상 원본이 StreamingAssets 내부에 없습니다.")
-          output = Path("build/StandaloneWindows64/HumanGhost_Data/StreamingAssets") / relative
-          if not output.is_file() or source.stat().st_size == 0:
-              raise SystemExit("빌드 결과에 타이틀 영상이 없거나 원본이 비어 있습니다.")
-          if hashlib.sha256(source.read_bytes()).digest() != hashlib.sha256(output.read_bytes()).digest():
-              raise SystemExit("빌드에 포함된 타이틀 영상이 원본과 다릅니다.")
-          print("빌드 결과의 타이틀 영상과 원본 일치를 확인했습니다.")
+          def VerifyVideo(relative):
+              source = (source_root / relative).resolve()
+              if not source.is_relative_to(source_root) or not source.is_file():
+                  raise SystemExit("영상 원본이 StreamingAssets 내부에 없습니다: " + relative)
+              output = Path("build/StandaloneWindows64/HumanGhost_Data/StreamingAssets") / relative
+              if not output.is_file() or source.stat().st_size == 0:
+                  raise SystemExit("빌드 영상이 없거나 원본이 비어 있습니다: " + relative)
+              if hashlib.sha256(source.read_bytes()).digest() != hashlib.sha256(output.read_bytes()).digest():
+                  raise SystemExit("빌드 영상이 원본과 다릅니다: " + relative)
+          VerifyVideo(match.group(1).strip())
+          with open("Assets/Data/Csv/CutsceneStep.csv", encoding="utf-8-sig", newline="") as source:
+              for row in csv.DictReader(source):
+                  if row["MediaType"] == "Video" and row["ResourceAddress"].startswith("streaming:"):
+                      VerifyVideo(row["ResourceAddress"][len("streaming:"):])
+          print("타이틀과 테이블의 컷씬 영상이 빌드에 포함됐는지 확인했습니다.")
       - name: 결과물에 빌드 출처 기록
         shell: python
         env:

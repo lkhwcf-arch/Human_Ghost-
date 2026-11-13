@@ -11,6 +11,8 @@ namespace HumanGhost.Gameplay.Adapters
         [SerializeField] private int _playerId = 2001;
         [SerializeField] private PlayerCombatSettings _combat = null;
         [SerializeField] private PlayerLocomotionInput _input = null;
+        [SerializeField] private AnimationClip _knockdownAnimation = null;
+        public AnimationClip KnockdownAnimation => _knockdownAnimation;
         private MillisecondClock _clock;
         private System.Random _hitRandom;
         public PlayerActor Actor { get; private set; }

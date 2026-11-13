@@ -13,6 +13,8 @@ namespace HumanGhost.Gameplay.Adapters
         // 선택: 연결하지 않으면 체세·노출·해체만 동작하고 패턴 실행 요청은 누락 오류로 거부합니다.
         [SerializeField] private BossPatternSettings _patterns = null;
         private MillisecondClock _clock;
+        public int TransitionMilliseconds { get; private set; }
+        public float LandingX { get; set; }
         private System.Random _waitRandom;
         private System.Random _hitRandom;
         public BossPoise Actor { get; private set; }
@@ -29,12 +31,14 @@ namespace HumanGhost.Gameplay.Adapters
             BossState phase = null;
             foreach (BossState entry in definition.States) if (entry.Phase == _phase) phase = entry;
             if (phase == null) throw new InvalidOperationException("선택한 보스 단계가 없습니다.");
-            var actor = new BossPoise(definition, phase);
+            var patterns = _patterns != null ? _patterns.CreatePatterns() : null;
+            bool transition = patterns != null && Array.Exists(patterns, p => p.Kind != BossPatternKind.Legacy);
+            var actor = new BossPoise(definition, phase, transition);
             if (_patterns != null)
             {
                 _waitRandom = new System.Random(Environment.TickCount ^ GetInstanceID());
                 _hitRandom = new System.Random(Environment.TickCount ^ ~GetInstanceID());
-                Combat = new BossCombat(actor, _patterns.CreatePatterns(), _waitRandom.Next);
+                Combat = new BossCombat(actor, patterns, _waitRandom.Next);
                 HitRandom = _hitRandom.Next;
             }
             Actor = actor;
@@ -55,6 +59,7 @@ namespace HumanGhost.Gameplay.Adapters
         {
             if (Actor == null) return;
             int milliseconds = _clock.Advance(Time.deltaTime);
+            TransitionMilliseconds = Actor.IsTransitioning ? Math.Min(1000, TransitionMilliseconds + milliseconds) : 0;
             Actor.Tick(milliseconds);
             Combat?.Tick(milliseconds);
         }

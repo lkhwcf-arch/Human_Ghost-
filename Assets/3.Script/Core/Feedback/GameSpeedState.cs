@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace HumanGhost.Gameplay
 {
@@ -7,6 +8,7 @@ namespace HumanGhost.Gameplay
     {
         private bool _paused;
         private bool _modalPaused;
+        private readonly HashSet<object> _pauseOwners = new HashSet<object>();
         private int _hitStop;
         private int _slow;
         private float _slowRate = 1f;
@@ -14,7 +16,12 @@ namespace HumanGhost.Gameplay
         private float _queuedRate = 1f;
 
         public float Scale => IsPaused || _hitStop > 0 ? 0f : _slow > 0 ? _slowRate : 1f;
-        public bool IsPaused => _paused || _modalPaused;
+        public bool IsPaused => _paused || _modalPaused || _pauseOwners.Count > 0;
+        public void SetPauseOwner(object owner, bool paused)
+        {
+            if (owner == null) throw new ArgumentNullException(nameof(owner));
+            if (paused) _pauseOwners.Add(owner); else _pauseOwners.Remove(owner);
+        }
 
         public void SetModalPaused(bool paused) => _modalPaused = paused;
 

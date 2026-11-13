@@ -13,43 +13,117 @@ MonoBehaviour:
   m_Name: BossPatterns
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Adapters.BossPatternSettings
   _patterns:
-  - _key: 10004
+  - _hitReactions: 1
+    _kind: 0
+    _maxPhase: 0
+    _key: 10004
     _hits:
     - _windup: 700
       _active: 120
       _recovery: 600
       _extraDamage: 6
+      _range: 0
+      _height: 0
+      _damageGroup: 0
+      _radial: 0
+      _knockbackDistance: 100
+      _knockbackTime: 200
+      _downTime: 0
+      _slowTime: 0
+      _slowRate: 10000
+      _parryable: 1
     _minPhase: 0
     _chargeSpeed: 0
     _wallPoiseDamage: 0
-  - _key: 10005
+    _range: 0
+    _bindTime: 0
+    _bindPresses: 0
+    _pullSpeed: 0
+  - _hitReactions: 1
+    _kind: 0
+    _maxPhase: 0
+    _key: 10005
     _hits:
     - _windup: 500
       _active: 100
       _recovery: 0
       _extraDamage: 0
+      _range: 0
+      _height: 0
+      _damageGroup: 0
+      _radial: 0
+      _knockbackDistance: 100
+      _knockbackTime: 200
+      _downTime: 0
+      _slowTime: 0
+      _slowRate: 10000
+      _parryable: 1
     - _windup: 250
       _active: 100
       _recovery: 600
       _extraDamage: 0
+      _range: 0
+      _height: 0
+      _damageGroup: 0
+      _radial: 0
+      _knockbackDistance: 200
+      _knockbackTime: 250
+      _downTime: 0
+      _slowTime: 0
+      _slowRate: 10000
+      _parryable: 1
     _minPhase: 0
     _chargeSpeed: 0
     _wallPoiseDamage: 0
-  - _key: 10009
+    _range: 0
+    _bindTime: 0
+    _bindPresses: 0
+    _pullSpeed: 0
+  - _hitReactions: 1
+    _kind: 4
+    _maxPhase: 1
+    _key: 10004
     _hits:
     - _windup: 1000
       _active: 2500
       _recovery: 800
       _extraDamage: 14
+      _range: 200
+      _height: 200
+      _damageGroup: 0
+      _radial: 1
+      _knockbackDistance: 200
+      _knockbackTime: 250
+      _downTime: 600
+      _slowTime: 0
+      _slowRate: 10000
+      _parryable: 0
     _minPhase: 1
     _chargeSpeed: 1200
     _wallPoiseDamage: 30
-  - _key: 10006
+    _range: 0
+    _bindTime: 0
+    _bindPresses: 0
+    _pullSpeed: 0
+  - _hitReactions: 1
+    _kind: 0
+    _maxPhase: 0
+    _key: 10006
     _hits:
     - _windup: 900
       _active: 150
       _recovery: 900
       _extraDamage: -6
+      _range: 0
+      _height: 0
+      _damageGroup: 0
+      _radial: 0
+      _knockbackDistance: 0
+      _knockbackTime: 0
+      _downTime: 0
+      _slowTime: 0
+      _slowRate: 10000
+      _parryable: 0
     _minPhase: 0
     _chargeSpeed: 0
     _wallPoiseDamage: 0
@@ -57,3 +131,231 @@ MonoBehaviour:
     _bindTime: 900
     _bindPresses: 3
     _pullSpeed: 900
+  - _hitReactions: 1
+    _kind: 1
+    _maxPhase: 1
+    _key: 10004
+    _hits:
+    - _windup: 700
+      _active: 120
+      _recovery: 600
+      _extraDamage: 6
+      _range: 300
+      _height: 600
+      _damageGroup: 0
+      _radial: 0
+      _knockbackDistance: 100
+      _knockbackTime: 200
+      _downTime: 0
+      _slowTime: 0
+      _slowRate: 10000
+      _parryable: 1
+    _minPhase: 1
+    _chargeSpeed: 0
+    _wallPoiseDamage: 0
+    _range: 0
+    _bindTime: 0
+    _bindPresses: 0
+    _pullSpeed: 0
+  - _hitReactions: 1
+    _kind: 2
+    _maxPhase: 1
+    _key: 10004
+    _hits:
+    - _windup: 700
+      _active: 120
+      _recovery: 200
+      _extraDamage: 6
+      _range: 300
+      _height: 600
+      _damageGroup: 0
+      _radial: 0
+      _knockbackDistance: 100
+      _knockbackTime: 200
+      _downTime: 0
+      _slowTime: 0
+      _slowRate: 10000
+      _parryable: 1
+    - _windup: 500
+      _active: 120
+      _recovery: 200
+      _extraDamage: 6
+      _range: 300
+      _height: 600
+      _damageGroup: 0
+      _radial: 0
+      _knockbackDistance: 100
+      _knockbackTime: 200
+      _downTime: 0
+      _slowTime: 0
+      _slowRate: 10000
+      _parryable: 1
+    - _windup: 500
+      _active: 120
+      _recovery: 1200
+      _extraDamage: 6
+      _range: 300
+      _height: 600
+      _damageGroup: 0
+      _radial: 0
+      _knockbackDistance: 200
+      _knockbackTime: 250
+      _downTime: 0
+      _slowTime: 0
+      _slowRate: 10000
+      _parryable: 1
+    _minPhase: 1
+    _chargeSpeed: 0
+    _wallPoiseDamage: 0
+    _range: 0
+    _bindTime: 0
+    _bindPresses: 0
+    _pullSpeed: 0
+  - _hitReactions: 1
+    _kind: 3
+    _maxPhase: 1
+    _key: 10005
+    _hits:
+    - _windup: 500
+      _active: 100
+      _recovery: 0
+      _extraDamage: 0
+      _range: 300
+      _height: 200
+      _damageGroup: 0
+      _radial: 0
+      _knockbackDistance: 100
+      _knockbackTime: 200
+      _downTime: 0
+      _slowTime: 0
+      _slowRate: 10000
+      _parryable: 1
+    - _windup: 250
+      _active: 100
+      _recovery: 600
+      _extraDamage: 0
+      _range: 400
+      _height: 200
+      _damageGroup: 0
+      _radial: 0
+      _knockbackDistance: 200
+      _knockbackTime: 250
+      _downTime: 0
+      _slowTime: 0
+      _slowRate: 10000
+      _parryable: 1
+    _minPhase: 1
+    _chargeSpeed: 0
+    _wallPoiseDamage: 0
+    _range: 0
+    _bindTime: 0
+    _bindPresses: 0
+    _pullSpeed: 0
+  - _hitReactions: 1
+    _kind: 5
+    _maxPhase: 1
+    _key: 10004
+    _hits:
+    - _windup: 900
+      _active: 150
+      _recovery: 0
+      _extraDamage: 14
+      _range: 200
+      _height: 600
+      _damageGroup: 1
+      _radial: 1
+      _knockbackDistance: 300
+      _knockbackTime: 300
+      _downTime: 600
+      _slowTime: 0
+      _slowRate: 10000
+      _parryable: 0
+    - _windup: 0
+      _active: 300
+      _recovery: 1000
+      _extraDamage: -6
+      _range: 600
+      _height: 100
+      _damageGroup: 1
+      _radial: 1
+      _knockbackDistance: 0
+      _knockbackTime: 0
+      _downTime: 0
+      _slowTime: 1000
+      _slowRate: 5000
+      _parryable: 0
+    _minPhase: 1
+    _chargeSpeed: 0
+    _wallPoiseDamage: 0
+    _range: 0
+    _bindTime: 0
+    _bindPresses: 0
+    _pullSpeed: 0
+  - _hitReactions: 1
+    _kind: 6
+    _maxPhase: 1
+    _key: 10004
+    _hits:
+    - _windup: 1700
+      _active: 150
+      _recovery: 0
+      _extraDamage: 20
+      _range: 200
+      _height: 300
+      _damageGroup: 1
+      _radial: 1
+      _knockbackDistance: 300
+      _knockbackTime: 300
+      _downTime: 600
+      _slowTime: 0
+      _slowRate: 10000
+      _parryable: 0
+    - _windup: 0
+      _active: 200
+      _recovery: 50
+      _extraDamage: -6
+      _range: 400
+      _height: 100
+      _damageGroup: 1
+      _radial: 1
+      _knockbackDistance: 0
+      _knockbackTime: 0
+      _downTime: 0
+      _slowTime: 1000
+      _slowRate: 5000
+      _parryable: 0
+    - _windup: 900
+      _active: 150
+      _recovery: 0
+      _extraDamage: 20
+      _range: 200
+      _height: 300
+      _damageGroup: 2
+      _radial: 1
+      _knockbackDistance: 300
+      _knockbackTime: 300
+      _downTime: 600
+      _slowTime: 0
+      _slowRate: 10000
+      _parryable: 0
+    - _windup: 0
+      _active: 200
+      _recovery: 1500
+      _extraDamage: -6
+      _range: 400
+      _height: 100
+      _damageGroup: 2
+      _radial: 1
+      _knockbackDistance: 0
+      _knockbackTime: 0
+      _downTime: 0
+      _slowTime: 1000
+      _slowRate: 5000
+      _parryable: 0
+    _minPhase: 1
+    _chargeSpeed: 0
+    _wallPoiseDamage: 0
+    _range: 0
+    _bindTime: 0
+    _bindPresses: 0
+    _pullSpeed: 0

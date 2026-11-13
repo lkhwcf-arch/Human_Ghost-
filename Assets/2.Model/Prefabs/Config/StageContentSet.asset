@@ -70,6 +70,7 @@ MonoBehaviour:
   - {fileID: 5380454234168463032, guid: 9688c75deda4461ca7184654bf305e44, type: 3}
   - {fileID: 1042942950421756673, guid: a4b29d0d07684654ad1047a35a390b75, type: 3}
   - {fileID: 9109195467246044568, guid: e9dacac1e69338a4eaef5120a7887ac0, type: 3}
+  - {fileID: 3620066845938308408, guid: 7c1e5a9d3b2f4e68a0d4c6b8e1f35a72, type: 3}
   _monsters:
   - Code: 3001
     Prefab: {fileID: 2212268001790328552, guid: 776d91e27d429634096015e81eee0596, type: 3}

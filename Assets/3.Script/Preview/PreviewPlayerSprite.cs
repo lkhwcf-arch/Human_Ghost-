@@ -111,6 +111,7 @@ namespace HumanGhost.Gameplay.Preview
 
         protected override AnimationClip SelectAnimation(StateKey state)
         {
+            if (state == StateKey.Stun && _player.KnockdownAnimation != null) return _player.KnockdownAnimation;
             if (state == StateKey.Execute && _executionAnimation != null) return _executionAnimation;
             if (_player.Actor.IsParrying) return null;
             if (state == StateKey.Hang && _player.ClimbProgress >= 0f && _climb != null) return _climb;
@@ -151,6 +152,7 @@ namespace HumanGhost.Gameplay.Preview
             if ((actor.IsAttacking || state == StateKey.Skill1) && actor.CurrentAttack != null) return actor.CurrentAttack.TotalTime / 1000f;
             switch (state)
             {
+                case StateKey.Stun: return actor.DownDuration / 1000f;
                 case StateKey.Hit: return actor.Definition.HitStunTime / 1000f;
                 case StateKey.CritHit: return actor.Definition.CritHitStunTime / 1000f;
                 case StateKey.Roll: return actor.Definition.RollTime / 1000f;

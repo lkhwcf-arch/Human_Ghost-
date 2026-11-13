@@ -28,8 +28,12 @@ namespace HumanGhost.Gameplay.Presentation
         private MillisecondClock _clock;
         private string _shownLine;
         private int _shownCharacters = -1;
+        private bool _unscaledPlayback;
+        private int _shownSpeakerId = -1;
+        private bool _playbackBlocked;
 
         public bool IsOpen => _playback != null;
+        public bool LastPlaybackCompleted { get; private set; }
         public int CurrentTextId => _playback?.CurrentTextId ?? 0;
         public event Action<bool> OpenChanged;
         public event Action SkipAvailabilityChanged;
@@ -38,7 +42,7 @@ namespace HumanGhost.Gameplay.Presentation
             if (_skipHint == null) throw new InvalidOperationException("대사 화면의 공용 스킵 안내를 연결해 주세요.");
             _skipHint.Connect(this, SkipScope.Dialogue, text, language);
         }
-        public void BlockSkipHint(bool blocked) { if (_skipHint != null) _skipHint.SetBlocked(blocked); }
+        public void BlockSkipHint(bool blocked) { _playbackBlocked = blocked; if (_skipHint != null) _skipHint.SetBlocked(blocked); }
         public void DisconnectSkipHint() { if (_skipHint != null) _skipHint.Disconnect(); }
         private void OnEnable() => SkipAvailabilityChanged?.Invoke();
         private void OnDisable() => SkipAvailabilityChanged?.Invoke();
@@ -64,8 +68,21 @@ namespace HumanGhost.Gameplay.Presentation
             OpenPlayback(speaker, new TextboxPlayback(textIds, id => text.Read(id, language), _millisecondsPerCharacter), closed);
         }
 
+        public void Open(IReadOnlyList<DialogueLine> lines, LanguageTextSource text, LanguageCode language, bool useUnscaledTime, Action closed)
+        {
+            if (IsOpen) return;
+            _textSource = text ?? throw new ArgumentNullException(nameof(text));
+            _textLanguage = language;
+            if (_skipHint != null) _skipHint.Connect(this, SkipScope.Dialogue, text, language);
+            OpenPlayback("", new TextboxPlayback(lines, id => text.Read(id, language), _millisecondsPerCharacter), closed);
+            _unscaledPlayback = useUnscaledTime;
+        }
+        private LanguageTextSource _textSource;
+        private LanguageCode _textLanguage;
         private void OpenPlayback(string speaker, TextboxPlayback playback, Action closed)
         {
+            _unscaledPlayback = false; _shownSpeakerId = -1;
+            LastPlaybackCompleted = false;
             _playback = playback;
             _closed = closed; _clock = default;
             _shownLine = null; _shownCharacters = -1;
@@ -94,7 +111,9 @@ namespace HumanGhost.Gameplay.Presentation
         public void Close()
         {
             if (_playback == null) return;
+            LastPlaybackCompleted = _playback.IsFinished;
             _playback = null;
+            _textSource = null;
             SkipAvailabilityChanged?.Invoke();
             _box.SetActive(false);
             OpenChanged?.Invoke(false);
@@ -124,13 +143,17 @@ namespace HumanGhost.Gameplay.Presentation
             if (_objective.activeSelf && (_objectiveRemaining -= Time.unscaledDeltaTime) <= 0f) _objective.SetActive(false);
             if (_notice.activeSelf && (_noticeRemaining -= Time.unscaledDeltaTime) <= 0f) _notice.SetActive(false);
             if (_playback == null) return;
+            if (_unscaledPlayback && _playbackBlocked) return;
             // 글자 출력은 일시정지 중 멈춥니다(O01_2 #6). 히트스톱과 같은 시간을 씁니다.
-            _playback.Tick(_clock.Advance(Time.deltaTime));
+            _playback.Tick(_clock.Advance(_unscaledPlayback ? Time.unscaledDeltaTime : Time.deltaTime));
             Refresh();
         }
 
         private void Refresh()
         {
+            int speaker = _playback.CurrentSpeakerTextId;
+            if (speaker != 0 && speaker != _shownSpeakerId)
+            { _speaker.text = _textSource.Read(speaker, _textLanguage); _shownSpeakerId = speaker; }
             string line = _playback.CurrentLine;
             if (line == _shownLine && _shownCharacters == _playback.VisibleCharacters) return;
             _shownLine = line; _shownCharacters = _playback.VisibleCharacters;

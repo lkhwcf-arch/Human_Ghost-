@@ -6,7 +6,7 @@ using HumanGhost.Gameplay.States;
 namespace HumanGhost.Gameplay
 {
     // 보스 기본 패턴의 실행·판정 창·패턴 간 대기만 소유합니다. HP·체세·노출·해체와 상태 머신은 BossPoise 소유이며 같은 States를 씁니다.
-    // 패턴 선택·거리/접촉 관측은 외부 책임입니다. HP 비율 페이즈 전환은 BossPoise가 하며, 진행 중 패턴은 끊지 않고 다음 대기부터 새 페이즈 값을 씁니다. BossPoise.Tick을 호출하지 않습니다(시간 소유자가 각각 한 번 공급).
+    // 선택·접촉 관측은 외부 책임입니다. BossPoise가 전환/노출/처형을 시작하면 즉시 패턴을 정리합니다. 시간은 각각 한 번 공급합니다.
     public sealed class BossCombat
     {
         private readonly BossPattern[] _patterns;
@@ -17,9 +17,28 @@ namespace HumanGhost.Gameplay
         private int _elapsed;
         private int _waitRemaining;
         private PlayerActor _chained;
+        private readonly HashSet<int> _groupTargets = new HashSet<int>();
+        private int _targetDirection = 1;
+        private bool _airborne;
+        public event Action<bool> AirborneChanged;
+        private void UpdateAirborne()
+        {
+            bool value = IsAirborne;
+            Boss.SetPatternInvulnerable(value);
+            if (_airborne == value) return;
+            _airborne = value; AirborneChanged?.Invoke(value);
+        }
+        public int PatternElapsed
+        {
+            get { int value = _elapsed; if (_pattern != null) for (int i = 0; i < _hit; i++) value += _pattern.Hits[i].TotalTime; return value; }
+        }
+        public bool IsAirborne => _pattern?.Kind == BossPatternKind.DesperationLeap && _hit % 2 == 0 &&
+            _elapsed >= (_hit == 0 ? _pattern.Hits[0].Windup - 900 : 0) && _elapsed < _pattern.Hits[_hit].Windup;
+        public bool IsWindingUp => _pattern != null && _elapsed < _pattern.Hits[_hit].Windup;
 
         public BossPoise Boss { get; }
         public int PatternCount => _patterns.Length;
+        public bool HasPhaseTwoPatterns { get; }
         public BossPattern CurrentPattern => _pattern;
         // 현재 패턴 안 타격 순번(0부터). 패턴이 없으면 -1.
         public int HitIndex => _pattern == null ? -1 : _hit;
@@ -27,6 +46,7 @@ namespace HumanGhost.Gameplay
         public bool IsAttacking => _pattern != null;
         public bool IsAttackActive => _attackWindow.IsActive;
         public bool IsWaiting => _waitRemaining > 0;
+        public BossHitReaction CurrentReaction => _pattern != null && _pattern.Reactions.Count > 0 ? _pattern.Reactions[_hit] : null;
         // 외부 관측이 정한 바라보는 방향(-1/1). 패턴 중에는 고정됩니다.
         public int Facing { get; private set; } = 1;
         public bool IsCharging => _pattern != null && _pattern.IsCharge && _attackWindow.IsActive;
@@ -51,6 +71,7 @@ namespace HumanGhost.Gameplay
             _patterns = new BossPattern[patterns.Count];
             for (int i = 0; i < _patterns.Length; i++) _patterns[i] = patterns[i] ?? throw new ArgumentException("빈 보스 패턴입니다.", nameof(patterns));
             _random = random ?? throw new ArgumentNullException(nameof(random));
+            HasPhaseTwoPatterns = Array.Exists(_patterns, pattern => pattern.Kind != BossPatternKind.Legacy);
             // 사망·노출·해체는 패턴보다 우선. 같은 호출 안에서 창·대기를 정리해 다음 Tick 전 타격도 막습니다.
             Boss.Changed += OnBossChanged;
         }
@@ -58,6 +79,7 @@ namespace HumanGhost.Gameplay
         public void Face(int direction)
         {
             if (direction != -1 && direction != 1) throw new ArgumentOutOfRangeException(nameof(direction));
+            _targetDirection = direction;
             if (_pattern == null) Facing = direction;
         }
 
@@ -65,9 +87,10 @@ namespace HumanGhost.Gameplay
         public bool TryStart(int index)
         {
             if (index < 0 || index >= _patterns.Length) throw new ArgumentOutOfRangeException(nameof(index));
-            if (IsBlocked || _pattern != null || _waitRemaining > 0 || Boss.Phase.Phase < _patterns[index].MinPhase) return false;
+            if (IsBlocked || _pattern != null || _waitRemaining > 0 || (Boss.Phase.Phase < _patterns[index].MinPhase || Boss.Phase.Phase > _patterns[index].MaxPhase)) return false;
+            if (_patterns[index].Kind == BossPatternKind.DesperationLeap && (long)Boss.Health * 4 > Boss.Definition.HP) return false;
             _pattern = _patterns[index]; _hit = 0; _elapsed = 0;
-            _attackWindow.ClearTargets();
+            _attackWindow.ClearTargets(); _groupTargets.Clear();
             if (_pattern.Key == StateKey.Skill1) Boss.States.Call(StateKey.Skill1);
             else Boss.States.Change(new AttackState(_pattern.Key));
             PatternStarted?.Invoke(_pattern);
@@ -90,15 +113,31 @@ namespace HumanGhost.Gameplay
                 if (_pattern != null)
                 {
                     AttackSpec spec = _pattern.Hits[_hit];
+                    // 2페이즈 돌진은 시간 상한 대신 실제 벽에 닿을 때까지 판정을 유지합니다.
+                    if (_pattern.Kind == BossPatternKind.CrawlCharge && _attackWindow.IsActive)
+                    { milliseconds = 0; break; }
                     int end = _elapsed < spec.Windup ? spec.Windup : _elapsed < spec.Windup + spec.Active ? spec.Windup + spec.Active : spec.TotalTime;
+                    if (_pattern.Kind == BossPatternKind.DesperationLeap && _hit == 0 && _elapsed < spec.Windup - 900)
+                        end = Math.Min(end, spec.Windup - 900);
                     int step = Math.Min(milliseconds, end - _elapsed);
                     _elapsed += step; milliseconds -= step;
+                    UpdateAirborne();
                     _attackWindow.SetActive(_elapsed >= spec.Windup && _elapsed < spec.Windup + spec.Active);
                     // 창 콜백(동기 접촉)이 벽 충돌 노출·Release로 패턴을 끝냈으면 끝난 패턴을 진행하지 않습니다.
                     if (_pattern == null) break;
                     if (_elapsed < spec.TotalTime) continue;
                     // 다음 타는 새 판정 창: 같은 대상을 다시 한 번 허용합니다.
-                    if (++_hit < _pattern.Hits.Count) { _elapsed = 0; _attackWindow.ClearTargets(); continue; }
+                    if (++_hit < _pattern.Hits.Count)
+                    {
+                        if (_pattern.Areas.Count == 0 || _pattern.Areas[_hit].DamageGroup == 0 ||
+                            _pattern.Areas[_hit].DamageGroup != _pattern.Areas[_hit - 1].DamageGroup) _groupTargets.Clear();
+                        _elapsed = 0; _attackWindow.ClearTargets();
+                        if (_pattern.Kind == BossPatternKind.TripleSlam) Facing = _targetDirection;
+                        UpdateAirborne();
+                        _attackWindow.SetActive(_pattern.Hits[_hit].Windup == 0);
+                        if (_pattern == null) break;
+                        continue;
+                    }
                     ClearPattern();
                     Boss.States.Change(new IdleState());
                     _waitRemaining = Pick(Boss.Phase.IdleMin, checked(Boss.Phase.IdleMax + 1));
@@ -119,6 +158,7 @@ namespace HumanGhost.Gameplay
             AttackSpec spec = _pattern.Hits[_hit];
             _elapsed = spec.Windup + spec.Active;
             _attackWindow.SetActive(false);
+            if (_pattern.Kind == BossPatternKind.CrawlCharge) Boss.States.Call(StateKey.Stun);
             Boss.ReceiveHit(0, _pattern.WallPoiseDamage);
             return true;
         }
@@ -131,12 +171,13 @@ namespace HumanGhost.Gameplay
             if (attacking && !IsBlocked) Boss.States.Change(new IdleState());
         }
 
-        private bool IsBlocked => Boss.IsDead || Boss.IsExposed || Boss.IsInvulnerable;
+        private bool IsBlocked => Boss.IsDead || Boss.IsExposed || Boss.IsTransitioning || Boss.CurrentState == StateKey.Execute;
 
         private HitOutcome HitPlayer(int targetId, PlayerActor target, Func<int, int, int> random, bool dodged, bool critical, int direction = 0)
         {
             if (target == null) throw new ArgumentNullException(nameof(target));
-            if (!IsBlocked && _pattern != null && !_pattern.IsChain && target.TryParryContact(_attackWindow, targetId, direction))
+            if (_pattern != null && _pattern.Areas.Count > 0 && _pattern.Areas[_hit].DamageGroup > 0 && _groupTargets.Contains(targetId)) return HitOutcome.None;
+            if (!IsBlocked && _pattern != null && !_pattern.IsChain && (CurrentReaction == null || CurrentReaction.Parryable) && target.TryParryContact(_attackWindow, targetId, direction))
             {
                 Boss.ReceiveHit(0, target.ParryPoiseDamage);
                 return HitOutcome.Parried;
@@ -144,6 +185,7 @@ namespace HumanGhost.Gameplay
             HitOutcome outcome = HitRoll.Resolve(_attackWindow, targetId, target.CombatStats.Dodge, Boss.Definition.Crit,
                 IsBlocked || target.IsDead || target.IsInvulnerable, true, random, dodged, critical);
             if (outcome < HitOutcome.Hit) return outcome;
+            _groupTargets.Add(targetId);
             bool isCritical = outcome == HitOutcome.Critical;
             int damage = CombatMath.Damage(Boss.Definition, target.CombatStats, _pattern.Hits[_hit].ExtraDamage, !_pattern.IsChain && isCritical);
             if (_pattern.IsChain)
@@ -152,7 +194,8 @@ namespace HumanGhost.Gameplay
                 _chained = target.IsDead ? null : target;
                 return outcome;
             }
-            return target.ReceiveHit(damage, isCritical) ? outcome : HitOutcome.None;
+            bool received = CurrentReaction == null ? target.ReceiveHit(damage, isCritical) : target.ReceiveBossHit(damage, isCritical, CurrentReaction);
+            return received ? outcome : HitOutcome.None;
         }
 
         private void OnBossChanged()
@@ -171,7 +214,7 @@ namespace HumanGhost.Gameplay
         private void ClearPattern()
         {
             _attackWindow.SetActive(false);
-            _pattern = null; _attackWindow.ClearTargets();
+            _pattern = null; _attackWindow.ClearTargets(); _groupTargets.Clear(); UpdateAirborne();
             if (_chained != null) { _chained.ReleaseChain(); _chained = null; }
         }
     }

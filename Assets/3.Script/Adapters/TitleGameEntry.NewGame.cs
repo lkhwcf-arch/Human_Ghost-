@@ -84,20 +84,7 @@ namespace HumanGhost.Gameplay.Adapters
             if (_cutscenes != null) return;
             if (_cutscenePrefab == null || _host == null || _host.Modals == null)
                 throw new InvalidOperationException("인트로의 공용 컷씬 프리팹과 타이틀 모달 연결을 준비해 주세요.");
-            var root = new GameObject("TitleCutsceneScope", typeof(RectTransform));
-            root.SetActive(false);
-            root.transform.SetParent(transform, false);
-            var rect = (RectTransform)root.transform;
-            rect.anchorMin = Vector2.zero; rect.anchorMax = Vector2.one;
-            rect.offsetMin = Vector2.zero; rect.offsetMax = Vector2.zero;
-            try
-            {
-                var cutscenes = Instantiate(_cutscenePrefab, root.transform);
-                cutscenes.ConnectModals(_host.Modals);
-                root.SetActive(true);
-                _cutscenes = cutscenes;
-            }
-            catch { root.SetActive(false); Destroy(root); throw; }
+            _cutscenes = CutsceneHost.Create(_cutscenePrefab, transform, _host.Modals, out _);
         }
 
         private void LateUpdate()

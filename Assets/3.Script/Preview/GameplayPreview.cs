@@ -202,6 +202,7 @@ namespace HumanGhost.Gameplay.Preview
                 _playerSprite = _player.GetComponentInChildren<PreviewPlayerSprite>(true);
                 _playerSprite?.SetNonCombatArea(_stageId == StageExitRules.LedgerStage);
                 ConnectCutsceneData();
+                ConnectBossPhaseData();
                 ConnectStageObjects(catalog);
                 ConnectGalimgilArrivals();
                 if (_savePoint != null) _savePoint.GetComponent<ShrineInteract>().SetActive(_progress.HasActiveShrine(_stageId));
@@ -259,6 +260,7 @@ namespace HumanGhost.Gameplay.Preview
             _playerAudio = null;
             foreach (MonsterRuntime monster in _monsters)
                 if (monster != null) monster.GetComponent<MonsterAnimationAudio>()?.Disconnect();
+            DisconnectBossPhase();
             DisconnectCutscenes();
             _deathRestart?.Dispose(); _deathRestart = null;
             _presentation.Reset();
@@ -393,7 +395,7 @@ namespace HumanGhost.Gameplay.Preview
             _loadingLocked = LoadingScreen.IsActive;
             _motion?.DiscardBufferedInput();
             _input.DiscardBufferedInput();
-            _input.SetLocked(locked || _loadingLocked || _saveLocked || _leaving || _actor.IsDead || (_textbox != null && _textbox.IsOpen) || (_pause != null && _pause.IsOpen));
+            _input.SetLocked(locked || _bossPhaseRunning || _loadingLocked || _saveLocked || _leaving || _actor.IsDead || (_textbox != null && _textbox.IsOpen) || (_pause != null && _pause.IsOpen));
             _fields?.SetReady(!_loadingLocked && !_saveLocked && !_leaving);
             RefreshDialogueSkipHint();
         }
@@ -718,6 +720,7 @@ namespace HumanGhost.Gameplay.Preview
             if (_bossDriver != null)
             {
                 _bossDriver.PlayerHit += OnBossHitPlayer;
+                _bossDriver.HitResolving += OnBossHitResolving;
                 _bossDriver.PlayerDodged += OnPlayerDodged;
             }
             foreach (PreviewMonsterDriver driver in _monsterDrivers) driver.PlayerDodged += OnPlayerDodged;
@@ -747,6 +750,7 @@ namespace HumanGhost.Gameplay.Preview
             if (_bossDriver != null)
             {
                 _bossDriver.PlayerHit -= OnBossHitPlayer;
+                _bossDriver.HitResolving -= OnBossHitResolving;
                 _bossDriver.PlayerDodged -= OnPlayerDodged;
             }
             foreach (PreviewMonsterDriver driver in _monsterDrivers)
@@ -759,7 +763,15 @@ namespace HumanGhost.Gameplay.Preview
             if (_hud != null) _hud.Disconnect();
         }
 
-        private void OnBossHitPlayer() => _bossHitThisFrame = true;
+        private void OnBossHitResolving(bool active) => _bossHitThisFrame = active;
+        private void OnBossHitPlayer()
+        {
+            var combat = _boss.Combat; var reaction = combat.CurrentReaction;
+            if (reaction == null || reaction.KnockbackDistance == 0) return;
+            int direction = combat.CurrentPattern.Kind == BossPatternKind.CrawlCharge ? combat.Facing : Math.Sign(_player.transform.position.x - _boss.transform.position.x);
+            if (direction == 0) direction = combat.Facing;
+            _motion.StartKnockback(direction, ResolveFieldKnockbackDistance(_player, reaction.KnockbackDistance), reaction.KnockbackTime);
+        }
         private void OnPlayerDodged() => _playerAudio?.PlayAnimationSound("PLAYER_BACK_EVADE");
 
         private void OnGameLayerHealthChanged(int health)
@@ -767,13 +779,13 @@ namespace HumanGhost.Gameplay.Preview
             if (health >= _lastHealth) { _lastHealth = health; return; }
             _lastHealth = health;
             _combat?.Engage();
-            _feedback?.OnPlayerDamaged(_bossHitThisFrame);
+            _feedback?.OnPlayerDamaged(_bossHitThisFrame, _bossHitThisFrame && (_boss.Combat.CurrentReaction?.DownTime ?? 0) > 0, _playerBody);
             _bossHitThisFrame = false;
             if (_hud != null) _hud.FlashDamage();
         }
 
         // 사망·암전·해체·결박 가르기 중에는 열지 않습니다(O04·O04_1). 텍스트박스가 열려 있어도 열 수 있습니다.
-        private bool CanPause() => (!_saveLocked || _saveFailed) && !_modalBlocked && !_leaving && !LoadingScreen.IsActive && _actor != null && !_actor.IsDead && !PreviewScreenFade.IsActive && _actor.CurrentState != StateKey.Execute && _actor.CurrentState != StateKey.Skill1;
+        private bool CanPause() => !_bossPhaseRunning && !(_bossActive && _boss.Actor.IsTransitioning) && (!_saveLocked || _saveFailed) && !_modalBlocked && !_leaving && !LoadingScreen.IsActive && _actor != null && !_actor.IsDead && !PreviewScreenFade.IsActive && _actor.CurrentState != StateKey.Execute && _actor.CurrentState != StateKey.Skill1;
 
         private void ReturnToTitle()
         {
@@ -846,6 +858,7 @@ namespace HumanGhost.Gameplay.Preview
             if (_subscribed && _loadingLocked != LoadingScreen.IsActive) SetGameInputLocked(false);
             StepShrineClose();
             StepCutsceneFlow();
+            if (StepBossPhase()) return;
             if (_modalBlocked || _saveLocked || _leaving || LoadingScreen.IsActive || !_subscribed || !_player.isActiveAndEnabled || (_bossActive && !_boss.isActiveAndEnabled)) return;
             if (_stageNamePending && CanPause() && (_textbox == null || !_textbox.IsOpen))
             {

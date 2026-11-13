@@ -29,5 +29,15 @@ internal static class GameProgressChecks
             && second.TakeArrival() == "Respawn_Seonangdang", "사망 후 처치 기록은 마지막 저장 상태로 복원");
         second.RestartAfterDeath(null);
         check(second.DefeatedMonsters.Length == 0 && second.CarriedHealth == null, "저장 없는 사망 처리도 이전 임시 처치를 남기지 않음");
+        var early = new GameProgressState();
+        early.RestartAfterDeath(null, 8002);
+        check(early.CurrentStage == StageExitRules.VillageStage, "장부 조사 전에는 기존 시작 위치 유지");
+        early.Progress.Clear(StageExitRules.LedgerStage);
+        early.ActivateShrine(StageExitRules.LedgerStage);
+        early.RestartAfterDeath(null, 8002);
+        check(early.CurrentStage == 8002 && early.ArrivalAnchor == null, "조사 완료 뒤 장부방 체크포인트 대신 다음 맵 시작점");
+        early.ActivateShrine(8003);
+        early.RestartAfterDeath(null, 8002);
+        check(early.CurrentStage == 8003 && early.ArrivalAnchor == "Respawn_Seonangdang", "후반 서낭당 복귀는 보존");
     }
 }

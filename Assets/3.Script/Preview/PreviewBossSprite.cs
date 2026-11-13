@@ -10,7 +10,16 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField, InspectorName("보스 런타임")] private BossRuntime _boss = null;
         [SerializeField, InspectorName("판정 사각형 (색 따라감)")] private SpriteRenderer _body = null;
         [SerializeField, InspectorName("몸통 기준 가로 보정 (타일)")] private float _bodyOffsetX = 0.87f;
+        [SerializeField] private BossPhaseTwoView _phaseTwo = null;
         protected override bool AlignFeet => false;
+        protected override void LateUpdate()
+        {
+            base.LateUpdate();
+            if (_phaseTwo == null || _boss.Actor == null) return;
+            bool second = _boss.Actor.Phase.Phase > 0 && !_boss.Actor.IsTransitioning;
+            Renderer.enabled = !second;
+            _phaseTwo.Show(second);
+        }
         protected override bool TryGetState(out StateKey state)
         {
             state = _boss != null && _boss.Actor != null ? _boss.Actor.CurrentState : StateKey.Idle;
