@@ -32,19 +32,29 @@ namespace HumanGhost.Gameplay.Adapters
         // 호출 경계의 실패는 자동 로그 수집을 기다리지 않고 상세 상태와 함께 보고합니다.
         public virtual void Report(Exception error, UnityEngine.Object context = null, string state = "")
         {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
             if (_host != null && _host.isActiveAndEnabled)
             {
-                _host.Report(error, context: context, state: state);
+                try { _host.Report(error, context: context, state: state); }
+                catch (Exception displayError) { ErrorPopupHost.WriteError(displayError, this); }
                 return;
             }
-#endif
             Debug.LogException(error, context);
+        }
+
+        public virtual void ReportUnavailable(Exception error, int messageTextId, int featureTextId,
+            UnityEngine.Object context = null, string state = "")
+        {
+            if (_host == null || !_host.isActiveAndEnabled) { Debug.LogException(error, context); return; }
+            try { _host.ReportUnavailable(error, messageTextId, featureTextId, context, state); }
+            catch (Exception displayError)
+            {
+                ErrorPopupHost.WriteError(error, context);
+                ErrorPopupHost.WriteError(displayError, this);
+            }
         }
 
         protected virtual void OnEnable()
         {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
             if (_initializer == null || _events == null || _prefab == null)
                 throw new InvalidOperationException("에러 팝업의 데이터 초기화·이벤트 시스템·호스트 프리팹을 연결해 주세요.");
             foreach (var target in _inputTargets)
@@ -52,7 +62,6 @@ namespace HumanGhost.Gameplay.Adapters
                     throw new InvalidOperationException("입력 잠금 대상에는 모달 입력 계약을 구현한 컴포넌트를 연결해 주세요.");
             _initializer.Initialized += Prepare;
             if (_initializer.Data != null) Prepare(_initializer.Data);
-#endif
         }
 
         private void Prepare(IReadOnlyDataCatalog data)
@@ -110,12 +119,34 @@ namespace HumanGhost.Gameplay.Adapters
         public void SetModalOwner(object owner, bool blocked)
         {
             if (owner == null) throw new ArgumentNullException(nameof(owner));
+            bool previouslyOwned = _modalOwners.Contains(owner);
             if (blocked) _modalOwners.Add(owner); else _modalOwners.Remove(owner);
+            try { ApplyModalState(); }
+            catch (Exception error)
+            {
+                // 닫힌 창의 소유권은 되살리지 않습니다. 나머지 대상 해제는 이미 모두 시도했습니다.
+                if (!blocked) throw;
+                if (previouslyOwned) _modalOwners.Add(owner); else _modalOwners.Remove(owner);
+                try { ApplyModalState(); }
+                catch (Exception rollbackError)
+                {
+                    throw new AggregateException("입력 잠금 변경과 복원에 실패했습니다.", error, rollbackError);
+                }
+                throw;
+            }
+        }
+
+        private void ApplyModalState()
+        {
             bool paused = _modalOwners.Count > 0;
-            if (_speed != null) _speed.State.SetModalPaused(paused);
+            var actions = new List<Action> { () => { if (_speed != null) _speed.State.SetModalPaused(paused); } };
             foreach (var target in _inputTargets)
-                if (target != null) ((IModalInputTarget)target).SetModalBlocked(paused);
-            ModalChanged?.Invoke();
+            {
+                var current = target;
+                actions.Add(() => { if (current != null) ((IModalInputTarget)current).SetModalBlocked(paused); });
+            }
+            actions.Add(() => ModalChanged?.Invoke());
+            SubscriptionScope.Cleanup(actions.ToArray());
         }
 
         protected virtual void OnDisable()
@@ -124,10 +155,13 @@ namespace HumanGhost.Gameplay.Adapters
             foreach (var reset in GetComponents<DemoResetHost>()) reset.ReleaseBinding();
 #endif
             if (_initializer != null) _initializer.Initialized -= Prepare;
-            if (_host == null) return;
-            _host.gameObject.SetActive(false);
-            Destroy(_host.transform.parent.gameObject);
+            var host = _host;
             _host = null;
+            _modalOwners.Clear();
+            SubscriptionScope.Cleanup(
+                () => { if (host != null) host.gameObject.SetActive(false); },
+                () => { if (host != null) Destroy(host.transform.parent.gameObject); },
+                ApplyModalState);
         }
     }
 }

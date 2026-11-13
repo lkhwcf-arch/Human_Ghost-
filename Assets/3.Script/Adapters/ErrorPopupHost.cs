@@ -24,6 +24,9 @@ namespace HumanGhost.Gameplay.Adapters
         [SerializeField, InspectorName("에러 알림 팝업 ID")] private int _popupId = 15007;
         private Popup _popup;
         private string _heading, _copyText, _closeText, _copiedText, _logLabel;
+        private string _notice;
+        private IReadOnlyDataCatalog _data;
+        private LanguageCode _languageCode;
         private string _details;
         private int _errorCount;
         private Coroutine _copyFeedback;
@@ -33,6 +36,12 @@ namespace HumanGhost.Gameplay.Adapters
         private Func<string> _readState;
         [ThreadStatic] private static int _reportDepth;
         internal static bool IsWritingReport => _reportDepth > 0;
+        internal static void WriteError(Exception error, UnityEngine.Object context = null)
+        {
+            _reportDepth++;
+            try { Debug.LogException(error, context); }
+            finally { _reportDepth--; }
+        }
         public bool IsOpen => _ownsInput;
         internal InputActionAsset Input => _input;
         public bool IsCapturing => _collector != null && _collector.IsActive;
@@ -66,17 +75,30 @@ namespace HumanGhost.Gameplay.Adapters
             string copied = text.Read(30214, languageCode);
             string logLabel = text.Read(30212, languageCode);
             _popup = popup;
+            _data = data;
+            _languageCode = languageCode;
             _heading = heading; _copyText = copy; _closeText = close; _copiedText = copied; _logLabel = logLabel;
         }
 
         // true는 새 표시 인수, false는 이미 열린 팝업이 있어 로그만 남겼다는 뜻입니다.
         public virtual bool Report(Exception error, Action dismissed = null, UnityEngine.Object context = null, string state = "")
+            => ReportCore(error, dismissed, context, state, null);
+
+        // 본문 형식과 기능명은 모두 Language ID로 공급합니다. 형식에는 {0}을 사용합니다.
+        public virtual bool ReportUnavailable(Exception error, int messageTextId, int featureTextId,
+            UnityEngine.Object context = null, string state = "")
+        {
+            var text = new LanguageTextSource(_data);
+            string notice = string.Format(text.Read(messageTextId, _languageCode), text.Read(featureTextId, _languageCode));
+            return ReportCore(error, null, context, state, notice);
+        }
+
+        private bool ReportCore(Exception error, Action dismissed, UnityEngine.Object context, string state, string notice)
         {
             if (error == null) throw new ArgumentNullException(nameof(error));
-            _reportDepth++;
-            try { Debug.LogException(error, context); }
-            finally { _reportDepth--; }
+            WriteError(error, context);
             _errorCount++;
+            _notice = notice;
             if (_popup == null) throw new InvalidOperationException("Popup·Language 데이터를 먼저 연결해 주세요.");
             _details = ErrorPopupDetails.Format(error, _errorCount, ResolveScene(context), state, DateTimeOffset.Now, _logLabel, Application.consoleLogPath);
             return Present(dismissed);
@@ -103,9 +125,13 @@ namespace HumanGhost.Gameplay.Adapters
                 _menuInput.Enable();
                 return true;
             }
-            catch
+            catch (Exception error)
             {
-                Release();
+                try { Release(); }
+                catch (Exception cleanupError)
+                {
+                    throw new AggregateException("오류 팝업 표시와 종료 정리에 실패했습니다.", error, cleanupError);
+                }
                 throw;
             }
         }
@@ -113,6 +139,7 @@ namespace HumanGhost.Gameplay.Adapters
         // 원본은 Unity가 이미 기록했으므로 여기서는 다시 로그를 쓰지 않습니다.
         private void PresentCaptured(ErrorLogMessage message)
         {
+            _notice = null;
             _errorCount += message.Count;
             _details = ErrorPopupDetails.Format(message.Kind, message.Message, message.Stack, _errorCount,
                 gameObject.scene.name, _readState?.Invoke() ?? "", message.Time, _logLabel, Application.consoleLogPath);
@@ -168,7 +195,7 @@ namespace HumanGhost.Gameplay.Adapters
             return gameObject.scene.name;
         }
 
-        private void Render() => _screen.SetText(_heading + "\n\n" + _details, _copyText, _closeText);
+        private void Render() => _screen.SetText((_notice ?? _heading) + "\n\n" + _details, _copyText, _closeText);
         private void Submit() { if (_screen.SelectedButton == 1) Copy(); else Close(); }
         private void Cancel() { if (_popup.CancelButton == 1) Copy(); else if (_popup.CancelButton == 2) Close(); }
 
@@ -213,20 +240,23 @@ namespace HumanGhost.Gameplay.Adapters
             _dismissed = null;
             if (_copyFeedback != null) StopCoroutine(_copyFeedback);
             _copyFeedback = null;
-            if (_screen != null) _screen.ShowStatus("");
-            _menuInput?.Disable();
-            if (_screen != null) _screen.Hide();
             bool owned = _ownsInput;
             _ownsInput = false;
-            if (owned) _setModalInput(false);
+            SubscriptionScope.Cleanup(
+                () => { if (_screen != null) _screen.ShowStatus(""); },
+                () => _menuInput?.Disable(),
+                () => { if (_screen != null) _screen.Hide(); },
+                () => { if (owned) _setModalInput(false); });
         }
 
         protected virtual void OnDisable()
         {
-            _collector?.Dispose();
+            var collector = _collector;
             _collector = null;
-            if (_return != null) StopCoroutine(_return);
-            Release();
+            SubscriptionScope.Cleanup(
+                () => collector?.Dispose(),
+                () => { if (_return != null) StopCoroutine(_return); },
+                Release);
         }
 
         protected virtual void OnDestroy()

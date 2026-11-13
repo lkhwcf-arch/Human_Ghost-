@@ -10,6 +10,15 @@ namespace HumanGhost.Gameplay
         private bool _disposed;
         private bool _pending;
         public bool IsDisposed => _disposed;
+        // 종료 작업은 하나가 실패해도 나머지를 수행하고 모든 실패를 호출자에게 전달합니다.
+        public static void Cleanup(params Action[] actions)
+        {
+            if (actions == null) throw new ArgumentNullException(nameof(actions));
+            var scope = new SubscriptionScope();
+            for (int i = actions.Length - 1; i >= 0; i--)
+                scope.Add(actions[i]);
+            scope.Dispose();
+        }
         public void Add(Action unsubscribe)
         {
             if (_disposed) throw new ObjectDisposedException(nameof(SubscriptionScope));

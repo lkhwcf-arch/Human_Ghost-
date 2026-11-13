@@ -79,6 +79,18 @@ internal static class NotificationChecks
         bool reported = false;
         try { cleanup.Dispose(); } catch (AggregateException) { reported = true; }
         Check(reported && order.Count == 3 && order[0] == 3 && order[2] == 1, "한 해제 실패도 나머지 구독 정리 후 보고");
+        order.Clear();
+        reported = false;
+        try
+        {
+            SubscriptionScope.Cleanup(
+                () => { order.Add(1); throw new InvalidOperationException("검사 전용 화면 종료 실패"); },
+                () => order.Add(2),
+                () => { order.Add(3); throw new InvalidOperationException("검사 전용 입력 복원 실패"); });
+        }
+        catch (AggregateException error) { reported = error.InnerExceptions.Count == 2; }
+        Check(reported && order.Count == 3 && order[0] == 1 && order[2] == 3,
+            "여러 종료 실패도 요청 순서대로 모두 정리하고 누락 없이 전달");
         return checks;
     }
 }
