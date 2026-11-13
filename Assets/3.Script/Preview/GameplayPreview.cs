@@ -126,6 +126,15 @@ namespace HumanGhost.Gameplay.Preview
 
         private void OnEnable()
         {
+            // 판정 범위는 유지하고 테스트용 색상 표시만 빌드 종류에 따라 차단합니다.
+            if (_attackWindow != null)
+            {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                _attackWindow.forceRenderingOff = false;
+#else
+                _attackWindow.forceRenderingOff = true;
+#endif
+            }
             _input = _player != null ? _player.GetComponent<PlayerLocomotionInput>() : null;
             _input?.SetLocked(true);
             if (_data == null || _player == null || _boss == null || _playerLabel == null ||
