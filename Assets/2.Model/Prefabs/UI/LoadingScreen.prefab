@@ -217,7 +217,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -7849980079593035389, guid: 5d3d101848f36084d89b28d54fdccba9, type: 3}
+  m_Sprite: {fileID: 3970053727571710613, guid: f16cdc908e3e85049975baddb43d9aa9, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -344,7 +344,11 @@ MonoBehaviour:
   _group: {fileID: 6815033595764327382}
   _background: {fileID: 2977618546792658206}
   _backgrounds:
-  - {fileID: -7849980079593035389, guid: 5d3d101848f36084d89b28d54fdccba9, type: 3}
+  - {fileID: 3970053727571710613, guid: f16cdc908e3e85049975baddb43d9aa9, type: 3}
+  - {fileID: -6577279380385770021, guid: bbcc216cde2c59a4e9bb1002524a3523, type: 3}
+  - {fileID: 2177624184930613261, guid: cffeff6e32243a74a95269c739c0cad5, type: 3}
+  - {fileID: -1164038603431450117, guid: c4491cdac7b783e41a517a4dd9dbcbb6, type: 3}
+  - {fileID: -6925667254300146800, guid: 1f68c8e070833754abe57c65c0f630a1, type: 3}
   _tipBox: {fileID: 5764301936060637784}
   _tip: {fileID: 7370320695062745559}
   _seal: {fileID: 2533690238697502210}

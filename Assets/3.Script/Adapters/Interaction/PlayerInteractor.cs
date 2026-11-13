@@ -21,6 +21,7 @@ namespace HumanGhost.Gameplay.Adapters
         private TextMesh _prompt;
         private bool _promptHasKeyIcon;
         private SpriteRenderer _promptKeyIcon, _investigationArtwork;
+        private Renderer _promptTextRenderer;
         private IInteractable _selected;
         private int? _shownPromptId;
         private string _shownPrompt;
@@ -39,6 +40,7 @@ namespace HumanGhost.Gameplay.Adapters
             _promptKeyIcon = _prompt != null ? _prompt.transform.Find("KeyIcon")?.GetComponent<SpriteRenderer>() : null;
             _investigationArtwork = _prompt != null ? _prompt.transform.Find("InvestigationArtwork")?.GetComponent<SpriteRenderer>() : null;
             _promptHasKeyIcon = _promptKeyIcon != null;
+            _promptTextRenderer = _prompt != null ? _prompt.GetComponent<Renderer>() : null;
             StartBindings();
         }
 
@@ -167,9 +169,20 @@ namespace HumanGhost.Gameplay.Adapters
             if (artwork) text = "";
             else if (_promptHasKeyIcon) text = text == "E" ? "" : text.StartsWith("E ", StringComparison.Ordinal) ? text.Substring(2) : text;
             if (_prompt.text != text) _prompt.text = text;
-            var next = new Vector3(position.x, position.y, _prompt.transform.position.z);
-            if (_prompt.transform.position != next) _prompt.transform.position = next;
             if (!_prompt.gameObject.activeSelf) _prompt.gameObject.SetActive(true);
+            if (_promptHasKeyIcon && !artwork && _promptTextRenderer != null)
+            {
+                float keyWidth = _promptKeyIcon.bounds.size.x;
+                float textWidth = text.Length > 0 ? _promptTextRenderer.bounds.size.x : 0f;
+                float gap = keyWidth * 0.2f;
+                Vector3 keyPosition = _promptKeyIcon.transform.localPosition;
+                keyPosition.x = textWidth > 0 ? _prompt.transform.InverseTransformVector(
+                    Vector3.left * ((textWidth + keyWidth) * 0.5f + gap)).x : 0f;
+                _promptKeyIcon.transform.localPosition = keyPosition;
+                if (textWidth > 0) position.x += (keyWidth + gap) * 0.5f;
+            }
+            var next = new Vector3(position.x, position.y + _promptPrefab.transform.localPosition.y, _prompt.transform.position.z);
+            if (_prompt.transform.position != next) _prompt.transform.position = next;
         }
     }
 }

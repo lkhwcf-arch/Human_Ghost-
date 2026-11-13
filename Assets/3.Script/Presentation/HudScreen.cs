@@ -9,7 +9,7 @@ namespace HumanGhost.Gameplay.Presentation
     [DefaultExecutionOrder(1100)]
     public class HudScreen : MonoBehaviour
     {
-        private const float _dimAlpha = 0.7f;
+        private const float _dimAlpha = 0.9f;
         private const float _fadeSeconds = 0.3f;
         private const float _damageFlashSeconds = 0.25f;
         [SerializeField] private CanvasGroup _group = null;

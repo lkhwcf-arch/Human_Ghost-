@@ -670,11 +670,13 @@ namespace HumanGhost.Gameplay.Preview
         {
             IExecutionTarget target = FindExecutionTarget(out SpatialRuntime runtime);
             if (target == null) return false;
+            var victimSprite = runtime is MonsterRuntime ? runtime.GetComponentInChildren<PreviewMonsterSprite>(true) : null;
+            _playerSprite?.SetExecutionAnimation(victimSprite?.PlayerExecution);
             float duration = _playerSprite != null ? _playerSprite.ExecutionDuration : 0f;
             if (duration <= 0f) throw new InvalidOperationException("플레이어 해체 애니메이션을 연결해 주세요.");
             if (runtime is MonsterRuntime)
             {
-                float victimDuration = runtime.GetComponentInChildren<PreviewMonsterSprite>(true)?.ExecutionDuration ?? 0f;
+                float victimDuration = victimSprite?.ExecutionDuration ?? 0f;
                 if (victimDuration <= 0f) throw new InvalidOperationException("일반몹 해체 애니메이션을 연결해 주세요.");
                 duration = Mathf.Max(duration, victimDuration);
             }

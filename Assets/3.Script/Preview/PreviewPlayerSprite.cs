@@ -10,6 +10,8 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField, InspectorName("플레이어 런타임")] private PlayerRuntime _player = null;
         [SerializeField, InspectorName("원본이 왼쪽을 봄")] private bool _sourceFacesLeft = true;
         [SerializeField] private AnimationClip _airAttack = null;
+        private AnimationClip _executionAnimation;
+        public void SetExecutionAnimation(AnimationClip clip) => _executionAnimation = clip;
         [SerializeField] private AnimationClip _walk = null;
         private bool _nonCombatArea;
         public void SetNonCombatArea(bool value) { _nonCombatArea = value; RestartAnimation(); }
@@ -60,6 +62,7 @@ namespace HumanGhost.Gameplay.Preview
         private void OnDisable()
         {
             if (_player != null) _player.PresentationCue -= OnPresentationCue;
+            _executionAnimation = null;
             _action = null; _onLadder = false; _ladderDirection = 0; _nonCombatArea = false; _dropElapsed = -1f;
             if (Renderer != null)
             {
@@ -108,6 +111,7 @@ namespace HumanGhost.Gameplay.Preview
 
         protected override AnimationClip SelectAnimation(StateKey state)
         {
+            if (state == StateKey.Execute && _executionAnimation != null) return _executionAnimation;
             if (_player.Actor.IsParrying) return null;
             if (state == StateKey.Hang && _player.ClimbProgress >= 0f && _climb != null) return _climb;
             if (_onLadder && state == StateKey.Hang && _ladderClimb != null) return _ladderClimb;
