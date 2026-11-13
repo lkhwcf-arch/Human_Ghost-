@@ -21,11 +21,18 @@ MonoBehaviour:
     - Path: Background/Sky
       UseLocalX: 1
       LocalX: 48
+      LocalY: 0
     - Path: Background/Sky
+      UseLocalX: 0
+      LocalX: 0
       LocalY: 5.3
     - Path: "Background/Mountains/\uBA3C\uC0B0"
+      UseLocalX: 0
+      LocalX: 0
       LocalY: -0.5
     - Path: Background/Mountains/Fog_Far
+      UseLocalX: 0
+      LocalX: 0
       LocalY: -1.3
   - StageId: 8002
     Map: {fileID: 100001, guid: 31e12a1d470681a45963f2f06d08cc23, type: 3}
@@ -33,6 +40,8 @@ MonoBehaviour:
     CameraSize: 4.3
     BackgroundPositions:
     - Path: Background/Mountains/Fog_Far
+      UseLocalX: 0
+      LocalX: 0
       LocalY: 0
   - StageId: 8003
     Map: {fileID: 100001, guid: 53f22b56fbaa30744a1abbc1cc6ec2e6, type: 3}
@@ -40,6 +49,8 @@ MonoBehaviour:
     CameraSize: 4.3
     BackgroundPositions:
     - Path: Background/Mountains/Fog_Far
+      UseLocalX: 0
+      LocalX: 0
       LocalY: 0
   - StageId: 8004
     Map: {fileID: 100001, guid: 0acbb8b3d9a33a445b7ba87a3cd7e6ea, type: 3}
@@ -47,11 +58,14 @@ MonoBehaviour:
     CameraSize: 4.3
     BackgroundPositions:
     - Path: Background/Sky
+      UseLocalX: 0
+      LocalX: 0
       LocalY: 8.15
   - StageId: 8005
     Map: {fileID: 6190918105606674834, guid: 0f97cf1b037c0ec4c8044537f62b8ee4, type: 3}
     Spawn: {fileID: 4900000, guid: bc4feb177f93c1344ad35bfc043ee872, type: 3}
     CameraSize: 3.6
+    BackgroundPositions: []
   _platforms:
   - {fileID: 9109195467246044568, guid: ddc56e26ecb3f4f4daf2d556292e3d67, type: 3}
   - {fileID: 8349585168332058385, guid: f97501e6f2b51314482953fbdb25dd0b, type: 3}
@@ -80,3 +94,6 @@ MonoBehaviour:
     Prefab: {fileID: 171237571685844180, guid: 95715fa05a925ef4eaf28dde4461b79c, type: 3}
   - Code: 3004
     Prefab: {fileID: 5889506977236311024, guid: e45afd4f04aa73a48b73cbc7debe1e6a, type: 3}
+  _npcs:
+  - Key: NPC_Refugee
+    Prefab: {fileID: 5374485242292073022, guid: 10a7dc1277df7dd4c9675ae860cf3d69, type: 3}
