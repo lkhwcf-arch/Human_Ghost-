@@ -74,7 +74,7 @@ flowchart LR
     C --> D[결과물 다운로드·실행 확인]
 ~~~
 
-GitHub의 Windows 게임 빌드에서 development/release를 선택합니다. Windows 64비트, 기본 테스트, 결과물 7일 보관, 빌드 전용 디스코드 공지를 사용합니다. 매 푸시 게임 빌드·임의 리비전 입력 기능은 현재 없습니다. 상세는 [빌드 안내](Docs/기획자용%20안내문서/GitHub%20빌드와%20디스코드%20공지%20사용%20안내.md)를 봅니다.
+GitHub의 Windows 게임 빌드에서 development/release와 revision(전체 SHA·태그·브랜치, 생략하면 실행 커밋)을 선택합니다. 같은 SHA로 검사·빌드하고 결과물의 빌드 정보.txt와 공지에 출처를 기록합니다. Windows 64비트, 기본 테스트, 결과물 7일 보관, 빌드 전용 디스코드 공지를 사용합니다. 매 푸시 게임 빌드는 하지 않습니다. 상세는 [빌드 안내](Docs/기획자용%20안내문서/GitHub%20빌드와%20디스코드%20공지%20사용%20안내.md)를 봅니다.
 
 ~~~powershell
 ./Tools/Verify-Project.ps1 -CompileUnity

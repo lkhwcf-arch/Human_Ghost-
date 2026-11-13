@@ -14,6 +14,11 @@ on:
         type: choice
         options: [development, release]
         default: development
+      revision:
+        description: '대상 커밋 전체 SHA·태그·브랜치. 비우면 실행 브랜치의 이번 실행 커밋'
+        type: string
+        required: false
+        default: ''
       scene:
         description: 'build-settings: 타이틀부터 도화골까지 / dohwagol: 도화골 전투만 / preview: 임시 게임플레이'
         type: choice
@@ -28,14 +33,43 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  revision:
+    name: 빌드 리비전 확정
+    if: inputs.operation == 'build'
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.target.outputs.sha }}
+      short-sha: ${{ steps.target.outputs.short-sha }}
+    steps:
+      - name: 지정 리비전 받기
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.revision || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: 실제 대상 커밋 기록
+        id: target
+        shell: python
+        run: |
+          import os
+          import subprocess
+          sha = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"sha={sha}\nshort-sha={sha[:12]}\n")
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as output:
+              output.write(f"## 빌드 대상 리비전\n- 실제 커밋: `{sha}`\n- 검사와 빌드가 같은 커밋을 사용합니다.\n")
+
   checks:
     name: 빌드 전 기존 검사
+    needs: revision
     if: inputs.operation == 'build'
     uses: ./.github/workflows/project-checks.yml
+    with:
+      revision: ${{ needs.revision.outputs.sha }}
 
   build:
     name: Windows 빌드와 결과물 보관
-    needs: checks
+    needs: [revision, checks]
     if: inputs.operation == 'build' && needs.checks.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -45,6 +79,7 @@ jobs:
       - name: 빌드 대상 코드 받기
         uses: actions/checkout@v6
         with:
+          ref: ${{ needs.revision.outputs.sha }}
           persist-credentials: false
       - name: Unity 인증 정보 등록 여부 확인
         env:
@@ -99,18 +134,42 @@ jobs:
           if hashlib.sha256(source.read_bytes()).digest() != hashlib.sha256(output.read_bytes()).digest():
               raise SystemExit("빌드에 포함된 타이틀 영상이 원본과 다릅니다.")
           print("빌드 결과의 타이틀 영상과 원본 일치를 확인했습니다.")
+      - name: 결과물에 빌드 출처 기록
+        shell: python
+        env:
+          BUILD_SOURCE_SHA: ${{ needs.revision.outputs.sha }}
+          BUILD_MODE: ${{ inputs.build_mode }}
+          BUILD_SCENE: ${{ inputs.scene }}
+        run: |
+          import os
+          import subprocess
+          from datetime import datetime, timezone
+          from pathlib import Path
+          sha = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+          if sha != os.environ["BUILD_SOURCE_SHA"]:
+              raise SystemExit("확정한 커밋과 실제 빌드 소스가 다릅니다.")
+          source = f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}"
+          lines = ["인귀 빌드 정보", f"게임 소스 커밋: {sha}",
+                   f"워크플로 커밋: {os.environ['GITHUB_SHA']}",
+                   f"빌드 종류: {os.environ['BUILD_MODE']}", f"시작 장면: {os.environ['BUILD_SCENE']}",
+                   f"실행 번호: {os.environ['GITHUB_RUN_NUMBER']}", f"실행 시도: {os.environ['GITHUB_RUN_ATTEMPT']}",
+                   f"기록 시각 UTC: {datetime.now(timezone.utc).isoformat()}",
+                   f"소스: {source}/commit/{sha}", f"실행 기록: {source}/actions/runs/{os.environ['GITHUB_RUN_ID']}"]
+          Path("build/StandaloneWindows64/빌드 정보.txt").write_text("\n".join(lines) + "\n", encoding="utf-8-sig")
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as output:
+              output.write(f"## 빌드 출처\n- 실제 게임 소스: `{sha}`\n- 결과물에 빌드 정보.txt를 포함했습니다.\n")
       - name: 게임 파일 보관
         id: artifact
         uses: actions/upload-artifact@v4
         with:
-          name: HumanGhost-Windows-${{ inputs.build_mode }}-${{ github.run_number }}-${{ github.run_attempt }}
+          name: HumanGhost-Windows-${{ inputs.build_mode }}-${{ github.run_number }}-${{ github.run_attempt }}-${{ needs.revision.outputs.short-sha }}
           path: build/StandaloneWindows64/
           if-no-files-found: error
           retention-days: 7
 
   notify:
     name: 빌드 전용 채널 공지
-    needs: [checks, build]
+    needs: [revision, checks, build]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 3
@@ -125,6 +184,8 @@ jobs:
           NOTICE_OPERATION: ${{ inputs.operation }}
           BUILD_SCENE: ${{ inputs.scene }}
           BUILD_MODE: ${{ inputs.build_mode }}
+          BUILD_SOURCE_SHA: ${{ needs.revision.outputs.sha }}
+          REVISION_RESULT: ${{ needs.revision.result }}
           CHECK_RESULT: ${{ needs.checks.result }}
           BUILD_RESULT: ${{ needs.build.result }}
           BUILD_ARTIFACT_URL: ${{ needs.build.outputs.artifact-url }}
