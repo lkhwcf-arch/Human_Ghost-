@@ -111,3 +111,6 @@ MonoBehaviour:
     Prefab: {fileID: 171237571685844180, guid: 95715fa05a925ef4eaf28dde4461b79c, type: 3}
   - Code: 3004
     Prefab: {fileID: 5889506977236311024, guid: e45afd4f04aa73a48b73cbc7debe1e6a, type: 3}
+  _npcs:
+  - Key: NPC_Refugee
+    Prefab: {fileID: 5374485242292073022, guid: 10a7dc1277df7dd4c9675ae860cf3d69, type: 3}
