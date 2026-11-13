@@ -85,6 +85,23 @@ MonoBehaviour:
   - {fileID: 1042942950421756673, guid: a4b29d0d07684654ad1047a35a390b75, type: 3}
   - {fileID: 9109195467246044568, guid: e9dacac1e69338a4eaef5120a7887ac0, type: 3}
   - {fileID: 3620066845938308408, guid: 7c1e5a9d3b2f4e68a0d4c6b8e1f35a72, type: 3}
+  - {fileID: 1000, guid: 23598404611a542a883d2932f442f795, type: 3}
+  - {fileID: 1000, guid: 47d9385a529c53c19b9e104f8a9cd72e, type: 3}
+  - {fileID: 1000, guid: 7a879762b8565e9fa519abe0faa0f051, type: 3}
+  - {fileID: 1000, guid: 216c73b9be1855738a1fc00a9876913e, type: 3}
+  - {fileID: 1000, guid: 4040183e860f53d587f987a4efbe0b25, type: 3}
+  - {fileID: 1000, guid: 3ef1a2c129f7544e8745fd6878d3eaa6, type: 3}
+  - {fileID: 1000, guid: 41c86ff8d34a5110ad0a5ca0bcd9347c, type: 3}
+  - {fileID: 1000, guid: 84a12d08bc36585798dff5792101587a, type: 3}
+  - {fileID: 1000, guid: 372820a8593b5f04b39c71d82f731424, type: 3}
+  - {fileID: 1000, guid: 0dc0eaa7cbb35d14918c2e93215407f7, type: 3}
+  - {fileID: 1000, guid: be1ebc330d48515183ccddb3639f5b59, type: 3}
+  - {fileID: 1000, guid: bfe48584eb2250bb81687eec855fd734, type: 3}
+  - {fileID: 1000, guid: 381eb991157152358fff47a76cf29082, type: 3}
+  - {fileID: 1000, guid: 0af34ab0b6715ee6b413afbac945248e, type: 3}
+  - {fileID: 1000, guid: 93a7c135aa6e576e8141d22ee80db8af, type: 3}
+  - {fileID: 1000, guid: 7b0e7fe2a1fc5cdfa7e228a11ef8640e, type: 3}
+  - {fileID: 1000, guid: 87f4af6891c8575094c10921d3fe42fd, type: 3}
   _monsters:
   - Code: 3001
     Prefab: {fileID: 2212268001790328552, guid: 776d91e27d429634096015e81eee0596, type: 3}
