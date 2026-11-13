@@ -1,0 +1,145 @@
+{
+  "FormatVersion": 2,
+  "StageID": 8006,
+  "MaxMonsterCount": 9,
+  "Placements": [
+    {
+      "PlacementID": 101,
+      "PlatformCode": 16006,
+      "Prefab": "Ground_6",
+      "Anchor": "Anchor_Ground_6",
+      "Monsters": [
+        {
+          "MonsterCode": 3001,
+          "MonsterCount": 1,
+          "Points": [
+            [
+              2200,
+              0
+            ]
+          ]
+        },
+        {
+          "MonsterCode": 3002,
+          "MonsterCount": 4,
+          "Points": [
+            [
+              2700,
+              0
+            ],
+            [
+              3500,
+              0
+            ],
+            [
+              7300,
+              0
+            ],
+            [
+              10800,
+              0
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "PlacementID": 201,
+      "PlatformCode": 16522,
+      "Prefab": "Air_Platform_22",
+      "Anchor": "Anchor_Air_Platform_22",
+      "Monsters": []
+    },
+    {
+      "PlacementID": 202,
+      "PlatformCode": 16523,
+      "Prefab": "Air_Platform_23",
+      "Anchor": "Anchor_Air_Platform_23",
+      "Monsters": []
+    },
+    {
+      "PlacementID": 203,
+      "PlatformCode": 16532,
+      "Prefab": "Air_Platform_32",
+      "Anchor": "Anchor_Air_Platform_32",
+      "Monsters": []
+    },
+    {
+      "PlacementID": 204,
+      "PlatformCode": 16524,
+      "Prefab": "Air_Platform_24",
+      "Anchor": "Anchor_Air_Platform_24",
+      "Monsters": []
+    },
+    {
+      "PlacementID": 205,
+      "PlatformCode": 16529,
+      "Prefab": "Air_Platform_29",
+      "Anchor": "Anchor_Air_Platform_29",
+      "Monsters": []
+    },
+    {
+      "PlacementID": 206,
+      "PlatformCode": 16518,
+      "Prefab": "Air_Platform_18",
+      "Anchor": "Anchor_Air_Platform_18",
+      "Monsters": []
+    },
+    {
+      "PlacementID": 207,
+      "PlatformCode": 16530,
+      "Prefab": "Air_Platform_30",
+      "Anchor": "Anchor_Air_Platform_30",
+      "Monsters": []
+    },
+    {
+      "PlacementID": 208,
+      "PlatformCode": 16528,
+      "Prefab": "Air_Platform_28",
+      "Anchor": "Anchor_Air_Platform_28",
+      "Monsters": []
+    },
+    {
+      "PlacementID": 209,
+      "PlatformCode": 16519,
+      "Prefab": "Air_Platform_19",
+      "Anchor": "Anchor_Air_Platform_19",
+      "Monsters": []
+    },
+    {
+      "PlacementID": 210,
+      "PlatformCode": 16516,
+      "Prefab": "Air_Platform_16",
+      "Anchor": "Anchor_Air_Platform_16",
+      "Monsters": []
+    },
+    {
+      "PlacementID": 211,
+      "PlatformCode": 16525,
+      "Prefab": "Air_Platform_25",
+      "Anchor": "Anchor_Air_Platform_25",
+      "Monsters": []
+    },
+    {
+      "PlacementID": 212,
+      "PlatformCode": 16526,
+      "Prefab": "Air_Platform_26",
+      "Anchor": "Anchor_Air_Platform_26",
+      "Monsters": []
+    },
+    {
+      "PlacementID": 213,
+      "PlatformCode": 16520,
+      "Prefab": "Air_Platform_20",
+      "Anchor": "Anchor_Air_Platform_20",
+      "Monsters": []
+    },
+    {
+      "PlacementID": 214,
+      "PlatformCode": 16527,
+      "Prefab": "Air_Platform_27",
+      "Anchor": "Anchor_Air_Platform_27",
+      "Monsters": []
+    }
+  ]
+}

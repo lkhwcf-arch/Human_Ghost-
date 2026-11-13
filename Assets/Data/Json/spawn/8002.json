@@ -11,7 +11,7 @@
       "Monsters": [
         {
           "MonsterCode": 3001,
-          "MonsterCount": 5,
+          "MonsterCount": 4,
           "Points": [
             [
               1450,
@@ -27,10 +27,6 @@
             ],
             [
               9350,
-              200
-            ],
-            [
-              9950,
               200
             ]
           ]
@@ -51,15 +47,11 @@
         },
         {
           "MonsterCode": 3003,
-          "MonsterCount": 2,
+          "MonsterCount": 1,
           "Points": [
             [
               5150,
               250
-            ],
-            [
-              10150,
-              200
             ]
           ]
         }
@@ -92,6 +84,34 @@
       "Prefab": "Air_Platform_6",
       "Anchor": "Anchor_Air_Platform_6",
       "Monsters": []
+    },
+    {
+      "PlacementID": 205,
+      "PlatformCode": 16514,
+      "Prefab": "Air_Platform_14",
+      "Anchor": "Anchor_Air_Platform_14",
+      "Monsters": [
+        {
+          "MonsterCode": 3001,
+          "MonsterCount": 1,
+          "Points": [
+            [
+              750,
+              0
+            ]
+          ]
+        },
+        {
+          "MonsterCode": 3003,
+          "MonsterCount": 1,
+          "Points": [
+            [
+              950,
+              0
+            ]
+          ]
+        }
+      ]
     }
   ]
 }
