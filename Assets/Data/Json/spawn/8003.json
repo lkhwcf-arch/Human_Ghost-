@@ -170,13 +170,6 @@
       "Monsters": []
     },
     {
-      "PlacementID": 203,
-      "PlatformCode": 16509,
-      "Prefab": "Air_Platform_9",
-      "Anchor": "Anchor_Air_Platform_9",
-      "Monsters": []
-    },
-    {
       "PlacementID": 204,
       "PlatformCode": 16510,
       "Prefab": "Air_Platform_10",
@@ -195,13 +188,6 @@
       "PlatformCode": 16512,
       "Prefab": "Air_Platform_12",
       "Anchor": "Anchor_Air_Platform_12",
-      "Monsters": []
-    },
-    {
-      "PlacementID": 207,
-      "PlatformCode": 16513,
-      "Prefab": "Air_Platform_13",
-      "Anchor": "Anchor_Air_Platform_13",
       "Monsters": []
     }
   ]

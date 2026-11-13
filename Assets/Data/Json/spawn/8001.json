@@ -8,20 +8,6 @@
       "Prefab": "Ground_1",
       "Anchor": "Anchor_Ground_1",
       "Monsters": []
-    },
-    {
-      "PlacementID": 201,
-      "PlatformCode": 16501,
-      "Prefab": "Air_Platform_1",
-      "Anchor": "Anchor_Air_Platform_1",
-      "Monsters": []
-    },
-    {
-      "PlacementID": 202,
-      "PlatformCode": 16502,
-      "Prefab": "Air_Platform_2",
-      "Anchor": "Anchor_Air_Platform_2",
-      "Monsters": []
     }
   ],
   "MaxMonsterCount": 30

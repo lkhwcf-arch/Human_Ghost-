@@ -1,0 +1,16 @@
+{
+  "_note": "쇄문아비 쓰러진 뒤 줄. 설정은 Dialogue 24004.",
+  "DialogueID": 24004,
+  "Lines": [
+    { "SpeakerTextID": 30006, "TextID": 30297 },
+    { "SpeakerTextID": 30006, "TextID": 30298 },
+    { "SpeakerTextID": 30001, "TextID": 30299 },
+    { "SpeakerTextID": 30006, "TextID": 30300 },
+    { "SpeakerTextID": 30001, "TextID": 30301 },
+    { "SpeakerTextID": 30006, "TextID": 30302 },
+    { "SpeakerTextID": 30006, "TextID": 30303 },
+    { "SpeakerTextID": 30006, "TextID": 30304 },
+    { "SpeakerTextID": 30001, "TextID": 30305 },
+    { "SpeakerTextID": 30001, "TextID": 30306 }
+  ]
+}

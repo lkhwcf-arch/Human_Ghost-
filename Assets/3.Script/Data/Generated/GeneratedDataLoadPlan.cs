@@ -16,12 +16,14 @@ namespace HumanGhost.Data.Infrastructure
             await loader.LoadCsvAsync<Currency>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<Cutscene>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<CutsceneStep>(catalog, row => row.ID, token);
+            await loader.LoadCsvAsync<Dialogue>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<ExecuteReward>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<GateConfig>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<HealthDisplayConfig>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<Language>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<MonsterReward>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<MonsterSkill>(catalog, row => row.ID, token);
+            await loader.LoadCsvAsync<Npc>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<PlayerAction>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<PlayerLevel>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<Popup>(catalog, row => row.ID, token);
