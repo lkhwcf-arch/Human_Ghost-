@@ -52,6 +52,20 @@ MonoBehaviour:
     Map: {fileID: 6190918105606674834, guid: 0f97cf1b037c0ec4c8044537f62b8ee4, type: 3}
     Spawn: {fileID: 4900000, guid: bc4feb177f93c1344ad35bfc043ee872, type: 3}
     CameraSize: 3.6
+  - StageId: 8006
+    Map: {fileID: 1000, guid: d0b031715645554d8e883d5ad2e54965, type: 3}
+    Spawn: {fileID: 4900000, guid: 1915457068f705bc0d798729f1e0206a, type: 3}
+    CameraSize: 4.3
+    BackgroundPositions:
+    - Path: Background/Mountains/Fog_Far
+      LocalY: 0
+  - StageId: 8007
+    Map: {fileID: 1000, guid: 7222e5248c205efe96e73fe13d6c2e9b, type: 3}
+    Spawn: {fileID: 4900000, guid: d5bcb29a1de0e40d6b06cc440615c731, type: 3}
+    CameraSize: 4.3
+    BackgroundPositions:
+    - Path: Background/Mountains/Fog_Far
+      LocalY: 0
   _platforms:
   - {fileID: 9109195467246044568, guid: ddc56e26ecb3f4f4daf2d556292e3d67, type: 3}
   - {fileID: 8349585168332058385, guid: f97501e6f2b51314482953fbdb25dd0b, type: 3}
