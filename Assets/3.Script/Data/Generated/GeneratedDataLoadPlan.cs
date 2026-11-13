@@ -24,6 +24,7 @@ namespace HumanGhost.Data.Infrastructure
             await loader.LoadCsvAsync<GateConfig>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<HealthDisplayConfig>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<Language>(catalog, row => row.ID, token);
+            await loader.LoadCsvAsync<MonsterAggro>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<MonsterReward>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<MonsterSkill>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<Npc>(catalog, row => row.ID, token);
