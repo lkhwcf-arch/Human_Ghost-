@@ -1,4 +1,3 @@
 ID,CutsceneID,Order,MediaType,ResourceAddress,DurationMs,TextID,CanAdvance
 22101,22003,1,Video,Cutscene_Ending_Video,0,,N
-22102,22003,2,Image,Cutscene_Ending_LastFrame,3000,30069,Y
 22103,22001,1,Video,Cutscene_Intro_Video,0,,N
