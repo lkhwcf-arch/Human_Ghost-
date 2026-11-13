@@ -29,6 +29,12 @@ namespace HumanGhost.Gameplay.Preview
         public event Action PlayerDodged;
         // 추적 중이거나 패턴을 쓰는 동안입니다. 전투 BGM·HUD에 씁니다.
         public bool IsEngaged { get; private set; }
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        // 시험창에서 자동 선택·추적만 제어합니다. 선택한 패턴의 실행은 유지합니다.
+        public bool AutomaticPatterns { get; set; } = true;
+#else
+        private const bool AutomaticPatterns = true;
+#endif
 
         public PreviewBossDriver(BossRuntime runtime, PlayerRuntime player, SpriteRenderer body,
             SpriteRenderer playerBody, float worldUnitsPerTile, float range, float secondRange, float sight)
@@ -70,24 +76,24 @@ namespace HumanGhost.Gameplay.Preview
             bool phaseTwo = _runtime.Actor.Phase.Phase > 0 && combat.HasPhaseTwoPatterns;
             _platformMilliseconds = _playerBody.bounds.min.y - _body.bounds.min.y >= 1.5f * _worldUnitsPerTile
                 ? Math.Min(3001, _platformMilliseconds + milliseconds) : 0;
-            if (phaseTwo && _phaseTwo.DesperationPending && combat.IsAttacking)
+            if (AutomaticPatterns && phaseTwo && _phaseTwo.DesperationPending && combat.IsAttacking)
             { combat.Release(); combat.Face(offset < 0f ? -1 : 1); }
             int velocity = combat.Velocity;
             bool noticed = _sight <= 0f || Mathf.Abs(offset) <= _sight * _worldUnitsPerTile;
             IsEngaged = noticed;
-            if (phaseTwo && noticed && !combat.IsAttacking && !combat.IsWaiting)
+            if (AutomaticPatterns && phaseTwo && noticed && !combat.IsAttacking && !combat.IsWaiting)
             {
                 int index = _phaseTwo.Choose(Mathf.RoundToInt(Mathf.Abs(offset) / _worldUnitsPerTile * 100f), _platformMilliseconds);
                 if (index >= 0) combat.TryStart(index);
                 velocity = combat.Velocity;
             }
-            if (noticed && !combat.IsAttacking && !combat.IsWaiting && Mathf.Abs(offset) > _range * _worldUnitsPerTile)
+            if (AutomaticPatterns && noticed && !combat.IsAttacking && !combat.IsWaiting && Mathf.Abs(offset) > _range * _worldUnitsPerTile)
                 velocity = combat.Facing * _runtime.Actor.Definition.MoveSpeed;
             float extent = _body.bounds.extents.x;
             bool wall = _runtime.MoveHorizontal(_motion.StepHorizontal(velocity, milliseconds), minX + extent, maxX - extent);
             if (wall) _motion.ResetHorizontal();
             if (wall) combat.NotifyWallHit();
-            if (!phaseTwo && noticed && !combat.IsAttacking && !combat.IsWaiting) SelectPattern(Mathf.Abs(offset));
+            if (AutomaticPatterns && !phaseTwo && noticed && !combat.IsAttacking && !combat.IsWaiting) SelectPattern(Mathf.Abs(offset));
             if (combat.IsAirborne)
             {
                 float t = Mathf.Clamp01((combat.HitElapsed - (combat.HitIndex == 0 ? combat.CurrentPattern.Hits[0].Windup - 900 : 0)) / 900f);

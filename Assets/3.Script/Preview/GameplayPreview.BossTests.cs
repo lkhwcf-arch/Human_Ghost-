@@ -35,6 +35,7 @@ namespace HumanGhost.Gameplay.Preview
                     CloseBossTests(); GoToStage(BossStage, "Spawn_FromHyeopgok"); return;
                 }
                 if (!_bossActive || _boss == null || _boss.Actor == null || _boss.Actor.IsDead) return;
+                if ((command == BossTestCommand.Stop || command == BossTestCommand.Pattern) && _bossDriver == null) return;
                 if (command == BossTestCommand.Stop)
                 { _bossDriver.AutomaticPatterns = !_bossDriver.AutomaticPatterns; _boss.Combat.Release(); return; }
                 if (command == BossTestCommand.Pattern)
