@@ -20,19 +20,24 @@ namespace HumanGhost.Gameplay.Preview
             if (!CanEditorSpawnHitDummy) return;
             MonsterRuntime prefab = _content.GetMonster(3001);
             if (prefab == null) throw new System.InvalidOperationException("허수귀 프리팹을 연결해 주세요.");
+            if (TryGetEditorDummyPosition(prefab, 2f, out Vector3 position)) PlaceEditorHitDummy(prefab, position);
+        }
+
+        private bool TryGetEditorDummyPosition(MonsterRuntime prefab, float distance, out Vector3 position)
+        {
             Vector3 scale = prefab.GetComponentInChildren<SpriteRenderer>(true).transform.lossyScale;
             var halfSize = new Vector2(Mathf.Abs(scale.x), Mathf.Abs(scale.y)) * 0.5f;
-            Vector3 position = _player.transform.position + Vector3.right * (_actor.Facing * 2f * _worldUnitsPerTile);
+            position = _player.transform.position + Vector3.right * (_actor.Facing * distance * _worldUnitsPerTile);
             if (_stage != null) position.x = Mathf.Clamp(position.x, _stage.Area.min.x + halfSize.x, _stage.Area.max.x - halfSize.x);
             position.y += 3f * _worldUnitsPerTile;
             var collision = new PreviewCollision(_useMapCollision, _groundY - _playerHalfSize.y + halfSize.y, halfSize);
             if (!collision.FindFloor(position, 6f * _worldUnitsPerTile, out float gap))
             {
-                Debug.LogWarning("허수귀를 놓을 바닥이 없습니다. 바닥이 있는 곳으로 이동해 주세요.", this);
-                return;
+                Debug.LogWarning("테스트 몬스터를 놓을 바닥이 없습니다. 바닥이 있는 곳으로 이동해 주세요.", this);
+                return false;
             }
             position.y -= gap;
-            PlaceEditorHitDummy(prefab, position);
+            return true;
         }
 
         private void PlaceEditorHitDummy(MonsterRuntime prefab, Vector3 position)

@@ -21,6 +21,10 @@ namespace HumanGhost.Gameplay.Adapters
         // 이 몬스터가 공격자일 때의 회피·치명 난수. 패턴/대기 난수열과 분리합니다.
         public Func<int, int, int> HitRandom { get; private set; }
         public bool IsInitialized => Definition != null;
+#if UNITY_EDITOR
+        // 정지 테스트 개체만 사용합니다. 상태 변경·애니메이션은 그대로 작동합니다.
+        public bool FreezeForEditorTest { get; set; }
+#endif
         public event Action<Monster> Initialized;
 
         public void Initialize(IReadOnlyDataCatalog catalog, bool keepHealth = false)
@@ -43,6 +47,9 @@ namespace HumanGhost.Gameplay.Adapters
 
         private void Update()
         {
+#if UNITY_EDITOR
+            if (FreezeForEditorTest) return;
+#endif
             if (Actor == null || Actor.IsDead) return;
             Actor.Tick(_clock.Advance(Time.deltaTime));
         }

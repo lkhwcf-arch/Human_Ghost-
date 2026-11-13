@@ -104,6 +104,7 @@ namespace HumanGhost.Gameplay.Preview
         private float _executionRemaining;
 
         private bool _modalBlocked;
+        private bool _stageNamePending;
 
         public void SetModalBlocked(bool blocked)
         {
@@ -224,6 +225,7 @@ namespace HumanGhost.Gameplay.Preview
                 _stage?.Activate();
                 ApplyWalkableSpans();
                 ConnectSaves();
+                _stageNamePending = _textbox != null;
             }
             catch (Exception error)
             {
@@ -235,8 +237,10 @@ namespace HumanGhost.Gameplay.Preview
 
         private void OnDisable()
         {
+            _stageNamePending = false;
 #if UNITY_EDITOR
             ClearEditorHitDummy();
+            ClearEditorExecutionDummies();
 #endif
             if (_actor != null) _actor.ParrySucceeded -= OnParrySucceeded;
             if (_playerAudio != null) _playerAudio.Disconnect();
@@ -641,6 +645,10 @@ namespace HumanGhost.Gameplay.Preview
             if (_bossActive) ConsiderExecution(_boss, _boss.Actor, ref runtime, ref target, ref nearest);
             foreach (MonsterRuntime monster in _monsters)
                 ConsiderExecution(monster, monster.Actor, ref runtime, ref target, ref nearest);
+#if UNITY_EDITOR
+            foreach (MonsterRuntime dummy in _editorExecutionDummies)
+                if (dummy != null) ConsiderExecution(dummy, dummy.Actor, ref runtime, ref target, ref nearest);
+#endif
             return target;
         }
 
@@ -709,6 +717,7 @@ namespace HumanGhost.Gameplay.Preview
                     if (healthGroup == null) healthGroup = canvas.gameObject.AddComponent<CanvasGroup>();
                 }
                 _hud.Connect(_actor, _boss.Actor, catalog.GetTable<Language>().Get(30006).KO, _boss.Actor.Poise, _showBossGauge && _bossActive, healthGroup);
+                _hud.SetSkillName(catalog.GetTable<Language>().Get(catalog.GetTable<Skill>().Get(_skillId).TextID).KO);
                 _actor.StaminaRefused += _hud.FlashStamina;
             }
             _actor.HealthChanged += OnGameLayerHealthChanged;
@@ -823,6 +832,12 @@ namespace HumanGhost.Gameplay.Preview
             StepShrineClose();
             StepCutsceneFlow();
             if (_modalBlocked || _saveLocked || _leaving || LoadingScreen.IsActive || !_subscribed || !_player.isActiveAndEnabled || (_bossActive && !_boss.isActiveAndEnabled)) return;
+            if (_stageNamePending && CanPause() && (_textbox == null || !_textbox.IsOpen))
+            {
+                _stageNamePending = false;
+                try { _textbox.ShowStageName(_catalog.GetTable<Language>().Get(_catalog.GetTable<Stage>().Get(_stageId).TextID).KO); }
+                catch (Exception error) { Debug.LogException(error, this); }
+            }
             _facing = _actor.Facing;
             _deathRestart?.Step(_actor, Time.deltaTime);
             StepExecution(Time.deltaTime);

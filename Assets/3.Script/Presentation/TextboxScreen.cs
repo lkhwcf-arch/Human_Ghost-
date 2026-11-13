@@ -20,6 +20,7 @@ namespace HumanGhost.Gameplay.Presentation
         [SerializeField] private Text _objectiveText = null;
         [SerializeField] private GameObject _notice = null;
         [SerializeField] private Text _noticeText = null;
+        [SerializeField] private StageNameBanner _stageName = null;
         [SerializeField, InspectorName("스킵 안내")] private SkipHint _skipHint = null;
         private TextboxPlayback _playback;
         private Action _closed;
@@ -101,6 +102,8 @@ namespace HumanGhost.Gameplay.Presentation
             _closed = null;
             closed?.Invoke();
         }
+
+        public void ShowStageName(string text) => _stageName.Show(text);
 
         public void ShowObjective(string text)
         {

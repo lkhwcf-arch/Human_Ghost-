@@ -18,6 +18,7 @@ namespace HumanGhost.Gameplay.Presentation
         [SerializeField] private Text _herbs = null;
         [SerializeField] private Text _herbKey = null;
         [SerializeField] private Text _skill = null;
+        [SerializeField] private Text _skillName = null;
         [SerializeField] private GameObject _skillIcon = null;
         [SerializeField] private Text _skillKey = null;
         [SerializeField] private GameObject _bossRoot = null;
@@ -55,6 +56,8 @@ namespace HumanGhost.Gameplay.Presentation
             _staminaBack.color = new Color(0.05f, 0.05f, 0.05f, 0.8f);
             if (isActiveAndEnabled) Subscribe();
         }
+
+        public void SetSkillName(string text) { if (_skillName != null) _skillName.text = text; }
 
         public void Disconnect() { Unsubscribe(); _player = null; _boss = null; _extraGroups = new CanvasGroup[0]; }
         private void OnEnable() => Subscribe();
@@ -130,6 +133,7 @@ namespace HumanGhost.Gameplay.Presentation
             {
                 _shownSkill = _player.HasSkill; _skill.gameObject.SetActive(_player.HasSkill);
                 if (_skillIcon != null) _skillIcon.SetActive(_player.HasSkill);
+                if (_skillName != null) _skillName.gameObject.SetActive(_player.HasSkill);
                 _shownCooldown = -1;
             }
             if (_skillKey != null) _skillKey.transform.parent.gameObject.SetActive(KeyboardControls.Layout == KeyboardLayout.Wasd);

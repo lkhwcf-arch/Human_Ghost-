@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 namespace HumanGhost.Gameplay.Presentation
 {
-    // 설정 패널(O05·O05_1)입니다. 타이틀과 일시정지가 같은 프리팹을 씁니다. 그림은 공급 뒤 교체합니다.
+    // 설정 패널(O05·O05_1)입니다. 타이틀과 일시정지가 같은 프리팹을 씁니다. 그림과 조절 표시는 프리팹에서 연결합니다.
     public class SettingsScreen : MonoBehaviour
     {
         private const int _musicText = 30040, _effectsText = 30041, _shakeText = 30042, _onText = 30047, _offText = 30048, _confirmPopup = 15006;
@@ -20,8 +20,10 @@ namespace HumanGhost.Gameplay.Presentation
         [SerializeField] private Text _close = null;
         [SerializeField] private GameObject _confirm = null;
         [SerializeField] private Text _confirmBody = null, _confirmYes = null, _confirmNo = null;
-        private Text _layout;
-        private Text _windowMode;
+        [SerializeField] private Text _layout = null, _windowMode = null;
+        [SerializeField] private bool _paperStyle = false;
+        [SerializeField] private Slider[] _volumeSliders = Array.Empty<Slider>();
+        [SerializeField] private GameObject[] _rowHighlights = Array.Empty<GameObject>();
         private SettingsMenu _menu;
         private IReadOnlyDataTable<Language> _language;
         private Action<GameSettings> _preview;
@@ -31,7 +33,11 @@ namespace HumanGhost.Gameplay.Presentation
         private int _openedFrame;
         private bool CanInteract => !_inputBlocked && Time.frameCount > _openedFrame;
 
-        public void SetInputBlocked(bool blocked) => _inputBlocked = blocked;
+        public void SetInputBlocked(bool blocked)
+        {
+            _inputBlocked = blocked;
+            if (_menu != null) Render();
+        }
 
         public bool IsOpen => _menu != null;
 
@@ -51,7 +57,11 @@ namespace HumanGhost.Gameplay.Presentation
                 _menu = new SettingsMenu(settings, allowWindowMode);
                 _menu.Changed += Render;
                 ConnectPointer();
-                if (_windowMode != null) _windowMode.gameObject.SetActive(allowWindowMode);
+                if (_windowMode != null)
+                {
+                    _windowMode.gameObject.SetActive(allowWindowMode);
+                    if (_paperStyle) _windowMode.transform.parent.gameObject.SetActive(allowWindowMode);
+                }
                 gameObject.SetActive(true);
                 Render();
                 ScreenVisibility.RequireVisible(GetComponent<Canvas>());
@@ -71,12 +81,9 @@ namespace HumanGhost.Gameplay.Presentation
 
         private void ConnectPointer()
         {
-            if (_layout == null)
-            {
-                _layout = CreateRow("KeyboardLayout", -64f);
-                // 입력 콜백을 연결하기 전에 복제해 다른 행의 클릭 처리를 물려받지 않습니다.
-                _windowMode = CreateRow("WindowMode", -128f);
-            }
+            // 기존 프리팹은 행을 복제하고 새 시안은 미리 배치한 행을 사용합니다.
+            if (_layout == null) _layout = CreateRow("KeyboardLayout", -64f);
+            if (_windowMode == null) _windowMode = CreateRow("WindowMode", -128f);
             if (_connected) return;
             _connected = true;
             MenuText.Connect(_windowMode.gameObject, () => Select(SettingsRow.WindowMode),
@@ -105,6 +112,22 @@ namespace HumanGhost.Gameplay.Presentation
             MenuText.Connect(label.gameObject, () => Select(row), () => Select(row));
             MenuText.Connect(left.gameObject, null, () => { Select(row); Adjust(-1); });
             MenuText.Connect(right.gameObject, null, () => { Select(row); Adjust(1); });
+            Slider slider = VolumeSlider(row);
+            if (slider == null) return;
+            MenuText.Connect(slider.gameObject, () => Select(row), () => Select(row));
+            slider.onValueChanged.AddListener(value =>
+            {
+                if (!CanInteract || _menu == null || _menu.IsConfirming) { if (_menu != null) Render(); return; }
+                Select(row);
+                int current = row == SettingsRow.Master ? _menu.Current.Master : row == SettingsRow.Music ? _menu.Current.Music : _menu.Current.Effects;
+                Adjust(Mathf.RoundToInt(value) - current);
+            });
+        }
+
+        private Slider VolumeSlider(SettingsRow row)
+        {
+            int index = row == SettingsRow.Master ? 0 : row == SettingsRow.Music ? 1 : 2;
+            return index < _volumeSliders.Length ? _volumeSliders[index] : null;
         }
 
         private void Select(SettingsRow row) { if (CanInteract) _menu?.Select(row); }
@@ -167,24 +190,41 @@ namespace HumanGhost.Gameplay.Presentation
             if (_windowMode != null && _windowMode.gameObject.activeSelf)
             {
                 _windowMode.text = "화면 모드  ◀ " + (value.WindowMode == WindowMode.Windowed ? "창모드" : "전체 화면") + " ▶";
-                MenuText.SetSelected(_windowMode, _menu.Row == SettingsRow.WindowMode);
+                SetSelected(_windowMode, _menu.Row == SettingsRow.WindowMode);
             }
             _layout.text = "키보드 조작  " + (value.KeyboardLayout == KeyboardLayout.Arrows ? "A (방향키 · C/X/Space/Z/Q)" : "B (WASD · K/J/L/U/I)");
-            MenuText.SetSelected(_layout, _menu.Row == SettingsRow.KeyboardLayout);
+            SetSelected(_layout, _menu.Row == SettingsRow.KeyboardLayout);
             RenderVolume(_master, _masterTextId == 0 ? _masterTitle : _language.Get(_masterTextId).KO, value.Master, SettingsRow.Master);
             RenderVolume(_music, _language.Get(_musicText).KO, value.Music, SettingsRow.Music);
             RenderVolume(_effects, _language.Get(_effectsText).KO, value.Effects, SettingsRow.Effects);
             _shake.text = _language.Get(_shakeText).KO + "  " + _language.Get(value.CameraShake ? _onText : _offText).KO;
-            MenuText.SetSelected(_shake, _menu.Row == SettingsRow.CameraShake);
+            SetSelected(_shake, _menu.Row == SettingsRow.CameraShake);
+            for (int i = 0; i < _rowHighlights.Length; i++)
+                if (_rowHighlights[i] != null) _rowHighlights[i].SetActive(!_menu.IsConfirming && (int)_menu.Row == i);
             _confirm.SetActive(_menu.IsConfirming);
-            MenuText.SetSelected(_confirmYes, _menu.ConfirmYes);
-            MenuText.SetSelected(_confirmNo, !_menu.ConfirmYes);
+            SetSelected(_confirmYes, _menu.ConfirmYes);
+            SetSelected(_confirmNo, !_menu.ConfirmYes);
         }
 
         private void RenderVolume(Text label, string title, int value, SettingsRow row)
         {
-            label.text = title + "  " + Dots(value);
-            MenuText.SetSelected(label, _menu.Row == row);
+            Slider slider = VolumeSlider(row);
+            label.text = slider == null ? title + "  " + Dots(value) : title;
+            if (slider != null)
+            {
+                slider.SetValueWithoutNotify(value);
+                slider.interactable = !_inputBlocked && !_menu.IsConfirming;
+            }
+            SetSelected(label, _menu.Row == row);
+        }
+
+        private void SetSelected(Text text, bool selected)
+        {
+            MenuText.SetSelected(text, selected);
+            if (!_paperStyle) return;
+            bool button = text == _confirmYes || text == _confirmNo;
+            text.color = button ? (selected ? new Color(1f, .85f, .55f) : new Color(.75f, .7f, .63f))
+                : selected ? new Color(.42f, .08f, .04f) : new Color(.16f, .10f, .06f);
         }
 
         private static string Dots(int value)

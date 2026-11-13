@@ -1,0 +1,30 @@
+# UI 글꼴과 맵 도착 표시 설계
+
+2026-11-13. 사용 방법은 [기획자 안내](../기획자용%20안내문서/UI%20글꼴과%20맵%20도착%20표시%20안내.md)를 따릅니다.
+
+## 역할과 참조
+
+기존 uGUI Text 150개와 상호작용 TextMesh 1개에 제공 원본 Font를 직접 연결합니다. TMP 전환·새 폰트 생성·폰트/SDF/meta 변경은 하지 않았습니다. TextMesh의 Renderer도 해당 Font의 재질을 참조합니다. 공용 UI 프리팹과 상속 화면에 반영하며 런타임에 생성하는 키보드 선택/팝업은 기존 글꼴 복제 경로를 사용합니다.
+
+일반 UI는 DeogonPrincess, HudScreen._skillName과 TextboxScreen._noticeText는 SkyblessingInjeFont, StageNameBanner._label은 SSRockRegular입니다. HudScreen.SetSkillName에 조립자가 Skill.TextID의 Language.KO를 전달합니다. 기존 HasSkill 변경 시 아이콘/쿨타임과 함께 이름의 표시를 갱신합니다. 키/수량/쿨타임에는 일반 글꼴을 유지합니다.
+
+## 맵 도착 표시
+
+StageNameBanner는 Text·CanvasGroup과 시간만 소유합니다. Show(string)으로 이름을 받아 등장/유지/퇴장을 계산하고 종료 시 비활성화합니다. unscaledDeltaTime을 사용하고 입력/씬/데이터/저장에는 관여하지 않습니다. CanvasGroup의 입력 차단과 상호작용은 끕니다. Show 재호출은 이름과 경과 시간을 교체합니다.
+
+TextboxScreen의 명시적 직렬화 참조가 배너에 전달합니다. GameplayPreview는 진입 준비 시 한 번 표시를 예약하고, 저장 복원/로딩/모달 차단이 끝나고 대화·일시정지/암전이 없는 시점에 Stage.TextID → Language.KO를 전달합니다. 표시 예외는 해당 호출 경계에서 기록하며 게임 규칙을 재실행하지 않습니다. OnDisable은 예약을 취소하고 실제 표시 객체는 소유 씬과 함께 정리됩니다. 맵 배치·기존 씬/meta·데이터 원본은 변경하지 않았습니다.
+
+## 하단 아이템 크기
+
+HerbItemFrame·SkillArtwork의 배율은 1.5, 중심은 각각 (90,85)/(240,85)입니다. 기존 분할 그림·키·수량·쿨타임 자식들이 같은 확대를 상속합니다. SkillName도 SkillArtwork 자식이며 오른쪽 위에 배치했습니다. 아이템 규칙·수량·키보드 선택·쿨타임·HUD 평상시 70%/전투 100% 정책은 유지합니다.
+
+## 검증 범위
+
+- Native 255: 150개 Text 역할별 연결, TextMesh 재질, 현재 Language.KO 전체 글자 지원, 맵명 5종, 0→0.5→1→0.5→0 페이드·재진입·입력 비차단, 대사/ESC/스킬/맵명/확대 카드의 두 해상도 배치·글자 생성/세로 잘림·여백/카드 간격.
+- Native 3: 실제 PlayerRuntime/HasSkill 해금 전 숨김 → 데이터 스킬명/전용 글꼴 표시.
+- Native 60: 새 글꼴에서도 기존 옵션 값 변경·적용/취소·입력 차단·공유 프리팹·아틀라스 8종 바인딩 유지.
+- Edit 격리이며 전체 Play·청취·설정 파일 기록·실제 씬 왕복·빌드는 미실행입니다. 코어/데이터 정의·배포값은 변경하지 않았습니다.
+
+## 후속 메뉴·대사 배치
+
+ESC 목재·옵션 원본Sprite 직접참조/자동atlas포함·NPC 이름/본문/넘김 정렬은 프리팹3개와 기존 옵션atlas 설정으로 처리했습니다. C#·원본/meta·맵·데이터는 변경하지 않았습니다. 역할별 폰트·StageNameBanner·하단150%와 기존 설정/대사 진행 규칙은 유지합니다. [참고 화면·현재 배치값·412항목 검증](UI%20메뉴%20레퍼런스%20비교와%20배치%20기준.md)
