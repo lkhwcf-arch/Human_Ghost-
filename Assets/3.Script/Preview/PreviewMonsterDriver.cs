@@ -20,6 +20,7 @@ namespace HumanGhost.Gameplay.Preview
         private readonly int _playerTargetId;
         private readonly float _worldUnitsPerTile;
         private readonly IntegerMotion _motion = new IntegerMotion();
+        private readonly Action<int, StateKey, int> _applyHitEffects;
         private MillisecondClock _clock;
         private PreviewThrownProjectile _projectile;
         private PreviewGroundFireView _fire;
@@ -42,7 +43,7 @@ namespace HumanGhost.Gameplay.Preview
 
         // targetId: 이 몬스터의 장면 내 양수 개체 ID, playerTargetId: 플레이어의 개체 ID(데이터 ID와 별개).
         public PreviewMonsterDriver(MonsterRuntime runtime, PlayerRuntime player, SpriteRenderer playerBody, SpriteRenderer attackWindow,
-            int targetId, int playerTargetId, float worldUnitsPerTile)
+            int targetId, int playerTargetId, float worldUnitsPerTile, Action<int, StateKey, int> applyHitEffects = null)
         {
             _runtime = runtime != null ? runtime : throw new ArgumentNullException(nameof(runtime));
             _player = player != null ? player : throw new ArgumentNullException(nameof(player));
@@ -52,6 +53,7 @@ namespace HumanGhost.Gameplay.Preview
             runtime.ConfigureSpatialScale(worldUnitsPerTile);
             _monster = runtime.Actor ?? throw new InvalidOperationException("일반몹 초기화가 필요합니다.");
             _targetId = targetId; _playerTargetId = playerTargetId; _worldUnitsPerTile = worldUnitsPerTile;
+            _applyHitEffects = applyHitEffects;
             // 매복 몬스터는 꺼진 채 연결합니다.
             _body = runtime.GetComponentInChildren<SpriteRenderer>(true);
             if (_body == null) throw new InvalidOperationException("일반몹 임시 사각형이 없습니다.");
@@ -178,8 +180,11 @@ namespace HumanGhost.Gameplay.Preview
             bool touching = pattern.IsProjectile ? _projectile != null && _projectile.IsFlying && _projectile.Bounds.Intersects(target) :
                 pattern.IsCharge ? own.Intersects(target) : sameHeight && inFront && Distance(offset) <= pattern.Range;
             int direction = System.Math.Sign(_runtime.transform.position.x - _player.transform.position.x);
-            if (touching && _monster.TryHitPlayer(_playerTargetId, actor, _runtime.HitRandom, direction) == HitOutcome.Dodged)
-                PlayerDodged?.Invoke();
+            if (!touching) return;
+            HitOutcome outcome = _monster.TryHitPlayer(_playerTargetId, actor, _runtime.HitRandom, direction);
+            if (outcome == HitOutcome.Dodged) PlayerDodged?.Invoke();
+            else if ((outcome == HitOutcome.Hit || outcome == HitOutcome.Critical) && !actor.IsDead)
+                _applyHitEffects?.Invoke(_runtime.MonsterId, pattern.Key, direction == 0 ? _monster.Facing : -direction);
         }
 
         private int Distance(float offset) => Mathf.RoundToInt(Mathf.Abs(offset) / _worldUnitsPerTile * 100f);

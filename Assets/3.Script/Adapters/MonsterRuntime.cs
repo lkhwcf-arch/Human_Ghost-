@@ -43,7 +43,11 @@ namespace HumanGhost.Gameplay.Adapters
         }
 
         // 비활성화 시 남은 구속·판정·돌진을 정리합니다. 재활성 후 새 관측부터 다시 판단합니다.
-        private void OnDisable() => Actor?.Release();
+        private void OnEnable() => NotifyAvailability(true);
+        private void OnDisable()
+        {
+            SubscriptionScope.Cleanup(() => NotifyAvailability(false), () => Actor?.Release());
+        }
 
         private void Update()
         {

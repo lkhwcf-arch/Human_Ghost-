@@ -19,6 +19,9 @@ namespace HumanGhost.Gameplay.Preview
         public Transform Markers { get; }
         public Transform Interactables { get; }
         private readonly List<MonsterRuntime> _monsters = new List<MonsterRuntime>();
+        private readonly Dictionary<int, Vector3> _placementOrigins = new Dictionary<int, Vector3>();
+        public Vector3 GetPlacementOrigin(int placementID) => _placementOrigins.TryGetValue(placementID, out var origin)
+            ? origin : throw new InvalidOperationException("필드 효과의 플랫폼 배치를 찾을 수 없습니다: " + placementID);
         private readonly Dictionary<MonsterRuntime, MonsterSpawnId> _monsterIds = new Dictionary<MonsterRuntime, MonsterSpawnId>();
         public IReadOnlyList<MonsterRuntime> Monsters => _monsters;
         public IReadOnlyDictionary<MonsterRuntime, MonsterSpawnId> MonsterIds => _monsterIds;
@@ -77,6 +80,7 @@ namespace HumanGhost.Gameplay.Preview
             UnityEngine.Object.Destroy(_root);
             _root = null;
             _ambushes.Clear(); _monsters.Clear(); _monsterIds.Clear();
+            _placementOrigins.Clear();
         }
 
         private void Build(StageContentSet content, StageLayout layout, IReadOnlyDataCatalog data)
@@ -92,6 +96,9 @@ namespace HumanGhost.Gameplay.Preview
                 platform.name = prefab.name;
                 platform.SetActive(true);
                 placed[placement.PlacementID] = placement;
+                _placementOrigins.Add(placement.PlacementID, new Vector3(platform.transform.position.x,
+                    StageLayoutRules.UsesGroundLine(placement.Prefab) ? MapRoot.position.y + _groundLine : platform.transform.position.y,
+                    platform.transform.position.z));
             }
             IReadOnlyDataTable<Monster> table = data.GetTable<Monster>();
             var known = new HashSet<int>();

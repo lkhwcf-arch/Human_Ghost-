@@ -19,6 +19,7 @@ namespace HumanGhost.Gameplay.Preview
         private readonly PreviewFallZones _fallZones;
         private readonly Vector2 _halfSize;
         private readonly IntegerMotion _motion = new IntegerMotion();
+        private readonly IntegerMotion _knockback = new IntegerMotion();
         private MillisecondClock _clock;
         private int _coyoteRemaining;
         private int _jumpBufferRemaining;
@@ -92,6 +93,15 @@ namespace HumanGhost.Gameplay.Preview
         {
             if (duration > 0) _motion.StartRoll(direction, distance, duration);
             else _motion.StopRoll();
+        }
+
+        public void StartKnockback(int direction, int distance, int duration)
+        {
+            if (_player.Actor.IsDead) return;
+            StopClimbing();
+            DiscardBufferedInput();
+            _motion.StopRoll();
+            _knockback.StartRoll(direction, distance, duration);
         }
 
         // 공중 점프 입력은 착지 직전 선입력으로, 매달린 중에는 올라가기로 씁니다.
@@ -279,7 +289,7 @@ namespace HumanGhost.Gameplay.Preview
                 _hangEdge = null; _airborne = true; _motion.SetVerticalSpeed();
                 _peakY = _player.Position.Y;
             }
-            if (actor.IsDead) _motion.StopRoll();
+            if (actor.IsDead) { _motion.StopRoll(); _knockback.StopRoll(); }
             IntegerPosition previous = _player.Position;
             Vector3 position = _player.ToWorld(previous);
             float previousFeet = position.y - _halfSize.y;
@@ -289,7 +299,7 @@ namespace HumanGhost.Gameplay.Preview
             long x = checked(previous.X + (allowed == requested ? delta : _player.ToInteger(allowed)));
             if (!float.IsNegativeInfinity(minX)) x = Math.Max(x, _player.ToInteger(minX));
             if (!float.IsPositiveInfinity(maxX)) x = Math.Min(x, _player.ToInteger(maxX));
-            if (allowed != requested || x != previous.X + delta) _motion.ResetHorizontal();
+            if (allowed != requested || x != previous.X + delta) { _motion.ResetHorizontal(); _knockback.StopRoll(); }
             position.x = _player.ToWorld(x);
             long y = MoveVertical(position, previous.Y, milliseconds);
             _player.SetPosition(new IntegerPosition(x, y));
@@ -302,6 +312,7 @@ namespace HumanGhost.Gameplay.Preview
 
         private long GetHorizontalDelta(PlayerActor actor, int milliseconds)
         {
+            if (_knockback.IsRolling) return _knockback.StepRoll(milliseconds);
             StateKey state = actor.CurrentState;
             bool canFinishRoll = state == StateKey.Roll || state == StateKey.Skill1 || state == StateKey.Idle || state == StateKey.Walk || state == StateKey.Jump;
             if (_motion.IsRolling && canFinishRoll) return _motion.StepRoll(milliseconds);

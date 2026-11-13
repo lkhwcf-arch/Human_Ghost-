@@ -11,6 +11,7 @@ namespace HumanGhost.Gameplay.Adapters
     [DefaultExecutionOrder(-50)]
     public class ErrorPopupSceneBinding : MonoBehaviour
     {
+        private const int _unavailableMessageTextId = 30330;
         [SerializeField, InspectorName("데이터 초기화")] private GameDataInitializer _initializer = null;
         [SerializeField, InspectorName("씬 이벤트 시스템")] private EventSystem _events = null;
         [SerializeField, InspectorName("에러 호스트 프리팹")] private ErrorPopupHost _prefab = null;
@@ -52,6 +53,9 @@ namespace HumanGhost.Gameplay.Adapters
                 ErrorPopupHost.WriteError(displayError, this);
             }
         }
+
+        public void ReportUnavailable(Exception error, int featureTextId, UnityEngine.Object context = null, string state = "")
+            => ReportUnavailable(error, _unavailableMessageTextId, featureTextId, context, state);
 
         protected virtual void OnEnable()
         {

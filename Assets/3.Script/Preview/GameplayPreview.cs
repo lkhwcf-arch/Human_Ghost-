@@ -170,7 +170,7 @@ namespace HumanGhost.Gameplay.Preview
                     if (monster == null) throw new InvalidOperationException("일반몹 데이터 수신 참조를 연결하세요.");
                     if (!monster.IsInitialized) monster.Initialize(catalog);
                     _monsterDrivers[i] = new PreviewMonsterDriver(monster, _player, _playerBody, _attackWindow,
-                        _firstMonsterTargetId + i, _playerTargetId, _worldUnitsPerTile);
+                        _firstMonsterTargetId + i, _playerTargetId, _worldUnitsPerTile, ApplyMonsterHitEffects);
                 }
                 _bossDriver?.Dispose();
                 _bossDriver = !_bossActive || _boss.Combat == null ? null : new PreviewBossDriver(_boss, _player, _bossBody, _playerBody,
@@ -222,6 +222,7 @@ namespace HumanGhost.Gameplay.Preview
                 SetPlayable(false);
                 ConnectProgress();
                 _boss.gameObject.SetActive(_bossActive);
+                ConnectFields(catalog);
                 _stage?.Activate();
                 ApplyWalkableSpans();
                 ConnectSaves();
@@ -237,6 +238,8 @@ namespace HumanGhost.Gameplay.Preview
 
         private void OnDisable()
         {
+            try { DisconnectFields(); }
+            catch (Exception error) { Debug.LogException(error, this); }
             _stageNamePending = false;
 #if UNITY_EDITOR
             ClearEditorHitDummy();
@@ -382,6 +385,7 @@ namespace HumanGhost.Gameplay.Preview
             _motion?.DiscardBufferedInput();
             _input.DiscardBufferedInput();
             _input.SetLocked(locked || _loadingLocked || _saveLocked || _leaving || _actor.IsDead || (_textbox != null && _textbox.IsOpen) || (_pause != null && _pause.IsOpen));
+            _fields?.SetReady(!_loadingLocked && !_saveLocked && !_leaving);
             RefreshDialogueSkipHint();
         }
         private void OnPlayerHealthChanged(int health) { if (_textbox != null) _textbox.Close(); }
@@ -857,6 +861,7 @@ namespace HumanGhost.Gameplay.Preview
             // 보스는 고정 한계 대신 실제 맵 범위에서 막습니다. 고정 한계는 맵1 기준이라 보스방 돌진이 벽을 지나쳤습니다.
             // 보스방 좌우 벽 두께 1(카메라 범위와 같은 기준)을 빼 벽 안쪽 면에서 멈추고 벽 충돌을 알립니다.
             _bossDriver?.Step(Time.deltaTime, _stage != null ? _stage.Area.min.x + 1f : combatMin, _stage != null ? _stage.Area.max.x - 1f : combatMax);
+            StepFields();
             CheckPlayerHits();
             HandlePreviewKeys();
             RefreshLabels();

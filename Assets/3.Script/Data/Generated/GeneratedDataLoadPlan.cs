@@ -17,7 +17,10 @@ namespace HumanGhost.Data.Infrastructure
             await loader.LoadCsvAsync<Cutscene>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<CutsceneStep>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<Dialogue>(catalog, row => row.ID, token);
+            await loader.LoadCsvAsync<EnumDefinition>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<ExecuteReward>(catalog, row => row.ID, token);
+            await loader.LoadCsvAsync<FieldObject>(catalog, row => row.ID, token);
+            await loader.LoadCsvAsync<FieldObjectPlacement>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<GateConfig>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<HealthDisplayConfig>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<Language>(catalog, row => row.ID, token);
