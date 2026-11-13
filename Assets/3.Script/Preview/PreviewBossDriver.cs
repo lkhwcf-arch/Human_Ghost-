@@ -16,16 +16,19 @@ namespace HumanGhost.Gameplay.Preview
         private readonly float _secondRange;
         private readonly float _sight;
         private int _nextPattern;
+        private readonly BossPhaseTwoSelector _phaseTwo;
+        private int _platformMilliseconds, _preparedHit = -1;
+        private BossPattern _preparedPattern;
+        private float _minX, _maxX, _landingX, _leapStartX;
+        public float LandingX => _landingX;
         private MillisecondClock _clock;
         private readonly IntegerMotion _motion = new IntegerMotion();
         private readonly IntegerMotion _pullMotion = new IntegerMotion();
         public event Action PlayerHit;
+        public event Action<bool> HitResolving;
         public event Action PlayerDodged;
         // 추적 중이거나 패턴을 쓰는 동안입니다. 전투 BGM·HUD에 씁니다.
         public bool IsEngaged { get; private set; }
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-        public bool AutomaticPatterns { get; set; } = true;
-#endif
 
         public PreviewBossDriver(BossRuntime runtime, PlayerRuntime player, SpriteRenderer body,
             SpriteRenderer playerBody, float worldUnitsPerTile, float range, float secondRange, float sight)
@@ -42,36 +45,54 @@ namespace HumanGhost.Gameplay.Preview
             _secondRange = secondRange;
             _sight = sight;
             runtime.Combat.AttackWindowChanged += OnAttackWindowChanged;
+            runtime.Combat.AirborneChanged += OnAirborneChanged;
+            _phaseTwo = new BossPhaseTwoSelector(runtime.Combat);
+            runtime.Combat.PatternStarted += _phaseTwo.Started;
         }
 
         public void Dispose()
         {
             _runtime.Combat.AttackWindowChanged -= OnAttackWindowChanged;
+            _runtime.Combat.AirborneChanged -= OnAirborneChanged;
+            _runtime.Combat.PatternStarted -= _phaseTwo.Started;
             _runtime.Combat.Release();
         }
 
         public void Step(float seconds, float minX, float maxX)
         {
             BossCombat combat = _runtime.Combat;
-            if (!_runtime.isActiveAndEnabled || _runtime.Actor.IsDead || _runtime.Actor.IsExposed || _runtime.Actor.IsInvulnerable) return;
+            if (!_runtime.isActiveAndEnabled || _runtime.Actor.IsDead || _runtime.Actor.IsExposed || _runtime.Actor.IsTransitioning || _runtime.Actor.CurrentState == HumanGhost.Data.Definitions.StateKey.Execute) return;
             if (_player.Actor.IsDead) { combat.Release(); return; }
             float offset = _player.transform.position.x - _runtime.transform.position.x;
-            if (!combat.IsAttacking) combat.Face(offset < 0f ? -1 : 1);
+            combat.Face(offset < 0f ? -1 : 1);
+            _minX = minX + _body.bounds.extents.x; _maxX = maxX - _body.bounds.extents.x;
             int milliseconds = _clock.Advance(seconds);
+            bool phaseTwo = _runtime.Actor.Phase.Phase > 0 && combat.HasPhaseTwoPatterns;
+            _platformMilliseconds = _playerBody.bounds.min.y - _body.bounds.min.y >= 1.5f * _worldUnitsPerTile
+                ? Math.Min(3001, _platformMilliseconds + milliseconds) : 0;
+            if (phaseTwo && _phaseTwo.DesperationPending && combat.IsAttacking)
+            { combat.Release(); combat.Face(offset < 0f ? -1 : 1); }
             int velocity = combat.Velocity;
             bool noticed = _sight <= 0f || Mathf.Abs(offset) <= _sight * _worldUnitsPerTile;
-            bool automatic = true;
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-            automatic = AutomaticPatterns;
-#endif
             IsEngaged = noticed;
-            if (automatic && noticed && !combat.IsAttacking && !combat.IsWaiting && Mathf.Abs(offset) > _range * _worldUnitsPerTile)
+            if (phaseTwo && noticed && !combat.IsAttacking && !combat.IsWaiting)
+            {
+                int index = _phaseTwo.Choose(Mathf.RoundToInt(Mathf.Abs(offset) / _worldUnitsPerTile * 100f), _platformMilliseconds);
+                if (index >= 0) combat.TryStart(index);
+                velocity = combat.Velocity;
+            }
+            if (noticed && !combat.IsAttacking && !combat.IsWaiting && Mathf.Abs(offset) > _range * _worldUnitsPerTile)
                 velocity = combat.Facing * _runtime.Actor.Definition.MoveSpeed;
             float extent = _body.bounds.extents.x;
             bool wall = _runtime.MoveHorizontal(_motion.StepHorizontal(velocity, milliseconds), minX + extent, maxX - extent);
             if (wall) _motion.ResetHorizontal();
             if (wall) combat.NotifyWallHit();
-            if (automatic && noticed && !combat.IsAttacking && !combat.IsWaiting) SelectPattern(Mathf.Abs(offset));
+            if (!phaseTwo && noticed && !combat.IsAttacking && !combat.IsWaiting) SelectPattern(Mathf.Abs(offset));
+            if (combat.IsAirborne)
+            {
+                float t = Mathf.Clamp01((combat.HitElapsed - (combat.HitIndex == 0 ? combat.CurrentPattern.Hits[0].Windup - 900 : 0)) / 900f);
+                var position = _runtime.transform.position; position.x = Mathf.Lerp(_leapStartX, _landingX, t); _runtime.SetPosition(position);
+            }
             CheckHit();
             Pull(milliseconds);
         }
@@ -85,6 +106,7 @@ namespace HumanGhost.Gameplay.Preview
             {
                 int index = _nextPattern++ % combat.PatternCount;
                 BossPattern pattern = combat.GetPattern(index);
+                if (pattern.Kind != BossPatternKind.Legacy) continue;
                 if (melee ? pattern.IsChain : !pattern.IsChain || distance > pattern.Range / 100f * _worldUnitsPerTile) continue;
                 if (combat.TryStart(index)) return;
             }
@@ -102,20 +124,45 @@ namespace HumanGhost.Gameplay.Preview
 
         }
 
+        private void OnAirborneChanged(bool airborne)
+        {
+            if (_runtime.Combat.CurrentPattern == null) return;
+            if (airborne) { _leapStartX = _runtime.transform.position.x; _landingX = Mathf.Clamp(_player.transform.position.x, _minX, _maxX); _runtime.LandingX = _landingX; }
+            else { var position = _runtime.transform.position; position.x = _landingX; _runtime.SetPosition(position); }
+        }
+
         private void OnAttackWindowChanged(bool active) { if (active) CheckHit(); }
 
         private void CheckHit()
         {
             BossCombat combat = _runtime.Combat;
             if (!_runtime.isActiveAndEnabled || !_player.isActiveAndEnabled || !combat.IsAttackActive) return;
+            var pattern = combat.CurrentPattern;
+            if (_preparedPattern != pattern || _preparedHit != combat.HitIndex)
+            {
+                _preparedPattern = pattern; _preparedHit = combat.HitIndex;
+                if (pattern.Kind == BossPatternKind.TripleSlam)
+                    _runtime.MoveHorizontal(combat.Facing * IntegerPosition.UnitsPerTile, _minX, _maxX);
+            }
             Bounds own = _body.bounds, target = _playerBody.bounds;
             float offset = _player.transform.position.x - _runtime.transform.position.x;
             float range = combat.CurrentPattern.IsChain ? combat.CurrentPattern.Range / 100f : combat.HitIndex > 0 ? _secondRange : _range;
             bool touching = combat.IsCharging ? own.Intersects(target) :
                 target.min.y <= own.max.y && target.max.y >= own.min.y && offset * combat.Facing >= 0f && Mathf.Abs(offset) <= range * _worldUnitsPerTile;
+            if (pattern.Areas.Count > 0)
+            {
+                float origin = pattern.Kind == BossPatternKind.DesperationLeap ? _landingX : _runtime.transform.position.x;
+                touching = BossHitGeometry.Contains(pattern.Areas[combat.HitIndex],
+                    Mathf.RoundToInt((_player.transform.position.x - origin) / _worldUnitsPerTile * 100f),
+                    Mathf.RoundToInt((target.min.y - own.min.y) / _worldUnitsPerTile * 100f),
+                    Mathf.RoundToInt((target.max.y - own.min.y) / _worldUnitsPerTile * 100f), combat.Facing);
+            }
             if (!touching) return;
             int direction = System.Math.Sign(_runtime.transform.position.x - _player.transform.position.x);
-            HitOutcome outcome = combat.TryHitPlayer(1, _player.Actor, _runtime.HitRandom, direction);
+            HitOutcome outcome;
+            HitResolving?.Invoke(true);
+            try { outcome = combat.TryHitPlayer(1, _player.Actor, _runtime.HitRandom, direction); }
+            finally { HitResolving?.Invoke(false); }
             if (outcome >= HitOutcome.Hit) PlayerHit?.Invoke();
             else if (outcome == HitOutcome.Dodged) PlayerDodged?.Invoke();
         }

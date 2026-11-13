@@ -6551,16 +6551,16 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 12800000, guid: eb91343106357314ebb5e00556225887, type: 3}
-    m_FontSize: 60
+    m_FontSize: 38
     m_FontStyle: 0
-    m_BestFit: 0
-    m_MinSize: 10
-    m_MaxSize: 60
+    m_BestFit: 1
+    m_MinSize: 24
+    m_MaxSize: 38
     m_Alignment: 3
-    m_AlignByGeometry: 0
+    m_AlignByGeometry: 1
     m_RichText: 0
-    m_HorizontalOverflow: 1
-    m_VerticalOverflow: 1
+    m_HorizontalOverflow: 0
+    m_VerticalOverflow: 0
     m_LineSpacing: 1
   m_Text: 12%
 --- !u!1 &6796281433649650037
@@ -6784,16 +6784,16 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 12800000, guid: eb91343106357314ebb5e00556225887, type: 3}
-    m_FontSize: 60
+    m_FontSize: 38
     m_FontStyle: 0
-    m_BestFit: 0
-    m_MinSize: 10
-    m_MaxSize: 60
+    m_BestFit: 1
+    m_MinSize: 24
+    m_MaxSize: 38
     m_Alignment: 3
-    m_AlignByGeometry: 0
+    m_AlignByGeometry: 1
     m_RichText: 0
-    m_HorizontalOverflow: 1
-    m_VerticalOverflow: 1
+    m_HorizontalOverflow: 0
+    m_VerticalOverflow: 0
     m_LineSpacing: 1
   m_Text: 15%
 --- !u!1 &2174062316785921919

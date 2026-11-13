@@ -80,6 +80,7 @@ Transform:
   - {fileID: 998006}
   - {fileID: 998008}
   - {fileID: 998010}
+  - {fileID: 998012}
   - {fileID: 6220235584838886640}
   - {fileID: 4587536170018981118}
   - {fileID: 2808368098544216317}
@@ -569,6 +570,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 100111}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &998011
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 998012}
+  m_Layer: 0
+  m_Name: Anchor_Air_Platform_14
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &998012
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 998011}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 92, y: 6, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 100111}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &252210907374017830
 GameObject:
   m_ObjectHideFlags: 0
@@ -596,7 +628,7 @@ Transform:
   m_GameObject: {fileID: 252210907374017830}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 93, y: 9.100637, z: 0}
+  m_LocalPosition: {x: 93, y: 5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -646,7 +678,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1.640625, y: 10.201274}
+  m_Size: {x: 1.640625, y: 2}
   m_EdgeRadius: 0
 --- !u!114 &8900882822395167548
 MonoBehaviour:
