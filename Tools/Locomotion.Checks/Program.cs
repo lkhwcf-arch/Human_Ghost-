@@ -34,6 +34,9 @@ internal static class Program
             _checks += CombatChecks.Run(definition);
             _checks += MonsterChecks.Run(definition);
             _checks += BossChecks.Run(definition);
+            BossPhaseTwoChecks.Run(definition, Check);
+            BossHitReactionChecks.Run(definition, Check);
+            ExecutionRewardChecks.Run(Check);
             _checks += HealthDisplayChecks.Run(definition);
             _checks += NotificationChecks.Run(definition);
             _checks += ContentAccessChecks.Run();

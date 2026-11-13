@@ -74,10 +74,12 @@ namespace HumanGhost.Gameplay.Preview
             _audio?.PlayEffect("SFX_PARRY");
         }
 
-        public void OnPlayerDamaged(bool byBoss)
+        public void OnPlayerDamaged(bool byBoss, bool knockedDown = false, SpriteRenderer target = null)
         {
-            if (byBoss) _speed?.State.HitStop(_bossHitStop);
-            _camera?.Shake(0.15f, 0.2f);
+            if (knockedDown) _speed?.State.Critical(_bossHitStop, _criticalSlow, _criticalSlowRate);
+            else if (byBoss) _speed?.State.HitStop(_bossHitStop);
+            if (knockedDown && target != null) ShowImpact(target, target.bounds.center, 1);
+            _camera?.Shake(knockedDown ? .25f : .15f, knockedDown ? .25f : .2f);
         }
 
         // 다른 표시가 색을 정한 뒤 마지막에 덮습니다.

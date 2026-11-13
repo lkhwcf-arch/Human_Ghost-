@@ -262,6 +262,8 @@ MonoBehaviour:
     _clip: {fileID: 7400000, guid: 45a4b175e2801194ab9b5ead50d099e0, type: 2}
     _hitFrames: []
   _monster: {fileID: 2212268001790328552}
+  _playerExecution: {fileID: 7400000, guid: 1ac8e6dbc68db584980028c0845a124b, type: 2}
+  _executionGround: {fileID: 355008253869052996}
 --- !u!114 &6965768712322212286
 MonoBehaviour:
   m_ObjectHideFlags: 0

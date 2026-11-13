@@ -92,6 +92,9 @@ namespace HumanGhost.Gameplay.Preview
         private void Awake()
         {
             _camera = GetComponent<Camera>();
+            // 맵/투명 레이어 밖도 게임용 불투명 암색으로 지웁니다.
+            _camera.clearFlags = CameraClearFlags.SolidColor;
+            _camera.backgroundColor = new Color(.012f,.008f,.01f,1f);
             if (_target != null) _player = _target.GetComponentInParent<PlayerRuntime>();
         }
         private void OnEnable() { if (_target != null) transform.position = GetGoal(); }

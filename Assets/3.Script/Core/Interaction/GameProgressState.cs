@@ -8,6 +8,13 @@ namespace HumanGhost.Gameplay
     {
         private readonly HashSet<int> _openedGates = new HashSet<int>();
         private readonly HashSet<int> _activeShrines = new HashSet<int>();
+        private readonly HashSet<int> _viewedDialogues = new HashSet<int>();
+        public bool HasViewedDialogue(int id) => _viewedDialogues.Contains(id);
+        public void MarkDialogueViewed(int id)
+        {
+            if (id <= 0) throw new ArgumentOutOfRangeException(nameof(id));
+            _viewedDialogues.Add(id);
+        }
         private readonly HashSet<int> _viewedCutscenes = new HashSet<int>();
         private readonly HashSet<MonsterSpawnId> _defeatedMonsters = new HashSet<MonsterSpawnId>();
         public StageProgress Progress { get; private set; } = new StageProgress();

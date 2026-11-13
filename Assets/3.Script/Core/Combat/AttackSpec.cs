@@ -14,9 +14,9 @@ namespace HumanGhost.Gameplay
         public int StaminaCost { get; }
         public int TotalTime { get; }
 
-        public AttackSpec(int windup, int active, int recovery, int comboWindow, int extraDamage, int poiseDamage, int staminaCost)
+        public AttackSpec(int windup, int active, int recovery, int comboWindow, int extraDamage, int poiseDamage, int staminaCost, bool immediate = false)
         {
-            if (windup <= 0 || active <= 0 || recovery < 0 || comboWindow < 0 || comboWindow > recovery || poiseDamage < 0 || staminaCost < 0)
+            if (windup < 0 || (windup == 0 && !immediate) || active <= 0 || recovery < 0 || comboWindow < 0 || comboWindow > recovery || poiseDamage < 0 || staminaCost < 0)
                 throw new ArgumentOutOfRangeException(nameof(windup), "공격 시간·소모·체세 피해 범위를 확인하세요.");
             TotalTime = checked(windup + active + recovery);
             Windup = windup; Active = active; Recovery = recovery; ComboWindow = comboWindow;

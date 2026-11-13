@@ -38,7 +38,9 @@ namespace HumanGhost.Gameplay
         public bool IsAirAttacking => _combo.Index == 4;
         public int AttackElapsed => IsAttacking || _usingSkill ? _elapsed : 0;
         // 공중 평타는 행동 잠금을 유지하면서 수평 조작만 허용합니다.
-        public int HorizontalMoveSpeed => CurrentState == StateKey.Heal ? HealMoveSpeed :
+        private int _bossSlowRemaining, _bossSlowRate = 10000;
+        public int HorizontalMoveSpeed => (int)((long)UnmodifiedMoveSpeed * (_bossSlowRemaining > 0 ? _bossSlowRate : 10000) / 10000);
+        private int UnmodifiedMoveSpeed => CurrentState == StateKey.Heal ? HealMoveSpeed :
             IsAirAttacking && !Locomotion.IsGrounded ? Locomotion.Direction * Definition.MoveSpeed : Locomotion.HorizontalSpeed;
         public bool IsAttackActive => _attackWindow.IsActive;
         public AttackSpec CurrentAttack => _usingSkill ? _skill.Attack : _combo.Current;
@@ -47,6 +49,7 @@ namespace HumanGhost.Gameplay
         public int SkillCooldownRemaining => _skill == null ? 0 : _skill.Remaining;
         public int SkillCooldownSeconds => _skill == null ? 0 : _skill.CooldownSeconds;
         public event Action DisplayChanged;
+        public int DownDuration => CurrentState == StateKey.Stun ? _duration : 0;
         public int HerbCount => _herbs == null ? 0 : _herbs.Count;
         public bool HasHerbs => _herbs != null;
         // 약초 사용 중 이동 속도(tile_x100/초, 부호 포함). C04의 ‘느려짐’ 비율은 개발 값 절반입니다.
@@ -54,6 +57,7 @@ namespace HumanGhost.Gameplay
         public bool IsInvulnerable => _cutsceneDamageBlocked || CurrentState == StateKey.Execute || _invulnerableRemaining > 0 ||
             (CurrentState == StateKey.Roll && _elapsed < Definition.RollIFrame);
         public event Action<int> HealthChanged;
+        public event Action HerbRecovered;
         public event Action<int> AttackStarted;
         public event Action<bool> AttackWindowChanged
         {
@@ -165,6 +169,7 @@ namespace HumanGhost.Gameplay
         {
             Health = Math.Min(MaxHealth, Health + _herbs.Heal);
             HealthChanged?.Invoke(Health);
+            HerbRecovered?.Invoke();
             ResumeMovement();
         }
 
@@ -243,14 +248,19 @@ namespace HumanGhost.Gameplay
         public bool ReceiveHit(int damage, bool critical = false)
             => ReceiveDamage(damage, critical, true);
 
+        public bool ReceiveBossHit(int damage, bool critical, BossHitReaction reaction)
+            => ReceiveDamage(damage, critical, true, reaction ?? throw new ArgumentNullException(nameof(reaction)));
+
         // 필드 피해는 살아 있는 동안 행동을 끊지 않고 사망 시에만 공통 종료를 수행합니다.
         public bool ReceiveFieldDamage(int damage) => ReceiveDamage(damage, false, false);
 
-        private bool ReceiveDamage(int damage, bool critical, bool react)
+        private bool ReceiveDamage(int damage, bool critical, bool react, BossHitReaction reaction = null)
         {
             if (damage < 0) throw new ArgumentOutOfRangeException(nameof(damage));
             if (IsDead || IsInvulnerable || damage == 0) return false;
             Health = Math.Max(0, Health - damage);
+            if (reaction != null && reaction.SlowTime > 0)
+            { _bossSlowRemaining = reaction.SlowTime; _bossSlowRate = reaction.SlowRate; }
             if (react || IsDead)
             {
                 ClearAttack();
@@ -260,8 +270,10 @@ namespace HumanGhost.Gameplay
                 if (IsDead) States.Change(new DeadState());
                 else
                 {
-                    _duration = critical ? Definition.CritHitStunTime : Definition.HitStunTime;
-                    States.Change(new HitState(critical));
+                    _duration = reaction != null && reaction.DownTime > 0 ? reaction.DownTime : critical ? Definition.CritHitStunTime : Definition.HitStunTime;
+                    if (reaction != null) _invulnerableRemaining = checked(_duration + Definition.HitIFrame);
+                    if (reaction != null && reaction.DownTime > 0) States.Call(StateKey.Stun);
+                    else States.Change(new HitState(critical));
                     if (_duration == 0) ResumeMovement();
                 }
             }
@@ -368,7 +380,7 @@ namespace HumanGhost.Gameplay
             if (IsActionBusy) return;
             while (milliseconds > 0)
             {
-                bool timed = IsAttacking || _usingSkill || CurrentState == StateKey.Heal || CurrentState == StateKey.Land || CurrentState == StateKey.Roll || CurrentState == StateKey.Hit || CurrentState == StateKey.CritHit ||
+                bool timed = IsAttacking || _usingSkill || CurrentState == StateKey.Heal || CurrentState == StateKey.Land || CurrentState == StateKey.Roll || CurrentState == StateKey.Hit || CurrentState == StateKey.CritHit || CurrentState == StateKey.Stun ||
                     (CurrentState == StateKey.Bound && _duration > 0);
                 if (!timed) { AdvanceTime(milliseconds); break; }
                 AttackSpec spec = CurrentAttack;
@@ -427,6 +439,7 @@ namespace HumanGhost.Gameplay
 
         private void EndBind()
         {
+            if (IsChained) _invulnerableRemaining = Math.Max(_invulnerableRemaining, Definition.HitIFrame);
             BoundBy = null; _bindPresses = 0;
             ResumeMovement();
         }
@@ -439,6 +452,7 @@ namespace HumanGhost.Gameplay
 
         private void AdvanceTime(int milliseconds)
         {
+            _bossSlowRemaining = Math.Max(0, _bossSlowRemaining - milliseconds);
             Stamina.Tick(milliseconds);
             _invulnerableRemaining = Math.Max(0, _invulnerableRemaining - milliseconds);
             _skill?.Tick(milliseconds);
