@@ -1,0 +1,15 @@
+{
+  "_note": "쇄문아비 2페이즈 줄. 설정은 Dialogue 24003.",
+  "DialogueID": 24003,
+  "Lines": [
+    { "SpeakerTextID": 30006, "TextID": 30288 },
+    { "SpeakerTextID": 30006, "TextID": 30289 },
+    { "SpeakerTextID": 30001, "TextID": 30290 },
+    { "SpeakerTextID": 30006, "TextID": 30291 },
+    { "SpeakerTextID": 30006, "TextID": 30292 },
+    { "SpeakerTextID": 30001, "TextID": 30293 },
+    { "SpeakerTextID": 30006, "TextID": 30294 },
+    { "SpeakerTextID": 30006, "TextID": 30295 },
+    { "SpeakerTextID": 30006, "TextID": 30296 }
+  ]
+}

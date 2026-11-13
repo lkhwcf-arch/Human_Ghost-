@@ -1,0 +1,23 @@
+{
+  "_note": "피난민 대화 줄. 설정(언제·반복·목표)은 tables/Npc.xlsx Dialogue 24001.",
+  "DialogueID": 24001,
+  "Lines": [
+    { "SpeakerTextID": 30263, "TextID": 30264 },
+    { "SpeakerTextID": 30263, "TextID": 30265 },
+    { "SpeakerTextID": 30001, "TextID": 30266 },
+    { "SpeakerTextID": 30263, "TextID": 30267 },
+    { "SpeakerTextID": 30263, "TextID": 30268 },
+    { "SpeakerTextID": 30001, "TextID": 30269 },
+    { "SpeakerTextID": 30263, "TextID": 30270 },
+    { "SpeakerTextID": 30263, "TextID": 30271 },
+    { "SpeakerTextID": 30001, "TextID": 30272 },
+    { "SpeakerTextID": 30263, "TextID": 30273 },
+    { "SpeakerTextID": 30263, "TextID": 30274 },
+    { "SpeakerTextID": 30001, "TextID": 30275 },
+    { "SpeakerTextID": 30263, "TextID": 30276 },
+    { "SpeakerTextID": 30263, "TextID": 30277 },
+    { "SpeakerTextID": 30001, "TextID": 30278 },
+    { "SpeakerTextID": 30263, "TextID": 30279 },
+    { "SpeakerTextID": 30263, "TextID": 30280 }
+  ]
+}

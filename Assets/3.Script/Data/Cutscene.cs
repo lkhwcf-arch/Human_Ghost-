@@ -5,12 +5,10 @@ namespace HumanGhost.Data.Definitions
     {
         public int ID { get; }
         public string Key { get; }
-        public int SkipHoldMs { get; }
-        public Cutscene(int id, string key, int skipHoldMs)
+        public Cutscene(int id, string key)
         {
             ID = id;
             Key = key;
-            SkipHoldMs = skipHoldMs;
         }
     }
 }

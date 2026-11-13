@@ -106,7 +106,7 @@ ID,KO,EN
 30229,치명타 확률,Critical Chance
 30230,회피 확률,Evasion Chance
 30231,패링 기력 소모,Parry Stamina Cost
-30232,어두도,Eodudo
+30232,도끼,Axe
 30070,장부방을 살펴보자,Examine the Jangbubang
 30071,남은 요괴가 있다,Spirits still remain
 30233,버선,Beoseon
@@ -183,3 +183,6 @@ ID,KO,EN
 30304,나도… 살고 싶었소.,"I... wanted to live, too."
 30305,"누가 시켰는지, 남겨 두겠다.",I'll make sure the one who gave that order is held accountable.
 30306,산 너머로 간다.,I'm heading beyond the mountain.
+30320,가로베기,Horizontal Chop
+30321,되베기,Return Chop
+30322,내려찍기,Overhead Smash
