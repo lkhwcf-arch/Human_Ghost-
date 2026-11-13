@@ -19,6 +19,15 @@ namespace HumanGhost.Gameplay
         public string Prefab { get; set; } = "";
         public string Anchor { get; set; } = "";
         public List<StageMonsterGroup> Monsters { get; set; } = new List<StageMonsterGroup>();
+        public List<StageObjectPlacement> Objects { get; set; } = new List<StageObjectPlacement>();
+    }
+
+    public class StageObjectPlacement
+    {
+        public int ObjectID { get; set; }
+        public string Type { get; set; } = "";
+        public int NpcID { get; set; }
+        public string Anchor { get; set; } = "";
     }
 
     public sealed class StageMonsterGroup

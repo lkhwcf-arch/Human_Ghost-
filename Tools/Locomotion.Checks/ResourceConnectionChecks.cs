@@ -13,6 +13,12 @@ internal static class ResourceConnectionChecks
     public static void Run(string root, Action<bool, string> check)
     {
         var assets = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+        var parser = new CsvParser();
+        var npcRows = parser.Read(File.ReadAllText(Path.Combine(root, "Assets/Data/Csv/Npc.csv"))).Rows;
+        var cutsceneRows = parser.Read(File.ReadAllText(Path.Combine(root, "Assets/Data/Csv/CutsceneStep.csv"))).Rows;
+        foreach (var step in cutsceneRows)
+            if (step.Get("MediaType") == "Video" && StreamingVideoAddress.TryResolve(step.Get("ResourceAddress"), Path.Combine(root, "Assets/StreamingAssets"), out string file))
+                check(File.Exists(file) && new FileInfo(file).Length > 0, "컷씬에서 참조하는 영상 파일이 없습니다: " + file);
         foreach (string meta in Directory.EnumerateFiles(Path.Combine(root, "Assets"), "*.meta", SearchOption.AllDirectories))
         {
             string line = File.ReadLines(meta).Take(3).FirstOrDefault(value => value.StartsWith("guid: ", StringComparison.Ordinal));
@@ -27,7 +33,6 @@ internal static class ResourceConnectionChecks
                 "리소스 연결 오류: " + location + "의 GUID가 없거나 중복됐습니다: " + guid);
             return assets[guid][0];
         }
-        var parser = new CsvParser();
         string title = File.ReadAllText(Path.Combine(root, "Assets/2.Model/Prefabs/UI/TitleScreen.prefab"));
         Match videoFile = Regex.Match(title, @"(?m)^  _videoFile: (.+)\r?$");
         check(videoFile.Success, "타이틀 영상의 파일 상대 경로가 없습니다.");
@@ -48,9 +53,21 @@ internal static class ResourceConnectionChecks
         var monsterPrefabs = Regex.Matches(config, @"- Code: (\d+)\s+Prefab: \{[^}]*guid: ([a-f0-9]{32})").Cast<Match>()
             .ToDictionary(match => int.Parse(match.Groups[1].Value), match => Asset(match.Groups[2].Value, "몬스터 프리팹 목록"));
         foreach (int code in monsterPrefabs.Keys) check(monsters.Contains(code), "몬스터 프리팹 코드의 CSV 참조가 없습니다: " + code);
+        var npcPrefabs = Regex.Matches(config, @"- Key: ([^\r\n]+)\r?\n\s+Prefab: \{[^}]*guid: ([a-f0-9]{32})").Cast<Match>()
+            .ToDictionary(match => match.Groups[1].Value.Trim(), match => Asset(match.Groups[2].Value, "NPC 프리팹 목록"));
+        foreach (var row in npcRows)
+            if (row.Get("ContentEnabled") == "Y")
+                check(npcPrefabs.ContainsKey(row.Get("Prefab")), "NPC 테이블의 프리팹 별칭 연결이 없습니다: " + row.Get("Prefab"));
         foreach (Match entry in Regex.Matches(config, @"(?ms)^  - StageId: (\d+)\r?\n(.*?)(?=^  - StageId:|^  _platforms:|\z)"))
         {
             int stageId = int.Parse(entry.Groups[1].Value);
+            Match mapEntry = Regex.Match(entry.Groups[2].Value, @"Map: \{[^}]*guid: ([a-f0-9]{32})");
+            if (mapEntry.Success)
+            {
+                string mapText = File.ReadAllText(Asset(mapEntry.Groups[1].Value, "스테이지 맵"));
+                foreach (Match npc in Regex.Matches(mapText, @"_npcId: (\d+)"))
+                    check(npc.Groups[1].Value == "0" || npcRows.Any(row => row.Get("ID") == npc.Groups[1].Value), "고정 NPC의 테이블 참조가 없습니다.");
+            }
             check(stages.ContainsKey(stageId), "StageContentSet의 Stage CSV 참조가 없습니다: " + stageId);
             Match spawn = Regex.Match(entry.Groups[2].Value, @"Spawn: \{[^}]*guid: ([a-f0-9]{32})");
             // 기존 보스 전용 맵처럼 Spawn을 연결하지 않는 실행 경로는 그대로 구분합니다.

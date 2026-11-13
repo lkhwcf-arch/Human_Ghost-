@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace HumanGhost.Gameplay
 {
@@ -9,12 +10,14 @@ namespace HumanGhost.Gameplay
         private readonly IReadOnlyList<string> _lines;
         private readonly int _millisecondsPerCharacter;
         private readonly IReadOnlyList<int> _textIds;
+        private readonly IReadOnlyList<int> _speakerIds;
         private int _elapsed;
         private int _line;
 
         public bool IsFinished => _line >= _lines.Count;
         public string CurrentLine => IsFinished ? "" : _lines[_line];
         public int CurrentTextId => IsFinished || _textIds == null ? 0 : _textIds[_line];
+        public int CurrentSpeakerTextId => IsFinished || _speakerIds == null ? 0 : _speakerIds[_line];
         public int VisibleCharacters { get; private set; }
         public bool IsLineComplete => !IsFinished && VisibleCharacters >= CurrentLine.Length;
 
@@ -30,6 +33,10 @@ namespace HumanGhost.Gameplay
         {
             _textIds = new List<int>(textIds).AsReadOnly();
         }
+
+        public TextboxPlayback(IReadOnlyList<DialogueLine> lines, Func<int, string> read, int millisecondsPerCharacter)
+            : this(lines.Select(line => line.TextId).ToArray(), read, millisecondsPerCharacter)
+        { _speakerIds = Array.AsReadOnly(lines.Select(line => line.SpeakerTextId).ToArray()); }
 
         private static IReadOnlyList<string> ReadLines(IReadOnlyList<int> textIds, Func<int, string> read)
         {

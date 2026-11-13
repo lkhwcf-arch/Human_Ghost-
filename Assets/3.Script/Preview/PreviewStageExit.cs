@@ -17,26 +17,34 @@ namespace HumanGhost.Gameplay.Preview
         private readonly Action<int, string> _go;
         private readonly TextboxScreen _textbox;
         private readonly string _lockedText;
+        private readonly Func<bool> _canFinish;
+        private readonly Action _finish;
         private bool _touching;
 
         public PreviewStageExit(PlayerRuntime player, Bounds area, int nextStage, int previousStage, string fromName,
-            Func<bool> canLeave, Action<int, string> go, TextboxScreen textbox, string lockedText)
+            Func<bool> canLeave, Action<int, string> go, TextboxScreen textbox, string lockedText,
+            Func<bool> canFinish = null, Action finish = null)
         {
             _player = player; _area = area; _nextStage = nextStage; _previousStage = previousStage; _fromName = fromName;
             _canLeave = canLeave; _go = go; _textbox = textbox; _lockedText = lockedText;
+            _canFinish = canFinish; _finish = finish;
         }
 
         public void Step()
         {
             float x = _player.transform.position.x;
-            bool right = _nextStage != 0 && x >= _area.max.x - 1f - _edge;
+            bool right = (_nextStage != 0 || _finish != null) && x >= _area.max.x - 1f - _edge;
             bool left = _previousStage != 0 && x <= _area.min.x + 1f + _edge;
             bool touching = right || left;
             if (touching && !_touching)
             {
                 if (left) _go(_previousStage, "Spawn_From" + _fromName);
-                else if (_canLeave()) _go(_nextStage, "Spawn_From" + _fromName);
-                else _textbox.ShowObjective(_lockedText);
+                else if (_finish != null && _canFinish != null && _canFinish()) _finish();
+                else if (_nextStage != 0)
+                {
+                    if (_canLeave()) _go(_nextStage, "Spawn_From" + _fromName);
+                    else _textbox.ShowObjective(_lockedText);
+                }
             }
             _touching = touching;
         }

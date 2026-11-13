@@ -197,6 +197,7 @@ namespace HumanGhost.Gameplay.Preview
                 _input.InteractPressed += OnInteract;
                 _input.VerticalPressed += OnVertical;
                 ConnectInteraction(catalog);
+                ConnectDialogues();
                 MoveToArrival();
                 // 걷기 표시는 장부방만, 나머지 전투 스테이지는 달리기 표시입니다.
                 _playerSprite = _player.GetComponentInChildren<PreviewPlayerSprite>(true);
@@ -220,7 +221,8 @@ namespace HumanGhost.Gameplay.Preview
                     foreach (MonsterRuntime monster in _monsters)
                         monster.GetComponent<MonsterAnimationAudio>()?.Connect(monster, _audio.PlayEffect);
                 }
-                _deathRestart = _restartOnDeath ? new PreviewDeathRestart(gameObject.scene.name, _progress, () => _saveSession?.CurrentSnapshot) : null;
+                _deathRestart = _restartOnDeath ? new PreviewDeathRestart(gameObject.scene.name, _progress, () => _saveSession?.CurrentSnapshot,
+                    NextEnabledStage(catalog.GetTable<Stage>().Get(StageExitRules.VillageStage).NextStage)) : null;
                 // 판정 창이 한 프레임 안에 열리고 닫혀도 열리는 순간 한 번은 접촉을 확인합니다.
                 _actor.AttackWindowChanged += OnPlayerAttackWindowChanged;
                 _subscribed = true;
@@ -247,6 +249,9 @@ namespace HumanGhost.Gameplay.Preview
 
         private void OnDisable()
         {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            CloseBossTests();
+#endif
             try { DisconnectFields(); }
             catch (Exception error) { Debug.LogException(error, this); }
             _stageNamePending = false;
@@ -260,6 +265,7 @@ namespace HumanGhost.Gameplay.Preview
             foreach (MonsterRuntime monster in _monsters)
                 if (monster != null) monster.GetComponent<MonsterAnimationAudio>()?.Disconnect();
             DisconnectCutscenes();
+            DisconnectDialogues();
             _deathRestart?.Dispose(); _deathRestart = null;
             _presentation.Reset();
             _feedback?.Dispose();
@@ -552,6 +558,7 @@ namespace HumanGhost.Gameplay.Preview
             {
                 if (marker.name == "NPC_Refugee")
                 {
+                    if (marker.GetComponent<NpcTalk>() != null) continue;
                     if (_refugeeDialogue == null) throw new InvalidOperationException("피난민 대사 에셋을 연결해 주세요.");
                     AddTarget<NpcTalk>(marker).Configure(_refugeeDialogue.Speaker, _refugeeDialogue.Lines, _refugeeDialogue.Objective);
                 }
@@ -571,7 +578,7 @@ namespace HumanGhost.Gameplay.Preview
                 else if (marker.name == "Exit_ToBossRoom")
                     AddTarget<StageDoor>(marker).Configure(BossStage, "Spawn_FromHyeopgok", CanLeaveStage);
             }
-            if (_interactor != null) _interactor.SetTargetRoot(_stage.Interactables);
+            if (_interactor != null) _interactor.SetTargetRoot(_stage.MapRoot);
             Stage stage = catalog.GetTable<Stage>().Get(_stageId);
             int previous = 0;
             foreach (Stage other in catalog.GetTable<Stage>().All)
@@ -579,11 +586,13 @@ namespace HumanGhost.Gameplay.Preview
             // 맵 3은 문으로만, 보스방은 되돌아갈 수 없습니다(L01).
             int next = _stageId == 8003 ? 0 : stage.NextStage ?? 0;
             // K14: ContentEnabled가 N인 맵은 건너뜁니다.
-            while (next != 0 && !catalog.GetTable<Stage>().Get(next).ContentEnabled) next = catalog.GetTable<Stage>().Get(next).NextStage ?? 0;
+            next = NextEnabledStage(next) ?? 0;
             if (_stageId == BossStage) previous = 0;
             if (_textbox != null)
                 _exit = new PreviewStageExit(_player, _stage.Area, next, previous, StageName(_stageId), CanLeaveStage, GoToStage, _textbox,
-                    _stageId == StageExitRules.VillageStage ? "장부방을 살펴보자" : "남은 요괴가 있다");
+                    _stageId == StageExitRules.VillageStage ? "장부방을 살펴보자" : "남은 요괴가 있다",
+                    _stageId == BossStage && next == 0 ? CanFinishDemo : (Func<bool>)null,
+                    _stageId == BossStage && next == 0 ? FinishDemo : (Action)null);
             if (_followCamera != null)
             {
                 // 2026-11-11 사용자 확정: 보스방도 필드와 같은 확대 추적 구도를 씁니다(기존 L09_1 고정 구도 대체).
@@ -608,6 +617,19 @@ namespace HumanGhost.Gameplay.Preview
 
         private bool CanLeaveStage() => StageExitRules.CanLeave(_stageId,
             _progress.Progress.IsCleared(StageExitRules.LedgerStage));
+
+        private int? NextEnabledStage(int? next)
+        {
+            var visited = new HashSet<int>();
+            while (next.HasValue && next.Value != 0)
+            {
+                if (!visited.Add(next.Value)) throw new InvalidOperationException("Stage의 다음 맵 연결이 순환합니다.");
+                Stage stage = _catalog.GetTable<Stage>().Get(next.Value);
+                if (stage.ContentEnabled) return stage.ID;
+                next = stage.NextStage;
+            }
+            return null;
+        }
 
         // 잡몹을 다 잡은 맵을 기록합니다. 맵 1은 명부, 보스방은 보스 처치가 기준이라 제외합니다.
         // 처치한 보스는 사망 재시작·재진입 때 다시 나오지 않습니다(K16add).
@@ -773,7 +795,7 @@ namespace HumanGhost.Gameplay.Preview
         }
 
         // 사망·암전·해체·결박 가르기 중에는 열지 않습니다(O04·O04_1). 텍스트박스가 열려 있어도 열 수 있습니다.
-        private bool CanPause() => (!_saveLocked || _saveFailed) && !_modalBlocked && !_leaving && !LoadingScreen.IsActive && _actor != null && !_actor.IsDead && !PreviewScreenFade.IsActive && _actor.CurrentState != StateKey.Execute && _actor.CurrentState != StateKey.Skill1;
+        private bool CanPause() => (_ending == null || _ending.Phase != DemoEndingPhase.Finishing) && (!_saveLocked || _saveFailed) && !_modalBlocked && !_leaving && !LoadingScreen.IsActive && _actor != null && !_actor.IsDead && !PreviewScreenFade.IsActive && _actor.CurrentState != StateKey.Execute && _actor.CurrentState != StateKey.Skill1;
 
         private void ReturnToTitle()
         {
@@ -840,12 +862,16 @@ namespace HumanGhost.Gameplay.Preview
 
         private void LateUpdate()
         {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            StepBossTests();
+#endif
             if (_actor != null && _actor.CurrentState == StateKey.Execute) StepExecution(0f);
             _parryFeedback?.Step(Time.unscaledDeltaTime);
             // 도착 준비 후에도 로딩 화면이 닫힐 때까지 이동·출구 판정을 재개하지 않습니다.
             if (_subscribed && _loadingLocked != LoadingScreen.IsActive) SetGameInputLocked(false);
             StepShrineClose();
             StepCutsceneFlow();
+            StepDialogues();
             if (_modalBlocked || _saveLocked || _leaving || LoadingScreen.IsActive || !_subscribed || !_player.isActiveAndEnabled || (_bossActive && !_boss.isActiveAndEnabled)) return;
             if (_stageNamePending && CanPause() && (_textbox == null || !_textbox.IsOpen))
             {

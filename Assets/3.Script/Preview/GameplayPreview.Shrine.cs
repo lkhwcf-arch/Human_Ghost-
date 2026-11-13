@@ -38,7 +38,7 @@ namespace HumanGhost.Gameplay.Preview
                     _shrineRoot.SetActive(true);
                 }
                 _shrineCursorWasVisible = Cursor.visible;
-                _shrineScreen.Open(_catalog, _progress, _actor, CloseShrine, ReportShrineError);
+                _shrineScreen.Open(_catalog, _progress, _actor, CloseShrine, ReportShrineError, _shrineModalBinding.Events);
                 _shrineModalBinding.SetModalOwner(this, true);
                 _shrineInput.Enable();
                 Cursor.visible = true;

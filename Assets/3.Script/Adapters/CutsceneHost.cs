@@ -19,6 +19,20 @@ namespace HumanGhost.Gameplay.Adapters
         private int _prepareElapsedMs;
         private MillisecondClock _clock;
         public bool IsBusy => _scope != null;
+        public static CutsceneHost Create(CutsceneHost prefab, Transform parent, ErrorPopupSceneBinding modals, out GameObject root)
+        {
+            if (prefab == null || parent == null || modals == null)
+                throw new InvalidOperationException("공용 컷씬 프리팹·부모·모달 연결이 필요합니다.");
+            var host = UiPrefabScope.Create(prefab, parent, out root);
+            root.name = "CutsceneScope";
+            try
+            {
+                host.ConnectModals(modals);
+                root.SetActive(true);
+                return host;
+            }
+            catch { Destroy(root); root = null; throw; }
+        }
         public void ConnectModals(ErrorPopupSceneBinding modals)
         {
             if (IsBusy) throw new InvalidOperationException("컷씬 실행 중에는 모달 연결을 바꿀 수 없습니다.");

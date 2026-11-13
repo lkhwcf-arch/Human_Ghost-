@@ -23,6 +23,9 @@ namespace HumanGhost.Gameplay.Preview
         public event Action PlayerDodged;
         // 추적 중이거나 패턴을 쓰는 동안입니다. 전투 BGM·HUD에 씁니다.
         public bool IsEngaged { get; private set; }
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        public bool AutomaticPatterns { get; set; } = true;
+#endif
 
         public PreviewBossDriver(BossRuntime runtime, PlayerRuntime player, SpriteRenderer body,
             SpriteRenderer playerBody, float worldUnitsPerTile, float range, float secondRange, float sight)
@@ -57,14 +60,18 @@ namespace HumanGhost.Gameplay.Preview
             int milliseconds = _clock.Advance(seconds);
             int velocity = combat.Velocity;
             bool noticed = _sight <= 0f || Mathf.Abs(offset) <= _sight * _worldUnitsPerTile;
+            bool automatic = true;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            automatic = AutomaticPatterns;
+#endif
             IsEngaged = noticed;
-            if (noticed && !combat.IsAttacking && !combat.IsWaiting && Mathf.Abs(offset) > _range * _worldUnitsPerTile)
+            if (automatic && noticed && !combat.IsAttacking && !combat.IsWaiting && Mathf.Abs(offset) > _range * _worldUnitsPerTile)
                 velocity = combat.Facing * _runtime.Actor.Definition.MoveSpeed;
             float extent = _body.bounds.extents.x;
             bool wall = _runtime.MoveHorizontal(_motion.StepHorizontal(velocity, milliseconds), minX + extent, maxX - extent);
             if (wall) _motion.ResetHorizontal();
             if (wall) combat.NotifyWallHit();
-            if (noticed && !combat.IsAttacking && !combat.IsWaiting) SelectPattern(Mathf.Abs(offset));
+            if (automatic && noticed && !combat.IsAttacking && !combat.IsWaiting) SelectPattern(Mathf.Abs(offset));
             CheckHit();
             Pull(milliseconds);
         }

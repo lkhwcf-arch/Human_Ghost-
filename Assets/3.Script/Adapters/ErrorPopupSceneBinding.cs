@@ -22,6 +22,7 @@ namespace HumanGhost.Gameplay.Adapters
         private readonly HashSet<object> _modalOwners = new HashSet<object>();
         private readonly object _errorOwner = new object();
         public bool IsErrorOpen => _host != null && _host.IsOpen;
+        public EventSystem Events => _events;
         public event Action<bool> ErrorVisibilityChanged;
         public event Action ModalChanged;
         public bool HasOtherModalOwner(object owner)

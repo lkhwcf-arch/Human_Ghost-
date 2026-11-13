@@ -60,6 +60,17 @@ namespace HumanGhost.Gameplay.Preview
                 Interactables.SetParent(MapRoot, false);
                 if (entry.Spawn != null) Build(content, StageLayoutReader.Read(entry.Spawn.text), data);
                 Area = FindArea();
+                foreach (NpcTalk npc in MapRoot.GetComponentsInChildren<NpcTalk>(true))
+                {
+                    if (npc.NpcId == 0) continue;
+                    Npc definition = data.GetTable<Npc>().Get(npc.NpcId);
+                    if (!definition.ContentEnabled) { npc.gameObject.SetActive(false); continue; }
+                    if (npc.GetComponentInChildren<SpriteRenderer>(true) == null)
+                    {
+                        GameObject prefab = content.GetNpc(definition.Prefab) ?? throw new InvalidOperationException("NPC 프리팹 연결이 없습니다: " + definition.Prefab);
+                        UnityEngine.Object.Instantiate(prefab, npc.transform);
+                    }
+                }
             }
             catch { Dispose(); throw; }
         }
@@ -95,6 +106,17 @@ namespace HumanGhost.Gameplay.Preview
                 GameObject platform = UnityEngine.Object.Instantiate(prefab, anchor.position, Quaternion.identity, MapRoot);
                 platform.name = prefab.name;
                 platform.SetActive(true);
+                foreach (StageObjectPlacement item in placement.Objects)
+                {
+                    if (item.Type != "NPC") throw new InvalidOperationException("지원하지 않는 스폰 오브젝트 종류입니다: " + item.Type);
+                    Npc definition = data.GetTable<Npc>().Get(item.NpcID);
+                    if (!definition.ContentEnabled) continue;
+                    Transform npcAnchor = new SpawnAnchors(platform.transform).Get(item.Anchor);
+                    var holder = new GameObject("Npc_" + item.ObjectID);
+                    holder.transform.SetParent(npcAnchor, false);
+                    var talk = holder.AddComponent<NpcTalk>();
+                    talk.SetDefinitionId(item.NpcID);
+                }
                 placed[placement.PlacementID] = placement;
                 _placementOrigins.Add(placement.PlacementID, new Vector3(platform.transform.position.x,
                     StageLayoutRules.UsesGroundLine(placement.Prefab) ? MapRoot.position.y + _groundLine : platform.transform.position.y,

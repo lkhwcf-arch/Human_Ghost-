@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using HumanGhost.Gameplay.Adapters;
@@ -24,7 +25,6 @@ namespace HumanGhost.Gameplay.Presentation
         private LanguageTextSource _text;
         private LanguageCode _language;
         private VideoPlayer _video;
-        private RenderTexture _texture;
         private MillisecondClock _clock;
         private long _shownToken = -1;
         private int _prepareElapsedMs;
@@ -58,7 +58,8 @@ namespace HumanGhost.Gameplay.Presentation
             var images = new List<string>();
             var videos = new List<string>();
             foreach (CutsceneStep step in sequence.Steps)
-                (step.Media == CutsceneMedia.Image ? images : videos).Add(step.ResourceAddress);
+                if (step.Media != CutsceneMedia.Video || !StreamingVideoAddress.TryResolve(step.ResourceAddress, Application.streamingAssetsPath, out _))
+                    (step.Media == CutsceneMedia.Image ? images : videos).Add(step.ResourceAddress);
             return Task.WhenAll(_images.PrepareAsync(images, cancellation), _videos.PrepareAsync(videos, cancellation));
         }
 
@@ -74,10 +75,17 @@ namespace HumanGhost.Gameplay.Presentation
             // 시작 전에 전체 연결을 확인하여 중간 구간에서 필수 연결 누락으로 갇히지 않게 합니다.
             foreach (CutsceneStep step in sequence.Steps)
             {
-                if (!TryGet(step, out UnityEngine.Object asset) || asset == null)
-                    throw new InvalidOperationException("컷씬 표시 리소스가 준비되지 않았습니다. 주소: " + step.ResourceAddress);
-                if (step.Media == CutsceneMedia.Image ? !(asset is Sprite) : !(asset is VideoClip))
-                    throw new InvalidOperationException("컷씬 주소의 타입이 그림(Sprite) 또는 영상(VideoClip) 설정과 다릅니다: " + step.ResourceAddress);
+                if (step.Media == CutsceneMedia.Video && StreamingVideoAddress.TryResolve(step.ResourceAddress, Application.streamingAssetsPath, out string file))
+                {
+                    if (!File.Exists(file)) throw new InvalidOperationException("컷씬 영상 파일이 없습니다: " + file);
+                }
+                else
+                {
+                    if (!TryGet(step, out UnityEngine.Object asset) || asset == null)
+                        throw new InvalidOperationException("컷씬 표시 리소스가 준비되지 않았습니다. 주소: " + step.ResourceAddress);
+                    if (step.Media == CutsceneMedia.Image ? !(asset is Sprite) : !(asset is VideoClip))
+                        throw new InvalidOperationException("컷씬 주소의 타입이 그림(Sprite) 또는 영상(VideoClip) 설정과 다릅니다: " + step.ResourceAddress);
+                }
                 if (step.TextId != 0)
                 {
                     if (_subtitle == null || _text == null) throw new InvalidOperationException("자막이 있는 컷씬에는 자막 표시와 언어 공급자를 연결해 주세요.");
@@ -160,7 +168,13 @@ namespace HumanGhost.Gameplay.Presentation
                 if (_video != null && _playback.State == CutscenePlaybackState.Preparing)
                 {
                     _prepareElapsedMs += Math.Min(elapsed, _prepareTimeoutMs - _prepareElapsedMs);
-                    if (_videoReady) { _videoReady = false; _video.Play(); _playback.MarkReady(_shownToken); elapsed = 0; }
+                    if (_videoReady)
+                    {
+                        _videoReady = false;
+                        _videoImage.texture = _video.texture;
+                        _videoImage.enabled = true;
+                        _video.Play(); _playback.MarkReady(_shownToken); elapsed = 0;
+                    }
                     else if (_prepareElapsedMs == _prepareTimeoutMs) throw new InvalidOperationException("컷씬 영상 준비 제한 시간을 초과했습니다.");
                 }
                 if (_videoEnded) { _videoEnded = false; _playback.ReportVideoEnded(_shownToken); elapsed = 0; }
@@ -182,7 +196,9 @@ namespace HumanGhost.Gameplay.Presentation
             ReleaseDisplay();
             _shownToken = _playback.StepToken;
             CutsceneStep step = _playback.Current;
-            if (!TryGet(step, out UnityEngine.Object asset) || asset == null)
+            bool fileVideo = step.Media == CutsceneMedia.Video && StreamingVideoAddress.TryResolve(step.ResourceAddress, Application.streamingAssetsPath, out _);
+            UnityEngine.Object asset = null;
+            if (!fileVideo && (!TryGet(step, out asset) || asset == null))
                 throw new InvalidOperationException("재생할 컷씬 리소스가 제거됐습니다: " + step.ResourceAddress);
             if (_subtitle != null) _subtitle.text = step.TextId == 0 ? "" : _text.Read(step.TextId, _language);
             if (step.Media == CutsceneMedia.Image)
@@ -192,9 +208,6 @@ namespace HumanGhost.Gameplay.Presentation
                 _playback.MarkReady(_shownToken);
                 return;
             }
-            var clip = (VideoClip)asset;
-            _texture = new RenderTexture(Math.Max(1, (int)clip.width), Math.Max(1, (int)clip.height), 0);
-            _texture.Create();
             var root = new GameObject("CutsceneVideo");
             root.SetActive(false);
             root.transform.SetParent(transform, false);
@@ -202,14 +215,17 @@ namespace HumanGhost.Gameplay.Presentation
             _video.playOnAwake = false;
             _video.isLooping = false;
             _video.timeUpdateMode = VideoTimeUpdateMode.UnscaledGameTime;
-            _video.renderMode = VideoRenderMode.RenderTexture;
-            _video.targetTexture = _texture;
-            _video.clip = clip;
+            _video.renderMode = VideoRenderMode.APIOnly;
+            if (fileVideo)
+            {
+                StreamingVideoAddress.TryResolve(step.ResourceAddress, Application.streamingAssetsPath, out string file);
+                _video.source = VideoSource.Url;
+                _video.url = new Uri(file).AbsoluteUri;
+            }
+            else { _video.source = VideoSource.VideoClip; _video.clip = (VideoClip)asset; }
             _video.prepareCompleted += OnVideoReady;
             _video.loopPointReached += OnVideoEnded;
             _video.errorReceived += OnVideoError;
-            _videoImage.texture = _texture;
-            _videoImage.enabled = true;
             root.SetActive(true);
             _video.Prepare();
         }
@@ -243,7 +259,6 @@ namespace HumanGhost.Gameplay.Presentation
                 Destroy(_video.gameObject);
                 _video = null;
             }
-            if (_texture != null) { _texture.Release(); Destroy(_texture); _texture = null; }
             _videoReady = _videoEnded = false;
             _videoError = null;
             _prepareElapsedMs = 0;

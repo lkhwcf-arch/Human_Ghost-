@@ -47,6 +47,8 @@ internal static class Program
             TelemetryChecks.Run(args[0], Check);
             await TelemetryTransportChecks.RunAsync(Check);
             CutsceneChecks.Run(Check);
+            DemoEndingChecks.Run(Check);
+            DialogueChecks.Run(Check);
             SaveChecks.Run(Check);
             SaveGameFlowChecks.Run(Check);
             Console.WriteLine($"코어 검사 {_checks}개 통과. 플레이어 {definition.ID}, 공통 스탯 {definition.UnitID}");

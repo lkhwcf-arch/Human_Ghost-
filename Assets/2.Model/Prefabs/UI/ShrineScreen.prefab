@@ -8511,6 +8511,7 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Presentation.ShrineScreen
   _pipOn: {fileID: 21300000, guid: d5be203d140b53ae6bd5d2043c8e3685, type: 3}
+  _noticePrefab: {fileID: 205, guid: d9cc625c4b464a8298bfb7cbcac32c0f, type: 3}
   _pipOff: {fileID: 21300000, guid: e024a9e464533aee4c036a57d8412869, type: 3}
 --- !u!114 &4100448542771958434
 MonoBehaviour:
