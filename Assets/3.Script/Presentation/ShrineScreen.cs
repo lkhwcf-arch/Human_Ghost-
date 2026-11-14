@@ -130,7 +130,9 @@ namespace HumanGhost.Gameplay.Presentation
                 _noticeRoot.SetActive(true);
             }
             _notice.SetNotice(Text(_insufficientTextId), Text(_dismissTextId));
-            _notice.FitNoticeWithin(((RectTransform)Node("Panel")).rect.size * 0.8f);
+            // 패널은 화면마다 따로 있습니다(MenuView/Panel·OfferView/Panel). 지금 보이는 화면의 패널 안에 맞춥니다.
+            string panel = _menu.Page == ShrinePage.Main ? "MenuView/Panel" : "OfferView/Panel";
+            _notice.FitNoticeWithin(((RectTransform)Node(panel)).rect.size * 0.8f);
             _noticeOpen = true;
             _notice.Show(_events, 1);
             _openedFrame = Time.frameCount;

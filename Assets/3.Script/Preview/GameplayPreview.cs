@@ -249,6 +249,9 @@ namespace HumanGhost.Gameplay.Preview
 
         private void OnDisable()
         {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            CloseBossTests();
+#endif
             try { DisconnectFields(); }
             catch (Exception error) { Debug.LogException(error, this); }
             _stageNamePending = false;
@@ -466,6 +469,15 @@ namespace HumanGhost.Gameplay.Preview
             Cursor.visible = false;
         }
 
+        // 데이터 출구로 이동합니다. 이동이 실제로 시작된 경우에만 경로 선택을 기록합니다.
+        private void TravelExit(StageExit route)
+        {
+            if (route.ExitAction == FinishDemoExit) { FinishDemo(); return; }
+            bool wasLeaving = _leaving;
+            GoToStage(route.TargetStageID, route.ArrivalAnchorName);
+            if (!wasLeaving && _leaving) RecordRouteChoice(route);
+        }
+
         // 맵을 옮겨도 HP·약초는 회복되지 않습니다. 표시 연결 전이라 피격 연출도 나가지 않게 기준값을 맞춥니다.
         private void RestoreCarriedVitals()
         {
@@ -571,12 +583,12 @@ namespace HumanGhost.Gameplay.Preview
                 {
                     StageExit definition = route;
                     AddTarget<StageDoor>(anchors.Get(route.AnchorName)).Configure(route.TargetStageID,
-                        route.ArrivalAnchorName, () => CanUseExit(definition), route.PromptTextID);
+                        route.ArrivalAnchorName, () => CanUseExit(definition), route.PromptTextID, () => TravelExit(definition));
                 }
             if (_interactor != null) _interactor.SetTargetRoot(_stage.MapRoot);
             _exit?.Dispose();
             _exit = new PreviewStageExit(_player, _stage.Area, routes, anchors, CanUseExit,
-                route => GoToStage(route.TargetStageID, route.ArrivalAnchorName),
+                TravelExit,
                 id => { if (_textbox != null) _textbox.ShowObjective(new LanguageTextSource(catalog).Read(id)); });
             if (_followCamera != null)
             {
@@ -600,8 +612,10 @@ namespace HumanGhost.Gameplay.Preview
             return remaining;
         }
 
-        private bool CanUseExit(StageExit route) => new ContentAccess(_progress.Progress.IsCleared)
-            .Evaluate(_catalog.GetTable<Stage>().Get(route.TargetStageID)) == ContentAccessResult.Allowed;
+        // 시연 마무리 출구는 엔딩 영상을 본 뒤에만 열립니다. 그 전에는 출구의 BlockedTextID 안내를 씁니다.
+        private const string FinishDemoExit = "FinishDemo";
+        private bool CanUseExit(StageExit route) => route.ExitAction == FinishDemoExit ? CanFinishDemo()
+            : new ContentAccess(_progress.Progress.IsCleared).Evaluate(_catalog.GetTable<Stage>().Get(route.TargetStageID)) == ContentAccessResult.Allowed;
 
         // 잡몹을 다 잡은 맵을 기록합니다. 맵 1은 명부, 보스방은 보스 처치가 기준이라 제외합니다.
         // 처치한 보스는 사망 재시작·재진입 때 다시 나오지 않습니다(K16add).
@@ -858,6 +872,9 @@ namespace HumanGhost.Gameplay.Preview
 
         private void LateUpdate()
         {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (_subscribed) StepBossTests();
+#endif
             if (_actor != null && _actor.CurrentState == StateKey.Execute) StepExecution(0f);
             _parryFeedback?.Step(Time.unscaledDeltaTime);
             // 도착 준비 후에도 로딩 화면이 닫힐 때까지 이동·출구 판정을 재개하지 않습니다.

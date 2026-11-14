@@ -11,6 +11,9 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField, InspectorName("공용 컷씬 실행 담당")] private CutsceneHost _cutscenes = null;
         [SerializeField, InspectorName("공용 컷씬 프리팹")] private CutsceneHost _cutscenePrefab = null;
         [SerializeField, InspectorName("시연 마무리 문구 Language ID")] private int[] _endingTextIds = { 30352 };
+        [SerializeField, InspectorName("보스 처치 뒤 엔딩 대기(밀리초)"), Min(0)] private int _endingDelayMs = 2000;
+        [SerializeField, InspectorName("마무리 문구 표시 시간(밀리초)"), Min(1)] private int _endingNoticeMs = 3000;
+        private float _endingWaitSeconds;
         private GameObject _cutsceneRoot;
         private DemoEndingFlow _ending;
         private bool _endingReturnPending;
@@ -72,6 +75,9 @@ namespace HumanGhost.Gameplay.Preview
                 || _afterCutscene != null || _modalBlocked || _saveLocked || _leaving || _actor.IsDead
                 || (_textbox != null && _textbox.IsOpen)
                 || _actor.CurrentState == HumanGhost.Data.Definitions.StateKey.Execute) return;
+            // 1114 A2: 처치(처형·대화 종료 포함) 뒤 정해진 시간이 지나야 영상을 시작합니다.
+            _endingWaitSeconds += Time.deltaTime;
+            if (_endingWaitSeconds * 1000f < _endingDelayMs) return;
             try
             {
                 if (BeginCutscene(_endingCutsceneId, () => _ending.EndMovie(CutsceneEndReason.Completed)))
@@ -90,14 +96,17 @@ namespace HumanGhost.Gameplay.Preview
                 if (!_ending.TryFinish()) return;
                 DemoEndingFlow flow = _ending;
                 _actor.SetCutsceneDamageBlocked(true);
-                _textbox.Open(0, _endingTextIds, new LanguageTextSource(_catalog), LanguageSettings.Current,
+                var text = new LanguageTextSource(_catalog);
+                string notice = string.Join("\n", Array.ConvertAll(_endingTextIds, id => text.Read(id, LanguageSettings.Current)));
+                // 1114 A2 기획 제안: 검은 화면 가운데 문구, 정해진 시간 뒤 또는 넘기기 입력으로 타이틀.
+                bool opened = _textbox.OpenBlackout(notice, _endingNoticeMs,
                     () =>
                     {
                         if (this == null || !isActiveAndEnabled || !ReferenceEquals(_ending, flow)) return;
-                        if (_textbox.LastPlaybackCompleted && _actor != null && !_actor.IsDead && flow.Complete())
-                            _endingReturnPending = true;
+                        if (_actor != null && !_actor.IsDead && flow.Complete()) _endingReturnPending = true;
                         else { flow.Fail(); _actor?.SetCutsceneDamageBlocked(false); }
                     });
+                if (!opened) { flow.Fail(); _actor.SetCutsceneDamageBlocked(false); }
             }
             catch (Exception error) { FailEnding(error); }
         }
@@ -114,7 +123,7 @@ namespace HumanGhost.Gameplay.Preview
         }
         private void DisconnectCutscenes()
         {
-            _ending = null; _endingReturnPending = false;
+            _ending = null; _endingReturnPending = false; _endingWaitSeconds = 0f;
             _actor?.SetCutsceneDamageBlocked(false);
             if (_afterCutscene != null && _cutscenes != null)
             {

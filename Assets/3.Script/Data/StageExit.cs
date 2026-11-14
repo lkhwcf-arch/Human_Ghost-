@@ -14,7 +14,9 @@ namespace HumanGhost.Data.Definitions
         public int PromptTextID { get; }
         public int BlockedTextID { get; }
         public bool ContentEnabled { get; }
-        public StageExit(int id, int stageID, string triggerType, string anchorName, int targetStageID, string arrivalAnchorName, int rangeX, int rangeY, int promptTextID, int blockedTextID, bool contentEnabled)
+        public int RouteID { get; }
+        public string ExitAction { get; }
+        public StageExit(int id, int stageID, string triggerType, string anchorName, int targetStageID, string arrivalAnchorName, int rangeX, int rangeY, int promptTextID, int blockedTextID, bool contentEnabled, int routeID, string exitAction)
         {
             ID = id;
             StageID = stageID;
@@ -27,6 +29,8 @@ namespace HumanGhost.Data.Definitions
             PromptTextID = promptTextID;
             BlockedTextID = blockedTextID;
             ContentEnabled = contentEnabled;
+            RouteID = routeID;
+            ExitAction = exitAction;
         }
     }
 }

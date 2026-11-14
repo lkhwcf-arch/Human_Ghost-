@@ -103,7 +103,9 @@ internal static class ResourceConnectionChecks
         foreach (var exit in exits)
         {
             int from = int.Parse(exit.Get("StageID")), to = int.Parse(exit.Get("TargetStageID"));
-            check(stages.ContainsKey(from) && stages.ContainsKey(to), "출구의 출발·목적지 Stage 참조가 없습니다: " + exit.Get("ID"));
+            // 시연 마무리 출구는 목적지가 없습니다(0). 출발 맵 연결만 확인합니다.
+            bool finish = exit.Get("ExitAction") == "FinishDemo";
+            check(stages.ContainsKey(from) && (finish ? to == 0 : stages.ContainsKey(to)), "출구의 출발·목적지 Stage 참조가 없습니다: " + exit.Get("ID"));
             if (exit.Get("ContentEnabled") != "Y" || stages[from].Get("ContentEnabled") != "Y") continue;
             check(stageMaps.TryGetValue(from, out string sourceMap), "출구의 출발 맵 연결이 없습니다: " + from);
             string kind = exit.Get("TriggerType");
@@ -115,7 +117,7 @@ internal static class ResourceConnectionChecks
                     @"(?m)^  m_Name: " + Regex.Escape(anchor) + @"\r?$").Count == 1,
                     "출구 앵커가 없거나 중복됩니다: " + from + " / " + anchor);
             }
-            if (stages[to].Get("ContentEnabled") != "Y") continue;
+            if (finish || stages[to].Get("ContentEnabled") != "Y") continue;
             string arrival = exit.Get("ArrivalAnchorName");
             check(stageMaps.TryGetValue(to, out string targetMap) && !string.IsNullOrWhiteSpace(arrival)
                 && Regex.Matches(targetMap, @"(?m)^  m_Name: " + Regex.Escape(arrival) + @"\r?$").Count == 1,

@@ -102,7 +102,8 @@ namespace HumanGhost.Gameplay.Adapters
             Gamepad pad = Gamepad.current;
             bool escape = keyboard != null && keyboard.escapeKey.wasPressedThisFrame;
             bool start = pad != null && pad.startButton.wasPressedThisFrame;
-            if (!IsOpen) { if (escape || start) TryOpen(); return; }
+            // ESC로 다른 메뉴(이 일시정지 포함)를 닫은 프레임에는 다시 열지 않습니다. 열린 UI는 ESC로 닫히고 게임으로 돌아갑니다.
+            if (!IsOpen) { if ((escape && MenuInput.LastBackFrame != Time.frameCount) || start) TryOpen(); return; }
             // 패드 Start는 어느 단계에서든 통째로 닫습니다. 바꾼 설정이 있으면 확인을 먼저 받습니다.
             if (start)
             {
@@ -120,6 +121,15 @@ namespace HumanGhost.Gameplay.Adapters
             Cursor.visible = true;
             _screen.Show(_menu);
             _menuInput.Enable();
+        }
+
+        // 조립자가 일시정지를 직접 끝낼 때 씁니다(예: 에디터 메뉴를 누르면 포커스를 잃어 열린 일시정지).
+        // 설정 화면이 열려 있으면 바꾼 값은 취소합니다.
+        public void CloseIfOpen()
+        {
+            if (!IsOpen) return;
+            if (_settingsScreen != null && _settingsScreen.IsOpen) _settingsScreen.Cancel();
+            Close(true);
         }
 
         private void Close(bool discardFrameInput)

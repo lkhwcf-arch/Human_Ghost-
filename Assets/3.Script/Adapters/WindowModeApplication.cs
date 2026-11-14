@@ -18,7 +18,7 @@ namespace HumanGhost.Gameplay.Adapters
             // 편집기 창 크기는 바꾸지 않고 실행파일에서만 실제 화면 모드를 적용합니다.
             if (Application.isEditor || _requestedMode == mode) return;
             if (mode == WindowMode.Windowed)
-                Screen.SetResolution(1208, 720, FullScreenMode.Windowed);
+                Screen.SetResolution(1280, 720, FullScreenMode.Windowed);
             else Screen.SetResolution(1920, 1080, FullScreenMode.FullScreenWindow);
             // 화면 전환은 프레임 끝에 반영되므로 같은 요청을 중복 발행하지 않습니다.
             _requestedMode = mode;

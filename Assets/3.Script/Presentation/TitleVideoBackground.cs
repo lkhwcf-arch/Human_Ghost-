@@ -6,13 +6,16 @@ using UnityEngine.Video;
 
 namespace HumanGhost.Gameplay.Presentation
 {
-    // 메뉴 뒤의 반복 영상만 소유합니다. 준비 전·실패 시 아래의 기존 정지 배경을 유지합니다.
+    // 메뉴 뒤의 반복 영상만 소유합니다. 영상과 다른 정지 배경이 먼저 비치지 않게(1114 B6 피드백 26)
+    // 준비 전에는 정지 배경을 검게 가리고, 영상 실패 때만 원래 색으로 되돌려 대체 배경으로 씁니다.
     public class TitleVideoBackground : MonoBehaviour
     {
         [SerializeField] private VideoPlayer _video = null;
         [SerializeField] private RawImage _image = null;
         [Tooltip("StreamingAssets 아래 영상의 상대 경로입니다. 파일을 같은 이름으로 교체하면 연결은 유지됩니다.")]
         [SerializeField] private string _videoFile = "";
+        [SerializeField, InspectorName("영상 실패 때 대체 정지 배경")] private Graphic _fallback = null;
+        private Color? _fallbackColor;
         public bool IsReady { get; private set; }
         public event Action Ready;
 
@@ -20,6 +23,7 @@ namespace HumanGhost.Gameplay.Presentation
         {
             IsReady = false;
             if (_image != null) { _image.enabled = false; _image.raycastTarget = false; }
+            if (_fallback != null) { _fallbackColor ??= _fallback.color; _fallback.color = Color.black; }
             if (_video == null || _image == null || string.IsNullOrWhiteSpace(_videoFile))
             {
                 OnError(_video, "타이틀 영상·출력 화면을 연결해 주세요.");
@@ -56,6 +60,7 @@ namespace HumanGhost.Gameplay.Presentation
             if (!isActiveAndEnabled) return;
             if (_image != null) _image.enabled = false;
             if (source != null) source.Stop();
+            RestoreFallback();
             Debug.LogError("타이틀 배경 영상: " + message, this);
             IsReady = true;
             Ready?.Invoke();
@@ -70,6 +75,11 @@ namespace HumanGhost.Gameplay.Presentation
                 _video.Stop();
             }
             if (_image != null) { _image.enabled = false; _image.texture = null; }
+            RestoreFallback();
+        }
+        private void RestoreFallback()
+        {
+            if (_fallback != null && _fallbackColor.HasValue) _fallback.color = _fallbackColor.Value;
         }
     }
 }

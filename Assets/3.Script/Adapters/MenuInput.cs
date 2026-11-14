@@ -19,6 +19,12 @@ namespace HumanGhost.Gameplay.Adapters
         private bool _requested;
         private int _vertical;
 
+        // 메뉴가 "뒤로"(키보드 ESC·패드 B)로 무언가를 닫은 마지막 프레임입니다.
+        // 같은 프레임의 ESC로 일시정지가 다시 열리지 않도록 일시정지 담당이 확인합니다.
+        public static int LastBackFrame { get; private set; } = -1;
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetLastBackFrame() => LastBackFrame = -1;
+
         // side는 좌우 값 바꾸기(선택)입니다.
         public MenuInput(InputActionAsset source, Action<int> move, Action accept, Action back, Action<int> side = null, bool acceptBothJumpKeys = false)
         {
@@ -112,7 +118,11 @@ namespace HumanGhost.Gameplay.Adapters
             KeyboardControls.NoteDevice(context.control.device);
             _accept();
         }
-        private void OnCancel(InputAction.CallbackContext context) => _back();
+        private void OnCancel(InputAction.CallbackContext context)
+        {
+            LastBackFrame = Time.frameCount;
+            _back();
+        }
         public void Dispose() { Disable(); if (_owned != null) UnityEngine.Object.Destroy(_owned); }
     }
 }

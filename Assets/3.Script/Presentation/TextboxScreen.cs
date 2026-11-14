@@ -31,8 +31,14 @@ namespace HumanGhost.Gameplay.Presentation
         private bool _unscaledPlayback;
         private int _shownSpeakerId = -1;
         private bool _playbackBlocked;
+        // 시연 마무리 안내(A2): 화면 전체를 검게 덮고 가운데 문구를 띄웁니다. 시간이 지나거나 넘기기 입력으로 닫힙니다.
+        private GameObject _blackout;
+        private Text _blackoutText;
+        private float _blackoutRemaining;
+        private Action _blackoutClosed;
+        public bool IsBlackoutOpen => _blackoutClosed != null;
 
-        public bool IsOpen => _playback != null;
+        public bool IsOpen => _playback != null || IsBlackoutOpen;
         public bool LastPlaybackCompleted { get; private set; }
         public int CurrentTextId => _playback?.CurrentTextId ?? 0;
         public event Action<bool> OpenChanged;
@@ -95,12 +101,13 @@ namespace HumanGhost.Gameplay.Presentation
 
         public void Advance()
         {
+            if (IsBlackoutOpen) { CloseBlackout(); return; }
             if (_playback == null) return;
             _playback.Advance();
             if (_playback.IsFinished) Close(); else Refresh();
         }
 
-        public bool CanSkip(SkipScope scope) => scope == SkipScope.Dialogue && isActiveAndEnabled && IsOpen;
+        public bool CanSkip(SkipScope scope) => scope == SkipScope.Dialogue && isActiveAndEnabled && _playback != null;
         public bool TrySkip(SkipScope scope)
         {
             if (!CanSkip(scope) || !_playback.SkipLine()) return false;
@@ -124,6 +131,64 @@ namespace HumanGhost.Gameplay.Presentation
 
         public void ShowStageName(string text) => _stageName.Show(text);
 
+        public bool OpenBlackout(string text, int milliseconds, Action closed)
+        {
+            if (IsOpen) return false;
+            if (milliseconds <= 0) throw new ArgumentOutOfRangeException(nameof(milliseconds), "안내 표시 시간은 양수 밀리초여야 합니다.");
+            if (_body == null) throw new InvalidOperationException("대사 글자 표시를 연결해 주세요.");
+            if (_blackout == null) CreateBlackout();
+            _blackoutText.text = text;
+            _blackoutRemaining = milliseconds / 1000f;
+            _blackoutClosed = closed ?? (() => { });
+            _blackout.transform.SetAsLastSibling();
+            _blackout.SetActive(true);
+            OpenChanged?.Invoke(true);
+            return true;
+        }
+
+        // 그림 리소스 없이 대사 글꼴을 재사용해 만듭니다. 대사창과 같은 최상위 캔버스의 맨 앞에 둡니다.
+        private void CreateBlackout()
+        {
+            Canvas canvas = GetComponentInParent<Canvas>();
+            if (canvas == null) throw new InvalidOperationException("대사창이 캔버스 아래에 있어야 합니다.");
+            _blackout = new GameObject("EndingBlackout", typeof(RectTransform), typeof(Image));
+            _blackout.SetActive(false);
+            var area = (RectTransform)_blackout.transform;
+            area.SetParent(canvas.rootCanvas.transform, false);
+            area.anchorMin = Vector2.zero; area.anchorMax = Vector2.one; area.offsetMin = Vector2.zero; area.offsetMax = Vector2.zero;
+            _blackout.GetComponent<Image>().color = Color.black;
+            var label = new GameObject("Text", typeof(RectTransform), typeof(Text));
+            var labelArea = (RectTransform)label.transform;
+            labelArea.SetParent(area, false);
+            labelArea.anchorMin = new Vector2(0.1f, 0.3f); labelArea.anchorMax = new Vector2(0.9f, 0.7f);
+            labelArea.offsetMin = Vector2.zero; labelArea.offsetMax = Vector2.zero;
+            _blackoutText = label.GetComponent<Text>();
+            _blackoutText.font = _body.font;
+            _blackoutText.fontSize = _body.fontSize;
+            _blackoutText.color = Color.white;
+            _blackoutText.alignment = TextAnchor.MiddleCenter;
+            _blackoutText.horizontalOverflow = HorizontalWrapMode.Wrap;
+            _blackoutText.verticalOverflow = VerticalWrapMode.Overflow;
+            _blackoutText.raycastTarget = false;
+        }
+
+        private void CloseBlackout()
+        {
+            if (_blackoutClosed == null) return;
+            Action closed = _blackoutClosed;
+            _blackoutClosed = null;
+            if (_blackout != null) _blackout.SetActive(false);
+            OpenChanged?.Invoke(false);
+            closed();
+        }
+
+        // 최상위 캔버스에 붙였으므로 이 화면이 사라질 때 함께 정리합니다.
+        private void OnDestroy()
+        {
+            _blackoutClosed = null;
+            if (_blackout != null) Destroy(_blackout);
+        }
+
         public void ShowObjective(string text)
         {
             _objectiveText.text = text;
@@ -140,6 +205,7 @@ namespace HumanGhost.Gameplay.Presentation
 
         private void Update()
         {
+            if (IsBlackoutOpen && (_blackoutRemaining -= Time.unscaledDeltaTime) <= 0f) CloseBlackout();
             if (_objective.activeSelf && (_objectiveRemaining -= Time.unscaledDeltaTime) <= 0f) _objective.SetActive(false);
             if (_notice.activeSelf && (_noticeRemaining -= Time.unscaledDeltaTime) <= 0f) _notice.SetActive(false);
             if (_playback == null) return;
