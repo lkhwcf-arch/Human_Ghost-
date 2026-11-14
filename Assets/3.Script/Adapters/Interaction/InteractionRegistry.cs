@@ -13,10 +13,11 @@ namespace HumanGhost.Gameplay.Adapters
         public event Action Changed;
         public void Prepare()
         {
-            if (_prepared) return;
-            _prepared = true;
+            // 비활성 생성 중에는 등록할 수 없으므로 활성화 때 준비를 완료합니다.
+            if (_prepared || !isActiveAndEnabled) return;
             foreach (var target in GetComponentsInChildren<InteractableBehaviour>(true))
                 if (target.GetComponentInParent<InteractionRegistry>(true) == this) target.BindRegistry(this);
+            _prepared = true;
         }
         public void Register(IInteractable target)
         {

@@ -18,7 +18,9 @@ namespace HumanGhost.Gameplay.Preview
 
         private void ConnectDialogues()
         {
-            if (_textbox == null || _data.Assets == null) return;
+            DisconnectDialogues();
+            if (_textbox == null || _data == null || _data.Assets == null)
+                throw new InvalidOperationException("데이터 대화에 사용할 화면과 JSON 리소스 목록을 연결해 주세요.");
             _dialogueFailed = false;
             _dialogues = new DialogueRunner(_catalog, _data.Assets.JsonFiles, _textbox, paused =>
             {
@@ -64,8 +66,10 @@ namespace HumanGhost.Gameplay.Preview
         {
             _dialogueScope?.Dispose(); _dialogueScope = null;
             _dialogueQueue.Clear(); _queuedDialogues.Clear();
-            _dialogues?.Dispose(); _dialogues = null;
-            if (_speed != null) _speed.State.SetPauseOwner(this, false);
+            DialogueRunner dialogues = _dialogues;
+            _dialogues = null;
+            try { dialogues?.Dispose(); }
+            finally { if (_speed != null) _speed.State.SetPauseOwner(this, false); }
         }
     }
 }

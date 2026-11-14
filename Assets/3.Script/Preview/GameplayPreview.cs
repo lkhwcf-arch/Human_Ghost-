@@ -43,7 +43,6 @@ namespace HumanGhost.Gameplay.Preview
         [Header("상호작용 (K15)")]
         [SerializeField, InspectorName("상호작용")] private PlayerInteractor _interactor = null;
         [SerializeField, InspectorName("텍스트박스")] private TextboxScreen _textbox = null;
-        [SerializeField, InspectorName("피난민 대사")] private NpcDialogue _refugeeDialogue = null;
         [SerializeField, InspectorName("로딩 화면 프리팹")] private LoadingScreen _loadingPrefab = null;
         [Header("피드백·HUD·일시정지 (없으면 끔)")]
         [SerializeField] private GameSpeedController _speed = null;
@@ -207,6 +206,7 @@ namespace HumanGhost.Gameplay.Preview
                 ConnectGalimgilArrivals();
                 if (_savePoint != null) _savePoint.GetComponent<ShrineInteract>().SetActive(_progress.HasActiveShrine(_stageId));
                 ConnectGameLayer(catalog);
+                ConnectDialogues();
                 _actor.RollRequested += OnRoll;
                 _actor.SkillStarted += OnRoll;
                 _player.EnableSkill(catalog.GetTable<Skill>().Get(_skillId), new ContentAccess(_progress.Progress.IsCleared));
@@ -261,6 +261,8 @@ namespace HumanGhost.Gameplay.Preview
             _playerAudio = null;
             foreach (MonsterRuntime monster in _monsters)
                 if (monster != null) monster.GetComponent<MonsterAnimationAudio>()?.Disconnect();
+            try { DisconnectDialogues(); }
+            catch (Exception error) { Debug.LogException(error, this); }
             DisconnectBossPhase();
             DisconnectCutscenes();
             _deathRestart?.Dispose(); _deathRestart = null;
@@ -499,7 +501,7 @@ namespace HumanGhost.Gameplay.Preview
                 _boss.SetPosition(new Vector3(spawn.position.x, spawn.position.y + half, _boss.transform.position.z));
             }
             _boss.gameObject.SetActive(false);
-            if (_interactor != null) _interactor.SetTargetRoot(_stage.Interactables);
+            if (_interactor != null) _interactor.SetTargetRoot(_stage.MapRoot);
             // 몬스터 걷는 구간이 관문에서 끊기도록 먼저 만듭니다.
             _gates = new PreviewBindGates(_markersRoot, _stageId, catalog, _progress);
         }
@@ -552,12 +554,7 @@ namespace HumanGhost.Gameplay.Preview
             if (_stage == null) return;
             foreach (Transform marker in _markersRoot)
             {
-                if (marker.name == "NPC_Refugee")
-                {
-                    if (_refugeeDialogue == null) throw new InvalidOperationException("피난민 대사 에셋을 연결해 주세요.");
-                    AddTarget<NpcTalk>(marker).Configure(_refugeeDialogue.Speaker, _refugeeDialogue.Lines, _refugeeDialogue.Objective);
-                }
-                else if (marker.name == "Myeongbu")
+                if (marker.name == "Myeongbu")
                     AddTarget<LedgerInteract>(marker).Configure("(임시) 이미 살펴본 명부다.",
                         _ledgerCutsceneId == 0 ? null : PlayLedger);
                 else if (marker.name == "Seonangdang")
@@ -576,7 +573,7 @@ namespace HumanGhost.Gameplay.Preview
                     AddTarget<StageDoor>(anchors.Get(route.AnchorName)).Configure(route.TargetStageID,
                         route.ArrivalAnchorName, () => CanUseExit(definition), route.PromptTextID);
                 }
-            if (_interactor != null) _interactor.SetTargetRoot(_stage.Interactables);
+            if (_interactor != null) _interactor.SetTargetRoot(_stage.MapRoot);
             _exit?.Dispose();
             _exit = new PreviewStageExit(_player, _stage.Area, routes, anchors, CanUseExit,
                 route => GoToStage(route.TargetStageID, route.ArrivalAnchorName),
@@ -866,6 +863,7 @@ namespace HumanGhost.Gameplay.Preview
             // 도착 준비 후에도 로딩 화면이 닫힐 때까지 이동·출구 판정을 재개하지 않습니다.
             if (_subscribed && _loadingLocked != LoadingScreen.IsActive) SetGameInputLocked(false);
             StepShrineClose();
+            StepDialogues();
             StepCutsceneFlow();
             if (StepBossPhase()) return;
             if (_modalBlocked || _saveLocked || _leaving || LoadingScreen.IsActive || !_subscribed || !_player.isActiveAndEnabled || (_bossActive && !_boss.isActiveAndEnabled)) return;
