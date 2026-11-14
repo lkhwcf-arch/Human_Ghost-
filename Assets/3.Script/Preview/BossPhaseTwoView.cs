@@ -41,6 +41,15 @@ namespace HumanGhost.Gameplay.Preview
             _lastX = transform.position.x;
         }
         public void Show(bool value) { if (_rig.activeSelf != value) _rig.SetActive(value); }
+        // 리그가 보일 때 SpriteSkin으로 변형된 부품들의 가장 높은 월드 y입니다. 숨김이면 음의 무한대입니다.
+        public float VisibleTop()
+        {
+            float top = float.NegativeInfinity;
+            if (_parts == null || !_rig.activeInHierarchy) return top;
+            foreach (SpriteRenderer part in _parts)
+                if (part.enabled && part.gameObject.activeInHierarchy) top = Mathf.Max(top, part.bounds.max.y);
+            return top;
+        }
         private void LateUpdate()
         {
             if (_boss.Actor == null) return;
