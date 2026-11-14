@@ -358,8 +358,8 @@ MonoBehaviour:
   _climb: {fileID: 7400000, guid: 6d2bf8909bcce0d4781c45984a4d084e, type: 2}
   _save: {fileID: 7400000, guid: 8b98f4955cee7ad408645c317b727aa1, type: 2}
   _ladderClimb: {fileID: 7400000, guid: 5392c94f525b63e4090fd11907bcc578, type: 2}
-  _climbStartScale: 0.95
-  _hangScale: 1.4
+  _climbStartScale: 1
+  _hangScale: 1
   _hangVerticalOffset: -0.1
 --- !u!114 &98765001
 MonoBehaviour:

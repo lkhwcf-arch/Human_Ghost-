@@ -29,7 +29,7 @@ namespace HumanGhost.Gameplay.Preview
         private Transform _hangEdge;
         private Transform _releasedEdge;
         private int _hangSide;
-        private const int _ledgeClimbMilliseconds = 680;
+        private const int _ledgeClimbMilliseconds = 1000;
         private int _climbElapsed = -1;
         private Vector3 _climbFrom, _climbTo;
         public bool IsClimbingLedge => _climbElapsed >= 0;
@@ -252,6 +252,7 @@ namespace HumanGhost.Gameplay.Preview
             _airborne = true; _motion.SetVerticalSpeed();
             _peakY = _player.Position.Y;
             _player.Actor.EndHang();
+            _player.NotifyPresentationCue("DropThrough");
         }
 
         public void Move(float seconds, float minX, float maxX)
@@ -273,8 +274,8 @@ namespace HumanGhost.Gameplay.Preview
                     float progress = (float)_climbElapsed / _ledgeClimbMilliseconds;
                     Vector3 climbPosition = _climbFrom;
                     // 위로 끌어올리기와 앞으로 넘어가기를 겹치고 양 끝을 감속해 꺾임 없이 이어지게 합니다.
-                    climbPosition.y = Mathf.SmoothStep(_climbFrom.y, _climbTo.y, Mathf.Clamp01(progress / 0.7f));
-                    climbPosition.x = Mathf.SmoothStep(_climbFrom.x, _climbTo.x, Mathf.Clamp01((progress - 0.4f) / 0.6f));
+                    climbPosition.y = Mathf.SmoothStep(_climbFrom.y, _climbTo.y, Mathf.Clamp01((progress - .15f) / .65f));
+                    climbPosition.x = Mathf.SmoothStep(_climbFrom.x, _climbTo.x, Mathf.Clamp01((progress - .45f) / .5f));
                     _player.SetPosition(climbPosition); _player.SetClimbProgress(progress);
                     if (_climbElapsed == _ledgeClimbMilliseconds)
                     {

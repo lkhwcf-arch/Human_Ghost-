@@ -11,7 +11,6 @@ namespace HumanGhost.Gameplay.Preview
     {
         private FieldObjectController _fields;
         private GameObject _fieldRoot;
-        private Sprite _fieldSprite;
         private MillisecondClock _fieldClock;
 
         private void ConnectFields(IReadOnlyDataCatalog data)
@@ -43,7 +42,7 @@ namespace HumanGhost.Gameplay.Preview
                 Exception failure = error;
                 try { ClearFieldViews(); }
                 catch (Exception cleanupError) { failure = new AggregateException("필드 표시와 정리에 실패했습니다.", error, cleanupError); }
-                if (_shrineModalBinding != null) _shrineModalBinding.ReportUnavailable(failure, 30333, this, "필드 영역 임시 표시");
+                if (_shrineModalBinding != null) _shrineModalBinding.ReportUnavailable(failure, 30333, this, "필드 그림 표시");
                 else Debug.LogException(failure, this);
             }
         }
@@ -52,23 +51,55 @@ namespace HumanGhost.Gameplay.Preview
             _fieldRoot = new GameObject("FieldObjectScope");
             _fieldRoot.SetActive(false);
             _fieldRoot.transform.SetParent(_stage.MapRoot, false);
-            _fieldSprite = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f), 1f);
             int sortingOrder = _playerBody.sortingOrder;
             foreach (var renderer in _stage.MapRoot.GetComponentsInChildren<SpriteRenderer>(true))
                 if (renderer.sortingLayerID == _playerBody.sortingLayerID) sortingOrder = Math.Max(sortingOrder, renderer.sortingOrder);
+            sortingOrder = Math.Min(short.MaxValue - 1, sortingOrder + 1);
             foreach (var area in areas)
             {
                 var view = new GameObject("FieldObject_" + area.ID);
                 view.SetActive(false); view.transform.SetParent(_fieldRoot.transform, false);
-                view.transform.position = area.Bounds.center;
-                view.transform.localScale = new Vector3(area.Bounds.size.x, area.Bounds.size.y, 1f);
-                var renderer = view.AddComponent<SpriteRenderer>(); renderer.sprite = _fieldSprite;
-                renderer.sortingLayerID = _playerBody.sortingLayerID; renderer.sortingOrder = Math.Min(short.MaxValue, sortingOrder + 1);
-                renderer.color = area.Kind == FieldKind.Ice
-                    ? new Color(0.75f, 0.9f, 1f, 0.65f) : new Color(1f, 0.3f, 0.05f, 0.75f);
+                // 표시의 바닥만 맞춥니다. FieldObjectArea.Bounds는 변경하지 않습니다.
+                if (area.Kind == FieldKind.Ice)
+                {
+                    AddFieldSprite(view.transform, "Middle", _content.FieldIceMiddle, area.Bounds.min.x,
+                        area.Bounds.min.y, area.Bounds.size.x, sortingOrder, true);
+                    Sprite left = _content.FieldIceLeft, right = _content.FieldIceRight;
+                    if (left == null || right == null) throw new InvalidOperationException("빙판 양끝 그림을 연결하세요.");
+                    float leftWidth = Mathf.Min(left.bounds.size.x, area.Bounds.size.x);
+                    float rightWidth = Mathf.Min(right.bounds.size.x, area.Bounds.size.x);
+                    AddFieldSprite(view.transform, "Left", left, area.Bounds.min.x, area.Bounds.min.y, leftWidth, sortingOrder + 1, false);
+                    AddFieldSprite(view.transform, "Right", right, area.Bounds.max.x - rightWidth, area.Bounds.min.y, rightWidth, sortingOrder + 1, false);
+                }
+                else AddFieldSprite(view.transform, "Debris", _content.FieldFire, area.Bounds.min.x,
+                    area.Bounds.min.y, area.Bounds.size.x, sortingOrder, false);
                 view.SetActive(true);
             }
             _fieldRoot.SetActive(true);
+        }
+        private void AddFieldSprite(Transform parent, string name, Sprite sprite, float x, float y, float width, int order, bool tiled)
+        {
+            if (sprite == null) throw new InvalidOperationException("필드 그림을 연결하세요: " + name);
+            var child = new GameObject(name); child.SetActive(false); child.transform.SetParent(parent, false);
+            var renderer = child.AddComponent<SpriteRenderer>(); renderer.sprite = sprite;
+            renderer.sortingLayerID = _playerBody.sortingLayerID; renderer.sortingOrder = order; renderer.color = Color.white;
+            float height;
+            if (tiled)
+            {
+                renderer.drawMode = SpriteDrawMode.Tiled; renderer.tileMode = SpriteTileMode.Continuous;
+                height = sprite.rect.height / sprite.pixelsPerUnit;
+                renderer.size = new Vector2(width, height);
+                child.transform.position = new Vector3(x + width / 2f, y + height / 2f, 0f);
+            }
+            else
+            {
+                float scale = width / sprite.bounds.size.x;
+                height = sprite.bounds.size.y * scale;
+                child.transform.localScale = Vector3.one * scale;
+                child.transform.position = new Vector3(x + width / 2f - sprite.bounds.center.x * scale,
+                    y + height / 2f - sprite.bounds.center.y * scale, 0f);
+            }
+            child.SetActive(true);
         }
         private void StepFields()
         {
@@ -82,12 +113,11 @@ namespace HumanGhost.Gameplay.Preview
         }
         private void ClearFieldViews()
         {
-            var root = _fieldRoot; var sprite = _fieldSprite;
-            _fieldRoot = null; _fieldSprite = null;
+            var root = _fieldRoot;
+            _fieldRoot = null;
             SubscriptionScope.Cleanup(
                 () => { if (root != null) root.SetActive(false); },
-                () => { if (root != null) Destroy(root); },
-                () => { if (sprite != null) Destroy(sprite); });
+                () => { if (root != null) Destroy(root); });
         }
         public int ResolveFieldKnockbackDistance(SpatialRuntime runtime, int distance)
             => _fields != null ? _fields.ResolveKnockbackDistance(runtime, distance) : distance;

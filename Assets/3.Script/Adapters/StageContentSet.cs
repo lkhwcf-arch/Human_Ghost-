@@ -50,6 +50,15 @@ namespace HumanGhost.Gameplay.Adapters
             return null;
         }
 
+        [Header("필드 그림 리소스")]
+        [SerializeField] private Sprite _fieldFire = null;
+        [SerializeField] private Sprite _fieldIceLeft = null;
+        [SerializeField] private Sprite _fieldIceMiddle = null;
+        [SerializeField] private Sprite _fieldIceRight = null;
+        public Sprite FieldFire => _fieldFire;
+        public Sprite FieldIceLeft => _fieldIceLeft;
+        public Sprite FieldIceMiddle => _fieldIceMiddle;
+        public Sprite FieldIceRight => _fieldIceRight;
         public StageEntry[] Stages => _stages;
 
         public StageEntry GetStage(int stageId)

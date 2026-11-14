@@ -207,6 +207,7 @@ namespace HumanGhost.Gameplay.Preview
                 MoveToArrival();
                 // 걷기 표시는 장부방만, 나머지 전투 스테이지는 달리기 표시입니다.
                 _playerSprite = _player.GetComponentInChildren<PreviewPlayerSprite>(true);
+                _playerSprite?.SetLedgeBody(_playerHalfSize);
                 _playerSprite?.SetNonCombatArea(_stageId == StageExitRules.LedgerStage);
                 ConnectCutsceneData();
                 ConnectBossPhaseData();

@@ -25,16 +25,6 @@ MonoBehaviour:
     _wallStun: 0
   - _key: 10005
     _range: 600
-    _windup: 600
-    _active: 1000
-    _recovery: 400
-    _extraDamage: 5
-    _bindTime: 0
-    _bindPresses: 0
-    _chargeSpeed: 900
-    _wallStun: 800
-  - _key: 10005
-    _range: 600
     _windup: 500
     _active: 700
     _recovery: 500
