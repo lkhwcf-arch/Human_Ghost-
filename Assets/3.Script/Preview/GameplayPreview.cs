@@ -190,6 +190,7 @@ namespace HumanGhost.Gameplay.Preview
                 _bossDriver = !_bossActive || _boss.Combat == null ? null : new PreviewBossDriver(_boss, _player, _bossBody, _playerBody,
                     _worldUnitsPerTile, _bossRangeTiles, _bossSecondRangeTiles, _bossSightTiles);
                 _boss.GetComponent<BossChainView>()?.Connect(_player, _playerBody);
+                _bossSprite = _boss.GetComponent<PreviewBossSprite>();
                 _actor = _player.Actor;
                 _actor.ApplyLevel(_progress.Rewards.CurrentLevel);
                 _actor.ParrySucceeded += OnParrySucceeded;
@@ -363,6 +364,18 @@ namespace HumanGhost.Gameplay.Preview
             _attackWindow.transform.localScale = new Vector3(_attackBaseScale.x * AttackLengthScale, _attackBaseScale.y * AttackHeightScale, _attackBaseScale.z);
         }
 
+        private PreviewBossSprite _bossSprite;
+
+        // A4: 플레이어 공격이 맞는 보스 범위입니다. 몸체 사각형의 가로·바닥은 그대로 두고 위쪽만 지금 보이는 그림 꼭대기까지 늘립니다.
+        // 보스 배치·이동·보스 공격 판정은 계속 _bossBody만 씁니다.
+        private Bounds BossHurtBounds()
+        {
+            Bounds hurt = _bossBody.bounds;
+            float top = _bossSprite != null ? _bossSprite.VisibleTop() : float.NegativeInfinity;
+            if (top > hurt.max.y) hurt.SetMinMax(hurt.min, new Vector3(hurt.max.x, top, hurt.max.z));
+            return hurt;
+        }
+
         // 임시 판정: 공격 범위 사각형과 보스/일반몹 사각형 겹침. 창 열림 순간과 매 프레임 호출하며 중복은 창 등록이 막습니다.
         private void CheckPlayerHits()
         {
@@ -373,7 +386,7 @@ namespace HumanGhost.Gameplay.Preview
             CheckEditorHitDummy();
 #endif
             if (!_actor.IsAttackActive) return;
-            if (_bossActive && _attackWindow.bounds.Intersects(_bossBody.bounds))
+            if (_bossActive && _attackWindow.bounds.Intersects(BossHurtBounds()))
                 _feedback?.OnPlayerHit(_actor.TryHitBoss(_bossTargetId, _boss.Actor, _player.HitRandom), null, _boss.transform.position, _actor.Facing);
             foreach (PreviewMonsterDriver monster in _monsterDrivers)
             {

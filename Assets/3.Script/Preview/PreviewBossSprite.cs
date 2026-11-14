@@ -12,6 +12,22 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField, InspectorName("몸통 기준 가로 보정 (타일)")] private float _bodyOffsetX = 0.87f;
         [SerializeField] private BossPhaseTwoView _phaseTwo = null;
         protected override bool AlignFeet => false;
+        private readonly System.Collections.Generic.Dictionary<Sprite, float> _spriteTops = new System.Collections.Generic.Dictionary<Sprite, float>();
+
+        // 지금 화면에 보이는 보스 그림의 가장 높은 월드 y입니다(1페이즈는 투명 여백을 뺀 스프라이트 윤곽, 2페이즈는 리그). A4 플레이어 공격 판정 높이에만 씁니다.
+        public float VisibleTop()
+        {
+            if (_phaseTwo != null && _boss.Actor != null && _boss.Actor.Phase.Phase > 0 && !_boss.Actor.IsTransitioning) return _phaseTwo.VisibleTop();
+            Sprite sprite = Renderer.sprite;
+            if (!Renderer.enabled || sprite == null) return float.NegativeInfinity;
+            if (!_spriteTops.TryGetValue(sprite, out float localTop))
+            {
+                localTop = float.NegativeInfinity;
+                foreach (Vector2 vertex in sprite.vertices) localTop = Mathf.Max(localTop, vertex.y);
+                _spriteTops.Add(sprite, localTop);
+            }
+            return Renderer.transform.TransformPoint(new Vector3(0f, localTop, 0f)).y;
+        }
         protected override void LateUpdate()
         {
             base.LateUpdate();
