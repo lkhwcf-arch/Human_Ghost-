@@ -15,6 +15,7 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField] private SpriteRenderer _skin = null;
         [SerializeField] private AnimationClip _run = null;
         [SerializeField] private float _sourceFeet = 0f;
+        [SerializeField] private AnimationCurve _groundOffset = new AnimationCurve();
         // 기존 지게귀 스프라이트(10fps)와 같은 프레임감으로 끊어 보여 줍니다. 이동·판정 속도는 바꾸지 않습니다.
         [SerializeField, InspectorName("리그 표시 프레임 (fps)"), Min(1f)] private float _framesPerSecond = 10f;
         [SerializeField, InspectorName("돌진 재생 배율"), Min(1f)] private float _chargeSpeed = 1.4f;
@@ -50,10 +51,11 @@ namespace HumanGhost.Gameplay.Preview
             if (!visible) { Show(false); _time = 0f; return; }
             Show(true);
             _time = Mathf.Repeat(_time + Time.deltaTime * (actor.IsCharging ? _chargeSpeed : 1f), _run.length);
-            _run.SampleAnimation(_rig, BossPhaseTwoView.Frame(_time, _framesPerSecond));
+            float sampleTime = BossPhaseTwoView.Frame(_time, _framesPerSecond);
+            _run.SampleAnimation(_rig, sampleTime);
             _rig.transform.localScale = new Vector3(_baseScale.x * (actor.Facing > 0 ? -1f : 1f), _baseScale.y, _baseScale.z);
             Vector3 position = _source.transform.position;
-            position.y = _ground.bounds.min.y - _sourceFeet * _rig.transform.lossyScale.y;
+            position.y = _ground.bounds.min.y - (_sourceFeet + _groundOffset.Evaluate(sampleTime)) * _rig.transform.lossyScale.y;
             _rig.transform.position = position;
             _skin.color = _source.color;
             _skin.sortingLayerID = _source.sortingLayerID;

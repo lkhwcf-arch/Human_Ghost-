@@ -45,6 +45,18 @@ namespace HumanGhost.Gameplay.Preview
             public AttackFrames[] HitFrames => _hitFrames;
         }
         [SerializeField, InspectorName("상태 애니메이션")] private StateAnimation[] _animations = Array.Empty<StateAnimation>();
+        [Serializable]
+        private sealed class GroundContact
+        {
+            [SerializeField] private Sprite _sprite = null;
+            [SerializeField] private float _bottom = 0f;
+            public Sprite Sprite => _sprite;
+            public float Bottom => _bottom;
+        }
+        // Baked alpha silhouettes: no texture reads or scene searches during gameplay.
+        [SerializeField] private GroundContact[] _groundContacts = Array.Empty<GroundContact>();
+        private readonly Dictionary<Sprite, float> _contactBottoms = new Dictionary<Sprite, float>();
+        private float _contactOffset;
         private AnimationClip _animation;
         private float _elapsed;
         private float _feetY;
@@ -58,7 +70,9 @@ namespace HumanGhost.Gameplay.Preview
         private void PrepareLookup()
         {
             if (_lookupReady) return;
-            _clipsByState.Clear(); _framesByState.Clear();
+            _clipsByState.Clear(); _framesByState.Clear(); _contactBottoms.Clear();
+            foreach (var entry in _groundContacts)
+                if (entry != null && entry.Sprite != null) _contactBottoms[entry.Sprite] = entry.Bottom;
             foreach (var entry in _animations)
                 if (entry != null && entry.Clip != null && !_clipsByState.ContainsKey(entry.State)) _clipsByState.Add(entry.State, entry);
             foreach (var entry in _frames)
@@ -102,6 +116,16 @@ namespace HumanGhost.Gameplay.Preview
         }
         protected virtual void OnEnable() => _hasState = false;
         protected virtual void UpdateFacing() { }
+        protected bool GroundCurrentFrame(SpriteRenderer ground)
+        {
+            PrepareLookup();
+            if (ground == null || _renderer == null || _renderer.sprite == null ||
+                !_contactBottoms.TryGetValue(_renderer.sprite, out float bottom)) return false;
+            float visible = _renderer.transform.TransformPoint(new Vector3(0f, bottom, 0f)).y;
+            _contactOffset = ground.bounds.min.y - visible;
+            _renderer.transform.position += Vector3.up * _contactOffset;
+            return true;
+        }
         protected virtual Sprite SelectFrame(StateKey state) => FindFrame(state) ?? _fallback;
 
         protected Sprite FindFrame(StateKey state)
@@ -112,7 +136,11 @@ namespace HumanGhost.Gameplay.Preview
 
         protected virtual void LateUpdate()
         {
-            if (_renderer == null || !TryGetState(out StateKey state)) return;
+            if (_renderer == null) return;
+            // Remove only our previous presentation correction before sampling the original pose.
+            if (_contactOffset != 0f) _renderer.transform.position -= Vector3.up * _contactOffset;
+            _contactOffset = 0f;
+            if (!TryGetState(out StateKey state)) return;
             AnimationClip animation = SelectAnimation(state);
             bool changed = !_hasState || state != _state || animation != _animation;
             if (changed)

@@ -15,6 +15,7 @@ namespace HumanGhost.Gameplay.Preview
         protected override void LateUpdate()
         {
             base.LateUpdate();
+            GroundCurrentFrame(_body);
             if (_phaseTwo == null || _boss.Actor == null) return;
             bool second = _boss.Actor.Phase.Phase > 0 && !_boss.Actor.IsTransitioning;
             Renderer.enabled = !second;
