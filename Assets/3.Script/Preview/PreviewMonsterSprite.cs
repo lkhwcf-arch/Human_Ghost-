@@ -39,6 +39,9 @@ namespace HumanGhost.Gameplay.Preview
         {
             base.LateUpdate();
             var actor = _monster != null ? _monster.Actor : null;
+            // Preserve the airborne arc of ordinary death/evasion. Executed remains stay grounded.
+            if (actor != null && (actor.WasExecuted || (!actor.IsDead && actor.CurrentState != StateKey.Evade)) &&
+                GroundCurrentFrame(_executionGround)) return;
             if (_executionGround == null || actor == null || (!actor.IsInvulnerable && !actor.WasExecuted) ||
                 Renderer == null || Renderer.sprite == null) return;
             float offset = _executionGround.bounds.min.y - Renderer.bounds.min.y;

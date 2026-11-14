@@ -5,6 +5,19 @@ internal static class CutsceneChecks
 {
     public static void Run(Action<bool, string> check)
     {
+        var guard = new VideoEndGuard();
+        check(!guard.Step(true, false, false, 359, 361, 14.96, 15.0416667, 24, 10000), "영상 중간 정체는 종료하지 않음");
+        check(!guard.Step(true, false, false, 360, 361, 15, 15.0416667, 24, 149), "최종 프레임 짧은 표시만으로 종료하지 않음");
+        check(guard.Step(true, false, false, 360, 361, 15, 15.0416667, 24, 1), "최종 프레임 완료 이벤트 누락 복구");
+        guard.Reset();
+        check(!guard.Step(true, true, false, 360, 361, 15, 15.0416667, 24, 10000), "일시정지 중 마지막 프레임 유지");
+        check(!guard.Step(true, false, true, 360, 361, 15, 15.0416667, 24, 10000), "반복 영상 유지");
+        check(!guard.Step(false, false, false, 360, 361, 15, 15.0416667, 24, 10000), "준비 전 종료 거부");
+        check(!guard.Step(true, false, false, 0, 0, 0, 0, 0, 10000), "미상 길이 영상 종료 거부");
+        check(!guard.Step(true, false, false, 360, 361, 14, 15.0416667, 24, 10000), "마지막 번호만으로 조기 종료하지 않음");
+        check(!guard.Step(true, false, false, 360, 361, 15, 15.0416667, 24, 100), "새 재생 대기 시작");
+        guard.Reset();
+        check(!guard.Step(true, false, false, 360, 361, 15, 15.0416667, 24, 100), "새 영상은 이전 끝 대기를 이어받지 않음");
         var dialogue = new TextboxPlayback(new[] { "첫 문장", "다음 문장" }, 30);
         dialogue.Tick(30);
         check(dialogue.SkipLine() && dialogue.CurrentLine == "다음 문장" && dialogue.VisibleCharacters == 0,

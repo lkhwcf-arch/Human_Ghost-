@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -28,6 +28,7 @@ namespace HumanGhost.Gameplay.Presentation
         private MillisecondClock _clock;
         private long _shownToken = -1;
         private int _prepareElapsedMs;
+        private readonly VideoEndGuard _videoEnd = new VideoEndGuard();
         private bool _videoReady, _videoEnded;
         private string _videoError;
         private CutsceneEndReason? _finished;
@@ -177,6 +178,12 @@ namespace HumanGhost.Gameplay.Presentation
                     }
                     else if (_prepareElapsedMs == _prepareTimeoutMs) throw new InvalidOperationException("컷씬 영상 준비 제한 시간을 초과했습니다.");
                 }
+                // Some URL decoders keep Playing at the final decoded frame without loopPointReached.
+                // Require the actual last frame to remain displayed for a short unpaused interval.
+                if (_video != null && _playback.State == CutscenePlaybackState.Playing &&
+                    _videoEnd.Step(_video.isPrepared, _paused, _video.isLooping,
+                        _video.frame, _video.frameCount, _video.time, _video.length, _video.frameRate, elapsed))
+                    _videoEnded = true;
                 if (_videoEnded) { _videoEnded = false; _playback.ReportVideoEnded(_shownToken); elapsed = 0; }
                 _playback.Tick(elapsed);
                 ShowCurrent();
@@ -262,6 +269,7 @@ namespace HumanGhost.Gameplay.Presentation
             _videoReady = _videoEnded = false;
             _videoError = null;
             _prepareElapsedMs = 0;
+            _videoEnd.Reset();
         }
         private bool TryGet(CutsceneStep step, out UnityEngine.Object asset)
         {

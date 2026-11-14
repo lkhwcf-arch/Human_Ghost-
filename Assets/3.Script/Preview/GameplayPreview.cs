@@ -189,6 +189,7 @@ namespace HumanGhost.Gameplay.Preview
                 _bossDriver?.Dispose();
                 _bossDriver = !_bossActive || _boss.Combat == null ? null : new PreviewBossDriver(_boss, _player, _bossBody, _playerBody,
                     _worldUnitsPerTile, _bossRangeTiles, _bossSecondRangeTiles, _bossSightTiles);
+                _boss.GetComponent<BossChainView>()?.Connect(_player, _playerBody);
                 _actor = _player.Actor;
                 _actor.ApplyLevel(_progress.Rewards.CurrentLevel);
                 _actor.ParrySucceeded += OnParrySucceeded;
