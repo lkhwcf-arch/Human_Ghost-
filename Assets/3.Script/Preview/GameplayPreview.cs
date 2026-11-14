@@ -221,7 +221,8 @@ namespace HumanGhost.Gameplay.Preview
                     foreach (MonsterRuntime monster in _monsters)
                         monster.GetComponent<MonsterAnimationAudio>()?.Connect(monster, _audio.PlayEffect);
                 }
-                _deathRestart = _restartOnDeath ? new PreviewDeathRestart(gameObject.scene.name, _progress, () => _saveSession?.CurrentSnapshot) : null;
+                _deathRestart = _restartOnDeath ? new PreviewDeathRestart(gameObject.scene.name, _progress,
+                    () => _saveSession?.CurrentSnapshot, catalog.GetTable<Stage>().Get(StageExitRules.VillageStage).NextStage) : null;
                 // 판정 창이 한 프레임 안에 열리고 닫혀도 열리는 순간 한 번은 접촉을 확인합니다.
                 _actor.AttackWindowChanged += OnPlayerAttackWindowChanged;
                 _subscribed = true;
@@ -298,7 +299,7 @@ namespace HumanGhost.Gameplay.Preview
             _gates?.Dispose(); _gates = null;
             _stage?.Dispose(); _stage = null;
             _savePoint = null;
-            _exit = null;
+            _exit?.Dispose(); _exit = null;
             if (_attackWindow != null) _attackWindow.enabled = false;
             _input?.SetLocked(true);
         }
@@ -504,7 +505,6 @@ namespace HumanGhost.Gameplay.Preview
         }
 
         private const int BossStage = 8004;
-        private const string LedgerArrival = "Spawn_FromDohwagol";
 
         // 각 몬스터가 선 바닥의 끊기지 않은 구간을 찾습니다.
         private void ApplyWalkableSpans()
@@ -557,10 +557,6 @@ namespace HumanGhost.Gameplay.Preview
                     if (_refugeeDialogue == null) throw new InvalidOperationException("피난민 대사 에셋을 연결해 주세요.");
                     AddTarget<NpcTalk>(marker).Configure(_refugeeDialogue.Speaker, _refugeeDialogue.Lines, _refugeeDialogue.Objective);
                 }
-                else if (marker.name == "Door_Jangbubang")
-                    AddTarget<StageDoor>(marker).Configure(StageExitRules.LedgerStage, LedgerArrival, null);
-                else if (marker.name == "Door_ToDohwagol")
-                    AddTarget<StageDoor>(marker).Configure(StageExitRules.VillageStage, "Spawn_FromJangbubang", null);
                 else if (marker.name == "Myeongbu")
                     AddTarget<LedgerInteract>(marker).Configure("(임시) 이미 살펴본 명부다.",
                         _ledgerCutsceneId == 0 ? null : PlayLedger);
@@ -570,22 +566,21 @@ namespace HumanGhost.Gameplay.Preview
                     shrine.Connect(OpenShrine);
                     _savePoint = shrine.transform;
                 }
-                else if (marker.name == "Exit_ToBossRoom")
-                    AddTarget<StageDoor>(marker).Configure(BossStage, "Spawn_FromHyeopgok", CanLeaveStage);
             }
+            var routes = catalog.GetTable<StageExit>().All.Where(row => row.StageID == _stageId && row.ContentEnabled).ToArray();
+            var anchors = new SpawnAnchors(_markersRoot);
+            foreach (StageExit route in routes)
+                if (route.TriggerType == "Interact")
+                {
+                    StageExit definition = route;
+                    AddTarget<StageDoor>(anchors.Get(route.AnchorName)).Configure(route.TargetStageID,
+                        route.ArrivalAnchorName, () => CanUseExit(definition), route.PromptTextID);
+                }
             if (_interactor != null) _interactor.SetTargetRoot(_stage.Interactables);
-            Stage stage = catalog.GetTable<Stage>().Get(_stageId);
-            int previous = 0;
-            foreach (Stage other in catalog.GetTable<Stage>().All)
-                if (other.NextStage == _stageId && other.ID != StageExitRules.LedgerStage) previous = other.ID;
-            // 맵 3은 문으로만, 보스방은 되돌아갈 수 없습니다(L01).
-            int next = _stageId == 8003 ? 0 : stage.NextStage ?? 0;
-            // K14: ContentEnabled가 N인 맵은 건너뜁니다.
-            while (next != 0 && !catalog.GetTable<Stage>().Get(next).ContentEnabled) next = catalog.GetTable<Stage>().Get(next).NextStage ?? 0;
-            if (_stageId == BossStage) previous = 0;
-            if (_textbox != null)
-                _exit = new PreviewStageExit(_player, _stage.Area, next, previous, StageName(_stageId), CanLeaveStage, GoToStage, _textbox,
-                    _stageId == StageExitRules.VillageStage ? "장부방을 살펴보자" : "남은 요괴가 있다");
+            _exit?.Dispose();
+            _exit = new PreviewStageExit(_player, _stage.Area, routes, anchors, CanUseExit,
+                route => GoToStage(route.TargetStageID, route.ArrivalAnchorName),
+                id => { if (_textbox != null) _textbox.ShowObjective(new LanguageTextSource(catalog).Read(id)); });
             if (_followCamera != null)
             {
                 // 2026-11-11 사용자 확정: 보스방도 필드와 같은 확대 추적 구도를 씁니다(기존 L09_1 고정 구도 대체).
@@ -608,8 +603,8 @@ namespace HumanGhost.Gameplay.Preview
             return remaining;
         }
 
-        private bool CanLeaveStage() => StageExitRules.CanLeave(_stageId,
-            _progress.Progress.IsCleared(StageExitRules.LedgerStage));
+        private bool CanUseExit(StageExit route) => new ContentAccess(_progress.Progress.IsCleared)
+            .Evaluate(_catalog.GetTable<Stage>().Get(route.TargetStageID)) == ContentAccessResult.Allowed;
 
         // 잡몹을 다 잡은 맵을 기록합니다. 맵 1은 명부, 보스방은 보스 처치가 기준이라 제외합니다.
         // 처치한 보스는 사망 재시작·재진입 때 다시 나오지 않습니다(K16add).
@@ -619,18 +614,6 @@ namespace HumanGhost.Gameplay.Preview
             TryStartEnding();
             if (_stage != null && _stageId != StageExitRules.VillageStage && _stageId != StageExitRules.LedgerStage && _stageId != BossStage && RemainingMonsters() == 0)
                 _progress.Progress.Clear(_stageId);
-        }
-
-        private static string StageName(int stageId)
-        {
-            switch (stageId)
-            {
-                case 8001: return "Dohwagol";
-                case 8002: return "Sangil";
-                case 8003: return "Hyeopgok";
-                case 8004: return "BossRoom";
-                default: return "Jangbubang";
-            }
         }
 
         // 위치 변경 때만 접촉을 확인합니다. 재접촉 자동 저장과 명시적인 휴식 요청은 구분합니다.
@@ -850,13 +833,27 @@ namespace HumanGhost.Gameplay.Preview
             {
                 if (_stage == null) return;
                 // 장부방은 PlayerStart 없이 문 앞 표식만 둡니다.
-                anchor = _stageId == StageExitRules.LedgerStage ? LedgerArrival : "PlayerStart";
+                if (_stageId == StageExitRules.LedgerStage)
+                {
+                    anchor = GetUniqueArrivalAnchor(_stageId);
+                }
+                else anchor = "PlayerStart";
             }
             // 명시한 도착 앵커가 잘못되면 시작점으로 대체하지 않고 진입 실패로 전달합니다.
             var anchors = new SpawnAnchors(_markersRoot);
             Vector3 point = anchors.Get(anchor).position;
             _player.SetPosition(new Vector3(point.x, point.y + _playerHalfSize.y, _player.transform.position.z));
             _progress.TakeArrival();
+        }
+
+        private string GetUniqueArrivalAnchor(int stageId)
+        {
+            string[] arrivals = _catalog.GetTable<StageExit>().All
+                .Where(row => row.TargetStageID == stageId && row.ContentEnabled)
+                .Select(row => row.ArrivalAnchorName).Distinct().ToArray();
+            if (arrivals.Length != 1 || string.IsNullOrWhiteSpace(arrivals[0]))
+                throw new InvalidOperationException("도착 앵커를 하나로 결정할 수 없습니다. StageExit 연결을 확인하고 여러 도착 지점은 이동 요청에 명시해 주세요. Stage ID: " + stageId);
+            return arrivals[0];
         }
 
         private void OnRoll(int direction, int distance, int duration)

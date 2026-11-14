@@ -1,52 +1,75 @@
 using System;
+using System.Collections.Generic;
+using HumanGhost.Data.Definitions;
 using HumanGhost.Gameplay.Adapters;
-using HumanGhost.Gameplay.Presentation;
 using UnityEngine;
 
 namespace HumanGhost.Gameplay.Preview
 {
-    // 맵 양 끝 출구(L01·L08·K14)입니다. 오른쪽은 조건이 맞으면 다음 스테이지, 왼쪽은 이전 스테이지로 갑니다. 막히면 안내만 띄웁니다.
-    internal sealed class PreviewStageExit
+    // 위치 변경은 접촉만 갱신하도록 예약하고 이동 명령은 기존 실행 순서에서 소비합니다.
+    internal sealed class PreviewStageExit : IDisposable
     {
-        private const float _edge = 0.6f;
-        private readonly PlayerRuntime _player;
-        private readonly Bounds _area;
-        private readonly int _nextStage, _previousStage;
-        private readonly string _fromName;
-        private readonly Func<bool> _canLeave;
-        private readonly Action<int, string> _go;
-        private readonly TextboxScreen _textbox;
-        private readonly string _lockedText;
-        private readonly Func<bool> _canFinish;
-        private readonly Action _finish;
-        private bool _touching;
-
-        public PreviewStageExit(PlayerRuntime player, Bounds area, int nextStage, int previousStage, string fromName,
-            Func<bool> canLeave, Action<int, string> go, TextboxScreen textbox, string lockedText,
-            Func<bool> canFinish = null, Action finish = null)
+        private class Entry
         {
-            _player = player; _area = area; _nextStage = nextStage; _previousStage = previousStage; _fromName = fromName;
-            _canLeave = canLeave; _go = go; _textbox = textbox; _lockedText = lockedText;
-            _canFinish = canFinish; _finish = finish;
+            public StageExit Definition;
+            public StageExitContact Contact;
+            public Transform Anchor;
         }
-
+        private readonly PlayerRuntime _player;
+        private readonly long _minimumX, _maximumX;
+        private readonly List<Entry> _entries = new List<Entry>();
+        private readonly Func<StageExit, bool> _canUse;
+        private readonly Action<StageExit> _travel;
+        private readonly Action<int> _showBlocked;
+        private bool _dirty = true, _disposed;
+        public PreviewStageExit(PlayerRuntime player, Bounds area, IEnumerable<StageExit> definitions, SpawnAnchors anchors,
+            Func<StageExit, bool> canUse, Action<StageExit> travel, Action<int> showBlocked)
+        {
+            _player = player != null ? player : throw new ArgumentNullException(nameof(player));
+            _canUse = canUse; _travel = travel; _showBlocked = showBlocked;
+            _minimumX = player.ToInteger(area.min.x); _maximumX = player.ToInteger(area.max.x);
+            foreach (StageExit definition in definitions)
+            {
+                if (!definition.ContentEnabled || definition.TriggerType == "Interact") continue;
+                var entry = new Entry { Definition = definition, Contact = new StageExitContact(definition),
+                    Anchor = definition.TriggerType == "Area" ? anchors.Get(definition.AnchorName) : null };
+                Observe(entry);
+                _entries.Add(entry);
+            }
+            player.SpatialChanged += RequestRefresh;
+        }
+        private void RequestRefresh() => _dirty = true;
+        private bool Observe(Entry entry)
+        {
+            long x = 0, y = 0;
+            if (entry.Definition.TriggerType == "Area")
+            {
+                if (entry.Anchor == null) throw new InvalidOperationException("출구 앵커의 수명이 끝났습니다. 출구 ID: " + entry.Definition.ID);
+                x = _player.ToInteger(entry.Anchor.position.x); y = _player.ToInteger(entry.Anchor.position.y);
+            }
+            return entry.Contact.Observe(_player.Position.X, _player.Position.Y, _minimumX, _maximumX, x, y);
+        }
         public void Step()
         {
-            float x = _player.transform.position.x;
-            bool right = (_nextStage != 0 || _finish != null) && x >= _area.max.x - 1f - _edge;
-            bool left = _previousStage != 0 && x <= _area.min.x + 1f + _edge;
-            bool touching = right || left;
-            if (touching && !_touching)
-            {
-                if (left) _go(_previousStage, "Spawn_From" + _fromName);
-                else if (_finish != null && _canFinish != null && _canFinish()) _finish();
-                else if (_nextStage != 0)
+            if (_disposed || !_dirty || _player == null || !_player.isActiveAndEnabled || _player.Actor.IsDead) return;
+            _dirty = false;
+            StageExit selected = null;
+            foreach (Entry entry in _entries)
+                if (Observe(entry))
                 {
-                    if (_canLeave()) _go(_nextStage, "Spawn_From" + _fromName);
-                    else _textbox.ShowObjective(_lockedText);
+                    if (selected != null) throw new InvalidOperationException("출구 영역이 겹칩니다. 앵커·범위를 구분해 주세요. 출구 ID: " + selected.ID + ", " + entry.Definition.ID);
+                    selected = entry.Definition;
                 }
-            }
-            _touching = touching;
+            if (selected == null) return;
+            if (_canUse(selected)) _travel(selected);
+            else if (selected.BlockedTextID != 0) _showBlocked?.Invoke(selected.BlockedTextID);
+        }
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true;
+            _player.SpatialChanged -= RequestRefresh;
+            _entries.Clear();
         }
     }
 }

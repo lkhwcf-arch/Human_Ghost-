@@ -9,15 +9,17 @@ namespace HumanGhost.Gameplay.Adapters
         private int _targetStage;
         private string _arrivalAnchor = "";
         private Func<bool> _canUse;
+        private int _promptTextId;
 
-        public void Configure(int targetStage, string arrivalAnchor, Func<bool> canUse)
+        public void Configure(int targetStage, string arrivalAnchor, Func<bool> canUse, int promptTextId = 0)
         {
             _targetStage = targetStage; _arrivalAnchor = arrivalAnchor; _canUse = canUse;
+            _promptTextId = promptTextId;
             NotifyChanged();
         }
 
         public override bool CanInteract => _targetStage != 0 && (_canUse == null || _canUse());
-        public override int PromptTextId => 30066;
+        public override int PromptTextId => _promptTextId;
         public override void Interact(InteractionContext context) => context.GoToStage(_targetStage, _arrivalAnchor);
     }
 }

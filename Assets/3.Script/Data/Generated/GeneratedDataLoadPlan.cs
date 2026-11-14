@@ -34,6 +34,7 @@ namespace HumanGhost.Data.Infrastructure
             await loader.LoadCsvAsync<Skill>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<Sound>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<Stage>(catalog, row => row.ID, token);
+            await loader.LoadCsvAsync<StageExit>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<StageLayer>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<State>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<StatusEffect>(catalog, row => row.ID, token);

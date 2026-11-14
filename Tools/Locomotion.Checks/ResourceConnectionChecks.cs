@@ -58,6 +58,7 @@ internal static class ResourceConnectionChecks
         foreach (var row in npcRows)
             if (row.Get("ContentEnabled") == "Y")
                 check(npcPrefabs.ContainsKey(row.Get("Prefab")), "NPC 테이블의 프리팹 별칭 연결이 없습니다: " + row.Get("Prefab"));
+        var stageMaps = new Dictionary<int, string>();
         foreach (Match entry in Regex.Matches(config, @"(?ms)^  - StageId: (\d+)\r?\n(.*?)(?=^  - StageId:|^  _platforms:|\z)"))
         {
             int stageId = int.Parse(entry.Groups[1].Value);
@@ -65,6 +66,7 @@ internal static class ResourceConnectionChecks
             if (mapEntry.Success)
             {
                 string mapText = File.ReadAllText(Asset(mapEntry.Groups[1].Value, "스테이지 맵"));
+                stageMaps.Add(stageId, mapText);
                 foreach (Match npc in Regex.Matches(mapText, @"_npcId: (\d+)"))
                     check(npc.Groups[1].Value == "0" || npcRows.Any(row => row.Get("ID") == npc.Groups[1].Value), "고정 NPC의 테이블 참조가 없습니다.");
             }
@@ -95,6 +97,29 @@ internal static class ResourceConnectionChecks
             StageLayoutRules.ResolveMonsters(data, monsters.Contains, _ => true, warnings);
             check(warnings.Count == 0, "스폰 실행 연결 오류: " + path + " / " + string.Join(" / ", warnings));
             check(data.MaxMonsterCount >= 0 && count <= data.MaxMonsterCount, "실제 스폰 수가 JSON의 최대 수를 넘습니다: " + path);
+        }
+        // 출구 한 행이 한 방향의 연결입니다. 역방향이나 목적지를 임의로 추론하지 않습니다.
+        var exits = parser.Read(File.ReadAllText(Path.Combine(root, "Assets/Data/Csv/StageExit.csv"))).Rows;
+        foreach (var exit in exits)
+        {
+            int from = int.Parse(exit.Get("StageID")), to = int.Parse(exit.Get("TargetStageID"));
+            check(stages.ContainsKey(from) && stages.ContainsKey(to), "출구의 출발·목적지 Stage 참조가 없습니다: " + exit.Get("ID"));
+            if (exit.Get("ContentEnabled") != "Y" || stages[from].Get("ContentEnabled") != "Y") continue;
+            check(stageMaps.TryGetValue(from, out string sourceMap), "출구의 출발 맵 연결이 없습니다: " + from);
+            string kind = exit.Get("TriggerType");
+            check(new[] { "LeftEdge", "RightEdge", "Area", "Interact" }.Contains(kind), "출구의 실행 방식이 잘못됐습니다.");
+            if (kind == "Area" || kind == "Interact")
+            {
+                string anchor = exit.Get("AnchorName");
+                check(!string.IsNullOrWhiteSpace(anchor) && Regex.Matches(sourceMap,
+                    @"(?m)^  m_Name: " + Regex.Escape(anchor) + @"\r?$").Count == 1,
+                    "출구 앵커가 없거나 중복됩니다: " + from + " / " + anchor);
+            }
+            if (stages[to].Get("ContentEnabled") != "Y") continue;
+            string arrival = exit.Get("ArrivalAnchorName");
+            check(stageMaps.TryGetValue(to, out string targetMap) && !string.IsNullOrWhiteSpace(arrival)
+                && Regex.Matches(targetMap, @"(?m)^  m_Name: " + Regex.Escape(arrival) + @"\r?$").Count == 1,
+                "출구의 목적지 앵커가 없거나 중복됩니다: " + from + " → " + to + " / " + arrival);
         }
         string audio = File.ReadAllText(Path.Combine(root, "Assets/2.Model/Prefabs/Config/GameAudio.prefab"));
         var soundRows = parser.Read(File.ReadAllText(Path.Combine(root, "Assets/Data/Csv/Sound.csv"))).Rows

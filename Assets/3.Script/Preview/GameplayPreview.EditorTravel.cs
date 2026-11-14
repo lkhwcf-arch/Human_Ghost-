@@ -13,7 +13,8 @@ namespace HumanGhost.Gameplay.Preview
         public void TravelToTestRoom(bool boss)
         {
             if (!CanEditorTravel) return;
-            GoToStage(boss ? BossStage : StageExitRules.LedgerStage, boss ? "Spawn_FromHyeopgok" : LedgerArrival);
+            int targetStage = boss ? BossStage : StageExitRules.LedgerStage;
+            GoToStage(targetStage, GetUniqueArrivalAnchor(targetStage));
         }
     }
 }

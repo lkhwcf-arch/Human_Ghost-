@@ -43,6 +43,7 @@ internal static class Program
             TitleMenuChecks.Run(Check);
             MovementPatternChecks.Run(definition, Check);
             GameLayerChecks.Run(Check);
+            StageExitContactChecks.Run(Check);
             SoundPlaybackChecks.Run(Check);
             await SoundPreparationChecks.RunAsync(Check);
             UiPrefabChecks.Run(args[0], value => Check(value, "공용 설정·오류 팝업의 표시 배치와 타이틀 연결"));
