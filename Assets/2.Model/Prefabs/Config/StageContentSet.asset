@@ -110,3 +110,7 @@ MonoBehaviour:
   _npcs:
   - Key: NPC_Refugee
     Prefab: {fileID: 5374485242292073022, guid: 10a7dc1277df7dd4c9675ae860cf3d69, type: 3}
+  _fieldFire: {fileID: 21300000, guid: 413cbbedca954613b99d0a4fe4f22794, type: 3}
+  _fieldIceLeft: {fileID: 21300000, guid: 56db3bffa9c44ca981632b2f35a9ced7, type: 3}
+  _fieldIceMiddle: {fileID: 21300000, guid: ea734d771e574c2481233f2c919c78ed, type: 3}
+  _fieldIceRight: {fileID: 21300000, guid: 304b7f353f2f4eb3bcb2aa8217276dd5, type: 3}
