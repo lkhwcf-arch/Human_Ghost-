@@ -10,7 +10,7 @@ namespace HumanGhost.Gameplay.Presentation
     // 설정 패널(O05·O05_1)입니다. 타이틀과 일시정지가 같은 프리팹을 씁니다. 그림과 조절 표시는 프리팹에서 연결합니다.
     public class SettingsScreen : MonoBehaviour
     {
-        private const int _musicText = 30040, _effectsText = 30041, _shakeText = 30042, _onText = 30047, _offText = 30048, _confirmPopup = 15006;
+        private const int _confirmPopup = 15006;
         [SerializeField] private Text _master = null, _masterLeft = null, _masterRight = null;
         [SerializeField, InspectorName("마스터 문구 ID (0=30234)")] private int _masterTextId = 0;
         [SerializeField] private Text _music = null;
@@ -26,6 +26,8 @@ namespace HumanGhost.Gameplay.Presentation
         [SerializeField] private GameObject[] _rowHighlights = Array.Empty<GameObject>();
         private SettingsMenu _menu;
         private IReadOnlyDataTable<Language> _language;
+        private LanguageTextSource _text;
+        private Text _heading;
         private Popup _confirmationData;
         private Action<GameSettings> _preview;
         private Action<GameSettings> _closed;
@@ -49,6 +51,8 @@ namespace HumanGhost.Gameplay.Presentation
             try
             {
                 _language = data.GetTable<Language>();
+                _text = new LanguageTextSource(data);
+                _heading = transform.Find("Panel/OptionsTitle")?.GetComponent<Text>();
                 _confirmationData = data.GetTable<Popup>().Get(_confirmPopup);
                 _preview = preview; _closed = closed;
                 _openedFrame = Time.frameCount;
@@ -189,22 +193,25 @@ namespace HumanGhost.Gameplay.Presentation
         {
             GameSettings value = _menu.Current;
             string Text(int id) => LanguageTextSource.Select(_language.Get(id), value.Language);
+            string Ui(int id) => _text.ReadUi(id, value.Language);
+            _close.text = Ui(51505);
+            if (_heading != null) _heading.text = Ui(51201);
             _confirmBody.text = Text(_confirmationData.BodyTextID);
             _confirmYes.text = Text(_confirmationData.Button1TextID);
             _confirmNo.text = Text(_confirmationData.Button2TextID);
-            _languageChoice.text = Text(30043) + "  ◀ " + (value.Language == LanguageCode.Korean ? "KO" : "EN") + " ▶";
+            _languageChoice.text = Ui(51212) + "  ◀ " + Ui(value.Language == LanguageCode.Korean ? 51213 : 51214) + " ▶";
             SetSelected(_languageChoice, _menu.Row == SettingsRow.Language);
             if (_windowMode != null && _windowMode.gameObject.activeSelf)
             {
-                _windowMode.text = Text(30235) + "  ◀ " + Text(value.WindowMode == WindowMode.Windowed ? 30236 : 30237) + " ▶";
+                _windowMode.text = Ui(51206) + "  ◀ " + Ui(value.WindowMode == WindowMode.Windowed ? 51207 : 51208) + " ▶";
                 SetSelected(_windowMode, _menu.Row == SettingsRow.WindowMode);
             }
-            _layout.text = Text(30238) + "  " + Text(value.KeyboardLayout == KeyboardLayout.Arrows ? 30240 : 30241);
+            _layout.text = Ui(51209) + "  " + Ui(value.KeyboardLayout == KeyboardLayout.Arrows ? 51210 : 51211);
             SetSelected(_layout, _menu.Row == SettingsRow.KeyboardLayout);
-            RenderVolume(_master, Text(_masterTextId == 0 ? 30234 : _masterTextId), value.Master, SettingsRow.Master);
-            RenderVolume(_music, Text(_musicText), value.Music, SettingsRow.Music);
-            RenderVolume(_effects, Text(_effectsText), value.Effects, SettingsRow.Effects);
-            _shake.text = Text(_shakeText) + "  " + Text(value.CameraShake ? _onText : _offText);
+            RenderVolume(_master, (_masterTextId == 0 ? Ui(51202) : Text(_masterTextId)), value.Master, SettingsRow.Master);
+            RenderVolume(_music, Ui(51203), value.Music, SettingsRow.Music);
+            RenderVolume(_effects, Ui(51204), value.Effects, SettingsRow.Effects);
+            _shake.text = Ui(51205) + "  " + Ui(value.CameraShake ? 51215 : 51216);
             SetSelected(_shake, _menu.Row == SettingsRow.CameraShake);
             for (int i = 0; i < _rowHighlights.Length; i++)
                 if (_rowHighlights[i] != null) _rowHighlights[i].SetActive(!_menu.IsConfirming && (int)_menu.Row == i);

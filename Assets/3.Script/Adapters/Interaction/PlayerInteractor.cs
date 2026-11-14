@@ -19,6 +19,7 @@ namespace HumanGhost.Gameplay.Adapters
         private InteractionContext _context;
         private Func<bool> _canGrab, _tryGrab, _canExecute, _tryExecute;
         private TextMesh _prompt;
+        [SerializeField, InspectorName("상호작용 F 키 그림 (없으면 글자 표시)")] private Sprite _interactionKeySprite = null;
         private bool _promptHasKeyIcon;
         private SpriteRenderer _promptKeyIcon, _investigationArtwork;
         private Renderer _promptTextRenderer;
@@ -39,7 +40,8 @@ namespace HumanGhost.Gameplay.Adapters
             if (_prompt == null && _promptPrefab != null) { _prompt = Instantiate(_promptPrefab, transform); _prompt.gameObject.SetActive(false); }
             _promptKeyIcon = _prompt != null ? _prompt.transform.Find("KeyIcon")?.GetComponent<SpriteRenderer>() : null;
             _investigationArtwork = _prompt != null ? _prompt.transform.Find("InvestigationArtwork")?.GetComponent<SpriteRenderer>() : null;
-            _promptHasKeyIcon = _promptKeyIcon != null;
+            _promptHasKeyIcon = _promptKeyIcon != null && _interactionKeySprite != null;
+            if (_promptHasKeyIcon) _promptKeyIcon.sprite = _interactionKeySprite;
             _promptTextRenderer = _prompt != null ? _prompt.GetComponent<Renderer>() : null;
             StartBindings();
         }
@@ -76,6 +78,8 @@ namespace HumanGhost.Gameplay.Adapters
             scope.Add(() => actor.States.Changed -= stateChanged); actor.States.Changed += stateChanged;
             scope.Add(() => textbox.OpenChanged -= textboxChanged); textbox.OpenChanged += textboxChanged;
             scope.Add(() => progress.Changed -= invalidate); progress.Changed += invalidate;
+            Action languageChanged = () => { _shownPromptId = null; scope.Invalidate(); };
+            scope.Add(() => LanguageSettings.Changed -= languageChanged); LanguageSettings.Changed += languageChanged;
             if (_registry != null)
             {
                 InteractionRegistry registry = _registry;
@@ -145,11 +149,12 @@ namespace HumanGhost.Gameplay.Adapters
             Select();
             Vector3 player = _context.Player.transform.position;
             if (_canGrab() || _canExecute())
-                ShowPrompt("E", player + Vector3.up * _promptHeight);
+                ShowPrompt("F", player + Vector3.up * _promptHeight);
             else if (_selected != null)
             {
                 int id = _selected.PromptTextId;
-                if (_shownPromptId != id) { _shownPromptId = id; _shownPrompt = "E " + _context.Text(id); }
+                if (_shownPromptId != id) { _shownPromptId = id; int uiId = id switch { 30063 => 51901, 30064 => 51902, 30065 => 51903, 30066 => 51904, _ => 0 };
+                    _shownPrompt = "F " + (uiId == 0 ? _context.Text(id) : LanguageTextSource.SelectUi(_context.Data, uiId)); }
                 ShowPrompt(_shownPrompt, (Vector3)_selected.Position + Vector3.up * _promptHeight, _selected is LedgerInteract);
             }
             else if (_prompt.gameObject.activeSelf)
@@ -163,11 +168,12 @@ namespace HumanGhost.Gameplay.Adapters
 
         private void ShowPrompt(string text, Vector3 position, bool investigation = false)
         {
-            bool artwork = investigation && _investigationArtwork != null;
+            // 기존 조사 그림에는 E 키가 포함돼 있습니다. F 그림 공급 전에는 공통 글자 안내를 씁니다.
+            bool artwork = false;
             if (_investigationArtwork != null) _investigationArtwork.enabled = artwork;
-            if (_promptKeyIcon != null) _promptKeyIcon.enabled = !artwork;
+            if (_promptKeyIcon != null) _promptKeyIcon.enabled = !artwork && _promptHasKeyIcon;
             if (artwork) text = "";
-            else if (_promptHasKeyIcon) text = text == "E" ? "" : text.StartsWith("E ", StringComparison.Ordinal) ? text.Substring(2) : text;
+            else if (_promptHasKeyIcon) text = text == "F" ? "" : text.StartsWith("F ", StringComparison.Ordinal) ? text.Substring(2) : text;
             if (_prompt.text != text) _prompt.text = text;
             if (!_prompt.gameObject.activeSelf) _prompt.gameObject.SetActive(true);
             if (_promptHasKeyIcon && !artwork && _promptTextRenderer != null)

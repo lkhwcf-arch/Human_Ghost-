@@ -5,10 +5,11 @@ using UnityEngine;
 namespace HumanGhost.Gameplay.Adapters
 {
     // 도착 영역만 관측합니다. 정의·재화·지급 기록은 조립자가 주입한 명령이 소유합니다.
+    // 플레이어는 물리 몸체 없이 자체 충돌로 움직이므로 트리거 이벤트 대신 위치로 영역 진입을 확인합니다.
     [RequireComponent(typeof(BoxCollider2D))]
     public class GalimgilArrival : MonoBehaviour
     {
-        private readonly HashSet<Collider2D> _inside = new HashSet<Collider2D>();
+        private bool _inside;
         private PlayerRuntime _player;
         private BoxCollider2D _area;
         private Action _arrived;
@@ -30,19 +31,22 @@ namespace HumanGhost.Gameplay.Adapters
         {
             if (_ready == ready) return;
             _ready = ready;
-            RemoveInactiveContacts();
-            if (ready && _inside.Count > 0) Arrive();
+            _inside = IsPlayerInside();
+            if (ready && _inside) Arrive();
         }
-        private void OnTriggerEnter2D(Collider2D other)
+        private void Update()
         {
-            if (_player == null || other == null || other.GetComponentInParent<PlayerRuntime>() != _player) return;
-            RemoveInactiveContacts();
-            bool first = _inside.Count == 0;
-            _inside.Add(other);
-            if (first && _ready) Arrive();
+            bool inside = IsPlayerInside();
+            if (inside && !_inside && _ready) Arrive();
+            _inside = inside;
         }
-        private void OnTriggerExit2D(Collider2D other) => _inside.Remove(other);
-        private void RemoveInactiveContacts() => _inside.RemoveWhere(collider => collider == null || !collider.enabled || !collider.gameObject.activeInHierarchy);
+        private bool IsPlayerInside()
+        {
+            if (_player == null || _area == null || !_area.enabled) return false;
+            Bounds bounds = _area.bounds;
+            Vector3 position = _player.transform.position;
+            return bounds.Contains(new Vector3(position.x, position.y, bounds.center.z));
+        }
         private void Arrive()
         {
             if (!isActiveAndEnabled || _area == null || !_area.enabled || _player == null || !_player.isActiveAndEnabled || _player.Actor == null || _player.Actor.IsDead) return;
@@ -50,7 +54,7 @@ namespace HumanGhost.Gameplay.Adapters
         }
         public void Disconnect()
         {
-            _ready = false; _inside.Clear(); _scope?.Dispose(); _scope = null; _player = null; _area = null; _arrived = null;
+            _ready = false; _inside = false; _scope?.Dispose(); _scope = null; _player = null; _area = null; _arrived = null;
         }
         private void OnDisable() => Disconnect();
     }

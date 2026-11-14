@@ -179,6 +179,12 @@ namespace HumanGhost.Gameplay.Preview
                     if (!monster.IsInitialized) monster.Initialize(catalog);
                     _monsterDrivers[i] = new PreviewMonsterDriver(monster, _player, _playerBody, _attackWindow,
                         _firstMonsterTargetId + i, _playerTargetId, _worldUnitsPerTile, ApplyMonsterHitEffects);
+                    var poiseView = monster.GetComponent<MonsterPoiseView>();
+                    if (poiseView == null)
+                    {
+                        poiseView = monster.gameObject.AddComponent<MonsterPoiseView>();
+                        poiseView.Connect(monster, monster.GetComponentInChildren<SpriteRenderer>(true));
+                    }
                 }
                 _bossDriver?.Dispose();
                 _bossDriver = !_bossActive || _boss.Combat == null ? null : new PreviewBossDriver(_boss, _player, _bossBody, _playerBody,
@@ -401,7 +407,7 @@ namespace HumanGhost.Gameplay.Preview
             _loadingLocked = LoadingScreen.IsActive;
             _motion?.DiscardBufferedInput();
             _input.DiscardBufferedInput();
-            _input.SetLocked(locked || _bossPhaseRunning || _loadingLocked || _saveLocked || _leaving || _actor.IsDead || (_textbox != null && _textbox.IsOpen) || (_pause != null && _pause.IsOpen));
+            _input.SetLocked(locked || _shrineRising || _bossPhaseRunning || _loadingLocked || _saveLocked || _leaving || _actor.IsDead || (_textbox != null && _textbox.IsOpen) || (_pause != null && _pause.IsOpen));
             _fields?.SetReady(!_loadingLocked && !_saveLocked && !_leaving);
             RefreshDialogueSkipHint();
         }
@@ -533,6 +539,9 @@ namespace HumanGhost.Gameplay.Preview
                 SpriteRenderer body = _monsters[i].GetComponentInChildren<SpriteRenderer>(true);
                 float half = body.transform.lossyScale.y * 0.5f;
                 Vector2 feet = (Vector2)_monsters[i].transform.position + Vector2.down * half;
+                // 몬스터는 낙하하지 않으므로 배치 높이가 그림에 맞춰 낮춘 바닥보다 조금 높으면 바로 아래 바닥에 붙입니다.
+                float drop = FindFloorDrop(feet, 0.5f, filter, hits);
+                if (drop > 0f) { _monsters[i].SetPosition(_monsters[i].transform.position + Vector3.down * drop); feet.y -= drop; }
                 _monsterDrivers[i].UseWalkableSpan(FindSpanEnd(feet, half, -1, filter, hits), FindSpanEnd(feet, half, 1, filter, hits));
             }
         }
@@ -551,6 +560,14 @@ namespace HumanGhost.Gameplay.Preview
             return x;
         }
 
+        private static float FindFloorDrop(Vector2 feet, float maxDrop, ContactFilter2D filter, List<Collider2D> hits)
+        {
+            const float step = 1f / 96f;
+            for (float drop = 0f; drop <= maxDrop; drop += step)
+                if (IsSolid(new Vector2(feet.x, feet.y - drop - 0.01f), filter, hits)) return drop;
+            return 0f;
+        }
+
         private static bool IsSolid(Vector2 point, ContactFilter2D filter, List<Collider2D> hits)
         {
             hits.Clear();
@@ -567,7 +584,7 @@ namespace HumanGhost.Gameplay.Preview
             foreach (Transform marker in _markersRoot)
             {
                 if (marker.name == "Myeongbu")
-                    AddTarget<LedgerInteract>(marker).Configure("(임시) 이미 살펴본 명부다.",
+                    AddTarget<LedgerInteract>(marker).Configure("",
                         _ledgerCutsceneId == 0 ? null : PlayLedger);
                 else if (marker.name == "Seonangdang")
                 {
@@ -594,6 +611,7 @@ namespace HumanGhost.Gameplay.Preview
             {
                 // 2026-11-11 사용자 확정: 보스방도 필드와 같은 확대 추적 구도를 씁니다(기존 L09_1 고정 구도 대체).
                 _followCamera.SetArea(_stage.Area.min.x + 1f, _stage.Area.max.x - 1f, _stage.MapRoot.position.y + 4f, _stage.CameraSize);
+                _followCamera.LookEnabled = _stageId != StageExitRules.LedgerStage;
             }
         }
 
@@ -708,7 +726,7 @@ namespace HumanGhost.Gameplay.Preview
             _combat = new CombatPresence(_combatHoldMilliseconds);
             _lastHealth = _actor.Health;
             _feedback?.Dispose();
-            _feedback = new PreviewCombatFeedback(_speed, _followCamera, _audio, _feedbackTextPrefab, LanguageTextSource.Select(catalog.GetTable<Language>().Get(30021)), _hitImpactPrefab);
+            _feedback = new PreviewCombatFeedback(_speed, _followCamera, _audio, _feedbackTextPrefab, LanguageTextSource.SelectUi(catalog, 51605), _hitImpactPrefab);
             _parryFeedback?.Dispose();
             _parryFeedback = new PreviewParryFeedback(_speed, _followCamera, _audio, _parryImpactPrefab);
             if (_bossDriver != null)
@@ -729,6 +747,7 @@ namespace HumanGhost.Gameplay.Preview
                     if (healthGroup == null) healthGroup = canvas.gameObject.AddComponent<CanvasGroup>();
                 }
                 _hud.Connect(_actor, _boss.Actor, LanguageTextSource.Select(catalog.GetTable<Language>().Get(30006)), _boss.Actor.Poise, _showBossGauge && _bossActive, healthGroup);
+                _hud.ConnectText(new LanguageTextSource(catalog));
                 _hud.SetSkillName(LanguageTextSource.Select(catalog.GetTable<Language>().Get(catalog.GetTable<Skill>().Get(_skillId).TextID)));
                 _actor.StaminaRefused += _hud.FlashStamina;
             }
@@ -779,7 +798,7 @@ namespace HumanGhost.Gameplay.Preview
         }
 
         // 사망·암전·해체·결박 가르기 중에는 열지 않습니다(O04·O04_1). 텍스트박스가 열려 있어도 열 수 있습니다.
-        private bool CanPause() => !_bossPhaseRunning && !(_bossActive && _boss.Actor.IsTransitioning) && (!_saveLocked || _saveFailed) && !_modalBlocked && !_leaving && !LoadingScreen.IsActive && _actor != null && !_actor.IsDead && !PreviewScreenFade.IsActive && _actor.CurrentState != StateKey.Execute && _actor.CurrentState != StateKey.Skill1;
+        private bool CanPause() => !_shrineRising && !_bossPhaseRunning && !(_bossActive && _boss.Actor.IsTransitioning) && (!_saveLocked || _saveFailed) && !_modalBlocked && !_leaving && !LoadingScreen.IsActive && _actor != null && !_actor.IsDead && !PreviewScreenFade.IsActive && _actor.CurrentState != StateKey.Execute && _actor.CurrentState != StateKey.Skill1;
 
         private void ReturnToTitle()
         {
@@ -797,7 +816,7 @@ namespace HumanGhost.Gameplay.Preview
             if (_catalog != null)
             {
                 var text = new LanguageTextSource(_catalog);
-                _feedback?.SetDodgeText(text.Read(30021));
+                _feedback?.SetDodgeText(text.ReadUi(51605));
                 if (_hud != null)
                 {
                     _hud.SetBossName(text.Read(30006));
@@ -876,6 +895,7 @@ namespace HumanGhost.Gameplay.Preview
             if (_subscribed) StepBossTests();
 #endif
             if (_actor != null && _actor.CurrentState == StateKey.Execute) StepExecution(0f);
+            FlushMonsterRewards();
             _parryFeedback?.Step(Time.unscaledDeltaTime);
             // 도착 준비 후에도 로딩 화면이 닫힐 때까지 이동·출구 판정을 재개하지 않습니다.
             if (_subscribed && _loadingLocked != LoadingScreen.IsActive) SetGameInputLocked(false);
@@ -911,6 +931,7 @@ namespace HumanGhost.Gameplay.Preview
             _bossDriver?.Step(Time.deltaTime, _stage != null ? _stage.Area.min.x + 1f : combatMin, _stage != null ? _stage.Area.max.x - 1f : combatMax);
             StepFields();
             CheckPlayerHits();
+            FlushMonsterRewards();
             HandlePreviewKeys();
             RefreshLabels();
             StepGameLayer();

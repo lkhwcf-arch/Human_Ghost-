@@ -18,20 +18,27 @@ namespace HumanGhost.Gameplay.Preview
         }
 
         // side는 플레이어에서 모서리로 향하는 방향입니다(왼쪽에서 잡으면 1).
-        public bool TryFind(Vector3 position, out Transform edge, out int side)
+        public bool TryFind(Vector3 position, out Transform edge, out int side, Transform excluded = null)
         {
             foreach (Transform marker in _markers)
             {
-                if (marker == null || !marker.name.StartsWith("Hang_", StringComparison.Ordinal)) continue;
-                Vector3 point = marker.position;
-                int markerSide = position.x <= point.x ? 1 : -1;
-                float front = position.x + markerSide * _halfSize.x;
-                if (Mathf.Abs(front - point.x) > _grabReach || Mathf.Abs(position.y + _halfSize.y - point.y) > _grabHeight) continue;
-                edge = marker; side = markerSide;
+                if (marker == null || marker == excluded || !marker.gameObject.activeInHierarchy ||
+                    !marker.name.StartsWith("Hang_", StringComparison.Ordinal)) continue;
+                if (!IsInReach(position, marker)) continue;
+                edge = marker; side = position.x <= marker.position.x ? 1 : -1;
                 return true;
             }
             edge = null; side = 0;
             return false;
+        }
+
+        public bool IsInReach(Vector3 position, Transform edge)
+        {
+            if (edge == null) return false;
+            Vector3 point = edge.position;
+            int side = position.x <= point.x ? 1 : -1;
+            float front = position.x + side * _halfSize.x;
+            return Mathf.Abs(front - point.x) <= _grabReach && Mathf.Abs(position.y + _halfSize.y - point.y) <= _grabHeight;
         }
 
         public Vector3 HangPosition(Transform edge, int side, float z)

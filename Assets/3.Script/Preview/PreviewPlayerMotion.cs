@@ -27,6 +27,7 @@ namespace HumanGhost.Gameplay.Preview
         private long _peakY;
         private bool _airborne;
         private Transform _hangEdge;
+        private Transform _releasedEdge;
         private int _hangSide;
         private const int _ledgeClimbMilliseconds = 680;
         private int _climbElapsed = -1;
@@ -219,13 +220,14 @@ namespace HumanGhost.Gameplay.Preview
             return true;
         }
 
-        public bool CanGrab => _airborne && !IsHanging && _hangEdges.TryFind(_player.transform.position, out _, out _);
+        public bool CanGrab => !_player.Actor.Definition.HangAuto && _airborne && !IsHanging &&
+            _hangEdges.TryFind(_player.transform.position, out _, out _, _releasedEdge);
 
         public bool TryGrab()
         {
             if (!_airborne || IsHanging) return false;
             Vector3 position = _player.transform.position;
-            if (!_hangEdges.TryFind(position, out Transform edge, out int side) || !_player.Actor.TryHang(side)) return false;
+            if (!_hangEdges.TryFind(position, out Transform edge, out int side, _releasedEdge) || !_player.Actor.TryHang(side)) return false;
             _hangEdge = edge; _hangSide = side;
             _motion.StopRoll(); _motion.SetVerticalSpeed();
             _player.SetPosition(_hangEdges.HangPosition(edge, side, position.z));
@@ -245,6 +247,7 @@ namespace HumanGhost.Gameplay.Preview
 
         private void Drop()
         {
+            _releasedEdge = _hangEdge;
             _hangEdge = null;
             _airborne = true; _motion.SetVerticalSpeed();
             _peakY = _player.Position.Y;
@@ -308,6 +311,9 @@ namespace HumanGhost.Gameplay.Preview
             _jumpBufferRemaining = Math.Max(0, _jumpBufferRemaining - milliseconds);
             if (_jumpBufferRemaining == 0) _dropRequested = false;
             if (_fallZones.TryHit(position.x, previousFeet, position.y - _halfSize.y, out Vector3 respawn)) ApplyFall(respawn, position.z);
+            // 놓은 턱의 잡기 범위를 벗어난 뒤에만 같은 턱을 다시 잡습니다. 다른 턱은 허용합니다.
+            if (_releasedEdge != null && !_hangEdges.IsInReach(position, _releasedEdge)) _releasedEdge = null;
+            if (actor.Definition.HangAuto) TryGrab();
         }
 
         private long GetHorizontalDelta(PlayerActor actor, int milliseconds)

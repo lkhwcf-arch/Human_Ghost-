@@ -49,7 +49,7 @@ namespace HumanGhost.Gameplay.Preview
                 if (!_textbox.IsOpen)
                 {
                     var line = _bossPhaseLines[_bossPhaseLine];
-                    _textbox.Open(line.SpeakerTextID, new[] { line.TextID }, new LanguageTextSource(_catalog), LanguageCode.Korean, () => _bossPhaseLine++);
+                    _textbox.Open(line.SpeakerTextID, new[] { line.TextID }, new LanguageTextSource(_catalog), LanguageSettings.Current, () => _bossPhaseLine++);
                 }
                 return true;
             }

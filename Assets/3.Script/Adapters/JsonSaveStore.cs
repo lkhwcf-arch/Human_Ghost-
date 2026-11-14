@@ -93,6 +93,8 @@ namespace HumanGhost.Gameplay.Adapters
                             ["ShrineSteps"] = new JObject(), ["TableSteps"] = new JObject() });
                     if (snapshot.Property("Galimgil") == null)
                         snapshot.Add("Galimgil", new JObject { ["Claimed"] = 0, ["InteractedObjects"] = new JArray() });
+                    if (snapshot.Property("Executions") == null)
+                        snapshot.Add("Executions", new JObject { ["Corruption"] = 0, ["Claimed"] = new JArray() });
                     MigrateCurrencyIds(snapshot);
                 }
                 CheckIntegerValues(document);

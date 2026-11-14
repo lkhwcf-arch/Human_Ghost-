@@ -27,6 +27,7 @@ namespace HumanGhost.Gameplay.Presentation
         private GameProgressState _progress;
         private PlayerActor _player;
         private IReadOnlyDataTable<Language> _language;
+        private LanguageTextSource _text;
         private Action _closed;
         private Action<Exception> _failed;
         private SubscriptionScope _scope;
@@ -47,6 +48,7 @@ namespace HumanGhost.Gameplay.Presentation
             _progress = progress; _player = player; _closed = closed; _failed = failed;
             _events = events;
             _language = data.GetTable<Language>();
+            _text = new LanguageTextSource(data);
             _soulCurrencyId = data.GetDefinition<ShrineDefinitions>().Level.SoulCurrencyId;
             _menu = new ShrineMenu(progress.Upgrades, data.GetDefinition<ShrineDefinitions>(), data.GetTable<Upgrade>().All.ToArray());
             _openedFrame = Time.frameCount;
@@ -56,6 +58,8 @@ namespace HumanGhost.Gameplay.Presentation
                 if (_pipOn == null || _pipOff == null) throw new InvalidOperationException("서낭당 단계 표시 이미지를 연결해 주세요.");
                 ConnectPointer();
                 Action changed = _scope.Guard(() => { if (!_commanding) RefreshSafely(); });
+                LanguageSettings.Changed += changed;
+                _scope.Add(() => LanguageSettings.Changed -= changed);
                 progress.Upgrades.EffectsChanged += changed;
                 _scope.Add(() => progress.Upgrades.EffectsChanged -= changed);
                 Action<int, int> walletChanged = (id, amount) => changed();
@@ -84,6 +88,7 @@ namespace HumanGhost.Gameplay.Presentation
             text.text = value;
         }
         private string Text(int id) => LanguageTextSource.Select(_language.Get(id));
+        private string Ui(int id) => _text.ReadUi(id);
         private void ConnectPointer()
         {
             if (_connected) return;
@@ -129,8 +134,8 @@ namespace HumanGhost.Gameplay.Presentation
                 _notice.CloseRequested += CloseNotice;
                 _noticeRoot.SetActive(true);
             }
-            _notice.SetNotice(Text(_insufficientTextId), Text(_dismissTextId));
-            // 패널은 화면마다 따로 있습니다(MenuView/Panel·OfferView/Panel). 지금 보이는 화면의 패널 안에 맞춥니다.
+            _notice.SetNotice(_insufficientTextId == 30225 ? Ui(51719) : Text(_insufficientTextId),
+                _dismissTextId == 30052 ? Ui(51508) : Text(_dismissTextId));
             string panel = _menu.Page == ShrinePage.Main ? "MenuView/Panel" : "OfferView/Panel";
             _notice.FitNoticeWithin(((RectTransform)Node(panel)).rect.size * 0.8f);
             _noticeOpen = true;
@@ -175,11 +180,21 @@ namespace HumanGhost.Gameplay.Presentation
             for (int i = 0; i < 3; i++) Node($"MenuView/Items/Item_{i}/Cursor").gameObject.SetActive(main && i == _menu.Selected);
             string key = KeyboardControls.Layout == KeyboardLayout.Wasd ? "K" : "C";
             foreach (string view in new[] { "MenuView", "OfferView" }) Label(view + "/Hints/Hint_Confirm/KeyCap/KeyText", key);
+            Label("MenuView/Title", Ui(51701));
+            Label("MenuView/Items/Item_0/Label", Ui(51702));
+            Label("MenuView/Items/Item_1/Label", Ui(51703));
+            Label("MenuView/Items/Item_2/Label", Ui(51704));
+            foreach (string view in new[] { "MenuView", "OfferView" })
+            {
+                Label(view + "/Hints/Hint_Select/Label", Ui(51506));
+                Label(view + "/Hints/Hint_Back/Label", Ui(view == "MenuView" ? 51704 : 51509));
+            }
+            Label("MenuView/Hints/Hint_Confirm/Label", Ui(51507));
             if (main) return;
             bool offering = _menu.Page == ShrinePage.Offering;
-            Label("OfferView/Title", offering ? Text(30222) : "약초 강화");
-            Label("OfferView/Wallet/Label", offering ? "지닌 혼" : "지닌 엽전");
-            Label("OfferView/Hints/Hint_Confirm/Label", offering ? "바치기" : "강화하기");
+            Label("OfferView/Title", Ui(offering ? 51705 : 51706));
+            Label("OfferView/Wallet/Label", Ui(offering ? 51707 : 51708));
+            Label("OfferView/Hints/Hint_Confirm/Label", Ui(offering ? 51709 : 51710));
             for (int i = 0; i < 5; i++)
             {
                 string row = $"OfferView/List/Row_{i}";
@@ -195,7 +210,7 @@ namespace HumanGhost.Gameplay.Presentation
             if (_menu.Count == 0)
             {
                 Label("OfferView/Wallet/Count", _progress.Rewards.Wallet.GetBalance(offering ? _soulCurrencyId : MonsterRewards.CoinCurrencyId).ToString());
-                Label("OfferView/Message", "사용 가능한 강화가 없습니다.");
+                Label("OfferView/Message", Ui(51721));
                 Node("OfferView/Detail").gameObject.SetActive(false); Node("OfferView/Cost").gameObject.SetActive(false); return;
             }
             Node("OfferView/Detail").gameObject.SetActive(true); Node("OfferView/Cost").gameObject.SetActive(true);
@@ -215,17 +230,19 @@ namespace HumanGhost.Gameplay.Presentation
             int current = CurrentValue(selected);
             Label("OfferView/Wallet/Count", balance.ToString());
             Label("OfferView/Detail/StatName", offering ? Text(stat.TextId) : Text(selected == "HERB_CHARGES" ? 30223 : 30224));
-            Label("OfferView/Detail/StepText", $"{currentStep} / {(offering ? stat.MaxStep : _menu.HerbMaximum(selected))} 단계");
+            Label("OfferView/Detail/StepText", string.Format(System.Globalization.CultureInfo.InvariantCulture, Ui(51711), currentStep, offering ? stat.MaxStep : _menu.HerbMaximum(selected)));
             Pips("OfferView/Detail/StepPips", currentStep, offering ? stat.MaxStep : _menu.HerbMaximum(selected));
+            Label("OfferView/Detail/NowLabel", Ui(51712));
+            Label("OfferView/Detail/NextLabel", Ui(51713));
             Label("OfferView/Detail/NowValue", Format(selected, current));
             Label("OfferView/Detail/NextValue", limit ? "—" : Format(selected, checked(current + increment)));
-            Label("OfferView/Cost/CostLabel", offering ? "바칠 혼" : "필요 엽전");
-            Label("OfferView/Cost/RemainLabel", offering ? "남는 혼" : "남는 엽전");
+            Label("OfferView/Cost/CostLabel", Ui(offering ? 51715 : 51716));
+            Label("OfferView/Cost/RemainLabel", Ui(offering ? 51717 : 51718));
             Label("OfferView/Cost/CostValue", cost?.ToString() ?? "—");
             Label("OfferView/Cost/RemainValue", cost.HasValue && balance >= cost.Value ? (balance - cost.Value).ToString() : "—");
             Label("OfferView/Message", _menu.Result == UpgradePurchaseResult.InsufficientFunds || (!limit && cost > balance)
-                ? Text(30225) : limit ? Text(30226) : _menu.Result.HasValue && _menu.Result != UpgradePurchaseResult.Purchased
-                    ? "지금은 강화할 수 없습니다." : "");
+                ? Ui(51719) : limit ? Ui(51720) : _menu.Result.HasValue && _menu.Result != UpgradePurchaseResult.Purchased
+                    ? Ui(51722) : "");
         }
         private int CurrentValue(string key) => key switch
         {
@@ -234,8 +251,16 @@ namespace HumanGhost.Gameplay.Presentation
             "AttackSpeed" => _progress.Upgrades.GetShrineValue(key), "ParryStamina" => _player.ParryStaminaCost,
             "HERB_CHARGES" => _player.HerbCapacity, "HERB_HEAL" => _player.HerbHealing, _ => 0
         };
-        private static string Format(string key, int value) => key is "Crit" or "Dodge" or "AttackSpeed"
-            ? (key == "AttackSpeed" ? "시간 -" : "") + $"{Math.Max(0, Math.Min(10000, value)) / 100m:0.##}%" : Math.Max(0, value).ToString();
+        private string Format(string key, int value)
+        {
+            if (key is "Crit" or "Dodge" or "AttackSpeed")
+            {
+                decimal percent = Math.Max(0, Math.Min(10000, value)) / 100m;
+                return key == "AttackSpeed" ? string.Format(System.Globalization.CultureInfo.InvariantCulture, Ui(51714), percent)
+                    : percent.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) + "%";
+            }
+            return Math.Max(0, value).ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
         private void Pips(string path, int step, int maximum)
         {
             Transform root = Node(path);
@@ -258,7 +283,7 @@ namespace HumanGhost.Gameplay.Presentation
             if (_notice != null) _notice.Hide();
             _events = null;
             _scope?.Dispose(); _scope = null; _menu = null; _progress = null; _player = null;
-            _closed = null; _failed = null; _language = null;
+            _closed = null; _failed = null; _language = null; _text = null;
             if (gameObject.activeSelf) gameObject.SetActive(false);
         }
         private void OnDisable() { if (IsOpen) { Action closed = _closed; Hide(); closed?.Invoke(); } }

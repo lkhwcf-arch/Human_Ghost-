@@ -15,6 +15,8 @@ namespace HumanGhost.Gameplay.Preview
         private MenuInput _shrineInput;
         private int _shrineClosedFrame = -1;
         private bool _shrineCursorWasVisible;
+        private bool _shrineRising;
+        private float _shrineRiseRemaining;
 
         private void OpenShrine()
         {
@@ -39,6 +41,7 @@ namespace HumanGhost.Gameplay.Preview
                 }
                 _shrineCursorWasVisible = Cursor.visible;
                 _shrineScreen.Open(_catalog, _progress, _actor, CloseShrine, ReportShrineError, _shrineModalBinding.Events);
+                _player.NotifyPresentationCue("Pray");
                 _shrineModalBinding.SetModalOwner(this, true);
                 _shrineInput.Enable();
                 Cursor.visible = true;
@@ -61,13 +64,25 @@ namespace HumanGhost.Gameplay.Preview
             _shrineInput?.Disable();
             if (_shrineScreen != null) _shrineScreen.Hide();
             Cursor.visible = _shrineCursorWasVisible;
+            _shrineRising = true;
+            _shrineRiseRemaining = _playerSprite != null ? _playerSprite.BeginSaveRise() : 0f;
+            SetGameInputLocked(true);
             _shrineClosedFrame = Time.frameCount;
         }
         private void StepShrineClose()
         {
-            if (_shrineClosedFrame < 0 || Time.frameCount <= _shrineClosedFrame) return;
-            _shrineClosedFrame = -1;
-            if (_shrineModalBinding != null) _shrineModalBinding.SetModalOwner(this, false);
+            if (_shrineClosedFrame >= 0)
+            {
+                if (Time.frameCount <= _shrineClosedFrame) return;
+                _shrineClosedFrame = -1;
+                if (_shrineModalBinding != null) _shrineModalBinding.SetModalOwner(this, false);
+                SetGameInputLocked(false);
+            }
+            if (!_shrineRising) return;
+            _shrineRiseRemaining = Mathf.Max(0f, _shrineRiseRemaining - Time.deltaTime);
+            if (_shrineRiseRemaining > 0f) return;
+            _shrineRising = false;
+            SetGameInputLocked(false);
         }
         private void DisconnectShrine()
         {
@@ -77,6 +92,8 @@ namespace HumanGhost.Gameplay.Preview
             if (opened) Cursor.visible = _shrineCursorWasVisible;
             if (_shrineModalBinding != null) _shrineModalBinding.SetModalOwner(this, false);
             _shrineClosedFrame = -1;
+            _shrineRising = false; _shrineRiseRemaining = 0f;
+            if (_player != null && _player.Actor != null && _player.isActiveAndEnabled) _player.NotifyPresentationCue("ActionExit");
             if (_shrineRoot != null) Destroy(_shrineRoot);
             _shrineRoot = null; _shrineScreen = null;
         }

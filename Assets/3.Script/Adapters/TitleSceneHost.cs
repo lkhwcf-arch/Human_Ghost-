@@ -118,6 +118,9 @@ namespace HumanGhost.Gameplay.Adapters
             _menu = new TitleMenu(hasSave, _settings.ShowQuit, _settings.ConfirmNewGameWithSave, _settings.PreferContinue,
                 _screen.ReadConfirmDefaultYes(data));
             _screen.Connect(_menu, data);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (_saveSelection != null) _saveSelection.ConnectText(new LanguageTextSource(data));
+#endif
             _menuInput = new MenuInput(_input, OnKeyMove, OnKeySubmit, OnKeyCancel);
             _screen.EntryHovered += OnEntryHovered;
             _screen.EntryClicked += OnEntryClicked;

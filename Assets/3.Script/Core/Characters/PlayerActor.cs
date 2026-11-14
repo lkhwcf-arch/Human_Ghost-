@@ -52,8 +52,8 @@ namespace HumanGhost.Gameplay
         public int DownDuration => CurrentState == StateKey.Stun ? _duration : 0;
         public int HerbCount => _herbs == null ? 0 : _herbs.Count;
         public bool HasHerbs => _herbs != null;
-        // 약초 사용 중 이동 속도(tile_x100/초, 부호 포함). C04의 ‘느려짐’ 비율은 개발 값 절반입니다.
-        public int HealMoveSpeed => CurrentState == StateKey.Heal ? Locomotion.Direction * Definition.MoveSpeed / 2 : 0;
+        // 11/14 A7: 약초 사용 시간에는 수평 이동을 막습니다. 사용 시간은 Buff를 소비합니다.
+        public int HealMoveSpeed => 0;
         public bool IsInvulnerable => _cutsceneDamageBlocked || CurrentState == StateKey.Execute || _invulnerableRemaining > 0 ||
             (CurrentState == StateKey.Roll && _elapsed < Definition.RollIFrame);
         public event Action<int> HealthChanged;
@@ -163,6 +163,25 @@ namespace HumanGhost.Gameplay
             States.Call(StateKey.Heal);
             if (_duration == 0) FinishHerb();
             return true;
+        }
+
+        public event Action ExecutionRecovered;
+
+        // 보상 담당이 다른 지급과 함께 확정합니다. 이 단계에서는 알림을 보내지 않습니다.
+        internal bool ApplyExecutionHealing(int amount)
+        {
+            if (amount < 0) throw new ArgumentOutOfRangeException(nameof(amount));
+            if (IsDead) return false;
+            int next = (int)Math.Min(MaxHealth, (long)Health + amount);
+            bool changed = next != Health;
+            Health = next;
+            return changed;
+        }
+
+        internal void NotifyExecutionHealing()
+        {
+            HealthChanged?.Invoke(Health);
+            ExecutionRecovered?.Invoke();
         }
 
         private void FinishHerb()

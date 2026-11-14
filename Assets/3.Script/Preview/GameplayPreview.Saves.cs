@@ -24,10 +24,14 @@ namespace HumanGhost.Gameplay.Preview
         private SubscriptionScope _progressScope;
         private bool _shrineCheckPending;
         private bool _shrineSaving;
+        private readonly System.Collections.Generic.Queue<(MonsterActor Actor, MonsterSpawnId Spawn)> _pendingMonsterRewards =
+            new System.Collections.Generic.Queue<(MonsterActor, MonsterSpawnId)>();
+        private bool _grantingMonsterRewards, _monsterRewardsFailed;
 
         private void ConnectProgress()
         {
             _progressScope?.Dispose();
+            _pendingMonsterRewards.Clear(); _monsterRewardsFailed = false;
             var scope = new SubscriptionScope();
             _progressScope = scope;
             PlayerRuntime player = _player;
@@ -48,12 +52,37 @@ namespace HumanGhost.Gameplay.Preview
                 MonsterSpawnId id = pair.Value;
                 Action<int> changed = scope.Guard<int>(health =>
                 {
-                    if (health == 0 && !_progress.HasDefeatedMonster(id)
-                        && !_progress.Rewards.TryGrant(id, actor.Definition.ID, _progress))
-                        throw new InvalidOperationException($"몬스터 {actor.Definition.ID}의 자동 보상을 지급하지 못했습니다.");
+                    // 사망 알림 안에서 다른 코어 명령을 호출하지 않습니다. 처형 양쪽 정리 뒤 조립자가 지급합니다.
+                    if (health == 0 && !_progress.HasDefeatedMonster(id)) _pendingMonsterRewards.Enqueue((actor, id));
                 });
                 scope.Add(() => actor.HealthChanged -= changed); actor.HealthChanged += changed;
             }
+        }
+
+        private void FlushMonsterRewards()
+        {
+            if (_grantingMonsterRewards || _monsterRewardsFailed) return;
+            _grantingMonsterRewards = true;
+            try
+            {
+                while (_pendingMonsterRewards.Count > 0)
+                {
+                    var pending = _pendingMonsterRewards.Peek();
+                    try
+                    {
+                        if (!_progress.HasDefeatedMonster(pending.Spawn) &&
+                            !_progress.Rewards.TryGrant(pending.Spawn, pending.Actor.Definition.ID, _progress,
+                                pending.Actor.WasExecuted ? _progress.Executions : null, _actor))
+                            throw new InvalidOperationException($"몬스터 {pending.Actor.Definition.ID}의 보상을 확정하지 못했습니다.");
+                    }
+                    finally
+                    {
+                        if (_progress.HasDefeatedMonster(pending.Spawn)) _pendingMonsterRewards.Dequeue();
+                    }
+                }
+            }
+            catch { _monsterRewardsFailed = true; throw; }
+            finally { _grantingMonsterRewards = false; }
         }
 
         private void ImportEntryProgress()
@@ -66,6 +95,9 @@ namespace HumanGhost.Gameplay.Preview
                     _catalog.GetDefinition<ShrineDefinitions>(), _catalog.GetTable<Upgrade>().All));
             if (_progress.Galimgil == null)
                 _progress.ConnectGalimgil(new GalimgilRewards(_catalog.GetDefinition<GalimgilRewardDefinition>(), _progress.Rewards.Wallet));
+            if (_progress.Executions == null)
+                _progress.ConnectExecutions(new ExecutionRewardSession(_catalog.GetTable<ExecuteReward>().All,
+                    _catalog.GetTable<CorruptionStep>().All));
             var context = GameSaveContext.Current;
             SaveSnapshot snapshot = context != null && context.EntryPending ? context.Entry?.Snapshot : null;
             if (snapshot == null) return;
@@ -164,8 +196,12 @@ namespace HumanGhost.Gameplay.Preview
                 await flow.SaveAutomaticAsync(savePointId, rest);
                 if (rest && this != null && isActiveAndEnabled && ReferenceEquals(lifetime, _saveLifetime))
                 {
-                    _player.NotifyPresentationCue("Save");
-                    _playerAudio?.PlayAnimationSound("PLAYER_SAVE");
+                    // 파일 쓰기가 UI 닫힘보다 늦게 끝나도 일어서기 동작을 다시 앉기로 덮지 않습니다.
+                    if (_shrinePrefab == null || (_shrineScreen != null && _shrineScreen.IsOpen))
+                    {
+                        _player.NotifyPresentationCue(_shrinePrefab == null ? "Save" : "Pray");
+                        _playerAudio?.PlayAnimationSound("PLAYER_SAVE");
+                    }
                 }
             }
             catch (Exception error)
@@ -184,6 +220,8 @@ namespace HumanGhost.Gameplay.Preview
         public SaveSnapshot Capture()
         {
             RequireSaveRuntime();
+            FlushMonsterRewards();
+            if (_monsterRewardsFailed) throw new InvalidOperationException("보상 처리 실패 상태에서는 저장하지 않습니다. 기존 저장은 유지합니다.");
             if (_actor.IsDead) throw new InvalidOperationException("사망 상태에서는 현재 위치를 저장할 수 없습니다.");
             return new SaveSnapshot(_stageId, _progress.ShrineId,
                 IntegerPosition.ToData(_player.Position.X),
@@ -191,7 +229,7 @@ namespace HumanGhost.Gameplay.Preview
                 _actor.Health, _actor.HerbCount,
                 _progress.Progress.GetCleared(),
                 _progress.ActiveShrines, _progress.OpenedGates, _progress.ViewedCutscenes, Array.Empty<int>(),
-                _progress.DefeatedMonsters, _progress.Rewards.Capture(), _progress.Upgrades.Capture(), _progress.Galimgil.Capture());
+                _progress.DefeatedMonsters, _progress.Rewards.Capture(), _progress.Upgrades.Capture(), _progress.Galimgil.Capture(), _progress.Executions.Capture());
         }
         public Task PrepareAsync(SaveSnapshot snapshot, CancellationToken cancellation)
         {
@@ -227,6 +265,7 @@ namespace HumanGhost.Gameplay.Preview
             DisconnectGalimgilArrivals();
             DisconnectShrine();
             _progressScope?.Dispose(); _progressScope = null;
+            _pendingMonsterRewards.Clear();
             if (_savePoint != null) _savePoint.GetComponent<ShrineInteract>().Connect(null);
             _shrineCheckPending = false;
             _shrineSaving = false;

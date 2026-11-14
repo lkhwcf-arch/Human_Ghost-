@@ -73,8 +73,8 @@ namespace HumanGhost.Gameplay.Adapters
             string heading = text.Read(popup.BodyTextID, selected);
             string copy = text.Read(popup.Button1TextID, selected);
             string close = text.Read(popup.Button2TextID, selected);
-            string copied = text.Read(30214, selected);
-            string logLabel = text.Read(30212, selected);
+            string copied = text.ReadUi(52102, selected);
+            string logLabel = text.ReadUi(52101, selected);
             _popup = popup;
             _data = data;
             _languageCode = selected;
@@ -90,7 +90,12 @@ namespace HumanGhost.Gameplay.Adapters
             UnityEngine.Object context = null, string state = "")
         {
             var text = new LanguageTextSource(_data);
-            string notice = string.Format(text.Read(messageTextId), text.Read(featureTextId));
+            int featureUiId = featureTextId switch { 30331 => 52105, 30332 => 52106, 30333 => 52107, 30334 => 52108,
+                30335 => 52109, 30336 => 52110, 30341 => 52111, 30342 => 52112, 30343 => 52113,
+                30344 => 52114, 30345 => 52115, 30346 => 52116, 30347 => 52117, _ => 0 };
+            string message = messageTextId == 30330 ? text.ReadUi(52104) : text.Read(messageTextId);
+            string feature = featureUiId == 0 ? text.Read(featureTextId) : text.ReadUi(featureUiId);
+            string notice = string.Format(message, feature);
             return ReportCore(error, null, context, state, notice);
         }
 

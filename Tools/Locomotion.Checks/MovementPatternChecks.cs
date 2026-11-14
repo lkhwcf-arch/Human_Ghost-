@@ -123,12 +123,12 @@ internal static class MovementPatternChecks
         int hurt = healer.Health;
         healer.SetMove(1);
         check(healer.TryUseHerb() && healer.CurrentState == StateKey.Heal && healer.HerbCount == 2, "약초 시작 시 개수 감소");
-        check(healer.HealMoveSpeed == player.MoveSpeed / 2 && healer.Locomotion.HorizontalSpeed == 0, "사용 중 이동 절반");
+        check(healer.HealMoveSpeed == 0 && healer.HorizontalMoveSpeed == 0 && healer.Locomotion.HorizontalSpeed == 0, "약초 사용 중 수평 이동 차단");
         check(!healer.TryAttack() && !healer.TryRoll(), "사용 중 공격·구르기 불가");
         healer.Tick(799);
-        check(healer.Health == hurt, "사용 시간 전 회복 없음");
+        check(healer.Health == hurt && healer.HorizontalMoveSpeed == 0, "799ms까지 회복·이동 없음");
         healer.Tick(1);
-        check(healer.Health == System.Math.Min(player.HP, hurt + 40) && healer.CurrentState == StateKey.Walk, "800ms 뒤 40 회복");
+        check(healer.Health == System.Math.Min(player.HP, hurt + 40) && healer.CurrentState == StateKey.Walk && healer.HorizontalMoveSpeed == player.MoveSpeed, "800ms 뒤 회복·이동 복구");
         healer.ReceiveHit(30);
         healer.Tick(player.HitIFrame + player.HitStunTime);
         int beforeCancel = healer.Health;

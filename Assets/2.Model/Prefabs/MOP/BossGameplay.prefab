@@ -299,7 +299,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &5213470506737242650
 Transform:
   m_ObjectHideFlags: 0
@@ -970,13 +970,13 @@ MonoBehaviour:
   _boss: {fileID: 818725543056190857}
   _body: {fileID: 3777643855908687980}
   _rig: {fileID: 6633388230281084882}
-  _idle: {fileID: 7400000, guid: ae257b8740c283946b19652ee822bf2d, type: 2}
-  _walk: {fileID: 7400000, guid: b2fae08784230e84da1bd1743bf37942, type: 2}
-  _slam: {fileID: 7400000, guid: d49c5f2ec8f12204289d76484280db21, type: 2}
-  _sweep: {fileID: 7400000, guid: 9bd2b62d0661c3346a8737f6178ad7d0, type: 2}
-  _doubleSlam: {fileID: 7400000, guid: ccd3434a1d179454094b4a95d2f718a2, type: 2}
-  _leap: {fileID: 7400000, guid: b1beda9aef7b87c4dbd6addd5aa54901, type: 2}
-  _slump: {fileID: 7400000, guid: 8bb4a4c843a76b847bf9600b951ba43b, type: 2}
+  _idle: {fileID: 7400000, guid: 45face7da8001d44ea15f2ebd93a1d72, type: 2}
+  _walk: {fileID: 7400000, guid: 4f9109db2b7c47c4b9b3ca8f71584166, type: 2}
+  _slam: {fileID: 7400000, guid: 7f9ade09eb562044ea511305935a2fe7, type: 2}
+  _sweep: {fileID: 7400000, guid: d5c77f54a0e4ce1439f67cd0b0258aca, type: 2}
+  _doubleSlam: {fileID: 7400000, guid: 446e74472b6763644b97d2e6ae6dffdb, type: 2}
+  _leap: {fileID: 7400000, guid: ec7a480c1e45003488ea955422800424, type: 2}
+  _slump: {fileID: 7400000, guid: c02e8404beae1d942824cc1959b9f448, type: 2}
   _warning: {fileID: 8221953473575960083}
   _dust: {fileID: 6040507475570835682}
   _flash: {fileID: 1551113399679612307}

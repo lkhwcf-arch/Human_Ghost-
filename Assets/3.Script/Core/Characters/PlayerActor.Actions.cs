@@ -43,12 +43,18 @@ namespace HumanGhost.Gameplay
             return true;
         }
 
-        internal bool TryParryContact(AttackWindow incoming, int targetId, int direction)
+        internal bool TryParryContact(AttackWindow incoming, int targetId, int direction, bool deferFeedback = false)
         {
             if (!IsParrying || IsDead || _cutsceneDamageBlocked || !_parry.TryDeflect(incoming, targetId, direction, _facing)) return false;
-            ParrySucceeded?.Invoke(_parry.HitStop);
-            if (!_parry.IsActive) FinishAction();
+            if (!deferFeedback) CompleteParryContact();
             return true;
+        }
+
+        // 적의 공격 취소·체세 반영까지 끝난 뒤 표시 소비자에게 성공을 알립니다.
+        internal void CompleteParryContact()
+        {
+            if (!_parry.IsActive) FinishAction();
+            ParrySucceeded?.Invoke(_parry.HitStop);
         }
 
         private void TickAction(ref int milliseconds)

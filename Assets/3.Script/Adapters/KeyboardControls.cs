@@ -61,7 +61,7 @@ namespace HumanGhost.Gameplay.Adapters
                             case "Roll": mapped = wasd ? "l" : "space"; break;
                             case "Skill": case "Skill1": mapped = wasd ? "u" : "z"; break;
                             case "Herb": case "Heal": mapped = wasd ? "i" : "q"; break;
-                            case "Interact": mapped = "e"; break;
+                            case "Interact": mapped = "f"; break;
                         }
                         if (mapped != null)
                         {

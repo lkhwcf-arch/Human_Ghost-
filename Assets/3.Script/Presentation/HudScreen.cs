@@ -29,6 +29,10 @@ namespace HumanGhost.Gameplay.Presentation
         [SerializeField] private Image _damageEdge = null;
         private CanvasGroup[] _extraGroups = new CanvasGroup[0];
         private PlayerActor _player;
+        private LanguageTextSource _text;
+        public void ConnectText(LanguageTextSource text) { _text = text; RefreshLanguage(); }
+        private void RefreshLanguage() { _shownHerbs = -1; _shownCooldown = -1; _scope?.Invalidate(); }
+        private string Ui(int id, string fallback) => _text == null ? fallback : _text.ReadUi(id);
         private BossPoise _boss;
         private int _bossMaxPoise;
         private float _bossGhost = 1f;
@@ -50,7 +54,7 @@ namespace HumanGhost.Gameplay.Presentation
             SetWidth(_bossHealthGhost, _bossGhost);
             _extraGroups = alsoFade;
             _bossRoot.SetActive(_boss != null);
-            if (_boss != null) _bossName.text = bossName;
+            if (_boss != null) { _bossName.text = bossName; _bossName.fontSize = Mathf.Max(42, _bossName.fontSize); }
             _damageEdge.enabled = false;
             _damageFlash = _staminaFlash = 0f;
             _staminaBack.color = new Color(0.05f, 0.05f, 0.05f, 0.8f);
@@ -61,7 +65,7 @@ namespace HumanGhost.Gameplay.Presentation
 
         public void SetSkillName(string text) { if (_skillName != null) _skillName.text = text; }
 
-        public void Disconnect() { Unsubscribe(); _player = null; _boss = null; _extraGroups = new CanvasGroup[0]; }
+        public void Disconnect() { Unsubscribe(); _player = null; _boss = null; _text = null; _extraGroups = new CanvasGroup[0]; }
         private void OnEnable() => Subscribe();
         private void OnDisable() => Unsubscribe();
         private void OnDestroy() => Disconnect();
@@ -75,6 +79,7 @@ namespace HumanGhost.Gameplay.Presentation
             _scope.Add(() => player.DisplayChanged -= invalidate);
             player.DisplayChanged += invalidate;
             _scope.Add(() => KeyboardControls.Changed -= invalidate); KeyboardControls.Changed += invalidate;
+            _scope.Add(() => LanguageSettings.Changed -= RefreshLanguage); LanguageSettings.Changed += RefreshLanguage;
             if (_boss != null)
             {
                 BossPoise boss = _boss;
@@ -129,13 +134,13 @@ namespace HumanGhost.Gameplay.Presentation
         {
             RefreshStamina(_player.Stamina.Current);
             RefreshBoss();
-            if (_shownHerbs != _player.HerbCount) { _shownHerbs = _player.HerbCount; _herbs.text = (_herbKey == null ? "Q  약초 " : "") + _shownHerbs; }
+            if (_shownHerbs != _player.HerbCount) { _shownHerbs = _player.HerbCount; _herbs.text = (_herbKey == null ? (KeyboardControls.Layout == KeyboardLayout.Wasd ? "I  " : "Q  ") + Ui(51602, "약초") + " " : "") + _shownHerbs; }
             if (_herbKey != null) _herbKey.text = KeyboardControls.Layout == KeyboardLayout.Wasd ? "I" : "Q";
             if (_shownSkill != _player.HasSkill)
             {
                 _shownSkill = _player.HasSkill; _skill.gameObject.SetActive(_player.HasSkill);
                 if (_skillIcon != null) _skillIcon.SetActive(_player.HasSkill);
-                if (_skillName != null) _skillName.gameObject.SetActive(_player.HasSkill);
+                if (_skillName != null) _skillName.gameObject.SetActive(false);
                 _shownCooldown = -1;
             }
             if (_skillKey != null) _skillKey.transform.parent.gameObject.SetActive(KeyboardControls.Layout == KeyboardLayout.Wasd);
@@ -143,7 +148,8 @@ namespace HumanGhost.Gameplay.Presentation
             if (_player.HasSkill && cooldown != _shownCooldown)
             {
                 _shownCooldown = cooldown;
-                _skill.text = (_skillIcon == null ? "Z  결박 가르기 " : "") + (cooldown > 0 ? cooldown + "초" : "");
+                _skill.text = (_skillIcon == null ? (KeyboardControls.Layout == KeyboardLayout.Wasd ? "U  " : "Z  ") + Ui(51603, "결박 가르기") + " " : "") +
+                    (cooldown > 0 ? string.Format(System.Globalization.CultureInfo.InvariantCulture, Ui(51604, "{0}초"), cooldown) : "");
             }
         }
 

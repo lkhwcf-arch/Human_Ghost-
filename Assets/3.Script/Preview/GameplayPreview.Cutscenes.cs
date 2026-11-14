@@ -97,7 +97,7 @@ namespace HumanGhost.Gameplay.Preview
                 DemoEndingFlow flow = _ending;
                 _actor.SetCutsceneDamageBlocked(true);
                 var text = new LanguageTextSource(_catalog);
-                string notice = string.Join("\n", Array.ConvertAll(_endingTextIds, id => text.Read(id, LanguageSettings.Current)));
+                string notice = string.Join("\n", Array.ConvertAll(_endingTextIds, id => id == 30352 ? text.ReadUi(52008) : text.Read(id, LanguageSettings.Current)));
                 // 1114 A2 기획 제안: 검은 화면 가운데 문구, 정해진 시간 뒤 또는 넘기기 입력으로 타이틀.
                 bool opened = _textbox.OpenBlackout(notice, _endingNoticeMs,
                     () =>

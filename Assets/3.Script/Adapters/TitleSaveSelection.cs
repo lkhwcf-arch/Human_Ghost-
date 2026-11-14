@@ -20,6 +20,9 @@ namespace HumanGhost.Gameplay.Adapters
         private JsonSaveStore _store;
         private SaveSession _session;
         private bool _busy;
+        private LanguageTextSource _text;
+        public void ConnectText(LanguageTextSource text) => _text = text ?? throw new ArgumentNullException(nameof(text));
+        private string LoadFailure => string.Format(_text.ReadUi(52104), _text.ReadUi(52114));
         private int _generation;
         public bool IsOpen { get; private set; }
 
@@ -55,12 +58,13 @@ namespace HumanGhost.Gameplay.Adapters
         public async void Open()
         {
             if (!_enableForTests || !isActiveAndEnabled || IsOpen || !_host.CanOpenSaveSelection) return;
+            if (_text == null) { _host.ReportError(new InvalidOperationException("저장 기록 선택의 언어팩을 먼저 연결해 주세요."), "타이틀 기록 선택"); return; }
             IsOpen = true;
             _busy = true;
             int generation = ++_generation;
             try
             {
-                _screen.Show("저장 기록 선택 · 테스트 전용", Array.Empty<SaveSlotEntry>(), "", "저장 기록을 확인하고 있습니다.");
+                _screen.Show(_text.ReadUi(51006), Array.Empty<SaveSlotEntry>(), "", "");
                 _screen.SetBusy(true, true);
                 if (_store == null) _store = new JsonSaveStore(GetSaveDirectory(), _saveVersion);
                 var records = await _store.ReadAsync();
@@ -68,13 +72,13 @@ namespace HumanGhost.Gameplay.Adapters
                 _session = new SaveSession(SaveBuildMode.Demo, _saveVersion, _store,
                     () => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), records);
                 var slots = _session.GetSlots(false);
-                _screen.Show("저장 기록 선택 · 테스트 전용", slots, "", slots.Count == 0
-                    ? "저장된 기록이 없습니다." : "날짜를 선택해 불러옵니다. 위·아래 이동 / Enter·C 결정 / Esc 닫기");
+                _screen.Show(_text.ReadUi(51006), slots, _text.ReadUi(51802), slots.Count == 0
+                    ? _text.ReadUi(51802) : "↑↓ " + _text.ReadUi(51506) + " / Enter " + _text.ReadUi(51507) + " / Esc " + _text.ReadUi(51508));
             }
             catch (Exception error)
             {
                 if (!IsCurrent(generation)) return;
-                _screen.ShowStatus("저장 기록 조회에 실패했습니다. 원본 파일은 유지됩니다. 콘솔을 확인해 주세요.");
+                _screen.ShowStatus(LoadFailure);
                 Debug.LogError($"타이틀 저장 기록 조회에 실패했습니다.\n{error.Message}", this);
             }
             finally { if (IsCurrent(generation)) { _busy = false; _screen.SetBusy(false); } }
@@ -85,18 +89,18 @@ namespace HumanGhost.Gameplay.Adapters
         private void Select(int index)
         {
             if (!IsOpen || _busy) return;
-            if (_load == null) { _screen.ShowStatus("실제 맵 복원 담당은 아직 연결되지 않았습니다."); return; }
+            if (_load == null) { _screen.ShowStatus(LoadFailure); return; }
             _busy = true;
             try
             {
                 _screen.SetBusy(true);
                 if (_load(_session.GetSlots(false)[index].Record)) { if (this != null) Close(); }
-                else _screen.ShowStatus("선택한 기록의 불러오기 요청을 실행하지 못했습니다.");
+                else _screen.ShowStatus(LoadFailure);
             }
             catch (Exception error)
             {
                 if (this == null) return;
-                _screen.ShowStatus("기록 복원 요청에 실패했습니다. 콘솔을 확인해 주세요.");
+                _screen.ShowStatus(LoadFailure);
                 Debug.LogError($"타이틀 저장 기록 실행에 실패했습니다.\n{error.Message}", this);
             }
             finally { if (this != null) { _busy = false; if (IsOpen) _screen.SetBusy(false); } }

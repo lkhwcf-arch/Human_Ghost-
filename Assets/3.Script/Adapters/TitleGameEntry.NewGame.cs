@@ -18,7 +18,7 @@ namespace HumanGhost.Gameplay.Adapters
             if (_modalBlocked || _menuPending || _introPending || _records == null || _saveStore == null) return false;
             if (KeyboardControls.LastDeviceWasGamepad) return BeginNewGame();
             PrepareMenu();
-            if (_layoutScreen == null) _layoutScreen = KeyboardLayoutScreen.Create(_menuRoot.transform, _settingsScreen);
+            if (_layoutScreen == null) _layoutScreen = KeyboardLayoutScreen.Create(_menuRoot.transform, _settingsScreen, new LanguageTextSource(_data.Data));
             _layoutScreen.SetBlocked(_modalBlocked);
             _layoutPending = true;
             _layoutScreen.Open(_settings.KeyboardLayout, OnLayoutClosed);

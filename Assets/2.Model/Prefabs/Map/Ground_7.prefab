@@ -561,7 +561,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 11.5, y: 46.5}
+  m_Offset: {x: 11.5, y: 46.4375}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -571,7 +571,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 21, y: 1}
+  m_Size: {x: 21, y: 0.875}
   m_EdgeRadius: 0
 --- !u!61 &1006
 BoxCollider2D:
@@ -629,7 +629,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 23.5, y: 23.5}
+  m_Offset: {x: 23.5, y: 23.4375}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -639,7 +639,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 7, y: 1}
+  m_Size: {x: 7, y: 0.875}
   m_EdgeRadius: 0
 --- !u!61 &1008
 BoxCollider2D:
@@ -663,7 +663,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 23.5, y: 9.5}
+  m_Offset: {x: 23.5, y: 9.4375}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -673,7 +673,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 7, y: 1}
+  m_Size: {x: 7, y: 0.875}
   m_EdgeRadius: 0
 --- !u!61 &1009
 BoxCollider2D:
@@ -731,7 +731,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 33, y: 52.5}
+  m_Offset: {x: 33, y: 52.4375}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -741,7 +741,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 22, y: 1}
+  m_Size: {x: 22, y: 0.875}
   m_EdgeRadius: 0
 --- !u!61 &1011
 BoxCollider2D:
@@ -765,7 +765,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 28.5, y: 16.5}
+  m_Offset: {x: 28.5, y: 16.4375}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -775,7 +775,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 7, y: 1}
+  m_Size: {x: 7, y: 0.875}
   m_EdgeRadius: 0
 --- !u!61 &1012
 BoxCollider2D:

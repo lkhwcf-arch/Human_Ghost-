@@ -15,7 +15,14 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField, InspectorName("대상 기준 카메라 높이")] private float _heightOffset = 2f;
         [SerializeField, InspectorName("따라가기 시간 (초)"), Min(0f)] private float _smoothSeconds = 0.12f;
         [SerializeField, InspectorName("바라보는 쪽 여백"), Min(0f)] private float _lookAhead = 0.8f;
+        [SerializeField, InspectorName("착지 높이 구도 보정 (타일)")] private float _groundHeightBias = -1f;
+        [SerializeField, InspectorName("위아래 보기 대기 (초)"), Min(0f)] private float _lookDelay = .5f;
+        [SerializeField, InspectorName("위아래 보기 거리 (타일)"), Min(0f)] private float _lookDistance = 3f;
         private PlayerRuntime _player;
+        private PlayerLocomotionInput _input;
+        private float _groundHeight, _lookHeld, _lookOffset;
+        private int _lookDirection;
+        private bool _hasGroundHeight;
         private Camera _camera;
         private Vector2 _velocity;
         private float _shakeRemaining;
@@ -26,6 +33,8 @@ namespace HumanGhost.Gameplay.Preview
         private Vector2 _fixedPosition;
         private float _baseSize;
         public bool ShakeEnabled { get; set; } = true;
+        // 화면이 방 크기와 같은 스테이지(장부방)는 위아래 보기로 맵 밖 채움 그림이 드러나므로 끕니다.
+        public bool LookEnabled { get; set; } = true;
 
         // 테스트 전용 확대 배율입니다. 1보다 크면 더 확대합니다(화면 크기 = 스테이지 값 / 배율). 스테이지를 옮겨도 유지하고 Play마다 1로 돌아갑니다.
         public const float MinTestZoom = 0.5f, MaxTestZoom = 2f;
@@ -63,6 +72,7 @@ namespace HumanGhost.Gameplay.Preview
         public void SetArea(float minX, float maxX, float minY, float size)
         {
             _fixed = false;
+            ResetFocus();
             _minX = minX; _maxX = maxX; _minY = minY;
             _camera = GetComponent<Camera>();
             _baseSize = size;
@@ -74,6 +84,7 @@ namespace HumanGhost.Gameplay.Preview
         public void SetFixed(Vector2 position, float size)
         {
             _fixed = true;
+            ResetFocus();
             _fixedPosition = position;
             _camera = GetComponent<Camera>();
             _baseSize = size;
@@ -96,12 +107,42 @@ namespace HumanGhost.Gameplay.Preview
             _camera.clearFlags = CameraClearFlags.SolidColor;
             _camera.backgroundColor = new Color(.012f,.008f,.01f,1f);
             if (_target != null) _player = _target.GetComponentInParent<PlayerRuntime>();
+            if (_player != null) _input = _player.GetComponent<PlayerLocomotionInput>();
         }
-        private void OnEnable() { if (_target != null) transform.position = GetGoal(); }
+        private void OnEnable() { ResetFocus(); if (_target != null) transform.position = GetGoal(); }
+
+        private void ResetFocus()
+        {
+            _hasGroundHeight = _target != null;
+            _groundHeight = _target != null ? _target.position.y : 0f;
+            _lookHeld = _lookOffset = 0f; _lookDirection = 0;
+        }
+        private void UpdateFocus(float seconds)
+        {
+            if (_fixed || _target == null) return;
+            var actor = _player != null ? _player.Actor : null;
+            float height = _target.position.y;
+            if (!_hasGroundHeight || actor == null || actor.Locomotion.IsGrounded || actor.IsHanging)
+            { _groundHeight = height; _hasGroundHeight = true; }
+            else
+            {
+                // 긴 낙하에서 플레이어가 화면 아래로 사라지는 경우만 추적을 재개합니다. 일반 점프는 높이를 고정합니다.
+                float lowerMargin = _camera.orthographicSize * .65f;
+                if (height < _groundHeight - lowerMargin) _groundHeight = height + lowerMargin;
+            }
+            if (seconds <= 0f) return;
+            int direction = LookEnabled && actor != null && actor.Locomotion.IsGrounded && actor.Locomotion.CanMove && _input != null
+                ? _input.VerticalDirection : 0;
+            if (direction != _lookDirection) { _lookDirection = direction; _lookHeld = 0f; }
+            _lookHeld = direction == 0 ? 0f : _lookHeld + seconds;
+            float scale = _player != null ? _player.ToWorld(IntegerPosition.UnitsPerTile) : 1f;
+            _lookOffset = direction != 0 && _lookHeld >= _lookDelay ? direction * _lookDistance * scale : 0f;
+        }
 
         private void LateUpdate()
         {
             if (_target == null) return;
+            UpdateFocus(Time.deltaTime);
             Vector3 goal = GetGoal();
             Vector3 position = transform.position - _shakeOffset;
             // 일시정지·히트스톱의 경과 시간 0에서는 SmoothDamp가 NaN을 낼 수 있습니다.
@@ -127,7 +168,9 @@ namespace HumanGhost.Gameplay.Preview
             float focusX = _target.position.x + (_player != null && _player.Actor != null ? _player.Actor.Facing * _lookAhead : 0f);
             float x = _maxX - _minX <= halfWidth * 2f ? (_minX + _maxX) * 0.5f : Mathf.Clamp(focusX, _minX + halfWidth, _maxX - halfWidth);
             // 기본 구도에 더하는 테스트 이동량입니다. 맵 가장자리에서도 구도를 직접 비교할 수 있습니다.
-            return new Vector3(x, Mathf.Max(_minY, _target.position.y + _heightOffset), transform.position.z) + (Vector3)TestPositionOffset;
+            float scale = _player != null ? _player.ToWorld(IntegerPosition.UnitsPerTile) : 1f;
+            float y = Mathf.Max(_minY, _groundHeight + _heightOffset + _groundHeightBias * scale) + _lookOffset;
+            return new Vector3(x, y, transform.position.z) + (Vector3)TestPositionOffset;
         }
     }
 }

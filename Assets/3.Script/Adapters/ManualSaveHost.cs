@@ -25,6 +25,7 @@ namespace HumanGhost.Gameplay.Adapters
         private InputAction _open;
         private Popup _savePopup, _overwritePopup;
         private IReadOnlyDataTable<Language> _language;
+        private LanguageTextSource _text;
         private int _generation;
         private bool _saving;
         private bool _modalBlocked;
@@ -50,6 +51,7 @@ namespace HumanGhost.Gameplay.Adapters
             _savePopup = savePopup;
             _overwritePopup = overwritePopup;
             _language = language;
+            _text = new LanguageTextSource(data);
             _canOpen = canOpen;
             _flow = flow;
             if (isActiveAndEnabled && flow.ManualSaveEnabled) _open.Enable();
@@ -115,8 +117,8 @@ namespace HumanGhost.Gameplay.Adapters
             }
         }
 
-        private void ShowSlots(string status) => _screen.Show(LanguageTextSource.Select(_language.Get(_titleTextId)),
-            _flow.GetSlots(true), LanguageTextSource.Select(_language.Get(_emptyTextId)), status);
+        private void ShowSlots(string status) => _screen.Show((_titleTextId == 30207 ? _text.ReadUi(51801) : _text.Read(_titleTextId)),
+            _flow.GetSlots(true), (_emptyTextId == 30208 ? _text.ReadUi(51802) : _text.Read(_emptyTextId)), status);
 
         private void Select(int index)
         {
@@ -141,7 +143,7 @@ namespace HumanGhost.Gameplay.Adapters
             {
                 bool saved = await flow.SaveManualAsync(slot, overwriteConfirmed);
                 if (!IsCurrent(generation)) return;
-                ShowSlots(saved ? LanguageTextSource.Select(_language.Get(_successTextId)) : "지금은 저장할 수 없습니다.");
+                ShowSlots(saved ? (_successTextId == 30024 ? _text.ReadUi(51803) : _text.Read(_successTextId)) : _text.ReadUi(51804));
             }
             catch (Exception error)
             {

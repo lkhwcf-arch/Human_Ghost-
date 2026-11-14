@@ -19,6 +19,7 @@ namespace HumanGhost.Gameplay.Preview
         private readonly int _targetId;
         private readonly int _playerTargetId;
         private readonly float _worldUnitsPerTile;
+        private readonly long _spawnX;
         private readonly IntegerMotion _motion = new IntegerMotion();
         private readonly Action<int, StateKey, int> _applyHitEffects;
         private MillisecondClock _clock;
@@ -52,6 +53,7 @@ namespace HumanGhost.Gameplay.Preview
             if (targetId <= 0 || playerTargetId <= 0 || targetId == playerTargetId) throw new ArgumentOutOfRangeException(nameof(targetId));
             runtime.ConfigureSpatialScale(worldUnitsPerTile);
             _monster = runtime.Actor ?? throw new InvalidOperationException("일반몹 초기화가 필요합니다.");
+            _spawnX = runtime.Position.X;
             _targetId = targetId; _playerTargetId = playerTargetId; _worldUnitsPerTile = worldUnitsPerTile;
             _applyHitEffects = applyHitEffects;
             // 매복 몬스터는 꺼진 채 연결합니다.
@@ -89,21 +91,30 @@ namespace HumanGhost.Gameplay.Preview
             }
             StepFire(seconds);
             if (_monster.IsDead) { IsEngaged = false; _body.color = Color.gray; _deathShown = true; return; }
+            if (_player.Actor.IsDead) _monster.ClearTarget();
             if (_monster.IsExposed || _monster.IsInvulnerable) return;
             _projectile?.Step(seconds);
             PlayerActor actor = _player.Actor;
             int milliseconds = _clock.Advance(seconds);
             if (_hasSpan) { minX = _spanMin; maxX = _spanMax; }
-            bool wall = _runtime.MoveHorizontal(_motion.StepHorizontal(_monster.Velocity, milliseconds), minX, maxX);
+            long delta = _motion.StepHorizontal(_monster.Velocity, milliseconds);
+            if (_monster.IsReturning)
+            {
+                long remaining = _spawnX - _runtime.Position.X;
+                if (Math.Sign(delta) == Math.Sign(remaining) && Math.Abs(delta) > Math.Abs(remaining)) delta = remaining;
+            }
+            bool wall = _runtime.MoveHorizontal(delta, minX, maxX);
             if (wall) _motion.ResetHorizontal();
             Vector3 position = _runtime.ToWorld(_runtime.Position);
             if (wall) _monster.NotifyWallHit();
 
             float offset = _player.transform.position.x - position.x;
             int distance = Distance(offset);
-            IsEngaged = !actor.IsDead && !_monster.IsDead && distance <= _monster.Definition.SightRange;
             if (actor.IsDead) _monster.ClearTarget();
-            else _monster.Observe(_playerTargetId, distance, offset > 0f ? 1 : offset < 0f ? -1 : 0);
+            else _monster.Observe(_playerTargetId, distance, offset > 0f ? 1 : offset < 0f ? -1 : 0,
+                Distance(_player.transform.position.y - position.y),
+                IntegerPosition.ToData(Math.Abs(_runtime.Position.X - _spawnX)), Math.Sign(_spawnX - _runtime.Position.X));
+            IsEngaged = !actor.IsDead && !_monster.IsDead && _monster.HasAggro;
 
             CheckMonsterHit();
             _body.color = _monster.IsDead ? Color.gray : _monster.CurrentState == StateKey.Stun ? new Color(0.75f, 0.35f, 0.95f) :

@@ -20,11 +20,13 @@ namespace HumanGhost.Gameplay.Presentation
             [SerializeField, InspectorName("글자 이미지(없으면 문구 표시)")] private Image _labelImage = null;
             public TitleAction Action => _action;
             public GameObject Root => _label.transform.parent.gameObject;
-            public void SetText(IReadOnlyDataTable<Language> language)
+            public void SetText(IReadOnlyDataCatalog data)
             {
-                _label.text = LanguageTextSource.Select(language.Get(_textId));
-                // 이미지 항목도 문구를 유지해 이미지를 빼면 언어 표시로 돌아갑니다.
-                bool useImage = LanguageSettings.Current == LanguageCode.Korean && _labelImage != null && _labelImage.sprite != null;
+                int uiId = _action switch { TitleAction.NewGame => 51001, TitleAction.Continue => 51002,
+                    TitleAction.Settings => 51003, TitleAction.Quit => 51004, _ => 0 };
+                _label.text = uiId == 0 ? LanguageTextSource.Select(data.GetTable<Language>().Get(_textId)) : LanguageTextSource.SelectUi(data, uiId);
+                // 문구를 바꾸면 한국어도 즉시 반영되도록 고정 글자 그림 대신 공통 글꼴을 씁니다.
+                bool useImage = false;
                 _label.enabled = !useImage;
                 _label.raycastTarget = !useImage;
                 if (_labelImage != null) _labelImage.enabled = useImage;
@@ -103,12 +105,13 @@ namespace HumanGhost.Gameplay.Presentation
         {
             var language = _data.GetTable<Language>();
             var popup = _data.GetTable<Popup>().Get(_newGamePopupId);
-            foreach (Entry entry in _entries) entry.SetText(language);
+            foreach (Entry entry in _entries) entry.SetText(_data);
+            _closeLabel.text = LanguageTextSource.SelectUi(_data, 51505);
             _question.text = LanguageTextSource.Select(language.Get(popup.BodyTextID));
             _yesLabel.text = LanguageTextSource.Select(language.Get(popup.Button1TextID));
             _noLabel.text = LanguageTextSource.Select(language.Get(popup.Button2TextID));
-            _answerHint.text = "↑↓ " + LanguageTextSource.Select(language.Get(30050)) + " · Enter / C / A "
-                + LanguageTextSource.Select(language.Get(30051)) + " · Esc / B: " + _noLabel.text;
+            _answerHint.text = "↑↓ " + LanguageTextSource.SelectUi(_data, 51506) + " · Enter / C / A "
+                + LanguageTextSource.SelectUi(_data, 51507) + " · Esc / B: " + _noLabel.text;
         }
 
         public void Disconnect()

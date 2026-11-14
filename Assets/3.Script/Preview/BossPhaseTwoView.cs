@@ -12,7 +12,13 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField] private AnimationClip _idle = null, _walk = null, _slam = null, _sweep = null, _doubleSlam = null, _leap = null, _slump = null;
         [SerializeField] private LineRenderer _warning = null, _dust = null;
         [SerializeField] private SpriteRenderer _flash = null;
-        private float _flashRemaining;
+        // 1페이즈·일반몹 스프라이트(10fps)와 같은 프레임감으로 리그 포즈를 끊어 보여 줍니다. 판정 시간은 바꾸지 않습니다.
+        [SerializeField, InspectorName("리그 표시 프레임 (fps)"), Min(1f)] private float _framesPerSecond = 10f;
+        [SerializeField, InspectorName("대기·걷기 재생 배율"), Range(.3f, 1f)] private float _loopSpeed = .8f;
+        public float FramesPerSecond => _framesPerSecond;
+        public float LoopSpeed => _loopSpeed;
+        public static float Frame(float time, float framesPerSecond) => Mathf.Floor(time * framesPerSecond) / framesPerSecond;
+        private float _flashRemaining, _loopTime;
         public void FlashTransition() => _flashRemaining = .18f;
         private PreviewFollowCamera _camera;
         private float _idleTime, _slumpElapsed, _dustTime = 1f;
@@ -21,6 +27,7 @@ namespace HumanGhost.Gameplay.Preview
         private float _lastX;
         private Vector3 _rigPosition, _rigScale;
         private SpriteRenderer[] _parts;
+        private RigBindPose _bind;
         private int _health = -1;
         private float _hitFlash;
         private MaterialPropertyBlock _properties;
@@ -30,6 +37,7 @@ namespace HumanGhost.Gameplay.Preview
             _properties = new MaterialPropertyBlock();
             _rigPosition = _rig.transform.localPosition; _rigScale = _rig.transform.localScale;
             _parts = _rig.GetComponentsInChildren<SpriteRenderer>(true);
+            _bind = new RigBindPose(_rig);
             _lastX = transform.position.x;
         }
         public void Show(bool value) { if (_rig.activeSelf != value) _rig.SetActive(value); }
@@ -55,9 +63,10 @@ namespace HumanGhost.Gameplay.Preview
             _hitFlash = Mathf.Max(0f,_hitFlash-Time.deltaTime);
             if (!_rig.activeSelf) { _warning.enabled = false; _dust.enabled = false; return; }
             _idleTime += Time.deltaTime;
+            _loopTime += Time.deltaTime * _loopSpeed;
             bool moving = Mathf.Abs(transform.position.x - _lastX) > .00001f; _lastX = transform.position.x;
             AnimationClip clip = moving ? _walk : _idle;
-            float time = _idleTime;
+            float time = _loopTime;
             if (actor.IsDead || actor.IsExposed || actor.CurrentState == HumanGhost.Data.Definitions.StateKey.Execute)
             { clip = _slump; _slumpElapsed = Mathf.Min(clip.length, _slumpElapsed + Time.deltaTime); time = _slumpElapsed; }
             else if (combat.IsAttacking)
@@ -77,12 +86,12 @@ namespace HumanGhost.Gameplay.Preview
                         time = combat.HitIndex == 0 ? Map(combat.HitElapsed, spec, .5f, .6f, .7f)
                             : Map(combat.HitElapsed, spec, 1.23f, 1.33f, clip.length, .7f); break;
                     case BossPatternKind.CrawlCharge:
-                        clip = combat.IsWindingUp ? _idle : _walk; time = _idleTime * (combat.IsWindingUp ? 1f : 2f); break;
+                        clip = combat.IsWindingUp ? _idle : _walk; time = _loopTime * (combat.IsWindingUp ? 1f : 2f); break;
                     case BossPatternKind.GroundSlam:
                         clip = _doubleSlam; time = combat.PatternElapsed / 1000f; break;
                     case BossPatternKind.DesperationLeap:
                         clip = _leap;
-                        time = combat.HitIndex < 2 ? combat.PatternElapsed / 1000f : .8f + (combat.PatternElapsed - 2100) / 1000f;
+                        time = LeapTime(combat);
                         break;
                 }
                 bool impact = !combat.IsWindingUp && combat.IsAttackActive;
@@ -95,12 +104,13 @@ namespace HumanGhost.Gameplay.Preview
                 }
             }
             else { _slumpElapsed = 0f; _impactPattern = null; _impactHit = -1; }
-            clip.SampleAnimation(_rig, clip.isLooping ? Mathf.Repeat(time, clip.length) : Mathf.Min(time, clip.length));
+            _bind.Restore();
+            clip.SampleAnimation(_rig, Frame(clip.isLooping ? Mathf.Repeat(time, clip.length) : Mathf.Min(time, clip.length), _framesPerSecond));
             var position = _rigPosition;
             if (combat.IsAirborne)
             {
                 int start = combat.HitIndex == 0 ? combat.CurrentPattern.Hits[0].Windup - 900 : 0;
-                position.y += Mathf.Sin(Mathf.Clamp01((combat.HitElapsed - start) / 900f) * Mathf.PI) * 6f;
+                position.y += Mathf.Sin(Mathf.Clamp01(Frame((combat.HitElapsed - start) / 1000f, _framesPerSecond) / .9f) * Mathf.PI) * 6f;
             }
             _rig.transform.localPosition = position;
             _rig.transform.localScale = new Vector3(_rigScale.x * combat.Facing, _rigScale.y, _rigScale.z);
@@ -130,6 +140,24 @@ namespace HumanGhost.Gameplay.Preview
                 Ring(_dust, radius * _dustTime/.35f, .12f);
             }
         }
+        // 공급 도약 클립의 착지 자세는 1.2초입니다. 실제 공중 구간 끝과 두 번째 착지에도 같은 자세를 맞춥니다.
+        private float LeapTime(BossCombat combat)
+        {
+            AttackSpec spec = combat.CurrentPattern.Hits[combat.HitIndex];
+            if (combat.HitIndex % 2 == 0)
+            {
+                int preparation = combat.HitIndex == 0 ? spec.Windup - 900 : 0;
+                if (combat.HitElapsed < preparation)
+                    return Mathf.Lerp(0f, .8f, (float)combat.HitElapsed / preparation);
+                if (combat.HitElapsed < spec.Windup)
+                    return Mathf.Lerp(.8f, 1.2f, (float)(combat.HitElapsed - preparation) / (spec.Windup - preparation));
+                return Mathf.Lerp(1.2f, 1.7f, (float)(combat.HitElapsed - spec.Windup) / spec.Active);
+            }
+            // 첫 착지는 짧게 재도약 자세로, 마지막 착지는 공급 클립 끝까지 회복합니다.
+            float end = combat.HitIndex == 1 ? 2.05f : _leap.length;
+            return Mathf.Lerp(1.7f, end, (float)combat.HitElapsed / spec.TotalTime);
+        }
+
         private static float Map(int elapsed, AttackSpec spec, float contact, float recovery, float end, float start = 0f)
         {
             if (elapsed < spec.Windup) return Mathf.Lerp(start, contact, (float)elapsed / spec.Windup);

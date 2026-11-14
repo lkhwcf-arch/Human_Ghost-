@@ -19,7 +19,7 @@ namespace HumanGhost.Gameplay.Presentation
             Disconnect();
             if (_label == null || text == null || target == null)
                 throw new InvalidOperationException("스킵 안내의 표시·대상·언어 공급자를 연결해 주세요.");
-            _label.text = text.Read(_textId, language);
+            _label.text = _textId == 30044 ? text.ReadUi(51511, language) : text.Read(_textId, language);
             _scope = scope;
             _target = target;
             _target.SkipAvailabilityChanged += Refresh;

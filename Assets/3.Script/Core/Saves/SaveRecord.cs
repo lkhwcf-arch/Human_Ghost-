@@ -47,11 +47,13 @@ namespace HumanGhost.Gameplay
         public RewardSnapshot Rewards { get; }
         public UpgradeSnapshot Upgrades { get; }
         public GalimgilSnapshot Galimgil { get; }
+        public ExecutionRewardSnapshot Executions { get; }
 
         public SaveSnapshot(int stageId, int shrineId, int positionX, int positionY, int hp, int herbs,
             IEnumerable<int> clearedStages, IEnumerable<int> activeShrines, IEnumerable<int> openedGates,
             IEnumerable<int> viewedCutscenes, IEnumerable<int> usedSavePoints, IEnumerable<MonsterSpawnId> defeatedMonsters = null,
-            RewardSnapshot rewards = null, UpgradeSnapshot upgrades = null, GalimgilSnapshot galimgil = null)
+            RewardSnapshot rewards = null, UpgradeSnapshot upgrades = null, GalimgilSnapshot galimgil = null,
+            ExecutionRewardSnapshot executions = null)
         {
             if (stageId <= 0 || shrineId < 0 || hp < 0 || herbs < 0)
                 throw new ArgumentOutOfRangeException(nameof(stageId), "저장 위치와 자원 값이 유효하지 않습니다.");
@@ -64,6 +66,7 @@ namespace HumanGhost.Gameplay
             Rewards = rewards ?? new RewardSnapshot();
             Upgrades = upgrades ?? new UpgradeSnapshot();
             Galimgil = galimgil ?? new GalimgilSnapshot();
+            Executions = executions ?? new ExecutionRewardSnapshot();
             ClearedStages = CopyIds(clearedStages);
             ActiveShrines = CopyIds(activeShrines);
             OpenedGates = CopyIds(openedGates);
@@ -80,7 +83,7 @@ namespace HumanGhost.Gameplay
         internal SaveSnapshot WithOpenedGates(IEnumerable<int> openedGates) => Copy(UsedSavePoints, openedGates);
         private SaveSnapshot Copy(IEnumerable<int> savePoints, IEnumerable<int> openedGates) => new SaveSnapshot(
             StageId, ShrineId, PositionX, PositionY, Hp, Herbs,
-            ClearedStages, ActiveShrines, openedGates, ViewedCutscenes, savePoints, DefeatedMonsters, Rewards, Upgrades, Galimgil);
+            ClearedStages, ActiveShrines, openedGates, ViewedCutscenes, savePoints, DefeatedMonsters, Rewards, Upgrades, Galimgil, Executions);
 
         private static IReadOnlyList<int> CopyIds(IEnumerable<int> source)
         {

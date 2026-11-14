@@ -20,7 +20,7 @@ namespace HumanGhost.Gameplay.Presentation
         [SerializeField] private Text _close = null;
         private PauseMenu _menu;
         private bool _connected;
-        private IReadOnlyDataTable<Language> _language;
+        private LanguageTextSource _text;
         public event Action<PauseItem> ItemHovered;
         public event Action<PauseItem> ItemClicked;
         public event Action<bool> ConfirmHovered;
@@ -32,16 +32,17 @@ namespace HumanGhost.Gameplay.Presentation
         public void Prepare(IReadOnlyDataCatalog data)
         {
             IReadOnlyDataTable<Language> language = data.GetTable<Language>();
-            _language = language;
-            _title.text = LanguageTextSource.Select(language.Get(30032));
-            _resume.text = LanguageTextSource.Select(language.Get(30033));
-            _controls.text = LanguageTextSource.Select(language.Get(30034));
-            _settings.text = LanguageTextSource.Select(language.Get(30030));
-            _toTitle.text = LanguageTextSource.Select(language.Get(30035));
+            _text = new LanguageTextSource(data);
+            _title.text = _text.ReadUi(51101);
+            _resume.text = _text.ReadUi(51102);
+            _controls.text = _text.ReadUi(51103);
+            _settings.text = _text.ReadUi(51104);
+            _toTitle.text = _text.ReadUi(51105);
             Popup popup = data.GetTable<Popup>().Get(_confirmPopup);
             _confirmBody.text = LanguageTextSource.Select(language.Get(popup.BodyTextID));
             _confirmYes.text = LanguageTextSource.Select(language.Get(popup.Button1TextID));
             _confirmNo.text = LanguageTextSource.Select(language.Get(popup.Button2TextID));
+            _close.text = _text.ReadUi(51505);
             RefreshControls();
             if (_connected) return;
             _connected = true;
@@ -84,15 +85,17 @@ namespace HumanGhost.Gameplay.Presentation
 
         private void RefreshControls()
         {
-            if (_language == null) return;
+            if (_text == null) return;
             bool wasd = Adapters.KeyboardControls.Layout == KeyboardLayout.Wasd;
-            _controlsText.text = LanguageTextSource.Select(_language.Get(30058)) + (wasd ? "  WASD" : "  방향키") + " / 왼쪽 스틱\n" +
-                LanguageTextSource.Select(_language.Get(30059)) + (wasd ? "  K" : "  C") + " / A\n" +
-                LanguageTextSource.Select(_language.Get(30060)) + (wasd ? "  J" : "  X") + " / X\n" +
-                LanguageTextSource.Select(_language.Get(30061)) + (wasd ? "  L" : "  Space") + " / B\n" +
-                LanguageTextSource.Select(_language.Get(30062)) + "  E / 위\n" + LanguageTextSource.Select(_language.Get(30022)) +
-                (wasd ? "  I" : "  Q") + " / LB\n결박 가르기" + (wasd ? "  U" : "  Z") +
-                " / Y\n아래 점프  " + (wasd ? "S+K" : "↓+C") + " / 아래+A";
+            string Ui(int id) => _text.ReadUi(id);
+            _controlsText.text = Ui(51301) + "\n" + Ui(51302) + " / " + Ui(51303) + " / " + Ui(51304) + "\n" +
+                Ui(51305) + (wasd ? "  WASD" : "  " + Ui(51315)) + " / " + Ui(51316) + "\n" +
+                Ui(51306) + (wasd ? "  K" : "  C") + " / A\n" +
+                Ui(51307) + (wasd ? "  J" : "  X") + " / X\n" +
+                Ui(51308) + (wasd ? "  L" : "  Space") + " / B\n" +
+                Ui(51309) + "  F / " + Ui(51317) + "\n" + Ui(51310) + (wasd ? "  I" : "  Q") + " / LB\n" +
+                Ui(51311) + (wasd ? "  U" : "  Z") + " / Y\n" +
+                Ui(51312) + (wasd ? "  S+K" : "  ↓+C") + " / ↓+A\n" + Ui(51313) + "  Esc / Start";
         }
     }
 }

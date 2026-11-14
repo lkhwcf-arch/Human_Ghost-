@@ -30,6 +30,16 @@ internal static class DataTableChecks
         var empty = new DataTable<Language>(Array.Empty<Language>(), definition => definition.ID);
         check(empty.Count == 0 && empty.All.Count == 0 && !empty.TryGet(30, out _));
 
+        var uiCatalog = new DataCatalog();
+        uiCatalog.Register(new DataTable<Language>(new[] { new Language(1,"원문","Original"), new Language(2,"연결 문구","Mapped text") }, row => row.ID));
+        uiCatalog.Register(new DataTable<UI_Lang>(new[] { new UI_Lang(51001,"Title.NewGame",2), new UI_Lang(51002,"Title.Continue",999) }, row => row.ID));
+        var uiText = new HumanGhost.Gameplay.Adapters.LanguageTextSource(uiCatalog);
+        check(uiText.ReadUi(51001,HumanGhost.Gameplay.LanguageCode.Korean)=="연결 문구");
+        check(uiText.ReadUi(51001,HumanGhost.Gameplay.LanguageCode.English)=="Mapped text");
+        check(uiText.Read(1,HumanGhost.Gameplay.LanguageCode.English)=="Original");
+        failed=false;try{uiText.ReadUi(59999);}catch(KeyNotFoundException){failed=true;}check(failed);
+        failed=false;try{uiText.ReadUi(51002);}catch(KeyNotFoundException){failed=true;}check(failed);
+
         CsvDocument ReadCsv(string name) => new CsvParser().Read(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, name + ".csv")));
         var unitDefinitions = new CsvTableMapper<UnitStat>(new CsvDefinitionMapper<UnitStat>()).Map(ReadCsv("UnitStat"));
         IReadOnlyDataTable<UnitStat> units = new DataTable<UnitStat>(unitDefinitions, definition => definition.ID);

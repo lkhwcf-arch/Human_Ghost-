@@ -36,7 +36,15 @@ namespace HumanGhost.Gameplay.Adapters
             // 같은 프레임에 생성돼도 개체마다 다른 난수열을 쓰도록 인스턴스 ID를 섞습니다.
             _random = new System.Random(Environment.TickCount ^ GetInstanceID());
             _hitRandom = new System.Random(Environment.TickCount ^ ~GetInstanceID());
-            Actor = new MonsterActor(definition, _patterns.CreatePatterns(), _patterns.HitStun, _patterns.CritHitStun, _random.Next, keepHealth);
+            MonsterAggro aggro = null;
+            foreach (MonsterAggro row in catalog.GetTable<MonsterAggro>().All)
+                if (row.MonsterID == definition.ID)
+                {
+                    if (aggro != null) throw new InvalidOperationException("몬스터 인식 설정이 중복됩니다.");
+                    aggro = row;
+                }
+            if (aggro == null) throw new InvalidOperationException($"몬스터 {definition.ID}의 MonsterAggro 설정이 없습니다.");
+            Actor = new MonsterActor(definition, _patterns.CreatePatterns(), _patterns.HitStun, _patterns.CritHitStun, _random.Next, keepHealth, aggro);
             HitRandom = _hitRandom.Next;
             Definition = definition;
             Initialized?.Invoke(definition);

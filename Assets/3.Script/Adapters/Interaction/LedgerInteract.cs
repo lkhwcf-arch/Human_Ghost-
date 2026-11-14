@@ -33,10 +33,10 @@ namespace HumanGhost.Gameplay.Adapters
             if (context.Progress.Clear(_stageId))
             {
                 if (context.Player.EnableSkill(context.Data.GetTable<Skill>().Get(_skillId), new ContentAccess(context.Progress.IsCleared)))
-                    context.Textbox.ShowNotice(context.Text(_unlockTextId));
+                    context.Textbox.ShowNotice(_unlockTextId == 30023 ? LanguageTextSource.SelectUi(context.Data, 52006) : context.Text(_unlockTextId));
                 return;
             }
-            context.Textbox.Open("", new[] { _temporaryRepeatLine }, null);
+            context.Textbox.ShowNotice(string.IsNullOrEmpty(_temporaryRepeatLine) ? LanguageTextSource.SelectUi(context.Data, 52005) : _temporaryRepeatLine);
         }
         protected override void OnDisable() { _playCutscene = null; base.OnDisable(); }
     }

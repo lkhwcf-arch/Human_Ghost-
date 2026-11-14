@@ -177,9 +177,12 @@ namespace HumanGhost.Gameplay
         {
             if (target == null) throw new ArgumentNullException(nameof(target));
             if (_pattern != null && _pattern.Areas.Count > 0 && _pattern.Areas[_hit].DamageGroup > 0 && _groupTargets.Contains(targetId)) return HitOutcome.None;
-            if (!IsBlocked && _pattern != null && !_pattern.IsChain && (CurrentReaction == null || CurrentReaction.Parryable) && target.TryParryContact(_attackWindow, targetId, direction))
+            if (!IsBlocked && _pattern != null && !_pattern.IsChain && (CurrentReaction == null || CurrentReaction.Parryable) && target.TryParryContact(_attackWindow, targetId, direction, deferFeedback: true))
             {
+                // 본체와 충격파가 같은 피해 묶음이면 패링 뒤에도 중복 타격하지 않습니다.
+                _groupTargets.Add(targetId);
                 Boss.ReceiveHit(0, target.ParryPoiseDamage);
+                target.CompleteParryContact();
                 return HitOutcome.Parried;
             }
             HitOutcome outcome = HitRoll.Resolve(_attackWindow, targetId, target.CombatStats.Dodge, Boss.Definition.Crit,

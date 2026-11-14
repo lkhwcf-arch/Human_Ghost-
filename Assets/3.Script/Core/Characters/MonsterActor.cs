@@ -30,6 +30,8 @@ namespace HumanGhost.Gameplay
         private int _sinceHit;
         private int _poiseRemainder;
         private int _exposedRemaining;
+        private readonly MonsterAwareness _awareness;
+        private int _returnDirection;
 
         public Monster Definition { get; }
         public ActorStateMachine States { get; }
@@ -39,6 +41,8 @@ namespace HumanGhost.Gameplay
         public bool IsExposed => CurrentState == StateKey.Exposed;
         public bool IsInvulnerable => CurrentState == StateKey.Execute;
         public bool WasExecuted { get; private set; }
+        public bool HasAggro => _awareness != null ? _awareness.IsEngaged : _targetId != 0 && _distance <= Definition.SightRange;
+        public bool IsReturning => _awareness != null && _awareness.IsReturning;
         public StateKey CurrentState => States.Current;
         public bool IsDead => Health == 0;
         public int Facing { get; private set; } = 1;
@@ -63,8 +67,16 @@ namespace HumanGhost.Gameplay
 
         // random(minInclusive, maxExclusive): 패턴 선택·대기 시간용 개체별 난수. 전역 난수를 쓰지 않습니다.
         public MonsterActor(Monster definition, IReadOnlyList<MonsterPattern> patterns, int hitStun, int critHitStun, Func<int, int, int> random, bool keepHealth = false)
+            : this(definition, patterns, hitStun, critHitStun, random, keepHealth, null) { }
+
+        public MonsterActor(Monster definition, IReadOnlyList<MonsterPattern> patterns, int hitStun, int critHitStun, Func<int, int, int> random, bool keepHealth, MonsterAggro aggro)
         {
             Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+            if (aggro != null)
+            {
+                if (aggro.MonsterID != definition.ID) throw new ArgumentException("인식 설정의 몬스터 ID가 다릅니다.", nameof(aggro));
+                _awareness = new MonsterAwareness(definition.SightRange, aggro);
+            }
             if (definition.HP <= 0 || definition.MoveSpeed < 0 || definition.SightRange < 0 || definition.AttackRange < 0 ||
                 definition.IdleMin < 0 || definition.IdleMax < definition.IdleMin)
                 throw new ArgumentException("일반몹 HP·속도·거리·대기 범위를 확인하세요.", nameof(definition));
@@ -86,12 +98,16 @@ namespace HumanGhost.Gameplay
         }
 
         // 외부 관측: 목표 개체ID(양수)·거리(tile_x100)·목표 방향(-1/0/1). 목표 사망/이탈 시 ClearTarget.
-        public void Observe(int targetId, int distance, int direction)
+        public void Observe(int targetId, int distance, int direction) => Observe(targetId, distance, direction, 0, 0, 0);
+
+        public void Observe(int targetId, int distance, int direction, int height, int spawnDistance, int spawnDirection)
         {
             if (targetId <= 0) throw new ArgumentOutOfRangeException(nameof(targetId));
             if (distance < 0) throw new ArgumentOutOfRangeException(nameof(distance));
             if (direction < -1 || direction > 1) throw new ArgumentOutOfRangeException(nameof(direction));
-            _targetId = targetId; _distance = distance; _direction = direction;
+            if (height < 0 || spawnDistance < 0 || spawnDirection < -1 || spawnDirection > 1) throw new ArgumentOutOfRangeException(nameof(height));
+            _targetId = targetId; _distance = distance; _direction = direction; _returnDirection = spawnDirection;
+            _awareness?.Observe(distance, height, spawnDistance);
             Decide();
         }
 
@@ -99,6 +115,8 @@ namespace HumanGhost.Gameplay
         public void ClearTarget()
         {
             _targetId = 0;
+            if (!IsDead && _awareness != null && _awareness.LoseTarget())
+            { BeginReturn(); States.Change(_idle); }
             if (_holding != null) { _holding.ReleaseBind(this); _holding = null; }
             Decide();
         }
@@ -125,6 +143,7 @@ namespace HumanGhost.Gameplay
         {
             if (damage < 0 || poiseDamage < 0) throw new ArgumentOutOfRangeException(nameof(damage));
             if (IsDead || IsInvulnerable || (damage == 0 && poiseDamage == 0)) return false;
+            if (react) _awareness?.NotifyHit();
             if (!KeepsHealth) Health = Math.Max(0, Health - damage);
             DamagePoise(poiseDamage);
             if (IsDead)
@@ -175,9 +194,10 @@ namespace HumanGhost.Gameplay
         {
             if (target == null) throw new ArgumentNullException(nameof(target));
             bool grab = _pattern != null && _pattern.IsGrab;
-            if (!IsDead && !grab && target.TryParryContact(_attackWindow, targetId, direction))
+            if (!IsDead && !grab && target.TryParryContact(_attackWindow, targetId, direction, deferFeedback: true))
             {
                 ReceiveParried(target.ParryStunTime, target.ParryPoiseDamage);
+                target.CompleteParryContact();
                 return HitOutcome.Parried;
             }
             HitOutcome outcome = HitRoll.Resolve(_attackWindow, targetId, target.CombatStats.Dodge, Definition.Crit,
@@ -207,6 +227,7 @@ namespace HumanGhost.Gameplay
         public void Release()
         {
             ClearPattern(); _stunRemaining = 0; _waitRemaining = 0; _targetId = 0;
+            _awareness?.Reset();
             Poise = Definition.Poise; _exposedRemaining = 0; _sinceHit = 0; _poiseRemainder = 0;
             if (!IsDead) States.Change(_idle);
         }
@@ -256,6 +277,11 @@ namespace HumanGhost.Gameplay
         {
             if (milliseconds < 0) throw new ArgumentOutOfRangeException(nameof(milliseconds));
             if (IsDead || IsInvulnerable || milliseconds == 0) return;
+            if (_awareness != null)
+            {
+                if (_awareness.Advance(milliseconds, _pattern != null || _stunRemaining > 0 || IsExposed)) BeginReturn();
+                Decide();
+            }
             if (IsExposed)
             {
                 if (milliseconds < _exposedRemaining) { _exposedRemaining -= milliseconds; return; }
@@ -307,7 +333,14 @@ namespace HumanGhost.Gameplay
         private void Decide()
         {
             if (IsDead || IsExposed || IsInvulnerable || _pattern != null || _stunRemaining > 0 || _waitRemaining > 0) return;
-            if (_targetId == 0 || _distance > Definition.SightRange) { States.Change(_idle); return; }
+            if (_awareness != null && _awareness.Advance(0, false)) BeginReturn();
+            if (IsReturning)
+            {
+                if (_returnDirection != 0) Facing = _returnDirection;
+                if (_returnDirection == 0) States.Change(_idle); else States.Change(_walk);
+                return;
+            }
+            if (_targetId == 0 || !HasAggro) { States.Change(_idle); return; }
             if (_direction != 0) Facing = _direction;
             if (_distance <= Definition.AttackRange)
             {
@@ -316,6 +349,12 @@ namespace HumanGhost.Gameplay
                 if (_candidates.Count > 0) { StartPattern(_candidates[Pick(0, _candidates.Count)]); return; }
             }
             States.Change(_walk);
+        }
+
+        private void BeginReturn()
+        {
+            ClearPattern(); _stunRemaining = _waitRemaining = _exposedRemaining = 0;
+            Poise = Definition.Poise; _sinceHit = _poiseRemainder = 0;
         }
 
         private void StartPattern(MonsterPattern pattern)

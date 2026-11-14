@@ -123,7 +123,7 @@ namespace HumanGhost.Gameplay.Preview
             int velocity = _runtime.Combat.PullVelocity;
             if (velocity == 0) { _pullMotion.ResetHorizontal(); return; }
             long x = _player.Position.X;
-            long stop = _player.ToInteger(_runtime.transform.position.x + _runtime.Combat.Facing * _range * _worldUnitsPerTile * 0.5f);
+            long stop = _player.ToInteger(_runtime.transform.position.x + _runtime.Combat.Facing * _worldUnitsPerTile);
             long distance = _pullMotion.StepHorizontal(Math.Abs(velocity), milliseconds);
             long next = x < stop ? Math.Min(stop, x + distance) : Math.Max(stop, x - distance);
             _player.SetPosition(new IntegerPosition(next, _player.Position.Y));

@@ -21,6 +21,12 @@ namespace HumanGhost.Gameplay
         public MonsterRewards Rewards { get; private set; }
         public UpgradeSession Upgrades { get; private set; }
         public GalimgilRewards Galimgil { get; private set; }
+        public ExecutionRewardSession Executions { get; private set; }
+        public void ConnectExecutions(ExecutionRewardSession executions)
+        {
+            if (Executions != null) throw new InvalidOperationException("처형 보상은 이미 연결됐습니다.");
+            Executions = executions ?? throw new ArgumentNullException(nameof(executions));
+        }
         public void ConnectGalimgil(GalimgilRewards galimgil)
         {
             if (Galimgil != null) throw new InvalidOperationException("갈림길 보상은 이미 연결됐습니다.");
@@ -67,6 +73,7 @@ namespace HumanGhost.Gameplay
             Rewards?.Restore(snapshot.Rewards);
             Upgrades?.Restore(snapshot.Upgrades);
             Galimgil?.Restore(snapshot.Galimgil);
+            Executions?.Restore(snapshot.Executions);
             Progress = new StageProgress();
             foreach (int id in snapshot.ClearedStages) Progress.Clear(id);
             Replace(_openedGates, snapshot.OpenedGates);
@@ -80,6 +87,7 @@ namespace HumanGhost.Gameplay
         {
             if (stageAfterLedger.HasValue && stageAfterLedger.Value <= 0) throw new ArgumentOutOfRangeException(nameof(stageAfterLedger));
             if (Rewards != null && !Rewards.ApplyDeathLoss()) throw new InvalidOperationException("사망 재화 손실을 적용하지 못했습니다.");
+            Executions?.Restore(lastSaved?.Executions ?? new ExecutionRewardSnapshot());
             _defeatedMonsters.Clear();
             if (lastSaved != null) _defeatedMonsters.UnionWith(lastSaved.DefeatedMonsters);
             ClearCarriedVitals();

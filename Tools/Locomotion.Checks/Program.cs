@@ -22,6 +22,7 @@ internal static class Program
             RewardChecks.Run(definition, Check);
             GalimgilChecks.Run(Check);
             PriorityChecks.Run(definition, Check);
+            MonsterAwarenessChecks.Run(Check);
             AttackAnimationChecks.Run(Check);
             PlayerAttackChecks.Run(definition, Check);
             Player changed = TestDefinitions.Player(checked(definition.MoveSpeed + 1), checked(definition.JumpHeight + 1));
@@ -36,7 +37,7 @@ internal static class Program
             _checks += BossChecks.Run(definition);
             BossPhaseTwoChecks.Run(definition, Check);
             BossHitReactionChecks.Run(definition, Check);
-            ExecutionRewardChecks.Run(Check);
+            ExecutionRewardChecks.Run(definition, Check);
             _checks += HealthDisplayChecks.Run(definition);
             _checks += NotificationChecks.Run(definition);
             _checks += ContentAccessChecks.Run();

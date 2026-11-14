@@ -62,6 +62,8 @@ internal static class PriorityChecks
         {
             var target = Actor(); target.TryParry(); enemy.Observe(2001,100,1); enemy.Tick(1);
             int parried = 0;
+            target.ParrySucceeded += _ => check(enemy.CurrentPattern == null && !enemy.IsAttackActive && enemy.Velocity == 0,
+                "플레이어 성공 피드백도 적 공격 취소 확정 뒤 통지");
             enemy.Parried += () =>
             {
                 check(enemy.CurrentState == StateKey.Stun && enemy.CurrentPattern == null &&
@@ -101,6 +103,15 @@ internal static class PriorityChecks
         catch (InvalidOperationException error) { propagated = error.Message == "listener fixture"; }
         check(propagated && broken.CurrentState == StateKey.Stun && !broken.IsAttackActive && broken.CurrentPattern == null,
             "알림 예외는 전파하되 확정된 경직·공격 취소는 유지");
+
+        var feedbackEnemy = Enemy(charge:true); var feedbackTarget = Actor();
+        feedbackTarget.TryParry(); feedbackEnemy.Observe(2001,100,1); feedbackEnemy.Tick(1);
+        feedbackTarget.ParrySucceeded += _ => throw new InvalidOperationException("feedback fixture");
+        propagated=false;
+        try { feedbackEnemy.TryHitPlayer(2001,feedbackTarget,NoRoll,1); }
+        catch (InvalidOperationException error) { propagated=error.Message=="feedback fixture"; }
+        check(propagated && feedbackEnemy.CurrentState==StateKey.Stun && !feedbackEnemy.IsAttackActive && feedbackEnemy.Velocity==0,
+            "성공 표시 소비자의 예외가 적 공격·돌진 취소를 되돌리지 않음");
 
         var grabber = Enemy(grab:true); var grabbed = Actor(); grabbed.TryParry(); grabber.Observe(2001,100,1); grabber.Tick(1);
         check(!grabber.ReceiveParried(1000) && grabber.IsAttackActive, "잡기 공격은 직접 패링 수신도 거부");
