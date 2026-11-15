@@ -94,6 +94,7 @@ ID,Key,TextID
 51902,Interact.Talk,30064
 51903,Interact.Examine,30065
 51904,Interact.Enter,30066
+51905,Interact.Exit,30367
 52001,Notice.Objective.DefeatHeosugwi,30067
 52002,Notice.ExitBlocked,30071
 52003,Notice.WayBlocked,30351
