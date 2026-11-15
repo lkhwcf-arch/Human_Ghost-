@@ -94,6 +94,10 @@ jobs:
           if missing:
               sys.exit("필요한 GitHub 비밀값이 없습니다: " + ", ".join(missing))
           print("인증 정보 등록을 확인했습니다. 실제 인증은 Unity 빌드 단계에서 확인합니다.")
+      - name: 빌드 결과물 소유자 확인
+        id: build-owner
+        shell: bash
+        run: echo "uid-gid=$(id -u):$(id -g)" >> "$GITHUB_OUTPUT"
       - name: Unity로 Windows 게임 빌드
         uses: game-ci/unity-builder@v4
         env:
@@ -105,6 +109,7 @@ jobs:
           targetPlatform: StandaloneWindows64
           buildMethod: HumanGhost.Editor.Build.GitHubPlayerBuild.BuildWindows
           versioning: None
+          chownFilesTo: ${{ steps.build-owner.outputs.uid-gid }}
           customParameters: -humanGhostScene ${{ inputs.scene }} -humanGhostBuildMode ${{ inputs.build_mode }} -humanGhostVersion 0.1.${{ github.run_number }}
       - name: 실행파일 생성 확인
         shell: python
