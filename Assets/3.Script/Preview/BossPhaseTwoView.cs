@@ -13,15 +13,21 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField] private LineRenderer _warning = null, _dust = null;
         [SerializeField] private SpriteRenderer _flash = null;
         // 1페이즈·일반몹 스프라이트(10fps)와 같은 프레임감으로 리그 포즈를 끊어 보여 줍니다. 판정 시간은 바꾸지 않습니다.
-        [SerializeField, InspectorName("리그 표시 프레임 (fps)"), Min(1f)] private float _framesPerSecond = 10f;
-        [SerializeField, InspectorName("대기·걷기 재생 배율"), Range(.3f, 1f)] private float _loopSpeed = .8f;
-        public float FramesPerSecond => _framesPerSecond;
-        public float LoopSpeed => _loopSpeed;
-        public static float Frame(float time, float framesPerSecond) => Mathf.Floor(time * framesPerSecond) / framesPerSecond;
-        private float _flashRemaining, _loopTime;
-        public void FlashTransition() => _flashRemaining = .18f;
+        [SerializeField, InspectorName("리그 표시 프레임 (fps)"), Min(1)] private int _framesPerSecond = 10;
+        [SerializeField, InspectorName("대기·걷기 재생 비율 (분모 10000)"), Range(3000, 10000)] private int _loopRate = 8000;
+        public int FramesPerSecond => _framesPerSecond;
+        public int LoopRate => _loopRate;
+        public static float Frame(float time, int framesPerSecond) => Mathf.Floor(time * framesPerSecond) / framesPerSecond;
+        private int _flashRemainingMilliseconds;
+        private long _loopMilliseconds;
+        private MillisecondClock _loopClock;
+        private MillisecondClock _scaledClock, _unscaledClock;
+        public void FlashTransition() => _flashRemainingMilliseconds = 180;
         private PreviewFollowCamera _camera;
-        private float _idleTime, _slumpElapsed, _dustTime = 1f;
+        private long _idleMilliseconds;
+        private int _slumpMilliseconds;
+        private int _dustMilliseconds = 1000;
+        private int _elapsedMilliseconds;
         private int _impactHit = -1;
         private BossPattern _impactPattern;
         private float _lastX;
@@ -29,7 +35,7 @@ namespace HumanGhost.Gameplay.Preview
         private SpriteRenderer[] _parts;
         private RigBindPose _bind;
         private int _health = -1;
-        private float _hitFlash;
+        private int _hitFlashMilliseconds;
         private MaterialPropertyBlock _properties;
         public void ConnectCamera(PreviewFollowCamera camera) => _camera = camera;
         private void Awake()
@@ -53,34 +59,35 @@ namespace HumanGhost.Gameplay.Preview
         private void LateUpdate()
         {
             if (_boss.Actor == null) return;
-            _flashRemaining = Mathf.Max(0f, _flashRemaining-Time.unscaledDeltaTime);
-            _flash.enabled = _flashRemaining > 0f && _camera != null;
+            _elapsedMilliseconds = _scaledClock.Advance(Time.deltaTime);
+            _flashRemainingMilliseconds = System.Math.Max(0, _flashRemainingMilliseconds - _unscaledClock.Advance(Time.unscaledDeltaTime));
+            _flash.enabled = _flashRemainingMilliseconds > 0 && _camera != null;
             if (_flash.enabled)
             {
                 var camera = _camera.GetComponent<Camera>();
                 _flash.transform.position = new Vector3(camera.transform.position.x,camera.transform.position.y,transform.position.z-.3f);
                 _flash.transform.localScale = new Vector3(camera.orthographicSize*camera.aspect*2f/transform.lossyScale.x,camera.orthographicSize*2f/transform.lossyScale.y,1);
-                _flash.color = new Color(1,.05f,0,_flashRemaining/.18f*.4f);
+                _flash.color = new Color(1,.05f,0,_flashRemainingMilliseconds/180f*.4f);
             }
             var actor = _boss.Actor; var combat = _boss.Combat;
             // 이동/선택(0) 뒤, SpriteSkin 변형(10) 전에 같은 프레임의 뼈 포즈를 공급합니다.
             Show(actor.Phase.Phase > 0 && !actor.IsTransitioning);
-            if (_health >= 0 && actor.Health < _health) _hitFlash = .05f;
+            if (_health >= 0 && actor.Health < _health) _hitFlashMilliseconds = 50;
             _health = actor.Health;
-            _properties.SetFloat("_FlashAmount", _hitFlash > 0f ? 1f : 0f);
+            _properties.SetFloat("_FlashAmount", _hitFlashMilliseconds > 0 ? 1f : 0f);
             _properties.SetFloat("_AuraStrength", actor.IsDead ? 0f : .18f);
-            _hitFlash = Mathf.Max(0f,_hitFlash-Time.deltaTime);
+            _hitFlashMilliseconds = System.Math.Max(0, _hitFlashMilliseconds - _elapsedMilliseconds);
             if (!_rig.activeSelf) { _warning.enabled = false; _dust.enabled = false; return; }
-            _idleTime += Time.deltaTime;
-            _loopTime += Time.deltaTime * _loopSpeed;
+            _idleMilliseconds = checked(_idleMilliseconds + _elapsedMilliseconds);
+            _loopMilliseconds = checked(_loopMilliseconds + _loopClock.Advance(Time.deltaTime * _loopRate / 10000d));
             bool moving = Mathf.Abs(transform.position.x - _lastX) > .00001f; _lastX = transform.position.x;
             AnimationClip clip = moving ? _walk : _idle;
-            float time = _loopTime;
+            float time = _loopMilliseconds / 1000f;
             if (actor.IsDead || actor.IsExposed || actor.CurrentState == HumanGhost.Data.Definitions.StateKey.Execute)
-            { clip = _slump; _slumpElapsed = Mathf.Min(clip.length, _slumpElapsed + Time.deltaTime); time = _slumpElapsed; }
+            { clip = _slump; _slumpMilliseconds = System.Math.Min(MillisecondClock.ToMilliseconds(clip.length), _slumpMilliseconds + _elapsedMilliseconds); time = _slumpMilliseconds / 1000f; }
             else if (combat.IsAttacking)
             {
-                _slumpElapsed = 0f;
+                _slumpMilliseconds = 0;
                 var pattern = combat.CurrentPattern; var spec = pattern.Hits[combat.HitIndex];
                 float elapsed = combat.HitElapsed / 1000f;
                 switch (pattern.Kind)
@@ -95,7 +102,7 @@ namespace HumanGhost.Gameplay.Preview
                         time = combat.HitIndex == 0 ? Map(combat.HitElapsed, spec, .5f, .6f, .7f)
                             : Map(combat.HitElapsed, spec, 1.23f, 1.33f, clip.length, .7f); break;
                     case BossPatternKind.CrawlCharge:
-                        clip = combat.IsWindingUp ? _idle : _walk; time = _loopTime * (combat.IsWindingUp ? 1f : 2f); break;
+                        clip = combat.IsWindingUp ? _idle : _walk; time = _loopMilliseconds / 1000f * (combat.IsWindingUp ? 1f : 2f); break;
                     case BossPatternKind.GroundSlam:
                         clip = _doubleSlam; time = combat.PatternElapsed / 1000f; break;
                     case BossPatternKind.DesperationLeap:
@@ -107,12 +114,12 @@ namespace HumanGhost.Gameplay.Preview
                 bool heavy = pattern.Kind == BossPatternKind.GroundSlam || pattern.Kind == BossPatternKind.DesperationLeap;
                 if (impact && heavy && combat.HitIndex % 2 == 0 && (_impactPattern != pattern || _impactHit != combat.HitIndex))
                 {
-                    _impactPattern = pattern; _impactHit = combat.HitIndex; _dustTime = 0f;
-                    _camera?.Shake(.18f, .2f);
+                    _impactPattern = pattern; _impactHit = combat.HitIndex; _dustMilliseconds = 0;
+                    _camera?.Shake(.18f, 200);
                     _dust.transform.position = new Vector3(transform.position.x, _body.bounds.min.y + .05f, -.12f);
                 }
             }
-            else { _slumpElapsed = 0f; _impactPattern = null; _impactHit = -1; }
+            else { _slumpMilliseconds = 0; _impactPattern = null; _impactHit = -1; }
             _bind.Restore();
             clip.SampleAnimation(_rig, Frame(clip.isLooping ? Mathf.Repeat(time, clip.length) : Mathf.Min(time, clip.length), _framesPerSecond));
             var position = _rigPosition;
@@ -124,7 +131,7 @@ namespace HumanGhost.Gameplay.Preview
             _rig.transform.localPosition = position;
             _rig.transform.localScale = new Vector3(_rigScale.x * combat.Facing, _rigScale.y, _rigScale.z);
             bool red = combat.IsWindingUp && !combat.IsAirborne;
-            float pulse = .5f + .35f * Mathf.Sin(_idleTime * 18f);
+            float pulse = .5f + .35f * Mathf.Sin(_idleMilliseconds / 1000f * 18f);
             if (combat.CurrentPattern?.Kind == BossPatternKind.TripleSlam && combat.HitIndex == 0)
                 pulse = .25f + .75f * Mathf.Abs(Mathf.Sin(combat.HitElapsed / (float)combat.CurrentPattern.Hits[0].Windup * Mathf.PI * 3f));
             Color color = actor.IsDead ? Color.gray : red ? Color.Lerp(Color.white, new Color(1f,.15f,.1f), pulse) : actor.IsExposed ? new Color(.9f,.8f,1f) : Color.white;
@@ -139,14 +146,14 @@ namespace HumanGhost.Gameplay.Preview
                 _warning.transform.position = new Vector3(center, _body.bounds.min.y + .04f, -.1f);
                 Ring(_warning, area.Radial ? width : width * .5f, .12f);
             }
-            _dustTime += Time.deltaTime;
-            _dust.enabled = _dustTime < .35f;
+            _dustMilliseconds += System.Math.Min(_elapsedMilliseconds, int.MaxValue - _dustMilliseconds);
+            _dust.enabled = _dustMilliseconds < 350;
             if (_dust.enabled)
             {
-                var colorDust = new Color(.55f,.34f,.17f,1f-_dustTime/.35f);
+                var colorDust = new Color(.55f,.34f,.17f,1f-_dustMilliseconds/350f);
                 _dust.startColor = _dust.endColor = colorDust;
                 float radius = combat.CurrentPattern?.Kind == BossPatternKind.DesperationLeap ? 4f : 6f;
-                Ring(_dust, radius * _dustTime/.35f, .12f);
+                Ring(_dust, radius * _dustMilliseconds/350f, .12f);
             }
         }
         // 공급 도약 클립의 착지 자세는 1.2초입니다. 실제 공중 구간 끝과 두 번째 착지에도 같은 자세를 맞춥니다.

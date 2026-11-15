@@ -10,8 +10,9 @@ namespace HumanGhost.Gameplay.Presentation
     public class HudScreen : MonoBehaviour
     {
         private const float _dimAlpha = 0.9f;
-        private const float _fadeSeconds = 0.3f;
-        private const float _damageFlashSeconds = 0.25f;
+        private const int _fadeMilliseconds = 300;
+        private const int _damageFlashMilliseconds = 250;
+        private MillisecondClock _clock;
         [SerializeField] private CanvasGroup _group = null;
         [SerializeField] private RectTransform _staminaFill = null;
         [SerializeField] private Image _staminaBack = null;
@@ -36,9 +37,9 @@ namespace HumanGhost.Gameplay.Presentation
         private BossPoise _boss;
         private int _bossMaxPoise;
         private float _bossGhost = 1f;
-        private float _bossGhostHold;
-        private float _staminaFlash;
-        private float _damageFlash;
+        private int _bossGhostHoldMilliseconds;
+        private int _staminaFlashMilliseconds;
+        private int _damageFlashMillisecondsRemaining;
         private bool _bright;
         private SubscriptionScope _scope;
         private float _bossHealth;
@@ -50,13 +51,13 @@ namespace HumanGhost.Gameplay.Presentation
             Disconnect();
             _player = player; _boss = showBossGauge ? boss : null; _bossMaxPoise = bossMaxPoise;
             _shownHerbs = -1; _shownCooldown = -1; _shownSkill = null;
-            _bossGhost = 1f; _bossGhostHold = 0.5f;
+            _bossGhost = 1f; _bossGhostHoldMilliseconds = 500;
             SetWidth(_bossHealthGhost, _bossGhost);
             _extraGroups = alsoFade;
             _bossRoot.SetActive(_boss != null);
             if (_boss != null) { _bossName.text = bossName; _bossName.fontSize = Mathf.Max(42, _bossName.fontSize); }
             _damageEdge.enabled = false;
-            _damageFlash = _staminaFlash = 0f;
+            _damageFlashMillisecondsRemaining = _staminaFlashMilliseconds = 0;
             _staminaBack.color = new Color(0.05f, 0.05f, 0.05f, 0.8f);
             if (isActiveAndEnabled) Subscribe();
         }
@@ -97,36 +98,37 @@ namespace HumanGhost.Gameplay.Presentation
         private void RefreshBoss()
         {
             if (_boss == null) return;
-            if (_bossGhost == _bossHealth) _bossGhostHold = 0.5f;
+            if (_bossGhost == _bossHealth) _bossGhostHoldMilliseconds = 500;
             _bossHealth = _boss.Definition.HP > 0 ? (float)_boss.Health / _boss.Definition.HP : 0f;
             SetWidth(_bossHealthFill, _bossHealth);
             SetWidth(_bossPoiseFill, _bossMaxPoise > 0 ? (float)_boss.Poise / _bossMaxPoise : 0f);
         }
         public void SetVisible(bool visible) => gameObject.SetActive(visible);
         public void SetBright(bool bright) => _bright = bright;
-        public void FlashStamina() => _staminaFlash = 0.4f;
-        public void FlashDamage() { _damageFlash = _damageFlashSeconds; _bright = true; }
+        public void FlashStamina() => _staminaFlashMilliseconds = 400;
+        public void FlashDamage() { _damageFlashMillisecondsRemaining = _damageFlashMilliseconds; _bright = true; }
 
         private void LateUpdate()
         {
             if (_player == null) return;
             if (_scope != null && _scope.TryConsumeRefresh()) RefreshData();
-            float delta = Time.unscaledDeltaTime;
-            if (_staminaFlash > 0f)
+            int milliseconds = _clock.Advance(Time.unscaledDeltaTime);
+            float delta = milliseconds / 1000f;
+            if (_staminaFlashMilliseconds > 0)
             {
-                _staminaFlash = Mathf.Max(0f, _staminaFlash - delta);
-                Color color = _staminaFlash > 0f && Mathf.FloorToInt(_staminaFlash * 20f) % 2 == 0 ? Color.white : new Color(0.05f, 0.05f, 0.05f, 0.8f);
+                _staminaFlashMilliseconds = System.Math.Max(0, _staminaFlashMilliseconds - milliseconds);
+                Color color = _staminaFlashMilliseconds > 0 && (_staminaFlashMilliseconds / 50) % 2 == 0 ? Color.white : new Color(0.05f, 0.05f, 0.05f, 0.8f);
                 if (_staminaBack.color != color) _staminaBack.color = color;
             }
-            UpdateBoss(delta);
-            if (_damageFlash > 0f)
+            UpdateBoss(milliseconds);
+            if (_damageFlashMillisecondsRemaining > 0)
             {
-                _damageFlash = Mathf.Max(0f, _damageFlash - delta);
-                _damageEdge.enabled = _damageFlash > 0f;
-                if (_damageEdge.enabled) { Color edge = _damageEdge.color; edge.a = _damageFlash / _damageFlashSeconds * 0.5f; _damageEdge.color = edge; }
+                _damageFlashMillisecondsRemaining = System.Math.Max(0, _damageFlashMillisecondsRemaining - milliseconds);
+                _damageEdge.enabled = _damageFlashMillisecondsRemaining > 0;
+                if (_damageEdge.enabled) { Color edge = _damageEdge.color; edge.a = _damageFlashMillisecondsRemaining / (float)_damageFlashMilliseconds * 0.5f; _damageEdge.color = edge; }
             }
             float target = _bright ? 1f : _dimAlpha;
-            float alpha = Mathf.MoveTowards(_group.alpha, target, delta / _fadeSeconds);
+            float alpha = Mathf.MoveTowards(_group.alpha, target, milliseconds / (float)_fadeMilliseconds);
             if (_group.alpha != alpha) _group.alpha = alpha;
             foreach (CanvasGroup group in _extraGroups) if (group != null && group.alpha != alpha) group.alpha = alpha;
         }
@@ -153,17 +155,17 @@ namespace HumanGhost.Gameplay.Presentation
             }
         }
 
-        private void UpdateBoss(float delta)
+        private void UpdateBoss(int milliseconds)
         {
             if (_boss == null || _bossGhost == _bossHealth) return;
             float health = _bossHealth;
             // 피해 잔상: 500ms 머문 뒤 줄어듭니다(C11).
             if (health < _bossGhost)
             {
-                _bossGhostHold -= delta;
-                if (_bossGhostHold <= 0f) _bossGhost = Mathf.MoveTowards(_bossGhost, health, delta);
+                _bossGhostHoldMilliseconds -= milliseconds;
+                if (_bossGhostHoldMilliseconds <= 0) _bossGhost = Mathf.MoveTowards(_bossGhost, health, milliseconds / 1000f);
             }
-            else { _bossGhost = health; _bossGhostHold = 0.5f; }
+            else { _bossGhost = health; _bossGhostHoldMilliseconds = 500; }
             SetWidth(_bossHealthGhost, _bossGhost);
         }
 

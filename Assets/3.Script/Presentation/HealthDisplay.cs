@@ -12,9 +12,10 @@ namespace HumanGhost.Gameplay.Presentation
         private HealthDisplayBinding _binding;
         private float _ghostRatio = 1f;
         private float _targetRatio = 1f;
-        private float _ghostHold;
+        private int _ghostHoldMilliseconds;
+        private MillisecondClock _clock;
         // 피해 잔상은 500ms 머문 뒤 줄어듭니다(C11·O11). 표시만 하고 회복 기능은 없습니다.
-        private const float _ghostHoldSeconds = 0.5f;
+        private const int _ghostHoldMillisecondsDuration = 500;
 
         public bool IsBound => _binding != null && _binding.IsBound;
 
@@ -49,7 +50,7 @@ namespace HumanGhost.Gameplay.Presentation
             // 정수 체력은 그대로 유지하고 화면 너비로 전달하는 경계에서만 비율로 변환합니다.
             float ratio = maximum > 0 ? Mathf.Clamp01((float)current / maximum) : 0f;
             SetFillRatio(_fill, ratio);
-            if (ratio < _targetRatio) _ghostHold = _ghostHoldSeconds;
+            if (ratio < _targetRatio) { _ghostHoldMilliseconds = _ghostHoldMillisecondsDuration; _clock = default; }
             else if (ratio > _ghostRatio) _ghostRatio = ratio;
             _targetRatio = ratio;
             if (_ghost != null && _ghostRatio == _targetRatio)
@@ -76,7 +77,7 @@ namespace HumanGhost.Gameplay.Presentation
         private void Update()
         {
             if (_ghost == null || _ghostRatio == _targetRatio) return;
-            if (_ghostHold > 0f) { _ghostHold -= Time.unscaledDeltaTime; return; }
+            if (_ghostHoldMilliseconds > 0) { _ghostHoldMilliseconds = Math.Max(0, _ghostHoldMilliseconds - _clock.Advance(Time.unscaledDeltaTime)); return; }
             _ghostRatio = Mathf.MoveTowards(_ghostRatio, _targetRatio, Time.unscaledDeltaTime);
             SetFillRatio(_ghost, _ghostRatio);
         }

@@ -31,10 +31,12 @@ namespace HumanGhost.Gameplay
         }
 
         // 로딩 진행 표시: 실제 진행과 최소 표시 시간 중 느린 쪽을 따릅니다.
-        public static float Progress(float loaded, float elapsedSeconds, float minimumSeconds)
+        public static int Progress(int loaded, int elapsedMilliseconds, int minimumMilliseconds)
         {
-            float time = minimumSeconds > 0f ? elapsedSeconds / minimumSeconds : 1f;
-            return Math.Min(1f, Math.Max(0f, Math.Min(loaded, time)));
+            if (elapsedMilliseconds < 0 || minimumMilliseconds < 0) throw new ArgumentOutOfRangeException(nameof(elapsedMilliseconds));
+            int time = minimumMilliseconds > 0
+                ? (int)Math.Min(10000L, (long)elapsedMilliseconds * 10000 / minimumMilliseconds) : 10000;
+            return Math.Min(10000, Math.Max(0, Math.Min(loaded, time)));
         }
     }
 }

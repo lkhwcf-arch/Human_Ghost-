@@ -1746,17 +1746,17 @@ MonoBehaviour:
   _bossBody: {fileID: 1780465632}
   _attackWindow: {fileID: 1507635950}
   _worldUnitsPerTile: 1
-  _jumpSeconds: 0.8
+  _jumpMilliseconds: 800
   _stageHalfWidth: 8
-  _executionRangeTiles: 1.75
+  _executionRangeUnits: 175
   _startWithFullStamina: 1
   _initialStamina: 0
   _restorePoiseAfterPreviewExecution: 1
   _healthDisplay: {fileID: 0}
   _healthPrefabs: {fileID: 0}
   _healthAnchorRoot: {fileID: 0}
-  _bossRangeTiles: 2.5
-  _bossSecondRangeTiles: 3.5
+  _bossRangeUnits: 250
+  _bossSecondRangeUnits: 350
 --- !u!4 &1213176966
 Transform:
   m_ObjectHideFlags: 0

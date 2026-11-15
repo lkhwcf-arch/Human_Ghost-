@@ -4336,7 +4336,7 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Preview.LadderClimbArea
   _volume: {fileID: 6147203337681617112}
-  _tilesPerSecond: 3
+  _speedUnitsPerSecond: 300
 --- !u!114 &1191080962589190637
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4350,7 +4350,7 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Preview.LadderClimbArea
   _volume: {fileID: 4558092292758251000}
-  _tilesPerSecond: 3
+  _speedUnitsPerSecond: 300
 --- !u!114 &1954984026530755528
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4364,7 +4364,7 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Preview.LadderClimbArea
   _volume: {fileID: 4520966635643377459}
-  _tilesPerSecond: 3
+  _speedUnitsPerSecond: 300
 --- !u!114 &672075091382983323
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4378,7 +4378,7 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Preview.LadderClimbArea
   _volume: {fileID: 1223137059813317595}
-  _tilesPerSecond: 3
+  _speedUnitsPerSecond: 300
 --- !u!114 &3705122121569537229
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4392,4 +4392,4 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Preview.LadderClimbArea
   _volume: {fileID: 2228834300486759717}
-  _tilesPerSecond: 3
+  _speedUnitsPerSecond: 300

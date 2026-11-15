@@ -16,7 +16,7 @@ namespace HumanGhost.Gameplay.Preview
         private int _shrineClosedFrame = -1;
         private bool _shrineCursorWasVisible;
         private bool _shrineRising;
-        private float _shrineRiseRemaining;
+        private int _shrineRiseRemainingMilliseconds;
 
         private void OpenShrine()
         {
@@ -65,7 +65,7 @@ namespace HumanGhost.Gameplay.Preview
             if (_shrineScreen != null) _shrineScreen.Hide();
             Cursor.visible = _shrineCursorWasVisible;
             _shrineRising = true;
-            _shrineRiseRemaining = _playerSprite != null ? _playerSprite.BeginSaveRise() : 0f;
+            _shrineRiseRemainingMilliseconds = _playerSprite != null ? MillisecondClock.ToMilliseconds(_playerSprite.BeginSaveRise()) : 0;
             SetGameInputLocked(true);
             _shrineClosedFrame = Time.frameCount;
         }
@@ -79,8 +79,8 @@ namespace HumanGhost.Gameplay.Preview
                 SetGameInputLocked(false);
             }
             if (!_shrineRising) return;
-            _shrineRiseRemaining = Mathf.Max(0f, _shrineRiseRemaining - Time.deltaTime);
-            if (_shrineRiseRemaining > 0f) return;
+            _shrineRiseRemainingMilliseconds = Math.Max(0, _shrineRiseRemainingMilliseconds - _gameElapsedMilliseconds);
+            if (_shrineRiseRemainingMilliseconds > 0) return;
             _shrineRising = false;
             SetGameInputLocked(false);
         }
@@ -92,7 +92,7 @@ namespace HumanGhost.Gameplay.Preview
             if (opened) Cursor.visible = _shrineCursorWasVisible;
             if (_shrineModalBinding != null) _shrineModalBinding.SetModalOwner(this, false);
             _shrineClosedFrame = -1;
-            _shrineRising = false; _shrineRiseRemaining = 0f;
+            _shrineRising = false; _shrineRiseRemainingMilliseconds = 0;
             if (_player != null && _player.Actor != null && _player.isActiveAndEnabled) _player.NotifyPresentationCue("ActionExit");
             if (_shrineRoot != null) Destroy(_shrineRoot);
             _shrineRoot = null; _shrineScreen = null;

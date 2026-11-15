@@ -17,10 +17,12 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField] private float _sourceFeet = 0f;
         [SerializeField] private AnimationCurve _groundOffset = new AnimationCurve();
         // 기존 지게귀 스프라이트(10fps)와 같은 프레임감으로 끊어 보여 줍니다. 이동·판정 속도는 바꾸지 않습니다.
-        [SerializeField, InspectorName("리그 표시 프레임 (fps)"), Min(1f)] private float _framesPerSecond = 10f;
-        [SerializeField, InspectorName("돌진 재생 배율"), Min(1f)] private float _chargeSpeed = 1.4f;
+        [SerializeField, InspectorName("리그 표시 프레임 (fps)"), Min(1)] private int _framesPerSecond = 10;
+        [SerializeField, InspectorName("돌진 재생 비율 (분모 10000)"), Min(10000)] private int _chargeRate = 14000;
         private Vector3 _baseScale;
-        private float _lastX, _time;
+        private float _lastX;
+        private long _timeMilliseconds;
+        private MillisecondClock _clock;
         private bool _visible;
         private MaterialPropertyBlock _properties;
 
@@ -32,7 +34,7 @@ namespace HumanGhost.Gameplay.Preview
             _properties = new MaterialPropertyBlock();
             _lastX = transform.position.x;
         }
-        private void OnEnable() { _lastX = transform.position.x; _time = 0f; Show(false); }
+        private void OnEnable() { _lastX = transform.position.x; _timeMilliseconds = 0; _clock = default; Show(false); }
         private void OnDisable() { Show(false); }
         private void Show(bool visible)
         {
@@ -48,10 +50,11 @@ namespace HumanGhost.Gameplay.Preview
             _lastX = transform.position.x;
             // 히트스톱 중에는 멈춘 리그를 유지합니다. 피격·패링·처형은 즉시 기존 표시로 돌아갑니다.
             bool visible = eligible && (Time.deltaTime <= 0f ? _visible : moved);
-            if (!visible) { Show(false); _time = 0f; return; }
+            if (!visible) { Show(false); _timeMilliseconds = 0; _clock = default; return; }
             Show(true);
-            _time = Mathf.Repeat(_time + Time.deltaTime * (actor.IsCharging ? _chargeSpeed : 1f), _run.length);
-            float sampleTime = BossPhaseTwoView.Frame(_time, _framesPerSecond);
+            _timeMilliseconds = checked(_timeMilliseconds + _clock.Advance(Time.deltaTime * (actor.IsCharging ? _chargeRate : 10000) / 10000d));
+            _timeMilliseconds %= System.Math.Max(1, MillisecondClock.ToMilliseconds(_run.length));
+            float sampleTime = BossPhaseTwoView.Frame(_timeMilliseconds / 1000f, _framesPerSecond);
             _run.SampleAnimation(_rig, sampleTime);
             _rig.transform.localScale = new Vector3(_baseScale.x * (actor.Facing > 0 ? -1f : 1f), _baseScale.y, _baseScale.z);
             Vector3 position = _source.transform.position;

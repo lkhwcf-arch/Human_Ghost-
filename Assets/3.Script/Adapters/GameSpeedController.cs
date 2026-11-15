@@ -12,7 +12,8 @@ namespace HumanGhost.Gameplay.Adapters
         private void Update()
         {
             State.Tick(_clock.Advance(Time.unscaledDeltaTime));
-            if (Time.timeScale != State.Scale) Time.timeScale = State.Scale;
+            float scale = State.Scale / (float)GameSpeedState.RateScale;
+            if (Time.timeScale != scale) Time.timeScale = scale;
         }
 
         private void OnDisable() => Time.timeScale = 1f;

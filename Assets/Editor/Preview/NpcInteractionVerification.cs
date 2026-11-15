@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using HumanGhost.Gameplay;
 using HumanGhost.Gameplay.Adapters;
 using UnityEditor;
 using UnityEngine;
@@ -58,7 +59,7 @@ namespace HumanGhost.EditorTools
             {
                 InteractionRegistry registry = Read<InteractionRegistry>(interactor, "_registry");
                 InteractionContext context = Read<InteractionContext>(interactor, "_context");
-                float rangeX = Read<float>(interactor, "_rangeX"), rangeY = Read<float>(interactor, "_rangeY");
+                int rangeX = Read<int>(interactor, "_rangeXUnits"), rangeY = Read<int>(interactor, "_rangeYUnits");
                 report.AppendLine($"플레이어: {interactor.name}, 활성={interactor.isActiveAndEnabled}, 등록 대상 수={registry?.Targets.Count ?? 0}, 화면 열림={context?.Textbox?.IsOpen}");
                 if (context?.Player?.Actor != null)
                     report.AppendLine($"접지={context.Player.Actor.Locomotion.IsGrounded}, 이동 가능={context.Player.Actor.Locomotion.CanMove}, 상태={context.Player.Actor.CurrentState}, 위치={context.Player.transform.position}, 범위=({rangeX}, {rangeY})");
@@ -67,7 +68,8 @@ namespace HumanGhost.EditorTools
                 {
                     bool registered = registry.Targets.Contains(npc);
                     Vector2 delta = context?.Player != null ? npc.Position - (Vector2)context.Player.transform.position : Vector2.positiveInfinity;
-                    bool nearby = Mathf.Abs(delta.x) <= rangeX && Mathf.Abs(delta.y) <= rangeY;
+                    bool nearby = context?.Player != null && Math.Abs(context.Player.ToInteger(delta.x)) <= IntegerPosition.FromData(rangeX)
+                        && Math.Abs(context.Player.ToInteger(delta.y)) <= IntegerPosition.FromData(rangeY);
                     DialogueRunner runner = Read<DialogueRunner>(npc, "_dialogues");
                     report.AppendLine($"NPC={npc.name}, ID={npc.NpcId}, 활성={npc.isActiveAndEnabled}, 등록={registered}, 실행 가능={npc.CanInteract}, 범위 안={nearby}, 위치={npc.Position}, 거리차={delta}, 대화 연결={runner != null}, 대화 중={runner?.IsRunning}");
                 }

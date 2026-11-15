@@ -22,7 +22,9 @@ namespace HumanGhost.Gameplay.Adapters
             public AudioClip Clip => _clip;
         }
 
-        private const float _crossfadeSeconds = 1f;
+        private const int _crossfadeMilliseconds = 1000;
+        private int _fadeElapsedMilliseconds;
+        private MillisecondClock _fadeClock;
         [SerializeField, InspectorName("소리 목록")] private Entry[] _clips = Array.Empty<Entry>();
         [SerializeField] private AudioSource _musicA = null;
         [SerializeField] private AudioSource _musicB = null;
@@ -165,7 +167,7 @@ namespace HumanGhost.Gameplay.Adapters
             _usingA = !_usingA;
             AudioSource next = _usingA ? _musicA : _musicB;
             next.clip = clip; next.loop = true; next.Play();
-            _fade = 0f;
+            _fade = 0f; _fadeElapsedMilliseconds = 0; _fadeClock = default;
             UpdateVolumes();
         }
 
@@ -191,7 +193,8 @@ namespace HumanGhost.Gameplay.Adapters
         private void Update()
         {
             if (_fade >= 1f) return;
-            _fade = Mathf.Min(1f, _fade + Time.unscaledDeltaTime / _crossfadeSeconds);
+            _fadeElapsedMilliseconds += Math.Min(_fadeClock.Advance(Time.unscaledDeltaTime), _crossfadeMilliseconds - _fadeElapsedMilliseconds);
+            _fade = _fadeElapsedMilliseconds / (float)_crossfadeMilliseconds;
             UpdateVolumes();
             if (_fade >= 1f) (_usingA ? _musicB : _musicA).Stop();
         }

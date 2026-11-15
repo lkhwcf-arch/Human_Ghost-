@@ -513,7 +513,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Adapters.MonsterAnimationAudio
   _soundPrefix: M1
   _separateCriticalHit: 1
-  _walkStepSeconds: 0.5
+  _walkStepMilliseconds: 500
 --- !u!1 &3601632721913491720
 GameObject:
   m_ObjectHideFlags: 0

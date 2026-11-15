@@ -136,7 +136,7 @@ namespace HumanGhost.Gameplay.Presentation
                 if (_phase == 1)
                 {
                     float progress = _fadeOnly ? Mathf.Clamp01(_load.progress / 0.9f)
-                        : LoadingTip.Progress(_load.progress / 0.9f, _elapsed / 1000f, _minimumMs / 1000f);
+                        : LoadingTip.Progress(Mathf.RoundToInt(_load.progress / 0.9f * 10000), _elapsed, _minimumMs) / 10000f;
 
                     if (progress < 1f) return;
                     _elapsed = 0;

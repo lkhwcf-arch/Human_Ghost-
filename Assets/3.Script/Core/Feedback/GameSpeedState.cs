@@ -11,11 +11,12 @@ namespace HumanGhost.Gameplay
         private readonly HashSet<object> _pauseOwners = new HashSet<object>();
         private int _hitStop;
         private int _slow;
-        private float _slowRate = 1f;
+        public const int RateScale = 10000;
+        private int _slowRate = RateScale;
         private int _queuedSlow;
-        private float _queuedRate = 1f;
+        private int _queuedRate = RateScale;
 
-        public float Scale => IsPaused || _hitStop > 0 ? 0f : _slow > 0 ? _slowRate : 1f;
+        public int Scale => IsPaused || _hitStop > 0 ? 0 : _slow > 0 ? _slowRate : RateScale;
         public bool IsPaused => _paused || _modalPaused || _pauseOwners.Count > 0;
         public void SetPauseOwner(object owner, bool paused)
         {
@@ -34,9 +35,10 @@ namespace HumanGhost.Gameplay
         }
 
         // 치명타: 멈춤 뒤 슬로(C11). 해체 등 더 긴 멈춤과 겹치면 멈춤이 끝난 뒤 이어집니다.
-        public void Critical(int stopMilliseconds, int slowMilliseconds, float rate)
+        public void Critical(int stopMilliseconds, int slowMilliseconds, int rate)
         {
-            if (slowMilliseconds < 0 || rate <= 0f || rate > 1f) throw new ArgumentOutOfRangeException(nameof(rate));
+            if (slowMilliseconds < 0) throw new ArgumentOutOfRangeException(nameof(slowMilliseconds));
+            if (rate <= 0 || rate > RateScale) throw new ArgumentOutOfRangeException(nameof(rate));
             HitStop(stopMilliseconds);
             _queuedSlow = slowMilliseconds; _queuedRate = rate;
         }

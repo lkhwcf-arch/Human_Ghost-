@@ -25,18 +25,18 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField, InspectorName("임시 공격 범위")] private SpriteRenderer _attackWindow = null;
         [Header("임시 표시 설정 (운영 수치 아님)")]
         [SerializeField, InspectorName("타일당 화면 거리"), Min(0.01f)] private float _worldUnitsPerTile = 1f;
-        [SerializeField, InspectorName("임시 점프 시간 (초)"), Min(0.01f)] private float _jumpSeconds = 0.8f;
+        [SerializeField, InspectorName("임시 점프 시간 (ms)"), Min(1)] private int _jumpMilliseconds = 800;
         [SerializeField, InspectorName("화면 이동 한계 (좌우)"), Min(1f)] private float _stageHalfWidth = 9f;
-        [SerializeField, InspectorName("임시 해체 거리 (타일)"), Min(0f)] private float _executionRangeTiles = 1.75f;
+        [SerializeField, InspectorName("임시 해체 거리 (tile_x100)"), Min(0)] private int _executionRangeUnits = 175;
         [SerializeField, InspectorName("시작 시 스태미나 최대로")] private bool _startWithFullStamina = true;
         [SerializeField, InspectorName("시작 스태미나"), Min(0)] private int _initialStamina = 0;
         [SerializeField, InspectorName("해체 확인 후 체세 회복")] private bool _restorePoiseAfterPreviewExecution = true;
         [SerializeField, InspectorName("플레이어 체력 표시 연결")] private HealthDisplayHost _healthDisplay = null;
         [SerializeField, InspectorName("체력 표시 프리팹 목록")] private HealthDisplayPrefabs _healthPrefabs = null;
         [SerializeField, InspectorName("체력 표시 앵커 묶음")] private Transform _healthAnchorRoot = null;
-        [SerializeField, InspectorName("임시 보스 근접 거리 (타일)"), Min(0.01f)] private float _bossRangeTiles = 2.5f;
-        [SerializeField, InspectorName("임시 보스 둘째 타 거리 (타일)"), Min(0.01f)] private float _bossSecondRangeTiles = 3.5f;
-        [SerializeField, InspectorName("임시 보스 인식 거리 (타일, 0=제한 없음)"), Min(0f)] private float _bossSightTiles = 0f;
+        [SerializeField, InspectorName("임시 보스 근접 거리 (tile_x100)"), Min(1)] private int _bossRangeUnits = 250;
+        [SerializeField, InspectorName("임시 보스 둘째 타 거리 (tile_x100)"), Min(1)] private int _bossSecondRangeUnits = 350;
+        [SerializeField, InspectorName("임시 보스 인식 거리 (tile_x100, 0=제한 없음)"), Min(0)] private int _bossSightUnits = 0;
         [SerializeField, InspectorName("결박 가르기 Skill ID"), Min(1)] private int _skillId = 7001;
         [SerializeField, InspectorName("약초 Buff ID"), Min(1)] private int _herbBuffId = 14001;
         [SerializeField, InspectorName("사망 뒤 재시작 사용")] private bool _restartOnDeath = true;
@@ -100,7 +100,9 @@ namespace HumanGhost.Gameplay.Preview
         private const int _combatHoldMilliseconds = 3000;
         private PreviewPlayerSprite _playerSprite;
         private SpatialRuntime _executingRuntime;
-        private float _executionRemaining;
+        private int _executionRemainingMilliseconds;
+        private MillisecondClock _gameClock, _realClock;
+        private int _gameElapsedMilliseconds, _realElapsedMilliseconds;
 
         private bool _modalBlocked;
         private bool _stageNamePending;
@@ -188,14 +190,14 @@ namespace HumanGhost.Gameplay.Preview
                 }
                 _bossDriver?.Dispose();
                 _bossDriver = !_bossActive || _boss.Combat == null ? null : new PreviewBossDriver(_boss, _player, _bossBody, _playerBody,
-                    _worldUnitsPerTile, _bossRangeTiles, _bossSecondRangeTiles, _bossSightTiles);
+                    _worldUnitsPerTile, _bossRangeUnits, _bossSecondRangeUnits, _bossSightUnits);
                 _boss.GetComponent<BossChainView>()?.Connect(_player, _playerBody);
                 _bossSprite = _boss.GetComponent<PreviewBossSprite>();
                 _actor = _player.Actor;
                 _actor.ApplyLevel(_progress.Rewards.CurrentLevel);
                 _actor.ParrySucceeded += OnParrySucceeded;
                 if (_motion == null) _motion = new PreviewPlayerMotion(_player, _groundY, _useMapCollision, _playerHalfSize, GetMarkers(),
-                    _actor.Definition.JumpHeight, Mathf.RoundToInt(_jumpSeconds * 1000f),
+                    _actor.Definition.JumpHeight, _jumpMilliseconds,
                     key => _playerAudio?.PlayAnimationSound(key), _stageId == BossStage ? _stage?.MapRoot : null);
                 _input.TryDropThrough = _motion.TryDropThrough;
                 _input.SetModalBlocked(_modalBlocked);
@@ -667,8 +669,7 @@ namespace HumanGhost.Gameplay.Preview
             _shrineCheckPending = false;
             SaveSnapshot saved = GameSaveContext.Current?.Session.CurrentSnapshot;
             if (saved != null && saved.UsedSavePoints.Contains(_stageId)) return;
-            float radius = _worldUnitsPerTile;
-            if (((Vector2)_player.transform.position - (Vector2)_savePoint.position).sqrMagnitude > radius * radius) return;
+            if (!IntegerDistance.TryWithinRadius(_player.Position, _player.FromWorld(_savePoint.position), IntegerPosition.UnitsPerTile, out _)) return;
             SaveAtPoint(false);
         }
 
@@ -683,7 +684,7 @@ namespace HumanGhost.Gameplay.Preview
             runtime = null;
             if (_actor == null || !_actor.Locomotion.IsGrounded || !_actor.Locomotion.CanMove) return null;
             IExecutionTarget target = null;
-            float nearest = float.PositiveInfinity;
+            IntegerSquaredDistance? nearest = null;
             if (_bossActive) ConsiderExecution(_boss, _boss.Actor, ref runtime, ref target, ref nearest);
             foreach (MonsterRuntime monster in _monsters)
                 ConsiderExecution(monster, monster.Actor, ref runtime, ref target, ref nearest);
@@ -695,13 +696,13 @@ namespace HumanGhost.Gameplay.Preview
         }
 
         private void ConsiderExecution(SpatialRuntime candidate, IExecutionTarget actor, ref SpatialRuntime runtime,
-            ref IExecutionTarget target, ref float nearest)
+            ref IExecutionTarget target, ref IntegerSquaredDistance? nearest)
         {
             if (candidate == null || !candidate.isActiveAndEnabled || actor == null || !actor.IsExposed) return;
-            Vector2 offset = candidate.transform.position - _player.transform.position;
-            float distance = offset.sqrMagnitude;
-            float range = _executionRangeTiles * _worldUnitsPerTile;
-            if (offset.x * _actor.Facing < 0f || distance > range * range || distance >= nearest) return;
+            IntegerPosition own = _player.Position, position = candidate.Position;
+            if (_actor.Facing > 0 ? position.X < own.X : position.X > own.X) return;
+            if (!IntegerDistance.TryWithinRadius(position, own, IntegerPosition.FromData(_executionRangeUnits), out var distance)
+                || nearest.HasValue && distance.CompareTo(nearest.Value) >= 0) return;
             SpriteRenderer body = candidate.GetComponentInChildren<SpriteRenderer>(true);
             if (body == null || body.bounds.min.y > _playerBody.bounds.max.y || body.bounds.max.y < _playerBody.bounds.min.y) return;
             runtime = candidate; target = actor; nearest = distance;
@@ -724,7 +725,7 @@ namespace HumanGhost.Gameplay.Preview
             }
             if (!_actor.TryExecute(target, true)) return false;
             _executingRuntime = runtime;
-            _executionRemaining = duration;
+            _executionRemainingMilliseconds = MillisecondClock.ToMilliseconds(duration);
             _feedback?.OnExecute();
             return true;
         }
@@ -849,7 +850,7 @@ namespace HumanGhost.Gameplay.Preview
             bool engaged = _bossDriver != null && _bossDriver.IsEngaged;
             foreach (PreviewMonsterDriver monster in _monsterDrivers) engaged |= monster.IsEngaged;
             if (engaged) _combat.Engage();
-            _combat.Tick(Mathf.RoundToInt(Time.unscaledDeltaTime * 1000f));
+            _combat.Tick(_realElapsedMilliseconds);
             if (_audio != null) _audio.PlayMusic(_combat.InCombat ? _battleMusic : _normalMusic);
             if (_hud != null)
             {
@@ -906,10 +907,12 @@ namespace HumanGhost.Gameplay.Preview
 
         private void LateUpdate()
         {
+            _gameElapsedMilliseconds = _gameClock.Advance(Time.deltaTime);
+            _realElapsedMilliseconds = _realClock.Advance(Time.unscaledDeltaTime);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             if (_subscribed) StepBossTests();
 #endif
-            if (_actor != null && _actor.CurrentState == StateKey.Execute) StepExecution(0f);
+            if (_actor != null && _actor.CurrentState == StateKey.Execute) StepExecution(0);
             FlushMonsterRewards();
             _parryFeedback?.Step(Time.unscaledDeltaTime);
             // 도착 준비 후에도 로딩 화면이 닫힐 때까지 이동·출구 판정을 재개하지 않습니다.
@@ -927,7 +930,7 @@ namespace HumanGhost.Gameplay.Preview
             }
             _facing = _actor.Facing;
             _deathRestart?.Step(_actor, Time.deltaTime);
-            StepExecution(Time.deltaTime);
+            StepExecution(_gameElapsedMilliseconds);
             // 암전 중 입력은 받지 않습니다(O09).
             if (_input.enabled == PreviewScreenFade.IsActive) _input.enabled = !PreviewScreenFade.IsActive;
             float combatMin = _useMapCollision ? _combatMinX : -_stageHalfWidth;
@@ -953,13 +956,13 @@ namespace HumanGhost.Gameplay.Preview
         }
 
         // 해체는 양쪽 클립이 끝날 때까지 유지합니다. 일시정지·히트스톱 동안은 흐르지 않습니다.
-        private void StepExecution(float seconds)
+        private void StepExecution(int milliseconds)
         {
             if (_actor.CurrentState != StateKey.Execute) return;
             if (_player == null || !_player.isActiveAndEnabled || _executingRuntime == null || !_executingRuntime.isActiveAndEnabled)
             { _actor.CancelExecution(); _executingRuntime = null; return; }
-            _executionRemaining -= seconds;
-            if (_executionRemaining <= 0f)
+            _executionRemainingMilliseconds -= milliseconds;
+            if (_executionRemainingMilliseconds <= 0)
             { _actor.CompleteExecution(_restorePoiseAfterPreviewExecution); _executingRuntime = null; }
         }
 

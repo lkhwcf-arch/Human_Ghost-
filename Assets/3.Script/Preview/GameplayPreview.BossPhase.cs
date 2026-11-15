@@ -14,7 +14,7 @@ namespace HumanGhost.Gameplay.Preview
         private BossLine[] _bossPhaseLines;
         private bool _bossPhaseRunning, _bossPhasePaused;
         private int _bossPhaseLine;
-        private float _bossPhaseElapsed;
+        private int _bossPhaseElapsedMilliseconds;
         private void ConnectBossPhaseData()
         {
             _boss.GetComponent<BossPhaseTwoView>()?.ConnectCamera(_followCamera);
@@ -35,14 +35,14 @@ namespace HumanGhost.Gameplay.Preview
             if (!_bossPhaseRunning)
             {
                 if (_modalBlocked || _saveLocked || _leaving || LoadingScreen.IsActive || (_textbox != null && _textbox.IsOpen)) return true;
-                _bossPhaseRunning = true; _bossPhaseElapsed = 0f; _bossPhaseLine = 0;
+                _bossPhaseRunning = true; _bossPhaseElapsedMilliseconds = 0; _bossPhaseLine = 0;
                 _actor.SetCutsceneDamageBlocked(true); SetGameInputLocked(true);
-                _followCamera?.Shake(.35f,.25f);
+                _followCamera?.Shake(.35f,250);
                 _boss.GetComponent<BossPhaseTwoView>()?.FlashTransition();
             }
             if (_modalBlocked || _saveLocked || _leaving || LoadingScreen.IsActive) return true;
-            _bossPhaseElapsed += Time.deltaTime;
-            if (_bossPhaseElapsed < .7f) return true;
+            _bossPhaseElapsedMilliseconds += Math.Min(_gameElapsedMilliseconds, 700 - _bossPhaseElapsedMilliseconds);
+            if (_bossPhaseElapsedMilliseconds < 700) return true;
             if (!_progress.HasViewedDialogue(_bossPhaseDialogue.ID) && _bossPhaseLine < _bossPhaseLines.Length)
             {
                 if (!_bossPhasePaused) { _bossPhasePaused = true; _speed.State.SetPaused(true); }

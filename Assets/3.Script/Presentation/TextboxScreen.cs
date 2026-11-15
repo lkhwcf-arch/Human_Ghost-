@@ -10,8 +10,8 @@ namespace HumanGhost.Gameplay.Presentation
     public sealed class TextboxScreen : MonoBehaviour, ISkipTarget
     {
         private const int _millisecondsPerCharacter = 30;
-        private const float _objectiveSeconds = 4f;
-        private const float _noticeSeconds = 2.5f;
+        private const int _objectiveMilliseconds = 4000;
+        private const int _noticeMilliseconds = 2500;
         [SerializeField] private GameObject _box = null;
         [SerializeField] private Text _speaker = null;
         [SerializeField] private Text _body = null;
@@ -24,7 +24,8 @@ namespace HumanGhost.Gameplay.Presentation
         [SerializeField, InspectorName("스킵 안내")] private SkipHint _skipHint = null;
         private TextboxPlayback _playback;
         private Action _closed;
-        private float _objectiveRemaining, _noticeRemaining;
+        private int _objectiveRemainingMilliseconds, _noticeRemainingMilliseconds;
+        private MillisecondClock _noticeClock;
         private MillisecondClock _clock;
         private string _shownLine;
         private int _shownCharacters = -1;
@@ -34,7 +35,7 @@ namespace HumanGhost.Gameplay.Presentation
         // 시연 마무리 안내(A2): 화면 전체를 검게 덮고 가운데 문구를 띄웁니다. 시간이 지나거나 넘기기 입력으로 닫힙니다.
         private GameObject _blackout;
         private Text _blackoutText;
-        private float _blackoutRemaining;
+        private int _blackoutRemainingMilliseconds;
         private Action _blackoutClosed;
         public bool IsBlackoutOpen => _blackoutClosed != null;
 
@@ -138,7 +139,7 @@ namespace HumanGhost.Gameplay.Presentation
             if (_body == null) throw new InvalidOperationException("대사 글자 표시를 연결해 주세요.");
             if (_blackout == null) CreateBlackout();
             _blackoutText.text = text;
-            _blackoutRemaining = milliseconds / 1000f;
+            _blackoutRemainingMilliseconds = milliseconds;
             _blackoutClosed = closed ?? (() => { });
             _blackout.transform.SetAsLastSibling();
             _blackout.SetActive(true);
@@ -193,21 +194,22 @@ namespace HumanGhost.Gameplay.Presentation
         {
             _objectiveText.text = text;
             _objective.SetActive(true);
-            _objectiveRemaining = _objectiveSeconds;
+            _objectiveRemainingMilliseconds = _objectiveMilliseconds;
         }
 
         public void ShowNotice(string text)
         {
             _noticeText.text = text;
             _notice.SetActive(true);
-            _noticeRemaining = _noticeSeconds;
+            _noticeRemainingMilliseconds = _noticeMilliseconds;
         }
 
         private void Update()
         {
-            if (IsBlackoutOpen && (_blackoutRemaining -= Time.unscaledDeltaTime) <= 0f) CloseBlackout();
-            if (_objective.activeSelf && (_objectiveRemaining -= Time.unscaledDeltaTime) <= 0f) _objective.SetActive(false);
-            if (_notice.activeSelf && (_noticeRemaining -= Time.unscaledDeltaTime) <= 0f) _notice.SetActive(false);
+            int noticeElapsed = _noticeClock.Advance(Time.unscaledDeltaTime);
+            if (IsBlackoutOpen && (_blackoutRemainingMilliseconds -= noticeElapsed) <= 0) CloseBlackout();
+            if (_objective.activeSelf && (_objectiveRemainingMilliseconds -= noticeElapsed) <= 0) _objective.SetActive(false);
+            if (_notice.activeSelf && (_noticeRemainingMilliseconds -= noticeElapsed) <= 0) _notice.SetActive(false);
             if (_playback == null) return;
             if (_unscaledPlayback && _playbackBlocked) return;
             // 글자 출력은 일시정지 중 멈춥니다(O01_2 #6). 히트스톱과 같은 시간을 씁니다.

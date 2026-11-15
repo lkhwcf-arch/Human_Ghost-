@@ -58,7 +58,8 @@ namespace HumanGhost.Gameplay.Preview
         private readonly Dictionary<Sprite, float> _contactBottoms = new Dictionary<Sprite, float>();
         private float _contactOffset;
         private AnimationClip _animation;
-        private float _elapsed;
+        private long _elapsedMilliseconds;
+        private MillisecondClock _animationClock;
         private float _feetY;
         private StateKey _state;
         private bool _hasState;
@@ -145,7 +146,7 @@ namespace HumanGhost.Gameplay.Preview
             bool changed = !_hasState || state != _state || animation != _animation;
             if (changed)
             {
-                _hasState = true; _state = state; _animation = animation; _elapsed = 0f;
+                _hasState = true; _state = state; _animation = animation; _elapsedMilliseconds = 0; _animationClock = default;
                 _selected = SelectFrame(state);
             }
             if (_animation != null)
@@ -154,7 +155,7 @@ namespace HumanGhost.Gameplay.Preview
                 if (!TryGetAnimationTime(state, _animation, out time))
                 {
                     float duration = Duration(state);
-                    time = duration > 0f ? _elapsed / duration * _animation.length : _elapsed;
+                    time = duration > 0f ? _elapsedMilliseconds / 1000f / duration * _animation.length : _elapsedMilliseconds / 1000f;
                     time = _animation.isLooping && duration <= 0f ? Mathf.Repeat(time, _animation.length) : Mathf.Min(time, _animation.length);
                 }
                 _animation.SampleAnimation(_renderer.gameObject, time);
@@ -167,7 +168,8 @@ namespace HumanGhost.Gameplay.Preview
                 position.y = _feetY - PreviewPresentation.VisibleBottom(_renderer.sprite) * _renderer.transform.localScale.y;
                 _renderer.transform.localPosition = position;
             }
-            _elapsed += AnimationDelta;
+            float delta = AnimationDelta;
+            _elapsedMilliseconds = checked(_elapsedMilliseconds + _animationClock.AdvanceSigned(delta));
             UpdateFacing();
         }
     }

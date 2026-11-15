@@ -7,10 +7,11 @@ namespace HumanGhost.Gameplay.Preview
     internal sealed class PreviewDeathRestart : System.IDisposable
     {
         // 1500ms를 어두워짐·검은 화면·밝아짐으로 나눕니다. Dead 애니 원본 전까지 보여 줄 시간은 개발 값입니다.
-        private const float _deathAnimationSeconds = 0.6f;
-        private const float _fadeStepSeconds = 0.5f;
+        private const int _deathAnimationMilliseconds = 600;
+        private const int _fadeStepMilliseconds = 500;
         private readonly string _scene;
-        private float _deadSeconds;
+        private int _deadMilliseconds;
+        private MillisecondClock _clock;
         private bool _restarting;
         private readonly SubscriptionScope _lifetime = new SubscriptionScope();
 
@@ -28,11 +29,11 @@ namespace HumanGhost.Gameplay.Preview
         public void Step(PlayerActor actor, float seconds)
         {
             if (_lifetime.IsDisposed || _restarting || !actor.IsDead || PreviewScreenFade.IsActive) return;
-            _deadSeconds += seconds;
-            if (_deadSeconds < _deathAnimationSeconds) return;
+            _deadMilliseconds += System.Math.Min(_clock.Advance(seconds), _deathAnimationMilliseconds - _deadMilliseconds);
+            if (_deadMilliseconds < _deathAnimationMilliseconds) return;
             _restarting = true;
             string scene = _scene;
-            PreviewScreenFade.Run(_fadeStepSeconds, _fadeStepSeconds, _fadeStepSeconds, _lifetime.Guard(() =>
+            PreviewScreenFade.Run(_fadeStepMilliseconds, _fadeStepMilliseconds, _fadeStepMilliseconds, _lifetime.Guard(() =>
             {
                 _progress.RestartAfterDeath(_lastSaved(), _stageAfterLedger);
                 SceneManager.LoadScene(scene);

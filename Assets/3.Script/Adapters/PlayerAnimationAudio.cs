@@ -8,12 +8,14 @@ namespace HumanGhost.Gameplay.Adapters
     public sealed class PlayerAnimationAudio : MonoBehaviour
     {
         [SerializeField, InspectorName("임시 자동 발소리(애니 이벤트 연결 시 끔)")] private bool _automaticFootsteps = true;
-        [SerializeField, Min(0.05f)] private float _walkStepSeconds = 0.5f;
+        [SerializeField, Min(50)] private int _walkStepMilliseconds = 500;
         private PlayerRuntime _player;
         private Action<string> _play;
         private PlayerActor _actor;
         private int _health;
-        private float _lastX, _stepRemaining;
+        private float _lastX;
+        private int _stepRemainingMilliseconds;
+        private MillisecondClock _stepClock;
 
         public void Connect(PlayerRuntime player, Action<string> play)
         {
@@ -28,7 +30,7 @@ namespace HumanGhost.Gameplay.Adapters
         {
             if (_actor != null) return;
             _actor = _player.Actor;
-            _health = _actor.Health; _lastX = _player.transform.position.x; _stepRemaining = 0f;
+            _health = _actor.Health; _lastX = _player.transform.position.x; _stepRemainingMilliseconds = 0; _stepClock = default;
             _actor.States.Changed += OnStateChanged;
             _actor.AttackStarted += OnAttack;
             _actor.HealthChanged += OnHealthChanged;
@@ -43,7 +45,7 @@ namespace HumanGhost.Gameplay.Adapters
                 _actor.AttackStarted -= OnAttack;
                 _actor.HealthChanged -= OnHealthChanged;
             }
-            _actor = null; _stepRemaining = 0f;
+            _actor = null; _stepRemainingMilliseconds = 0; _stepClock = default;
         }
         public void Disconnect() { Unbind(); _player = null; _play = null; }
 
@@ -82,13 +84,13 @@ namespace HumanGhost.Gameplay.Adapters
             if (!_automaticFootsteps || Time.deltaTime <= 0f || !_player.isActiveAndEnabled ||
                 _actor.CurrentState != StateKey.Walk || !_actor.Locomotion.IsGrounded || !moving)
             {
-                _stepRemaining = 0f;
+                _stepRemainingMilliseconds = 0; _stepClock = default;
                 return;
             }
-            _stepRemaining -= Time.deltaTime;
-            if (_stepRemaining > 0f) return;
+            _stepRemainingMilliseconds -= _stepClock.Advance(Time.deltaTime);
+            if (_stepRemainingMilliseconds > 0) return;
             PlayAnimationSound("PLAYER_WALK");
-            _stepRemaining = Mathf.Max(0.05f, _walkStepSeconds);
+            _stepRemainingMilliseconds = System.Math.Max(50, _walkStepMilliseconds);
         }
     }
 }

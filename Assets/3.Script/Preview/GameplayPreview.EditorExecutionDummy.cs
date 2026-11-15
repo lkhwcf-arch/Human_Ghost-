@@ -66,7 +66,7 @@ namespace HumanGhost.Gameplay.Preview
             {
                 _actor?.CancelExecution();
                 _executingRuntime = null;
-                _executionRemaining = 0f;
+                _executionRemainingMilliseconds = 0;
             }
             dummy.GetComponent<MonsterAnimationAudio>()?.Disconnect();
             GameObject holder = dummy.transform.parent.gameObject;

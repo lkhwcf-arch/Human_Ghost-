@@ -7,8 +7,8 @@ namespace HumanGhost.Gameplay.Preview
     // 프레임감·재생 배율은 게임 프리팹의 BossPhaseTwoView 값을 그대로 읽습니다. 판정·데이터와 무관합니다.
     public sealed class BossAnimationShowcase : MonoBehaviour
     {
-        [Serializable] private sealed class PhaseOneStep { public string State = ""; public float Seconds = 2f; }
-        [Serializable] private sealed class PhaseTwoStep { public string Label = ""; public AnimationClip Clip = null; public float Seconds = 2f; }
+        [Serializable] private sealed class PhaseOneStep { public string State = ""; [SerializeField, Min(1)] private int _milliseconds = 2000; public int Milliseconds => _milliseconds; }
+        [Serializable] private sealed class PhaseTwoStep { public string Label = ""; public AnimationClip Clip = null; [SerializeField, Min(1)] private int _milliseconds = 2000; public int Milliseconds => _milliseconds; }
         [SerializeField, InspectorName("게임 2페이즈 표시 설정")] private BossPhaseTwoView _settings = null;
         [SerializeField, InspectorName("1페이즈 Animator")] private Animator _phaseOne = null;
         [SerializeField, InspectorName("1페이즈 이름표")] private TextMesh _phaseOneLabel = null;
@@ -17,7 +17,9 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField, InspectorName("2페이즈 이름표")] private TextMesh _phaseTwoLabel = null;
         [SerializeField] private PhaseTwoStep[] _phaseTwoSteps = Array.Empty<PhaseTwoStep>();
         private int _oneIndex = -1, _twoIndex = -1;
-        private float _oneRemaining, _twoElapsed, _twoRemaining;
+        private int _oneRemainingMilliseconds, _twoRemainingMilliseconds;
+        private long _twoElapsedMilliseconds;
+        private MillisecondClock _clock, _sampleClock;
         private RigBindPose _bind;
 
         private void Awake()
@@ -29,27 +31,28 @@ namespace HumanGhost.Gameplay.Preview
 
         private void Update()
         {
-            _oneRemaining -= Time.deltaTime;
-            if (_oneRemaining <= 0f)
+            int milliseconds = _clock.Advance(Time.deltaTime);
+            _oneRemainingMilliseconds -= milliseconds;
+            if (_oneRemainingMilliseconds <= 0)
             {
                 _oneIndex = (_oneIndex + 1) % _phaseOneSteps.Length;
                 PhaseOneStep step = _phaseOneSteps[_oneIndex];
                 _phaseOne.Play(step.State, 0, 0f);
-                _oneRemaining = step.Seconds;
+                _oneRemainingMilliseconds = step.Milliseconds;
                 if (_phaseOneLabel != null) _phaseOneLabel.text = "쇄문아비 1페이즈\n" + step.State;
             }
-            _twoRemaining -= Time.deltaTime;
-            if (_twoRemaining <= 0f)
+            _twoRemainingMilliseconds -= milliseconds;
+            if (_twoRemainingMilliseconds <= 0)
             {
                 _twoIndex = (_twoIndex + 1) % _phaseTwoSteps.Length;
-                _twoElapsed = 0f;
-                _twoRemaining = _phaseTwoSteps[_twoIndex].Seconds;
+                _twoElapsedMilliseconds = 0; _sampleClock = default;
+                _twoRemainingMilliseconds = _phaseTwoSteps[_twoIndex].Milliseconds;
                 if (_phaseTwoLabel != null) _phaseTwoLabel.text = "쇄문아비 2페이즈\n" + _phaseTwoSteps[_twoIndex].Label;
             }
             AnimationClip clip = _phaseTwoSteps[_twoIndex].Clip;
             // 게임과 같이 대기·걷기만 재생 배율을 적용합니다. 공격 클립은 실제 게임에서 판정 시간에 맞춰 늘거나 줄어듭니다.
-            _twoElapsed += Time.deltaTime * (clip.isLooping ? _settings.LoopSpeed : 1f);
-            float time = clip.isLooping ? Mathf.Repeat(_twoElapsed, clip.length) : Mathf.Min(_twoElapsed, clip.length);
+            _twoElapsedMilliseconds = checked(_twoElapsedMilliseconds + _sampleClock.Advance(Time.deltaTime * (clip.isLooping ? _settings.LoopRate : 10000) / 10000d));
+            float time = clip.isLooping ? Mathf.Repeat(_twoElapsedMilliseconds / 1000f, clip.length) : Mathf.Min(_twoElapsedMilliseconds / 1000f, clip.length);
             _bind.Restore();
             clip.SampleAnimation(_phaseTwoRig, BossPhaseTwoView.Frame(time, _settings.FramesPerSecond));
         }

@@ -19,7 +19,7 @@ namespace HumanGhost.Gameplay.Preview
             try
             {
                 _speed?.State.HitStop(hitStop);
-                _camera?.Shake(0.08f, 0.1f);
+                _camera?.Shake(0.08f, 100);
                 _audio?.PlayEffect("SFX_PARRY");
                 if (_prefab == null) return;
                 if (_impact == null) _impact = Object.Instantiate(_prefab);

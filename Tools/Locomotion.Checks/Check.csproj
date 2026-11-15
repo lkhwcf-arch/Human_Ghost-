@@ -22,6 +22,9 @@
     <Compile Include="../../Assets/3.Script/Data/Generated/Enums/*.cs" />
     <Compile Include="../../Assets/3.Script/Adapters/FieldEffectData.cs" />
     <Compile Include="../../Assets/3.Script/Adapters/StreamingVideoAddress.cs" />
+    <Compile Include="../../Assets/3.Script/Adapters/MillisecondClock.cs" />
+    <Compile Include="../../Assets/3.Script/Adapters/VideoEndObservation.cs" />
+    <Compile Include="../../Assets/3.Script/Presentation/AttackAnimationTiming.cs" />
     <Compile Include="../../Assets/3.Script/Common/Csv/*.cs" />
     <Compile Include="../../Assets/3.Script/Common/Text/*.cs" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />

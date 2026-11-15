@@ -9,12 +9,14 @@ namespace HumanGhost.Gameplay.Adapters
     {
         [SerializeField] private string _soundPrefix = "";
         [SerializeField] private bool _separateCriticalHit = false;
-        [SerializeField, Min(0.05f)] private float _walkStepSeconds = 0.5f;
+        [SerializeField, Min(50)] private int _walkStepMilliseconds = 500;
         private MonsterRuntime _monster;
         private MonsterActor _actor;
         private Action<string> _play;
         private int _health;
-        private float _lastX, _stepRemaining;
+        private float _lastX;
+        private int _stepRemainingMilliseconds;
+        private MillisecondClock _stepClock;
 
         public void Connect(MonsterRuntime monster, Action<string> play)
         {
@@ -29,7 +31,7 @@ namespace HumanGhost.Gameplay.Adapters
         {
             if (_actor != null) return;
             _actor = _monster.Actor;
-            _health = _actor.Health; _lastX = _monster.transform.position.x; _stepRemaining = 0f;
+            _health = _actor.Health; _lastX = _monster.transform.position.x; _stepRemainingMilliseconds = 0; _stepClock = default;
             _actor.PatternStarted += OnPatternStarted;
             _actor.HealthChanged += OnHealthChanged;
         }
@@ -43,7 +45,7 @@ namespace HumanGhost.Gameplay.Adapters
                 _actor.PatternStarted -= OnPatternStarted;
                 _actor.HealthChanged -= OnHealthChanged;
             }
-            _actor = null; _stepRemaining = 0f;
+            _actor = null; _stepRemainingMilliseconds = 0; _stepClock = default;
         }
         public void Disconnect() { Unbind(); _monster = null; _play = null; }
 
@@ -74,13 +76,13 @@ namespace HumanGhost.Gameplay.Adapters
             _lastX = x;
             if (seconds <= 0f || !_monster.isActiveAndEnabled || _actor.CurrentState != StateKey.Walk || !moving)
             {
-                _stepRemaining = 0f;
+                _stepRemainingMilliseconds = 0; _stepClock = default;
                 return;
             }
-            _stepRemaining -= seconds;
-            if (_stepRemaining > 0f) return;
+            _stepRemainingMilliseconds -= _stepClock.Advance(seconds);
+            if (_stepRemainingMilliseconds > 0) return;
             Play("WALK");
-            _stepRemaining = Mathf.Max(0.05f, _walkStepSeconds);
+            _stepRemainingMilliseconds = System.Math.Max(50, _walkStepMilliseconds);
         }
     }
 }

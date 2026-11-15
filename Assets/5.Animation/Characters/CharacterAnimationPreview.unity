@@ -153,45 +153,45 @@ MonoBehaviour:
   _phaseOneLabel: {fileID: 996789320}
   _phaseOneSteps:
   - State: 10001_Idle
-    Seconds: 2
+    _milliseconds: 2000
   - State: 10002_Walk
-    Seconds: 2.8
+    _milliseconds: 2800
   - State: 10004_Attack1
-    Seconds: 1.4
+    _milliseconds: 1400
   - State: 10005_Attack2
-    Seconds: 2.7
+    _milliseconds: 2700
   - State: Preview_Attack2Followup
-    Seconds: 1.4
+    _milliseconds: 1400
   - State: 10006_Attack3
-    Seconds: 1.4
+    _milliseconds: 1400
   - State: 10003_Hit
-    Seconds: 0.6
+    _milliseconds: 600
   - State: 10016_Dead
-    Seconds: 1
+    _milliseconds: 1000
   _phaseTwoRig: {fileID: 1620335593}
   _phaseTwoLabel: {fileID: 1073315292}
   _phaseTwoSteps:
   - Label: "Idle \uB300\uAE30"
     Clip: {fileID: 7400000, guid: ae257b8740c283946b19652ee822bf2d, type: 2}
-    Seconds: 3
+    _milliseconds: 3000
   - Label: "Walk \uAC77\uAE30"
     Clip: {fileID: 7400000, guid: b2fae08784230e84da1bd1743bf37942, type: 2}
-    Seconds: 3.25
+    _milliseconds: 3250
   - Label: "Attack1 \uAE30\uB465\xB7\uC5F0\uD0C0"
     Clip: {fileID: 7400000, guid: d49c5f2ec8f12204289d76484280db21, type: 2}
-    Seconds: 2
+    _milliseconds: 2000
   - Label: "Attack2 \uD729\uC4F8\uAE30"
     Clip: {fileID: 7400000, guid: 9bd2b62d0661c3346a8737f6178ad7d0, type: 2}
-    Seconds: 2.2
+    _milliseconds: 2200
   - Label: "DoubleSlam \uAD11\uC5ED"
     Clip: {fileID: 7400000, guid: ccd3434a1d179454094b4a95d2f718a2, type: 2}
-    Seconds: 2.8
+    _milliseconds: 2800
   - Label: "Leap \uB3C4\uC57D"
     Clip: {fileID: 7400000, guid: b1beda9aef7b87c4dbd6addd5aa54901, type: 2}
-    Seconds: 4
+    _milliseconds: 4000
   - Label: "Slump \uB178\uCD9C\xB7\uC0AC\uB9DD"
     Clip: {fileID: 7400000, guid: 8bb4a4c843a76b847bf9600b951ba43b, type: 2}
-    Seconds: 1.5
+    _milliseconds: 1500
 --- !u!4 &379979669
 Transform:
   m_ObjectHideFlags: 0

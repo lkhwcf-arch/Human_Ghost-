@@ -1141,7 +1141,7 @@ MonoBehaviour:
   _dust: {fileID: 6040507475570835682}
   _flash: {fileID: 1551113399679612307}
   _framesPerSecond: 10
-  _loopSpeed: 0.8
+  _loopRate: 8000
 --- !u!1 &4965172339024720912
 GameObject:
   m_ObjectHideFlags: 0

@@ -7177,7 +7177,7 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Preview.LadderClimbArea
   _volume: {fileID: 1797896081539056957}
-  _tilesPerSecond: 3
+  _speedUnitsPerSecond: 300
 --- !u!114 &4179585200385896678
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7191,4 +7191,4 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Preview.LadderClimbArea
   _volume: {fileID: 7591962525763224952}
-  _tilesPerSecond: 3
+  _speedUnitsPerSecond: 300

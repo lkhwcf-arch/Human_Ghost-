@@ -13,7 +13,7 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField, InspectorName("시연 마무리 문구 Language ID")] private int[] _endingTextIds = { 30352 };
         [SerializeField, InspectorName("보스 처치 뒤 엔딩 대기(밀리초)"), Min(0)] private int _endingDelayMs = 2000;
         [SerializeField, InspectorName("마무리 문구 표시 시간(밀리초)"), Min(1)] private int _endingNoticeMs = 3000;
-        private float _endingWaitSeconds;
+        private int _endingWaitMilliseconds;
         private GameObject _cutsceneRoot;
         private DemoEndingFlow _ending;
         private bool _endingReturnPending;
@@ -76,8 +76,8 @@ namespace HumanGhost.Gameplay.Preview
                 || (_textbox != null && _textbox.IsOpen)
                 || _actor.CurrentState == HumanGhost.Data.Definitions.StateKey.Execute) return;
             // 1114 A2: 처치(처형·대화 종료 포함) 뒤 정해진 시간이 지나야 영상을 시작합니다.
-            _endingWaitSeconds += Time.deltaTime;
-            if (_endingWaitSeconds * 1000f < _endingDelayMs) return;
+            _endingWaitMilliseconds += Math.Min(_gameElapsedMilliseconds, _endingDelayMs - _endingWaitMilliseconds);
+            if (_endingWaitMilliseconds < _endingDelayMs) return;
             try
             {
                 if (BeginCutscene(_endingCutsceneId, () => _ending.EndMovie(CutsceneEndReason.Completed)))
@@ -123,7 +123,7 @@ namespace HumanGhost.Gameplay.Preview
         }
         private void DisconnectCutscenes()
         {
-            _ending = null; _endingReturnPending = false; _endingWaitSeconds = 0f;
+            _ending = null; _endingReturnPending = false; _endingWaitMilliseconds = 0;
             _actor?.SetCutsceneDamageBlocked(false);
             if (_afterCutscene != null && _cutscenes != null)
             {

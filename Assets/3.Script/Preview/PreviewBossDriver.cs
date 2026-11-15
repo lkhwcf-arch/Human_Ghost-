@@ -12,9 +12,9 @@ namespace HumanGhost.Gameplay.Preview
         private readonly SpriteRenderer _body;
         private readonly SpriteRenderer _playerBody;
         private readonly float _worldUnitsPerTile;
-        private readonly float _range;
-        private readonly float _secondRange;
-        private readonly float _sight;
+        private readonly int _rangeUnits;
+        private readonly int _secondRangeUnits;
+        private readonly int _sightUnits;
         private int _nextPattern;
         private readonly BossPhaseTwoSelector _phaseTwo;
         private int _platformMilliseconds, _preparedHit = -1;
@@ -37,19 +37,19 @@ namespace HumanGhost.Gameplay.Preview
 #endif
 
         public PreviewBossDriver(BossRuntime runtime, PlayerRuntime player, SpriteRenderer body,
-            SpriteRenderer playerBody, float worldUnitsPerTile, float range, float secondRange, float sight)
+            SpriteRenderer playerBody, float worldUnitsPerTile, int rangeUnits, int secondRangeUnits, int sightUnits)
         {
             _runtime = runtime != null ? runtime : throw new ArgumentNullException(nameof(runtime));
             _player = player != null ? player : throw new ArgumentNullException(nameof(player));
             _body = body != null ? body : throw new ArgumentNullException(nameof(body));
             _playerBody = playerBody != null ? playerBody : throw new ArgumentNullException(nameof(playerBody));
-            if (runtime.Combat == null || worldUnitsPerTile <= 0f || range <= 0f || secondRange < range)
+            if (runtime.Combat == null || worldUnitsPerTile <= 0f || rangeUnits <= 0 || secondRangeUnits < rangeUnits || sightUnits < 0)
                 throw new ArgumentException("보스 패턴·임시 거리 설정을 확인하세요.");
             runtime.ConfigureSpatialScale(worldUnitsPerTile);
             _worldUnitsPerTile = worldUnitsPerTile;
-            _range = range;
-            _secondRange = secondRange;
-            _sight = sight;
+            _rangeUnits = rangeUnits;
+            _secondRangeUnits = secondRangeUnits;
+            _sightUnits = sightUnits;
             runtime.Combat.AttackWindowChanged += OnAttackWindowChanged;
             runtime.Combat.AirborneChanged += OnAirborneChanged;
             _phaseTwo = new BossPhaseTwoSelector(runtime.Combat);
@@ -79,7 +79,8 @@ namespace HumanGhost.Gameplay.Preview
             if (AutomaticPatterns && phaseTwo && _phaseTwo.DesperationPending && combat.IsAttacking)
             { combat.Release(); combat.Face(offset < 0f ? -1 : 1); }
             int velocity = combat.Velocity;
-            bool noticed = _sight <= 0f || Mathf.Abs(offset) <= _sight * _worldUnitsPerTile;
+            long distance = Math.Abs(checked(_player.Position.X - _runtime.Position.X));
+            bool noticed = _sightUnits == 0 || distance <= IntegerPosition.FromData(_sightUnits);
             IsEngaged = noticed;
             if (AutomaticPatterns && phaseTwo && noticed && !combat.IsAttacking && !combat.IsWaiting)
             {
@@ -87,13 +88,13 @@ namespace HumanGhost.Gameplay.Preview
                 if (index >= 0) combat.TryStart(index);
                 velocity = combat.Velocity;
             }
-            if (AutomaticPatterns && noticed && !combat.IsAttacking && !combat.IsWaiting && Mathf.Abs(offset) > _range * _worldUnitsPerTile)
+            if (AutomaticPatterns && noticed && !combat.IsAttacking && !combat.IsWaiting && distance > IntegerPosition.FromData(_rangeUnits))
                 velocity = combat.Facing * _runtime.Actor.Definition.MoveSpeed;
             float extent = _body.bounds.extents.x;
             bool wall = _runtime.MoveHorizontal(_motion.StepHorizontal(velocity, milliseconds), minX + extent, maxX - extent);
             if (wall) _motion.ResetHorizontal();
             if (wall) combat.NotifyWallHit();
-            if (AutomaticPatterns && !phaseTwo && noticed && !combat.IsAttacking && !combat.IsWaiting) SelectPattern(Mathf.Abs(offset));
+            if (AutomaticPatterns && !phaseTwo && noticed && !combat.IsAttacking && !combat.IsWaiting) SelectPattern(distance);
             if (combat.IsAirborne)
             {
                 float t = Mathf.Clamp01((combat.HitElapsed - (combat.HitIndex == 0 ? combat.CurrentPattern.Hits[0].Windup - 900 : 0)) / 900f);
@@ -104,16 +105,16 @@ namespace HumanGhost.Gameplay.Preview
         }
 
         // 근접 거리는 사슬 외 패턴을 순환하고, 그 밖에서는 사슬이 닿으면 사슬을 씁니다.
-        private void SelectPattern(float distance)
+        private void SelectPattern(long distance)
         {
             BossCombat combat = _runtime.Combat;
-            bool melee = distance <= _range * _worldUnitsPerTile;
+            bool melee = distance <= IntegerPosition.FromData(_rangeUnits);
             for (int i = 0; i < combat.PatternCount; i++)
             {
                 int index = _nextPattern++ % combat.PatternCount;
                 BossPattern pattern = combat.GetPattern(index);
                 if (pattern.Kind != BossPatternKind.Legacy) continue;
-                if (melee ? pattern.IsChain : !pattern.IsChain || distance > pattern.Range / 100f * _worldUnitsPerTile) continue;
+                if (melee ? pattern.IsChain : !pattern.IsChain || distance > IntegerPosition.FromData(pattern.Range)) continue;
                 if (combat.TryStart(index)) return;
             }
         }
@@ -152,9 +153,9 @@ namespace HumanGhost.Gameplay.Preview
             }
             Bounds own = _body.bounds, target = _playerBody.bounds;
             float offset = _player.transform.position.x - _runtime.transform.position.x;
-            float range = combat.CurrentPattern.IsChain ? combat.CurrentPattern.Range / 100f : combat.HitIndex > 0 ? _secondRange : _range;
+            int rangeUnits = combat.CurrentPattern.IsChain ? combat.CurrentPattern.Range : combat.HitIndex > 0 ? _secondRangeUnits : _rangeUnits;
             bool touching = combat.IsCharging ? own.Intersects(target) :
-                target.min.y <= own.max.y && target.max.y >= own.min.y && offset * combat.Facing >= 0f && Mathf.Abs(offset) <= range * _worldUnitsPerTile;
+                target.min.y <= own.max.y && target.max.y >= own.min.y && offset * combat.Facing >= 0f && Math.Abs(checked(_player.Position.X - _runtime.Position.X)) <= IntegerPosition.FromData(rangeUnits);
             if (pattern.Areas.Count > 0)
             {
                 float origin = pattern.Kind == BossPatternKind.DesperationLeap ? _landingX : _runtime.transform.position.x;

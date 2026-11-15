@@ -10,8 +10,8 @@ namespace HumanGhost.Gameplay.Adapters
     {
         [SerializeField, InspectorName("상호작용 대상 묶음")] private Transform _targetRoot = null;
         [SerializeField, InspectorName("표시 글자 프리팹")] private TextMesh _promptPrefab = null;
-        [SerializeField, InspectorName("앞뒤 범위 (타일)"), Min(0f)] private float _rangeX = 1f;
-        [SerializeField, InspectorName("위아래 범위 (타일)"), Min(0f)] private float _rangeY = 2f;
+        [SerializeField, InspectorName("앞뒤 범위 (tile_x100)"), Min(0)] private int _rangeXUnits = 100;
+        [SerializeField, InspectorName("위아래 범위 (tile_x100)"), Min(0)] private int _rangeYUnits = 200;
         [SerializeField, InspectorName("대상 위 표시 높이 (타일)")] private float _promptHeight = 1.5f;
         private InteractionRegistry _registry;
         private SubscriptionScope _scope;
@@ -129,13 +129,15 @@ namespace HumanGhost.Gameplay.Adapters
             for (int i = 0; i < targets.Count; i++)
             {
                 IInteractable target = targets[i];
-                if (IsMissing(target)) { _candidates.Add(new InteractionCandidate(0f, 0f, false)); continue; }
+                if (IsMissing(target)) { _candidates.Add(new InteractionCandidate(0, 0, false)); continue; }
                 Vector2 targetPosition = target.Position;
-                _candidates.Add(new InteractionCandidate(targetPosition.x, targetPosition.y,
+                IntegerPosition observed = _context.Player.FromWorld(targetPosition);
+                _candidates.Add(new InteractionCandidate(observed.X, observed.Y,
                     (!(target is Behaviour behaviour) || behaviour.isActiveAndEnabled) && target.CanInteract));
             }
-            Vector3 position = _context.Player.transform.position;
-            int index = InteractionSelector.Pick(position.x, position.y, _candidates, _rangeX, _rangeY);
+            IntegerPosition position = _context.Player.Position;
+            int index = InteractionSelector.Pick(position.X, position.Y, _candidates,
+                IntegerPosition.FromData(_rangeXUnits), IntegerPosition.FromData(_rangeYUnits));
             if (index >= 0) _selected = targets[index];
         }
 

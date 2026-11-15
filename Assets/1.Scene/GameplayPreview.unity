@@ -1628,18 +1628,18 @@ MonoBehaviour:
   _bossBody: {fileID: 1780465632}
   _attackWindow: {fileID: 1507635950}
   _worldUnitsPerTile: 1
-  _jumpSeconds: 0.8
+  _jumpMilliseconds: 800
   _stageHalfWidth: 8
-  _executionRangeTiles: 1.75
+  _executionRangeUnits: 175
   _startWithFullStamina: 1
   _initialStamina: 0
   _restorePoiseAfterPreviewExecution: 1
   _healthDisplay: {fileID: 1997375531}
   _healthPrefabs: {fileID: 11400000, guid: 663445b93c27414c9fe38cf174262003, type: 2}
   _healthAnchorRoot: {fileID: 112427745}
-  _bossRangeTiles: 2.5
-  _bossSecondRangeTiles: 3.5
-  _bossSightTiles: 0
+  _bossRangeUnits: 250
+  _bossSecondRangeUnits: 350
+  _bossSightUnits: 0
   _skillUnlocked: 1
   _skillId: 7001
   _herbBuffId: 14001

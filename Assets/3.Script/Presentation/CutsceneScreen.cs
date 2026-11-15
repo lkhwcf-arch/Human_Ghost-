@@ -182,7 +182,7 @@ namespace HumanGhost.Gameplay.Presentation
                 // Require the actual last frame to remain displayed for a short unpaused interval.
                 if (_video != null && _playback.State == CutscenePlaybackState.Playing &&
                     _videoEnd.Step(_video.isPrepared, _paused, _video.isLooping,
-                        _video.frame, _video.frameCount, _video.time, _video.length, _video.frameRate, elapsed))
+                        VideoEndObservation.IsLastFrame(_video.frame, _video.frameCount, _video.time, _video.length, _video.frameRate), elapsed))
                     _videoEnded = true;
                 if (_videoEnded) { _videoEnded = false; _playback.ReportVideoEnded(_shownToken); elapsed = 0; }
                 _playback.Tick(elapsed);

@@ -953,6 +953,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Presentation.StageNameBanner
   _label: {fileID: 4585718177746973996}
   _group: {fileID: 3937385594484754594}
-  _fadeIn: 0.5
-  _hold: 2
-  _fadeOut: 0.5
+  _fadeInMilliseconds: 500
+  _holdMilliseconds: 2000
+  _fadeOutMilliseconds: 500

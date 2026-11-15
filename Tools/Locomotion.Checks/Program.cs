@@ -44,6 +44,7 @@ internal static class Program
             TitleMenuChecks.Run(Check);
             MovementPatternChecks.Run(definition, Check);
             GameLayerChecks.Run(Check);
+            IntegerPolicyChecks.Run(args[0], Check);
             StageExitContactChecks.Run(Check);
             SoundPlaybackChecks.Run(Check);
             await SoundPreparationChecks.RunAsync(Check);

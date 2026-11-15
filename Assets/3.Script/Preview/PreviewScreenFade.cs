@@ -14,9 +14,11 @@ namespace HumanGhost.Gameplay.Preview
         public static bool IsActive => _active != null;
 
         // onBlack은 완전히 어두워졌을 때 한 번 호출합니다.
-        public static void Run(float fadeOut, float hold, float fadeIn, Action onBlack)
+        public static void Run(int fadeOutMilliseconds, int holdMilliseconds, int fadeInMilliseconds, Action onBlack)
         {
             if (IsActive) return;
+            if (fadeOutMilliseconds < 0 || holdMilliseconds < 0 || fadeInMilliseconds < 0)
+                throw new ArgumentOutOfRangeException(nameof(fadeOutMilliseconds));
             var root = new GameObject("PreviewScreenFade");
             DontDestroyOnLoad(root);
             var canvas = root.AddComponent<Canvas>();
@@ -30,10 +32,10 @@ namespace HumanGhost.Gameplay.Preview
             fade._image = view.AddComponent<Image>();
             fade._image.raycastTarget = false;
             _active = fade;
-            fade.StartCoroutine(fade.Play(fadeOut, hold, fadeIn, onBlack));
+            fade.StartCoroutine(fade.Play(fadeOutMilliseconds, holdMilliseconds, fadeInMilliseconds, onBlack));
         }
 
-        private IEnumerator Play(float fadeOut, float hold, float fadeIn, Action onBlack)
+        private IEnumerator Play(int fadeOut, int hold, int fadeIn, Action onBlack)
         {
             yield return Tween(0f, 1f, fadeOut);
             bool failed = false;
@@ -45,16 +47,19 @@ namespace HumanGhost.Gameplay.Preview
                 failed = true;
             }
             if (failed) yield break;
-            yield return new WaitForSecondsRealtime(hold);
+            var holdClock = new MillisecondClock();
+            for (int elapsed = 0; elapsed < hold; elapsed += Math.Min(holdClock.Advance(Time.unscaledDeltaTime), hold - elapsed))
+                yield return null;
             yield return Tween(1f, 0f, fadeIn);
             Destroy(gameObject);
         }
 
-        private IEnumerator Tween(float from, float to, float seconds)
+        private IEnumerator Tween(float from, float to, int milliseconds)
         {
-            for (float elapsed = 0f; elapsed < seconds; elapsed += Time.unscaledDeltaTime)
+            var clock = new MillisecondClock();
+            for (int elapsed = 0; elapsed < milliseconds; elapsed += Math.Min(clock.Advance(Time.unscaledDeltaTime), milliseconds - elapsed))
             {
-                SetAlpha(Mathf.Lerp(from, to, elapsed / seconds));
+                SetAlpha(Mathf.Lerp(from, to, elapsed / (float)milliseconds));
                 yield return null;
             }
             SetAlpha(to);

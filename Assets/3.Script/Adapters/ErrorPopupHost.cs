@@ -217,7 +217,7 @@ namespace HumanGhost.Gameplay.Adapters
         private IEnumerator ShowCopied()
         {
             _screen.ShowStatus(_copiedText);
-            yield return new WaitForSecondsRealtime(1.5f);
+            yield return new WaitForSecondsRealtime(1500 / 1000f);
             if (_screen != null) _screen.ShowStatus("");
             _copyFeedback = null;
         }

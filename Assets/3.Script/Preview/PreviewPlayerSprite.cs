@@ -1,3 +1,4 @@
+using System;
 using HumanGhost.Data.Definitions;
 using HumanGhost.Gameplay.Adapters;
 using UnityEngine;
@@ -64,18 +65,20 @@ namespace HumanGhost.Gameplay.Preview
         private int _ladderDirection;
         protected override float AnimationDelta => _onLadder ? Time.deltaTime * _ladderDirection : base.AnimationDelta;
         private AnimationClip _action;
-        private float _actionElapsed;
+        private int _actionElapsedMilliseconds;
+        private MillisecondClock _actionClock;
         private bool _praying, _saveRising;
         private float SaveRiseDuration => _save == null ? 0f : Mathf.Min(.6f, _save.length);
         public float BeginSaveRise()
         {
-            _praying = false; _saveRising = _save != null; _action = _save; _actionElapsed = 0f;
+            _praying = false; _saveRising = _save != null; _action = _save; _actionElapsedMilliseconds = 0; _actionClock = default;
             RestartAnimation();
             return SaveRiseDuration;
         }
         // 아래 점프는 도약 웅크림(0~2)을 건너뛰고 공중 몸말기(3~5)에서 낙하 프레임(6)으로 넘어가 착지까지 유지합니다.
-        private const float _dropStartTime = 0.3f, _dropFallTime = 0.6f, _dropBlendSeconds = 0.2f;
-        private float _dropElapsed = -1f;
+        private const float _dropStartTime = 0.3f, _dropFallTime = 0.6f;
+        private const int _dropBlendMilliseconds = 200;
+        private int _dropElapsedMilliseconds = -1;
         protected override void OnEnable()
         {
             base.OnEnable();
@@ -85,7 +88,7 @@ namespace HumanGhost.Gameplay.Preview
         {
             if (_player != null) _player.PresentationCue -= OnPresentationCue;
             _executionAnimation = null;
-            _action = null; _praying = _saveRising = false; _onLadder = false; _ladderDirection = 0; _nonCombatArea = false; _dropElapsed = -1f;
+            _action = null; _praying = _saveRising = false; _onLadder = false; _ladderDirection = 0; _nonCombatArea = false; _dropElapsedMilliseconds = -1;
             if (Renderer != null)
             {
                 Renderer.transform.localScale = _baseScale;
@@ -95,9 +98,9 @@ namespace HumanGhost.Gameplay.Preview
         private void OnPresentationCue(string cue)
         {
             if (cue == "Parry" || cue == "ActionExit" || cue == "ClimbExit") { _action = null; _praying = _saveRising = false; RestartAnimation(); return; }
-            if (cue == "Pray") { _action = _save; _praying = true; _saveRising = false; _actionElapsed = 0f; RestartAnimation(); return; }
+            if (cue == "Pray") { _action = _save; _praying = true; _saveRising = false; _actionElapsedMilliseconds = 0; _actionClock = default; RestartAnimation(); return; }
             if (cue == "LadderExit") { _onLadder = false; _ladderDirection = 0; return; }
-            if (cue == "DropThrough") { _dropElapsed = 0f; _action = null; RestartAnimation(); return; }
+            if (cue == "DropThrough") { _dropElapsedMilliseconds = 0; _action = null; RestartAnimation(); return; }
             if (cue == "Climb") { _climbHandAnchor = LedgeHandPosition; _action = null; RestartAnimation(); return; }
             if (cue == "LadderUp" || cue == "LadderDown" || cue == "LadderHold")
             {
@@ -108,11 +111,12 @@ namespace HumanGhost.Gameplay.Preview
             }
             _praying = _saveRising = false;
             _action = cue == "Save" ? _save : null;
-            _actionElapsed = 0f;
+            _actionElapsedMilliseconds = 0; _actionClock = default;
             if (_action != null) RestartAnimation();
         }
         protected override void LateUpdate()
         {
+            int milliseconds = _actionClock.Advance(Time.deltaTime);
             bool hanging = _player != null && _player.Actor != null && _player.Actor.IsHanging;
             // 크기·높이 보정은 이동과 같이 양 끝을 감속합니다. 프레임 선택은 TryGetAnimationTime의 선형 진행률을 그대로 씁니다.
             float progress = hanging ? Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(_player.ClimbProgress)) : 0f;
@@ -149,9 +153,9 @@ namespace HumanGhost.Gameplay.Preview
                 }
                 Renderer.transform.position = position;
             }
-            if (_action != null && !_praying && (_actionElapsed += Time.deltaTime) >= (_saveRising ? SaveRiseDuration : _action.length))
+            if (_action != null && !_praying && (_actionElapsedMilliseconds += Math.Min(milliseconds, int.MaxValue - _actionElapsedMilliseconds)) >= MillisecondClock.ToMilliseconds(_saveRising ? SaveRiseDuration : _action.length))
             { _action = null; _saveRising = false; }
-            if (_dropElapsed >= 0f) _dropElapsed = _player != null && _player.Actor != null && _player.Actor.CurrentState == StateKey.Jump ? _dropElapsed + Time.deltaTime : -1f;
+            if (_dropElapsedMilliseconds >= 0) _dropElapsedMilliseconds = _player != null && _player.Actor != null && _player.Actor.CurrentState == StateKey.Jump ? _dropElapsedMilliseconds + Math.Min(milliseconds, int.MaxValue - _dropElapsedMilliseconds) : -1;
         }
 
         protected override AnimationClip SelectAnimation(StateKey state)
@@ -177,7 +181,7 @@ namespace HumanGhost.Gameplay.Preview
                 return true;
             }
             if (animation == _save && (_praying || _saveRising))
-            { time = _praying ? SaveRiseDuration : Mathf.Max(0f, SaveRiseDuration - _actionElapsed); return true; }
+            { time = _praying ? SaveRiseDuration : Mathf.Max(0f, SaveRiseDuration - _actionElapsedMilliseconds / 1000f); return true; }
             var actor = _player.Actor;
             if (actor.IsAttacking || (state == StateKey.Skill1 && actor.CurrentAttack != null))
             {
@@ -185,9 +189,9 @@ namespace HumanGhost.Gameplay.Preview
                 time = actor.AttackElapsed / (float)actor.CurrentAttack.TotalTime * animation.length;
                 return true;
             }
-            if (state == StateKey.Jump && _dropElapsed >= 0f)
+            if (state == StateKey.Jump && _dropElapsedMilliseconds >= 0)
             {
-                time = Mathf.Lerp(_dropStartTime, _dropFallTime, _dropElapsed / _dropBlendSeconds);
+                time = Mathf.Lerp(_dropStartTime, _dropFallTime, _dropElapsedMilliseconds / (float)_dropBlendMilliseconds);
                 return true;
             }
             time = 0f; return false;

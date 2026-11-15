@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace HumanGhost.Gameplay.Preview
 {
-    // 확인 장면 전용: 플레이어 이동 뒤 카메라를 맵 범위 안에서 따라가게 합니다. 보스방은 고정 위치를 받습니다(L09_1).
+    // 플레이어 이동 뒤 맵 범위 안에서 따라갑니다. 현재 보스방도 추적하며 장부방의 상하 보기만 조립자가 끕니다.
     [DefaultExecutionOrder(1000)]
     [RequireComponent(typeof(Camera))]
     public sealed class PreviewFollowCamera : MonoBehaviour
@@ -13,20 +13,22 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField, InspectorName("맵 오른쪽 끝")] private float _maxX = 80f;
         [SerializeField, InspectorName("카메라 최저 높이")] private float _minY = 0f;
         [SerializeField, InspectorName("대상 기준 카메라 높이")] private float _heightOffset = 2f;
-        [SerializeField, InspectorName("따라가기 시간 (초)"), Min(0f)] private float _smoothSeconds = 0.12f;
+        [SerializeField, InspectorName("따라가기 시간 (ms)"), Min(0)] private int _smoothMilliseconds = 120;
         [SerializeField, InspectorName("바라보는 쪽 여백"), Min(0f)] private float _lookAhead = 0.8f;
-        [SerializeField, InspectorName("착지 높이 구도 보정 (타일)")] private float _groundHeightBias = -1f;
-        [SerializeField, InspectorName("위아래 보기 대기 (초)"), Min(0f)] private float _lookDelay = .5f;
-        [SerializeField, InspectorName("위아래 보기 거리 (타일)"), Min(0f)] private float _lookDistance = 3f;
+        [SerializeField, InspectorName("착지 높이 구도 보정 (tile_x100)")] private int _groundHeightBiasUnits = -100;
+        [SerializeField, InspectorName("위아래 보기 대기 (ms)"), Min(0)] private int _lookDelayMilliseconds = 500;
+        [SerializeField, InspectorName("위아래 보기 거리 (tile_x100)"), Min(0)] private int _lookDistanceUnits = 300;
         private PlayerRuntime _player;
         private PlayerLocomotionInput _input;
-        private float _groundHeight, _lookHeld, _lookOffset;
+        private float _groundHeight, _lookOffset;
+        private int _lookHeldMilliseconds;
+        private MillisecondClock _lookClock, _shakeClock;
         private int _lookDirection;
         private bool _hasGroundHeight;
         private Camera _camera;
         private Vector2 _velocity;
-        private float _shakeRemaining;
-        private float _shakeDuration;
+        private int _shakeRemainingMilliseconds;
+        private int _shakeDurationMilliseconds;
         private float _shakeStrength;
         private Vector3 _shakeOffset;
         private bool _fixed;
@@ -94,10 +96,12 @@ namespace HumanGhost.Gameplay.Preview
         }
 
         // 시간 기준은 멈추지 않는 시간입니다. 설정에서 끌 수 있습니다(C11).
-        public void Shake(float strength, float seconds)
+        public void Shake(float strength, int milliseconds)
         {
             if (!ShakeEnabled) return;
-            _shakeStrength = strength; _shakeDuration = seconds; _shakeRemaining = seconds;
+            if (milliseconds < 0) throw new System.ArgumentOutOfRangeException(nameof(milliseconds));
+            _shakeStrength = strength; _shakeDurationMilliseconds = milliseconds; _shakeRemainingMilliseconds = milliseconds;
+            _shakeClock = default;
         }
 
         private void Awake()
@@ -115,9 +119,9 @@ namespace HumanGhost.Gameplay.Preview
         {
             _hasGroundHeight = _target != null;
             _groundHeight = _target != null ? _target.position.y : 0f;
-            _lookHeld = _lookOffset = 0f; _lookDirection = 0;
+            _lookHeldMilliseconds = 0; _lookOffset = 0f; _lookDirection = 0; _lookClock = default;
         }
-        private void UpdateFocus(float seconds)
+        private void UpdateFocus(int milliseconds)
         {
             if (_fixed || _target == null) return;
             var actor = _player != null ? _player.Actor : null;
@@ -130,32 +134,33 @@ namespace HumanGhost.Gameplay.Preview
                 float lowerMargin = _camera.orthographicSize * .65f;
                 if (height < _groundHeight - lowerMargin) _groundHeight = height + lowerMargin;
             }
-            if (seconds <= 0f) return;
+            if (milliseconds <= 0) return;
             int direction = LookEnabled && actor != null && actor.Locomotion.IsGrounded && actor.Locomotion.CanMove && _input != null
                 ? _input.VerticalDirection : 0;
-            if (direction != _lookDirection) { _lookDirection = direction; _lookHeld = 0f; }
-            _lookHeld = direction == 0 ? 0f : _lookHeld + seconds;
-            float scale = _player != null ? _player.ToWorld(IntegerPosition.UnitsPerTile) : 1f;
-            _lookOffset = direction != 0 && _lookHeld >= _lookDelay ? direction * _lookDistance * scale : 0f;
+            if (direction != _lookDirection) { _lookDirection = direction; _lookHeldMilliseconds = 0; }
+            _lookHeldMilliseconds = direction == 0 ? 0 : _lookHeldMilliseconds + System.Math.Min(milliseconds, int.MaxValue - _lookHeldMilliseconds);
+            long distance = IntegerPosition.FromData(_lookDistanceUnits);
+            float worldDistance = _player != null ? _player.ToWorld(distance) : _lookDistanceUnits / 100f;
+            _lookOffset = direction != 0 && _lookHeldMilliseconds >= _lookDelayMilliseconds ? direction * worldDistance : 0f;
         }
 
         private void LateUpdate()
         {
             if (_target == null) return;
-            UpdateFocus(Time.deltaTime);
+            UpdateFocus(_lookClock.Advance(Time.deltaTime));
             Vector3 goal = GetGoal();
             Vector3 position = transform.position - _shakeOffset;
             // 일시정지·히트스톱의 경과 시간 0에서는 SmoothDamp가 NaN을 낼 수 있습니다.
             if (Time.deltaTime > 0f)
             {
-                position.x = Mathf.SmoothDamp(position.x, goal.x, ref _velocity.x, _smoothSeconds);
-                position.y = Mathf.SmoothDamp(position.y, goal.y, ref _velocity.y, _smoothSeconds);
+                position.x = Mathf.SmoothDamp(position.x, goal.x, ref _velocity.x, _smoothMilliseconds / 1000f);
+                position.y = Mathf.SmoothDamp(position.y, goal.y, ref _velocity.y, _smoothMilliseconds / 1000f);
             }
             _shakeOffset = Vector3.zero;
-            if (_shakeRemaining > 0f)
+            if (_shakeRemainingMilliseconds > 0)
             {
-                _shakeRemaining -= Time.unscaledDeltaTime;
-                float strength = _shakeStrength * Mathf.Clamp01(_shakeRemaining / _shakeDuration);
+                _shakeRemainingMilliseconds = System.Math.Max(0, _shakeRemainingMilliseconds - _shakeClock.Advance(Time.unscaledDeltaTime));
+                float strength = _shakeStrength * (_shakeRemainingMilliseconds / (float)_shakeDurationMilliseconds);
                 _shakeOffset = new Vector3(UnityEngine.Random.Range(-strength, strength), UnityEngine.Random.Range(-strength, strength), 0f);
             }
             transform.position = position + _shakeOffset;
@@ -169,7 +174,7 @@ namespace HumanGhost.Gameplay.Preview
             float x = _maxX - _minX <= halfWidth * 2f ? (_minX + _maxX) * 0.5f : Mathf.Clamp(focusX, _minX + halfWidth, _maxX - halfWidth);
             // 기본 구도에 더하는 테스트 이동량입니다. 맵 가장자리에서도 구도를 직접 비교할 수 있습니다.
             float scale = _player != null ? _player.ToWorld(IntegerPosition.UnitsPerTile) : 1f;
-            float y = Mathf.Max(_minY, _groundHeight + _heightOffset + _groundHeightBias * scale) + _lookOffset;
+            float y = Mathf.Max(_minY, _groundHeight + _heightOffset + _groundHeightBiasUnits / 100f * scale) + _lookOffset;
             return new Vector3(x, y, transform.position.z) + (Vector3)TestPositionOffset;
         }
     }

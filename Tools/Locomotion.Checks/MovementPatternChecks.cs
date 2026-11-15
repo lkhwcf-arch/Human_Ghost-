@@ -143,10 +143,10 @@ internal static class MovementPatternChecks
         healer.Tick(player.HitIFrame + player.HitStunTime);
         check(!healer.TryUseHerb(), "약초 없으면 거부");
 
-        var near = new[] { new InteractionCandidate(5f, 0f, true), new InteractionCandidate(1.5f, 0f, true), new InteractionCandidate(0.5f, 0f, false), new InteractionCandidate(1f, 3f, true) };
-        check(InteractionSelector.Pick(1f, 0f, near, 1f, 2f) == 1, "범위 안 CanInteract 중 가장 가까운 대상");
-        check(InteractionSelector.Pick(50f, 0f, near, 1f, 2f) == -1, "범위 밖이면 대상 없음");
-        check(InteractionSelector.Pick(0.5f, 0f, new[] { near[2] }, 1f, 2f) == -1, "꺼진 대상은 고르지 않음");
+        var near = new[] { new InteractionCandidate(500, 0, true), new InteractionCandidate(150, 0, true), new InteractionCandidate(50, 0, false), new InteractionCandidate(100, 300, true) };
+        check(InteractionSelector.Pick(100, 0, near, 100, 200) == 1, "범위 안 CanInteract 중 가장 가까운 대상");
+        check(InteractionSelector.Pick(5000, 0, near, 100, 200) == -1, "범위 밖이면 대상 없음");
+        check(InteractionSelector.Pick(50, 0, new[] { near[2] }, 100, 200) == -1, "꺼진 대상은 고르지 않음");
         var box = new TextboxPlayback(new[] { "가나다", "라" }, 30);
         box.Tick(60);
         check(box.VisibleCharacters == 2 && !box.IsLineComplete, "글자당 30ms");
@@ -167,8 +167,8 @@ internal static class MovementPatternChecks
         check(tipTitle == "구르기:" && tipBody == " 구르는 동안: 무적", "첫 쌍점 앞만 제목");
         LoadingTip.Split("쌍점 없음", out tipTitle, out tipBody);
         check(tipTitle == "" && tipBody == "쌍점 없음", "쌍점이 없으면 전체 본문");
-        check(LoadingTip.Progress(1f, 1f, 2f) == 0.5f, "빠른 로딩도 최소 2초에 걸쳐 진행");
-        check(LoadingTip.Progress(0.25f, 5f, 2f) == 0.25f, "느린 로딩은 실제 진행을 따름");
+        check(LoadingTip.Progress(10000, 1000, 2000) == 5000, "빠른 로딩도 최소 2초에 걸쳐 진행");
+        check(LoadingTip.Progress(2500, 5000, 2000) == 2500, "느린 로딩은 실제 진행을 따름");
 
         var fire = new GroundFire(3000, 5, 1000);
         check(fire.Tick(999) == 0 && fire.IsActive, "불 첫 주기 전 피해 없음");

@@ -9,8 +9,9 @@ namespace HumanGhost.Gameplay.Preview
     internal class PreviewCombatFeedback : System.IDisposable
     {
         private const int _normalStop = 50, _criticalStop = 80, _criticalSlow = 200, _executeStop = 150, _bossHitStop = 90;
-        private const float _criticalSlowRate = 0.5f, _flashSeconds = 0.05f;
-        private struct Flash { public SpriteRenderer Target; public Color Color; public float Remaining; }
+        private const int _criticalSlowRate = 5000, _flashMilliseconds = 50;
+        private MillisecondClock _scaledClock, _unscaledClock;
+        private struct Flash { public SpriteRenderer Target; public Color Color; public int Remaining; }
         private readonly List<Flash> _flashes = new List<Flash>();
         private readonly GameSpeedController _speed;
         private readonly PreviewFollowCamera _camera;
@@ -25,7 +26,7 @@ namespace HumanGhost.Gameplay.Preview
         {
             public GameObject Root { get; set; }
             public TextMesh Label { get; set; }
-            public float Remaining { get; set; }
+            public int Remaining { get; set; }
         }
         private readonly List<FloatingText> _texts = new List<FloatingText>();
         private readonly Stack<FloatingText> _textPool = new Stack<FloatingText>();
@@ -50,13 +51,13 @@ namespace HumanGhost.Gameplay.Preview
                     break;
                 case HitOutcome.Hit:
                     _speed?.State.HitStop(_normalStop);
-                    _camera?.Shake(0.06f, 0.08f);
+                    _camera?.Shake(0.06f, 80);
                     AddFlash(target, Color.white);
                     ShowImpact(target, position, direction);
                     break;
                 case HitOutcome.Critical:
                     _speed?.State.Critical(_criticalStop, _criticalSlow, _criticalSlowRate);
-                    _camera?.Shake(0.14f, 0.14f);
+                    _camera?.Shake(0.14f, 140);
                     AddFlash(target, new Color(1f, 0.15f, 0.15f));
                     ShowImpact(target, position, direction);
                     break;
@@ -67,12 +68,12 @@ namespace HumanGhost.Gameplay.Preview
         {
             _speed?.State.ClearSlow();
             _speed?.State.HitStop(_executeStop);
-            _camera?.Shake(0.25f, 0.25f);
+            _camera?.Shake(0.25f, 250);
         }
         public void OnParry(int hitStop)
         {
             _speed?.State.HitStop(hitStop);
-            _camera?.Shake(0.08f, 0.1f);
+            _camera?.Shake(0.08f, 100);
             _audio?.PlayEffect("SFX_PARRY");
         }
 
@@ -81,12 +82,14 @@ namespace HumanGhost.Gameplay.Preview
             if (knockedDown) _speed?.State.Critical(_bossHitStop, _criticalSlow, _criticalSlowRate);
             else if (byBoss) _speed?.State.HitStop(_bossHitStop);
             if (knockedDown && target != null) ShowImpact(target, target.bounds.center, 1);
-            _camera?.Shake(knockedDown ? .25f : .15f, knockedDown ? .25f : .2f);
+            _camera?.Shake(knockedDown ? .25f : .15f, knockedDown ? 250 : 200);
         }
 
         // 다른 표시가 색을 정한 뒤 마지막에 덮습니다.
         public void Step(float unscaledSeconds, float seconds)
         {
+            int realMilliseconds = _unscaledClock.Advance(unscaledSeconds);
+            int milliseconds = _scaledClock.Advance(seconds);
             for (int i = _impacts.Count - 1; i >= 0; i--)
             {
                 SpriteClipEffect impact = _impacts[i];
@@ -100,14 +103,14 @@ namespace HumanGhost.Gameplay.Preview
             {
                 Flash flash = _flashes[i];
                 if (flash.Target != null) flash.Target.color = flash.Color;
-                flash.Remaining -= unscaledSeconds;
-                if (flash.Remaining <= 0f) _flashes.RemoveAt(i); else _flashes[i] = flash;
+                flash.Remaining -= realMilliseconds;
+                if (flash.Remaining <= 0) _flashes.RemoveAt(i); else _flashes[i] = flash;
             }
             for (int i = _texts.Count - 1; i >= 0; i--)
             {
                 FloatingText text = _texts[i];
-                text.Remaining -= seconds;
-                if (text.Remaining > 0f) continue;
+                text.Remaining -= milliseconds;
+                if (text.Remaining > 0) continue;
                 _texts.RemoveAt(i);
                 text.Root.SetActive(false);
                 text.Label.text = "";
@@ -135,7 +138,7 @@ namespace HumanGhost.Gameplay.Preview
 
         private void AddFlash(SpriteRenderer target, Color color)
         {
-            if (target != null) _flashes.Add(new Flash { Target = target, Color = color, Remaining = _flashSeconds });
+            if (target != null) _flashes.Add(new Flash { Target = target, Color = color, Remaining = _flashMilliseconds });
         }
 
         private void ShowText(string text, Vector3 position)
@@ -153,7 +156,7 @@ namespace HumanGhost.Gameplay.Preview
             }
             item.Root.transform.position = position + Vector3.up * 1.5f;
             item.Label.text = text;
-            item.Remaining = 0.6f;
+            item.Remaining = 600;
             _texts.Add(item);
             item.Root.SetActive(true);
         }
