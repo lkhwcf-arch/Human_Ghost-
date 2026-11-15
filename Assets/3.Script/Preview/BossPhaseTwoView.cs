@@ -24,6 +24,8 @@ namespace HumanGhost.Gameplay.Preview
         private MillisecondClock _scaledClock, _unscaledClock;
         public void FlashTransition() => _flashRemainingMilliseconds = 180;
         private PreviewFollowCamera _camera;
+        private System.Func<float> _warningOrigin;
+        public void ConnectWarningOrigin(System.Func<float> origin) => _warningOrigin = origin;
         private long _idleMilliseconds;
         private int _slumpMilliseconds;
         private int _dustMilliseconds = 1000;
@@ -141,7 +143,7 @@ namespace HumanGhost.Gameplay.Preview
             {
                 var area = combat.CurrentPattern.Areas[combat.HitIndex];
                 float width = area.Range / 100f;
-                float center = combat.CurrentPattern.Kind == BossPatternKind.DesperationLeap && combat.IsAirborne ? _boss.LandingX : transform.position.x;
+                float center = _warningOrigin != null ? _warningOrigin() : transform.position.x;
                 if (!area.Radial) center += combat.Facing * width * .5f;
                 _warning.transform.position = new Vector3(center, _body.bounds.min.y + .04f, -.1f);
                 Ring(_warning, area.Radial ? width : width * .5f, .12f);
@@ -182,8 +184,12 @@ namespace HumanGhost.Gameplay.Preview
         }
         private static void Ring(LineRenderer line, float radius, float height)
         {
+            // 리그/부모 배율과 무관하게 판정 데이터의 월드 폭을 유지합니다.
+            Vector3 scale = line.transform.lossyScale;
+            float x = radius / Mathf.Max(.0001f, Mathf.Abs(scale.x));
+            float y = height / Mathf.Max(.0001f, Mathf.Abs(scale.y));
             for (int i=0;i<line.positionCount;i++)
-            { float a=i*2f*Mathf.PI/line.positionCount; line.SetPosition(i,new Vector3(Mathf.Cos(a)*radius,Mathf.Sin(a)*height,0)); }
+            { float a=i*2f*Mathf.PI/line.positionCount; line.SetPosition(i,new Vector3(Mathf.Cos(a)*x,Mathf.Sin(a)*y,0)); }
         }
     }
 }

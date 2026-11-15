@@ -30,6 +30,9 @@ namespace HumanGhost.Gameplay.Presentation
         [SerializeField] private Image _damageEdge = null;
         private CanvasGroup[] _extraGroups = new CanvasGroup[0];
         private PlayerActor _player;
+        private CurrencyWallet _wallet;
+        [SerializeField] private Text _soul = null, _coins = null;
+        public void ConnectWallet(CurrencyWallet wallet) { Unsubscribe(); _wallet = wallet; if (isActiveAndEnabled) Subscribe(); }
         private LanguageTextSource _text;
         public void ConnectText(LanguageTextSource text) { _text = text; RefreshLanguage(); }
         private void RefreshLanguage() { _shownHerbs = -1; _shownCooldown = -1; _scope?.Invalidate(); }
@@ -66,7 +69,7 @@ namespace HumanGhost.Gameplay.Presentation
 
         public void SetSkillName(string text) { if (_skillName != null) _skillName.text = text; }
 
-        public void Disconnect() { Unsubscribe(); _player = null; _boss = null; _text = null; _extraGroups = new CanvasGroup[0]; }
+        public void Disconnect() { Unsubscribe(); _player = null; _boss = null; _wallet = null; _text = null; _extraGroups = new CanvasGroup[0]; }
         private void OnEnable() => Subscribe();
         private void OnDisable() => Unsubscribe();
         private void OnDestroy() => Disconnect();
@@ -81,6 +84,13 @@ namespace HumanGhost.Gameplay.Presentation
             player.DisplayChanged += invalidate;
             _scope.Add(() => KeyboardControls.Changed -= invalidate); KeyboardControls.Changed += invalidate;
             _scope.Add(() => LanguageSettings.Changed -= RefreshLanguage); LanguageSettings.Changed += RefreshLanguage;
+            if (_wallet != null)
+            {
+                CurrencyWallet wallet = _wallet;
+                var scope = _scope;
+                System.Action<int, int> currency = (id, value) => { if (!scope.IsDisposed) scope.Invalidate(); };
+                _scope.Add(() => wallet.Changed -= currency); wallet.Changed += currency;
+            }
             if (_boss != null)
             {
                 BossPoise boss = _boss;
@@ -134,6 +144,11 @@ namespace HumanGhost.Gameplay.Presentation
         }
         private void RefreshData()
         {
+            if (_wallet != null)
+            {
+                if (_soul != null) _soul.text = _wallet.GetBalance(MonsterRewards.SoulCurrencyId).ToString(System.Globalization.CultureInfo.InvariantCulture);
+                if (_coins != null) _coins.text = _wallet.GetBalance(MonsterRewards.CoinCurrencyId).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            }
             RefreshStamina(_player.Stamina.Current);
             RefreshBoss();
             if (_shownHerbs != _player.HerbCount) { _shownHerbs = _player.HerbCount; _herbs.text = (_herbKey == null ? (KeyboardControls.Layout == KeyboardLayout.Wasd ? "I  " : "Q  ") + Ui(51602, "약초") + " " : "") + _shownHerbs; }

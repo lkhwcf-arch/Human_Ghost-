@@ -17,6 +17,8 @@ namespace HumanGhost.Gameplay
         private IExecutionTarget _executionTarget;
         private int _bindPresses;
         private bool _cutsceneDamageBlocked;
+        private bool _ledgeDamageProtected;
+        public bool IsTraversalProtected => IsHanging && _ledgeDamageProtected;
         private PlayerSkill _skill;
         private PlayerHerbs _herbs;
         private bool _usingSkill;
@@ -54,7 +56,7 @@ namespace HumanGhost.Gameplay
         public bool HasHerbs => _herbs != null;
         // 11/14 A7: 약초 사용 시간에는 수평 이동을 막습니다. 사용 시간은 Buff를 소비합니다.
         public int HealMoveSpeed => 0;
-        public bool IsInvulnerable => _cutsceneDamageBlocked || CurrentState == StateKey.Execute || _invulnerableRemaining > 0 ||
+        public bool IsInvulnerable => _cutsceneDamageBlocked || IsTraversalProtected || CurrentState == StateKey.Execute || _invulnerableRemaining > 0 ||
             (CurrentState == StateKey.Roll && _elapsed < Definition.RollIFrame);
         public event Action<int> HealthChanged;
         public event Action HerbRecovered;
@@ -104,11 +106,12 @@ namespace HumanGhost.Gameplay
         }
 
         // 공중에서 외부가 모서리를 확인한 뒤 요청합니다. 매달린 동안 공격·구르기·이동은 막히고 스태미나를 쓰지 않습니다.
-        public bool TryHang(int facing = 0)
+        public bool TryHang(int facing = 0, bool protectFromDamage = false)
         {
             if (facing < -1 || facing > 1) throw new ArgumentOutOfRangeException(nameof(facing));
             if (IsDead || !Locomotion.CanMove || Locomotion.IsGrounded) return false;
             if (facing != 0) _facing = facing;
+            _ledgeDamageProtected = protectFromDamage;
             States.Call(StateKey.Hang);
             return true;
         }
@@ -116,6 +119,7 @@ namespace HumanGhost.Gameplay
         // 올라가기는 접지 관측을 먼저 전달한 뒤 호출합니다. 놓기는 공중 상태로 돌아갑니다.
         public bool EndHang()
         {
+            _ledgeDamageProtected = false;
             if (!IsHanging) return false;
             ResumeMovement();
             return true;

@@ -90,6 +90,7 @@ namespace HumanGhost.Gameplay.Adapters
             }
             RequestRefresh();
         }
+        public bool IsShrinePromptVisible => HasContext && _prompt != null && _prompt.gameObject.activeSelf && _selected is ShrineInteract;
         public void RequestRefresh() => _scope?.Invalidate();
         private void StopBindings()
         {
@@ -158,7 +159,7 @@ namespace HumanGhost.Gameplay.Adapters
             else if (_selected != null)
             {
                 int id = _selected.PromptTextId;
-                if (_shownPromptId != id) { _shownPromptId = id; int uiId = id switch { 30063 => 51901, 30064 => 51902, 30065 => 51903, 30066 => 51904, _ => 0 };
+                if (_shownPromptId != id) { _shownPromptId = id; int uiId = id switch { 30063 => 51901, 30064 => 51902, 30065 => 51903, 30066 => 51904, 30367 => 51905, _ => 0 };
                     _shownPrompt = "F " + (uiId == 0 ? _context.Text(id) : LanguageTextSource.SelectUi(_context.Data, uiId)); }
                 ShowPrompt(_shownPrompt, (Vector3)_selected.Position + Vector3.up * _promptHeight, _selected is LedgerInteract);
             }

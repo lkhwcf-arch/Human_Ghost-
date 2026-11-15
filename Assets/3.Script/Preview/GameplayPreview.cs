@@ -182,11 +182,12 @@ namespace HumanGhost.Gameplay.Preview
                     _monsterDrivers[i] = new PreviewMonsterDriver(monster, _player, _playerBody, _attackWindow,
                         _firstMonsterTargetId + i, _playerTargetId, _worldUnitsPerTile, ApplyMonsterHitEffects);
                     _monsterDrivers[i].UsePerception(_followCamera.GetComponent<Camera>());
+                    _monsterDrivers[i].UseLedgeProtection(() => _motion?.ProtectedLedge);
                     var poiseView = monster.GetComponent<MonsterPoiseView>();
                     if (poiseView == null)
                     {
                         poiseView = monster.gameObject.AddComponent<MonsterPoiseView>();
-                        poiseView.Connect(monster, monster.GetComponentInChildren<SpriteRenderer>(true));
+                        poiseView.Connect(monster, monster.GetComponentInChildren<SpriteRenderer>(true), _playerBody.sprite);
                     }
                 }
                 _bossDriver?.Dispose();
@@ -514,6 +515,8 @@ namespace HumanGhost.Gameplay.Preview
             {
                 RestorePlayerVitals(health, _progress.CarriedHerbs);
             }
+            else if (_actor.HasHerbs)
+                RestorePlayerVitals(_actor.Health, _actor.HerbCapacity);
             _progress.ClearCarriedVitals();
         }
 
@@ -565,8 +568,15 @@ namespace HumanGhost.Gameplay.Preview
                 // 몬스터는 낙하하지 않으므로 배치 높이가 그림에 맞춰 낮춘 바닥보다 조금 높으면 바로 아래 바닥에 붙입니다.
                 float drop = FindFloorDrop(feet, 0.5f, filter, hits);
                 if (drop > 0f) { _monsters[i].SetPosition(_monsters[i].transform.position + Vector3.down * drop); feet.y -= drop; }
-                _monsterDrivers[i].UseWalkableSpan(FindSpanEnd(feet, half, -1, filter, hits), FindSpanEnd(feet, half, 1, filter, hits), feet.y);
+                float halfWidth = body.bounds.extents.x;
+                float min = FindSpanEnd(feet, half, -1, filter, hits) + halfWidth;
+                float max = FindSpanEnd(feet, half, 1, filter, hits) - halfWidth;
+                // 몸체보다 좁은 지형은 최초 배치점을 유지합니다. 정상 지면은 발 전체가 가장자리 안에 남습니다.
+                if (min > max) min = max = feet.x;
+                _monsterDrivers[i].UseWalkableSpan(min, max, feet.y);
             }
+            if (_stageId == StageExitRules.VillageStage)
+                StartMapControlsView.AddTo(_stage.MapRoot, _markersRoot, _feedbackTextPrefab, _playerBody.sprite, new LanguageTextSource(_catalog));
             PreviewTraversalGuide.AddTo(_stage.MapRoot, _markersRoot, _playerBody.sprite, _playerBody.sortingLayerID, 60);
         }
 
@@ -771,6 +781,7 @@ namespace HumanGhost.Gameplay.Preview
                 }
                 _hud.Connect(_actor, _boss.Actor, LanguageTextSource.Select(catalog.GetTable<Language>().Get(30006)), _boss.Actor.Poise, _showBossGauge && _bossActive, healthGroup);
                 _hud.ConnectText(new LanguageTextSource(catalog));
+                _hud.ConnectWallet(_progress.Rewards.Wallet);
                 _hud.SetSkillName(LanguageTextSource.Select(catalog.GetTable<Language>().Get(catalog.GetTable<Skill>().Get(_skillId).TextID)));
                 _actor.StaminaRefused += _hud.FlashStamina;
             }

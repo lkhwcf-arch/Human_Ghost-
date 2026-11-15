@@ -25,6 +25,9 @@ namespace HumanGhost.Gameplay.Presentation
         private TextboxPlayback _playback;
         private Action _closed;
         private int _objectiveRemainingMilliseconds, _noticeRemainingMilliseconds;
+        private Action<bool> _objectiveClosed;
+        public bool IsNoticeOpen => _notice != null && _notice.activeSelf;
+        public bool IsObjectiveOpen => _objective != null && _objective.activeSelf;
         private MillisecondClock _noticeClock;
         private MillisecondClock _clock;
         private string _shownLine;
@@ -186,12 +189,24 @@ namespace HumanGhost.Gameplay.Presentation
         // 최상위 캔버스에 붙였으므로 이 화면이 사라질 때 함께 정리합니다.
         private void OnDestroy()
         {
+            CancelObjective();
             _blackoutClosed = null;
             if (_blackout != null) Destroy(_blackout);
         }
 
+        public bool TryShowObjective(string text, Action<bool> closed)
+        {
+            if (IsObjectiveOpen) return false;
+            ShowObjective(text); _objectiveClosed = closed; return true;
+        }
+        public void CancelObjective()
+        {
+            if (_objective != null) _objective.SetActive(false);
+            Action<bool> closed = _objectiveClosed; _objectiveClosed = null; closed?.Invoke(false);
+        }
         public void ShowObjective(string text)
         {
+            CancelObjective();
             _objectiveText.text = text;
             _objective.SetActive(true);
             _objectiveRemainingMilliseconds = _objectiveMilliseconds;
@@ -208,7 +223,11 @@ namespace HumanGhost.Gameplay.Presentation
         {
             int noticeElapsed = _noticeClock.Advance(Time.unscaledDeltaTime);
             if (IsBlackoutOpen && (_blackoutRemainingMilliseconds -= noticeElapsed) <= 0) CloseBlackout();
-            if (_objective.activeSelf && (_objectiveRemainingMilliseconds -= noticeElapsed) <= 0) _objective.SetActive(false);
+            if (_objective.activeSelf && (_objectiveRemainingMilliseconds -= noticeElapsed) <= 0)
+            {
+                _objective.SetActive(false);
+                Action<bool> closed = _objectiveClosed; _objectiveClosed = null; closed?.Invoke(true);
+            }
             if (_notice.activeSelf && (_noticeRemainingMilliseconds -= noticeElapsed) <= 0) _notice.SetActive(false);
             if (_playback == null) return;
             if (_unscaledPlayback && _playbackBlocked) return;

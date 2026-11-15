@@ -287,7 +287,9 @@ internal static class MonsterChecks
         Check(exposed.IsExposed && exposed.Velocity == 0 && exposed.Facing == -1, "노출 중 관측이 AI·방향을 재개하지 않음");
         exposed.Tick(1499); exposed.ReceiveHit(1);
         Check(exposed.IsExposed && exposed.Poise == 0, "노출 중 피해는 노출 시간을 연장하지 않음");
-        exposed.Tick(1); Check(!exposed.IsExposed && exposed.Poise == 40, "1500ms 만료 시 체세 복구·AI 재개");
+        int remainingHp = exposed.Health;
+        exposed.Tick(1); Check(!exposed.IsExposed && exposed.Poise == 40 && exposed.Health == remainingHp && !exposed.IsDead && !exposed.WasExecuted,
+            "1500ms 만료는 체세만 복구하며 체력 회복·자동 사망·처형 보상을 만들지 않음");
 
         var parriedPoise = H(); parriedPoise.Observe(1, 150, 1); parriedPoise.Tick(400);
         Check(parriedPoise.ReceiveParried(800, 8) && parriedPoise.Poise == 32 && parriedPoise.CurrentState == StateKey.Stun, "패링 경직과 체세 피해 동시 적용");

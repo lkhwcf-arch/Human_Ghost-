@@ -34,6 +34,7 @@ namespace HumanGhost.Gameplay.Preview
         private int _climbElapsed = -1;
         private Vector3 _climbFrom, _climbTo;
         public bool IsClimbingLedge => _climbElapsed >= 0;
+        public Vector2? ProtectedLedge => _player.Actor.IsTraversalProtected && _hangEdge != null ? (Vector2?)_hangEdge.position : null;
         private readonly System.Collections.Generic.List<LadderClimbArea> _ladders = new System.Collections.Generic.List<LadderClimbArea>();
         private LadderClimbArea _ladder;
         private Bounds _lastLadderArea;
@@ -154,7 +155,7 @@ namespace HumanGhost.Gameplay.Preview
                 if (!_player.Actor.TryHang()) { _player.SetGrounded(grounded); return false; }
                 _ladder = ladder; _lastLadderArea = area; _verticalInput = Math.Sign(direction); _shownLadderDirection = 0;
                 _ladderMotion.ResetHorizontal();
-                position.x = _ladder.AxisX; _player.SetPosition(position);
+                position.x += _collision.MoveHorizontal(position, _ladder.AxisX - position.x); _player.SetPosition(position);
                 _motion.StopRoll(); _motion.SetVerticalSpeed(); _airborne = false;
                 _jumpBufferRemaining = _coyoteRemaining = 0; _dropRequested = false;
                 _peakY = _player.Position.Y;
@@ -189,7 +190,8 @@ namespace HumanGhost.Gameplay.Preview
                 {
                     Vector3 candidate = position;
                     candidate.x = area.center.x + (i == 0 ? preferred : -preferred) * (area.extents.x + _halfSize.x + PreviewCollision.Skin);
-                    if (!_collision.FindFloor(candidate, 0.12f, out gap)) continue;
+                    if (Mathf.Abs(_collision.MoveHorizontal(position, candidate.x - position.x) - (candidate.x - position.x)) > PreviewCollision.Skin ||
+                        !_collision.FindFloor(candidate, 0.12f, out gap)) continue;
                     position = candidate; grounded = true;
                 }
             }
@@ -210,7 +212,7 @@ namespace HumanGhost.Gameplay.Preview
             float bottom = area.min.y + _halfSize.y;
             float top = area.max.y + _halfSize.y + PreviewCollision.Skin;
             long step = _ladderMotion.StepHorizontal(checked(_verticalInput * _ladder.SpeedUnitsPerSecond), milliseconds);
-            position.x = _ladder.AxisX;
+            position.x += _collision.MoveHorizontal(position, _ladder.AxisX - position.x);
             long nextY = checked(_player.Position.Y + step);
             nextY = Math.Max(_player.ToInteger(bottom), Math.Min(_player.ToInteger(top), nextY));
             position.y = _player.ToWorld(nextY);
@@ -231,7 +233,7 @@ namespace HumanGhost.Gameplay.Preview
         {
             if (!_airborne || IsHanging) return false;
             Vector3 position = _player.transform.position;
-            if (!_hangEdges.TryFind(position, out Transform edge, out int side, _releasedEdge) || !_player.Actor.TryHang(side)) return false;
+            if (!_hangEdges.TryFind(position, out Transform edge, out int side, _releasedEdge) || !_player.Actor.TryHang(side, true)) return false;
             _hangEdge = edge; _hangSide = side;
             _motion.StopRoll(); _motion.SetVerticalSpeed();
             _player.SetPosition(_hangEdges.HangPosition(edge, side, position.z));

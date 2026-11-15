@@ -8,7 +8,7 @@ namespace HumanGhost.Gameplay.Preview
     // 전투 피드백(C11)입니다. 수치는 기획의 제안값이며 위치·표시는 임시입니다. 이펙트 원본이 오면 표시만 교체합니다.
     internal class PreviewCombatFeedback : System.IDisposable
     {
-        private const int _normalStop = 50, _criticalStop = 80, _criticalSlow = 200, _executeStop = 150, _bossHitStop = 90;
+        private const int _normalStop = 50, _criticalStop = 80, _criticalSlow = 200, _executeStop = 150, _bossHitStop = 50;
         private const int _criticalSlowRate = 5000, _flashMilliseconds = 50;
         private MillisecondClock _scaledClock, _unscaledClock;
         private struct Flash { public SpriteRenderer Target; public Color Color; public int Remaining; }
