@@ -1,0 +1,129 @@
+"""Linux 빌드 입력 영상과 Windows 결과물의 연결·디코딩을 검사합니다."""
+import argparse
+import csv
+import hashlib
+import json
+from pathlib import Path
+import re
+import subprocess
+
+
+def StreamingPath(root, relative):
+    # Windows용 경로를 Linux에서도 같은 규칙으로 검사합니다.
+    if not relative or "\\" in relative or ":" in relative:
+        raise ValueError("영상 주소는 슬래시를 사용하는 상대 경로여야 합니다: " + relative)
+    path = (root / relative).resolve()
+    if not path.is_relative_to(root.resolve()) or path.suffix.lower() != ".mp4":
+        raise ValueError("영상은 StreamingAssets 내부 MP4여야 합니다: " + relative)
+    if not path.is_file() or path.stat().st_size == 0:
+        raise ValueError("영상 파일이 없거나 비어 있습니다: " + str(path))
+    return path
+
+
+def VideoPaths(project):
+    prefab = (project / "Assets/2.Model/Prefabs/UI/TitleScreen.prefab").read_text(encoding="utf-8")
+    match = re.search(r"^  _videoFile: (.+)$", prefab, re.MULTILINE)
+    if not match:
+        raise ValueError("타이틀 영상 상대 경로가 없습니다.")
+    paths = {match.group(1).strip()}
+    with (project / "Assets/Data/Csv/CutsceneStep.csv").open(encoding="utf-8-sig", newline="") as source:
+        for row in csv.DictReader(source):
+            if row["MediaType"] != "Video":
+                continue
+            address = row["ResourceAddress"]
+            if not address.startswith("streaming:"):
+                raise ValueError("Linux 빌드의 컷씬 영상은 streaming: 파일 주소를 사용해야 합니다. 행: " + row["ID"])
+            paths.add(address[len("streaming:"):])
+    root = project / "Assets/StreamingAssets"
+    return [(relative, StreamingPath(root, relative)) for relative in sorted(paths)]
+
+
+def Run(command):
+    result = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=600)
+    if result.returncode:
+        raise ValueError("영상 도구 실행 실패: " + str(command[0]) + "\n" + result.stderr[-4000:])
+    return result.stdout
+
+
+def CheckMetadata(metadata, first_frame, path):
+    streams = metadata.get("streams", [])
+    videos = [stream for stream in streams if stream.get("codec_type") == "video"]
+    if len(videos) != 1:
+        raise ValueError("영상 트랙은 하나여야 합니다: " + str(path))
+    video = videos[0]
+    if video.get("codec_name") != "h264" or video.get("pix_fmt") != "yuv420p":
+        raise ValueError("Windows 재생용 H.264/yuv420p 영상이 필요합니다: " + str(path))
+    if video.get("has_b_frames") != 0:
+        raise ValueError("Windows 첫 프레임 지연을 피하도록 B 프레임 없이 인코딩해 주세요: " + str(path))
+    if any(video.get(key) != "bt709" for key in ("color_space", "color_transfer", "color_primaries")):
+        raise ValueError("영상 색상 정보 BT.709를 명시해 주세요: " + str(path))
+    frames = first_frame.get("frames", [])
+    if not frames or "best_effort_timestamp_time" not in frames[0]:
+        raise ValueError("첫 영상 프레임을 읽지 못했습니다: " + str(path))
+    if abs(float(frames[0]["best_effort_timestamp_time"])) > 0.001:
+        raise ValueError("첫 영상 프레임의 시작 시각은 0이어야 합니다: " + str(path))
+    for stream in streams:
+        if stream.get("codec_type") == "audio" and stream.get("codec_name") != "aac":
+            raise ValueError("Windows 재생용 AAC 오디오가 필요합니다: " + str(path))
+
+
+def CheckVideo(path, ffprobe, ffmpeg):
+    metadata = json.loads(Run([ffprobe, "-v", "error", "-show_streams", "-of", "json", str(path)]))
+    first_frame = json.loads(Run([ffprobe, "-v", "error", "-select_streams", "v:0", "-read_intervals", "%+#1",
+                                 "-show_frames", "-show_entries", "frame=best_effort_timestamp_time", "-of", "json", str(path)]))
+    CheckMetadata(metadata, first_frame, path)
+    # 파일 존재·해시 검사로 잡히지 않는 중간 프레임/오디오 손상도 끝까지 읽습니다.
+    Run([ffmpeg, "-v", "error", "-xerror", "-err_detect", "explode", "-i", str(path),
+         "-map", "0:v:0", "-map", "0:a?", "-f", "null", "-"])
+
+
+def CheckArtifact(project, output, videos, scene):
+    if not (output / "HumanGhost.exe").is_file():
+        raise ValueError("빌드 결과에 HumanGhost.exe가 없습니다.")
+    scenes = (output / "BuildScenes.txt").read_text(encoding="utf-8-sig").splitlines()
+    required = {"Assets/1.Scene/Title.unity", "Assets/1.Scene/MapDohwagolTest.unity"}
+    if not required.issubset(scenes):
+        raise ValueError("타이틀 복귀·새 게임에 필요한 씬이 빌드 목록에 없습니다.")
+    if scene == "build-settings":
+        settings = (project / "ProjectSettings/EditorBuildSettings.asset").read_text(encoding="utf-8")
+        expected = re.findall(r"- enabled: 1\s+path: (.+)", settings)[0].strip()
+    else:
+        expected = "Assets/1.Scene/" + {"dohwagol": "MapDohwagolTest", "preview": "GameplayPreview"}[scene] + ".unity"
+    if not scenes or scenes[0] != expected:
+        raise ValueError("선택한 시작 씬과 빌드의 첫 씬이 다릅니다.")
+    for relative, source in videos:
+        built = StreamingPath(output / "HumanGhost_Data/StreamingAssets", relative)
+        with source.open("rb") as source_file, built.open("rb") as built_file:
+            if hashlib.file_digest(source_file, "sha256").digest() != hashlib.file_digest(built_file, "sha256").digest():
+                raise ValueError("빌드 영상이 원본과 다릅니다: " + relative)
+    # 등록 리소스가 없는 프로젝트에는 빈 Addressables 번들을 강제하지 않습니다.
+    groups = project / "Assets/AddressableAssetsData/AssetGroups"
+    has_addresses = any(re.search(r"^\s+m_Address:", file.read_text(encoding="utf-8"), re.MULTILINE) for file in groups.glob("*.asset"))
+    if has_addresses:
+        root = output / "HumanGhost_Data/StreamingAssets/aa"
+        if not (root / "settings.json").is_file() or not any(root.rglob("catalog*")) or not any(root.rglob("*.bundle")):
+            raise ValueError("등록된 Addressables의 런타임 설정·카탈로그·번들이 없습니다.")
+
+
+def Main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--project", type=Path, default=Path(__file__).resolve().parents[2])
+    parser.add_argument("--build-dir", type=Path)
+    parser.add_argument("--scene", choices=["build-settings", "dohwagol", "preview"], default="build-settings")
+    parser.add_argument("--ffprobe", default="ffprobe")
+    parser.add_argument("--ffmpeg", default="ffmpeg")
+    args = parser.parse_args()
+    try:
+        videos = VideoPaths(args.project)
+        for relative, path in videos:
+            CheckVideo(path, args.ffprobe, args.ffmpeg)
+            print("영상 전체 디코딩·시작 시각·색상 정보 통과: " + relative)
+        if args.build_dir:
+            CheckArtifact(args.project, args.build_dir, videos, args.scene)
+            print("시작 씬·타이틀 복귀·새 게임 씬과 결과물 영상 일치 확인을 통과했습니다.")
+    except (ValueError, OSError, subprocess.TimeoutExpired) as error:
+        parser.exit(1, str(error) + "\n")
+
+
+if __name__ == "__main__":
+    Main()

@@ -31,7 +31,7 @@ internal static class DemoEndingChecks
         string root = Path.Combine(Path.GetTempPath(), "HumanGhostVideoChecks");
         check(StreamingVideoAddress.TryResolve("streaming:Video/Ending.mp4", root, out string file)
             && file == Path.GetFullPath(Path.Combine(root, "Video/Ending.mp4")), "영상 상대 경로 해석");
-        check(!StreamingVideoAddress.TryResolve("Cutscene_Intro_Video", root, out _), "기존 주소 로딩 계약 유지");
+        check(!StreamingVideoAddress.TryResolve("ExampleVideo", root, out _), "일반 주소 로딩 계약 유지(설명용 주소)");
         foreach (string invalid in new[] { "streaming:../Ending.mp4", "streaming:/Ending.mp4", "streaming:https://example.com/a.mp4", "streaming:Video/a.txt" })
         {
             bool rejected = false;

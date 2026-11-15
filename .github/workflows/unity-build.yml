@@ -20,7 +20,7 @@ on:
         required: false
         default: ''
       scene:
-        description: 'build-settings: 타이틀부터 도화골까지 / dohwagol: 도화골 전투만 / preview: 임시 게임플레이'
+        description: 'build-settings: 타이틀부터 / dohwagol: 도화골부터 / preview: 임시 게임플레이부터 (모두 타이틀 복귀 포함)'
         type: choice
         options: [build-settings, dohwagol, preview]
         default: build-settings
@@ -94,6 +94,12 @@ jobs:
           if missing:
               sys.exit("필요한 GitHub 비밀값이 없습니다: " + ", ".join(missing))
           print("인증 정보 등록을 확인했습니다. 실제 인증은 Unity 빌드 단계에서 확인합니다.")
+      - name: 영상 검사 도구 준비
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg
+      - name: 빌드 입력 영상 전체 디코딩·형식 검사
+        run: python -B Tools/Build/verify_build.py
       - name: 빌드 결과물 소유자 확인
         id: build-owner
         shell: bash
@@ -111,50 +117,10 @@ jobs:
           versioning: None
           chownFilesTo: ${{ steps.build-owner.outputs.uid-gid }}
           customParameters: -humanGhostScene ${{ inputs.scene }} -humanGhostBuildMode ${{ inputs.build_mode }} -humanGhostVersion 0.1.${{ github.run_number }}
-      - name: 실행파일 생성 확인
-        shell: python
-        run: |
-          from pathlib import Path
-          if not Path("build/StandaloneWindows64/HumanGhost.exe").is_file():
-              raise SystemExit("빌드 결과에 HumanGhost.exe가 없습니다.")
-          print("게임 실행파일 생성을 확인했습니다.")
-      - name: Addressables 런타임 데이터 포함 확인
-        shell: python
-        run: |
-          from pathlib import Path
-          root = Path("build/StandaloneWindows64/HumanGhost_Data/StreamingAssets/aa")
-          if not (root / "settings.json").is_file():
-              raise SystemExit("Addressables 런타임 settings.json이 없습니다. 콘텐츠 빌드 설정과 Unity 로그를 확인해 주세요.")
-          if not any(root.rglob("catalog*")) or not any(root.rglob("*.bundle")):
-              raise SystemExit("Addressables 카탈로그 또는 번들이 없습니다. 인트로 리소스의 빌드 포함 여부를 확인해 주세요.")
-          print("Addressables 런타임 설정·카탈로그·번들 포함을 확인했습니다.")
-      - name: 타이틀·컷씬 영상 포함 확인
-        shell: python
-        run: |
-          from pathlib import Path
-          import hashlib
-          import re
-          import csv
-          prefab = Path("Assets/2.Model/Prefabs/UI/TitleScreen.prefab").read_text(encoding="utf-8")
-          match = re.search(r"^  _videoFile: (.+)$", prefab, re.MULTILINE)
-          if not match:
-              raise SystemExit("타이틀 영상의 파일 상대 경로가 없습니다.")
-          source_root = Path("Assets/StreamingAssets").resolve()
-          def VerifyVideo(relative):
-              source = (source_root / relative).resolve()
-              if not source.is_relative_to(source_root) or not source.is_file():
-                  raise SystemExit("영상 원본이 StreamingAssets 내부에 없습니다: " + relative)
-              output = Path("build/StandaloneWindows64/HumanGhost_Data/StreamingAssets") / relative
-              if not output.is_file() or source.stat().st_size == 0:
-                  raise SystemExit("빌드 영상이 없거나 원본이 비어 있습니다: " + relative)
-              if hashlib.sha256(source.read_bytes()).digest() != hashlib.sha256(output.read_bytes()).digest():
-                  raise SystemExit("빌드 영상이 원본과 다릅니다: " + relative)
-          VerifyVideo(match.group(1).strip())
-          with open("Assets/Data/Csv/CutsceneStep.csv", encoding="utf-8-sig", newline="") as source:
-              for row in csv.DictReader(source):
-                  if row["MediaType"] == "Video" and row["ResourceAddress"].startswith("streaming:"):
-                      VerifyVideo(row["ResourceAddress"][len("streaming:"):])
-          print("타이틀과 테이블의 컷씬 영상이 빌드에 포함됐는지 확인했습니다.")
+      - name: 실행파일·씬·영상 결과물 검사
+        env:
+          BUILD_SCENE: ${{ inputs.scene }}
+        run: python -B Tools/Build/verify_build.py --build-dir build/StandaloneWindows64 --scene "$BUILD_SCENE"
       - name: 결과물에 빌드 출처 기록
         shell: python
         env:

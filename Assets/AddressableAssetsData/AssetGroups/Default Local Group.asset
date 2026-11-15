@@ -14,12 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
   m_GroupName: Default Local Group
   m_GUID: 68280f07877c440459755d068322d61c
-  m_SerializeEntries:
-  - m_GUID: 66054ff85451ccb4c8a69aba81e3e31d
-    m_Address: Cutscene_Intro_Video
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
+  m_SerializeEntries: []
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 5128a170bde20224bbb49e9bf8532828, type: 2}
   m_SchemaSet:

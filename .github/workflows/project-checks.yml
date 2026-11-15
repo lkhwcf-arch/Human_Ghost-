@@ -71,6 +71,9 @@ jobs:
       - name: 빌드 공지 구성 검사
         shell: pwsh
         run: python -B -m unittest discover -s Tools/Automation -p "test_*.py"
+      - name: 빌드 결과물 검사 회귀 확인
+        shell: pwsh
+        run: python -B -m unittest discover -s Tools/Build -p "test_*.py"
       - name: PNG 무손실 압축 계약 검사
         shell: pwsh
         run: python -B Tools/Resources/test_optimize_png.py
