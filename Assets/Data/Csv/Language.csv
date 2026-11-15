@@ -213,3 +213,9 @@ ID,KO,EN
 30358,결박이 길을 막고 있다. {0}(결박 가르기)로 베어 내자,Bindings block the way. Cut them with {0} (Bind Cleave).
 30359,한국어,Korean
 30360,영어,English
+30361,{0} {1}단계 → {2}단계({3} → {4}). 혼 {5}개를 바칠까요?,{0} Step {1} → {2} ({3} → {4}). Offer {5} Hon?
+30362,{0} {1}단계 → {2}단계({3} → {4}). 엽전 {5}개를 쓸까요?,{0} Step {1} → {2} ({3} → {4}). Spend {5} Yeopjeon?
+30363,"서낭당에 기도하면 이곳에 기록되고, 쓰러지면 여기서 다시 일어난다","Pray at a shrine to record your journey. If you fall, you will rise here again."
+30364,엽전을 얻었다. 서낭당에서 약초를 강화할 수 있다,You found Yeopjeon. Use it at a shrine to strengthen your herbs.
+30365,혼을 얻었다. 서낭당에 바쳐 힘을 얻을 수 있다,You gathered Hon. Offer it at a shrine to grow stronger.
+30366,결박 가르기: 요괴를 묶은 결박을 끊어 풀어 준다,Bind Cleave: Cuts the bindings that hold a spirit and sets it free.

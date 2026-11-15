@@ -11,103 +11,67 @@
       "Monsters": [
         {
           "MonsterCode": 3001,
-          "MonsterCount": 24,
+          "MonsterCount": 15,
           "Points": [
             [
-              1400,
+              1250,
               0
             ],
             [
-              1750,
+              2550,
               0
             ],
             [
-              2150,
+              2900,
               0
+            ],
+            [
+              1550,
+              250
+            ],
+            [
+              1850,
+              250
             ],
             [
               2250,
               500
             ],
             [
-              2500,
+              6450,
               0
             ],
             [
-              2850,
+              6800,
               0
             ],
             [
-              4000,
-              192
-            ],
-            [
-              4300,
-              192
-            ],
-            [
-              4750,
-              288
-            ],
-            [
-              5800,
-              700
-            ],
-            [
-              6000,
-              700
-            ],
-            [
-              6100,
-              700
-            ],
-            [
-              6400,
-              0
-            ],
-            [
-              6850,
-              0
-            ],
-            [
-              6950,
+              6900,
               250
             ],
             [
-              7050,
-              0
-            ],
-            [
-              7150,
+              7300,
               250
             ],
             [
-              8700,
+              9400,
               0
             ],
             [
-              8850,
+              8800,
               250
             ],
             [
-              8900,
-              0
-            ],
-            [
-              9050,
+              9150,
               250
             ],
             [
-              9100,
-              0
+              9500,
+              450
             ],
             [
-              9300,
+              11200,
               0
-            ],
-            [
-              9650,
-              192
             ]
           ]
         },
@@ -116,11 +80,11 @@
           "MonsterCount": 2,
           "Points": [
             [
-              7350,
+              7150,
               0
             ],
             [
-              8950,
+              9000,
               0
             ]
           ]
@@ -134,22 +98,8 @@
               96
             ],
             [
-              9900,
+              4300,
               192
-            ]
-          ]
-        },
-        {
-          "MonsterCode": 3004,
-          "MonsterCount": 2,
-          "Points": [
-            [
-              3650,
-              0
-            ],
-            [
-              10900,
-              600
             ]
           ]
         }
@@ -189,6 +139,62 @@
       "Prefab": "Air_Platform_12",
       "Anchor": "Anchor_Air_Platform_12",
       "Monsters": []
+    },
+    {
+      "PlacementID": 208,
+      "PlatformCode": 16512,
+      "Prefab": "Air_Platform_12",
+      "Anchor": "Anchor_Air_Platform_12_X35",
+      "Monsters": [
+        {
+          "MonsterCode": 3001,
+          "MonsterCount": 1,
+          "Points": [
+            [
+              150,
+              0
+            ]
+          ]
+        },
+        {
+          "MonsterCode": 3004,
+          "MonsterCount": 1,
+          "Points": [
+            [
+              450,
+              0
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "PlacementID": 209,
+      "PlatformCode": 16512,
+      "Prefab": "Air_Platform_12",
+      "Anchor": "Anchor_Air_Platform_12_X94",
+      "Monsters": [
+        {
+          "MonsterCode": 3001,
+          "MonsterCount": 1,
+          "Points": [
+            [
+              100,
+              0
+            ]
+          ]
+        },
+        {
+          "MonsterCode": 3004,
+          "MonsterCount": 1,
+          "Points": [
+            [
+              450,
+              0
+            ]
+          ]
+        }
+      ]
     }
   ]
 }
