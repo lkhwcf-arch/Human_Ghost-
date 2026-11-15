@@ -23,6 +23,7 @@ namespace HumanGhost.Gameplay.Adapters
         private bool _promptHasKeyIcon;
         private SpriteRenderer _promptKeyIcon, _investigationArtwork;
         private Renderer _promptTextRenderer;
+        private SpriteRenderer _promptBackdrop, _promptBorder;
         private IInteractable _selected;
         private int? _shownPromptId;
         private string _shownPrompt;
@@ -43,6 +44,8 @@ namespace HumanGhost.Gameplay.Adapters
             _promptHasKeyIcon = _promptKeyIcon != null && _interactionKeySprite != null;
             if (_promptHasKeyIcon) _promptKeyIcon.sprite = _interactionKeySprite;
             _promptTextRenderer = _prompt != null ? _prompt.GetComponent<Renderer>() : null;
+            _promptBackdrop = _prompt != null ? _prompt.transform.Find("Backdrop")?.GetComponent<SpriteRenderer>() : null;
+            _promptBorder = _prompt != null ? _prompt.transform.Find("Border")?.GetComponent<SpriteRenderer>() : null;
             StartBindings();
         }
 
@@ -189,6 +192,20 @@ namespace HumanGhost.Gameplay.Adapters
             }
             var next = new Vector3(position.x, position.y + _promptPrefab.transform.localPosition.y, _prompt.transform.position.z);
             if (_prompt.transform.position != next) _prompt.transform.position = next;
+            UpdatePromptBackdrop();
+        }
+        private void UpdatePromptBackdrop()
+        {
+            if (_promptBackdrop == null || _promptTextRenderer == null) return;
+            Bounds bounds = _promptTextRenderer.bounds;
+            if (_promptHasKeyIcon && _promptKeyIcon != null && _promptKeyIcon.enabled) bounds.Encapsulate(_promptKeyIcon.bounds);
+            Vector3 size = _prompt.transform.InverseTransformVector(bounds.size + new Vector3(.24f, .14f, 0f));
+            size = new Vector3(Mathf.Max(.3f, size.x), Mathf.Max(.25f, size.y), 1f);
+            Vector3 center = _prompt.transform.InverseTransformPoint(bounds.center); center.z = .03f;
+            _promptBackdrop.transform.localPosition = center; _promptBackdrop.transform.localScale = size;
+            if (_promptBorder == null) return;
+            _promptBorder.transform.localPosition = center + Vector3.forward * .01f;
+            _promptBorder.transform.localScale = size + new Vector3(.04f, .04f, 0f);
         }
     }
 }

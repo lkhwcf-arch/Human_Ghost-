@@ -19,13 +19,27 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField] private AnimationClip _save = null;
         [SerializeField] private AnimationClip _ladderClimb = null;
         [SerializeField, InspectorName("사다리 표시 배율"), Range(1f, 1.5f)] private float _ladderScale = 1.1f;
-        [SerializeField, Range(0.5f, 1.5f)] private float _climbStartScale = 0.95f;
-        [SerializeField, Range(1f, 2f)] private float _hangScale = 1.4f;
+        [SerializeField, Range(0.5f, 1.5f)] private float _climbStartScale = 1f;
+        [SerializeField, Range(1f, 2f)] private float _hangScale = 1f;
         [SerializeField, Range(-0.5f, 0f)] private float _hangVerticalOffset = -0.1f;
         private Vector3 _baseScale = Vector3.one;
         private Vector3 _basePosition;
         private float _hangTop;
         private float _standingBottom;
+        private Vector2 _ledgeHalfSize = new Vector2(.3f, .65f);
+        private Vector3 _climbHandAnchor;
+        private readonly System.Collections.Generic.Dictionary<Sprite, Vector2> _handAnchors = new System.Collections.Generic.Dictionary<Sprite, Vector2>();
+        public void SetLedgeBody(Vector2 halfSize) => _ledgeHalfSize = halfSize;
+        private Vector2 HandAnchor(Sprite sprite)
+        {
+            if (_handAnchors.TryGetValue(sprite, out Vector2 anchor)) return anchor;
+            Vector2[] vertices = sprite.vertices; float top = float.NegativeInfinity;
+            foreach (Vector2 vertex in vertices) top = Mathf.Max(top, vertex.y);
+            float x = 0f; int count = 0;
+            foreach (Vector2 vertex in vertices) if (vertex.y >= top - .02f) { x += vertex.x; count++; }
+            anchor = new Vector2(count > 0 ? x / count : 0f, top); _handAnchors.Add(sprite, anchor); return anchor;
+        }
+        private Vector3 LedgeHandPosition => _player.transform.position + new Vector3(_player.Actor.Facing * _ledgeHalfSize.x, _ledgeHalfSize.y, 0f);
         protected override bool AlignFeet => false;
         protected override void Awake()
         {
@@ -84,6 +98,7 @@ namespace HumanGhost.Gameplay.Preview
             if (cue == "Pray") { _action = _save; _praying = true; _saveRising = false; _actionElapsed = 0f; RestartAnimation(); return; }
             if (cue == "LadderExit") { _onLadder = false; _ladderDirection = 0; return; }
             if (cue == "DropThrough") { _dropElapsed = 0f; _action = null; RestartAnimation(); return; }
+            if (cue == "Climb") { _climbHandAnchor = LedgeHandPosition; _action = null; RestartAnimation(); return; }
             if (cue == "LadderUp" || cue == "LadderDown" || cue == "LadderHold")
             {
                 if (!_onLadder) RestartAnimation();
@@ -115,6 +130,25 @@ namespace HumanGhost.Gameplay.Preview
                 Renderer.transform.localPosition = position;
             }
             base.LateUpdate();
+            if (hanging && !_onLadder && Renderer != null && Renderer.sprite != null)
+            {
+                Vector2 hand = HandAnchor(Renderer.sprite);
+                Vector3 handWorld = Renderer.transform.TransformPoint(new Vector3(Renderer.flipX ? -hand.x : hand.x, hand.y, 0f));
+                bool climbing = _player.ClimbProgress >= 0f;
+                float linear = climbing ? Mathf.Clamp01(_player.ClimbProgress) : 0f;
+                float grip = climbing ? 1f - Mathf.SmoothStep(0f, 1f, linear / .5f) : 1f;
+                Vector3 correction = (climbing ? _climbHandAnchor : LedgeHandPosition) - handWorld;
+                Vector3 position = Renderer.transform.position;
+                position.x += correction.x * grip; position.y += correction.y * grip;
+                if (climbing)
+                {
+                    float contact = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((linear - .55f) / .2f));
+                    float localY = _basePosition.y + (_standingBottom - PreviewPresentation.VisibleBottom(Renderer.sprite)) * _baseScale.y;
+                    float groundedY = Renderer.transform.parent.TransformPoint(new Vector3(0f, localY, 0f)).y;
+                    position.y = Mathf.Lerp(position.y, groundedY, contact);
+                }
+                Renderer.transform.position = position;
+            }
             if (_action != null && !_praying && (_actionElapsed += Time.deltaTime) >= (_saveRising ? SaveRiseDuration : _action.length))
             { _action = null; _saveRising = false; }
             if (_dropElapsed >= 0f) _dropElapsed = _player != null && _player.Actor != null && _player.Actor.CurrentState == StateKey.Jump ? _dropElapsed + Time.deltaTime : -1f;
