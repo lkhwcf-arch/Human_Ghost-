@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -32,6 +32,28 @@ namespace HumanGhost.Gameplay.Adapters
             Changed?.Invoke();
         }
 
+        private static string ReadKeyboardKey(string action)
+        {
+            bool wasd = Layout == KeyboardLayout.Wasd;
+            switch (action)
+            {
+                case "Jump": return wasd ? "k" : "c";
+                case "Attack": return wasd ? "j" : "x";
+                case "Roll": return wasd ? "l" : "space";
+                case "Skill": case "Skill1": return wasd ? "u" : "z";
+                case "Herb": case "Heal": return wasd ? "i" : "q";
+                case "Interact": return "f";
+                default: return null;
+            }
+        }
+        public static string[] ReadActionKeys()
+        {
+            bool wasd = Layout == KeyboardLayout.Wasd;
+            string Key(string action) => ReadKeyboardKey(action).ToUpperInvariant();
+            return new[] { wasd ? "W A S D" : "← ↑ ↓ →", Key("Jump"), (wasd ? "S + " : "↓ + ") + Key("Jump"),
+                Key("Attack"), Key("Roll"), wasd ? "Right Shift" : "Left Shift", Key("Skill"), Key("Herb"), Key("Interact") };
+        }
+
         public static void Apply(InputActionAsset asset)
         {
             bool wasd = Layout == KeyboardLayout.Wasd;
@@ -53,16 +75,7 @@ namespace HumanGhost.Gameplay.Adapters
                             action.ApplyBindingOverride(i, (wasd ? arrows : !arrows) ? "" : path);
                             continue;
                         }
-                        string mapped = null;
-                        switch (action.name)
-                        {
-                            case "Jump": mapped = wasd ? "k" : "c"; break;
-                            case "Attack": mapped = wasd ? "j" : "x"; break;
-                            case "Roll": mapped = wasd ? "l" : "space"; break;
-                            case "Skill": case "Skill1": mapped = wasd ? "u" : "z"; break;
-                            case "Herb": case "Heal": mapped = wasd ? "i" : "q"; break;
-                            case "Interact": mapped = "f"; break;
-                        }
+                        string mapped = ReadKeyboardKey(action.name);
                         if (mapped != null)
                         {
                             bool first = true;

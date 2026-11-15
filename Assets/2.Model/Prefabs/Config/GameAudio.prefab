@@ -336,7 +336,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1b947b58c524bcea6efa2be0ecaafe44, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Adapters.GameAudio
   _clips:
   - _key: BGM_VILLAGE
@@ -492,6 +492,9 @@ MonoBehaviour:
   - _key: M2_ATTACK_2
     _clip: {fileID: 8300000, guid: 3220f1808df73ba45aad60933844d37a, type: 3}
     _soundId: 3042
+  - _key: SFX_PARRY
+    _clip: {fileID: 8300000, guid: 6660350fde5e66444a470c4d92c55088, type: 3}
+    _soundId: 0
   _musicA: {fileID: 748258672732590955}
   _musicB: {fileID: 1232308879320497956}
   _effects: {fileID: 1532842353738971575}

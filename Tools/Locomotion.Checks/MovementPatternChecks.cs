@@ -36,6 +36,25 @@ internal static class MovementPatternChecks
         struck.Tick(player.HitStunTime);
         check(struck.CurrentState == StateKey.Jump, "피격 뒤 공중 상태");
 
+        var protectedHang = new PlayerActor(player, Attacks(), true, player.StaminaMax);
+        protectedHang.TryJump();
+        check(protectedHang.TryHang(1, true) && protectedHang.IsTraversalProtected && protectedHang.IsInvulnerable,
+            "턱 매달림과 오르기 동안 명시적인 피해 보호");
+        int protectedHp = protectedHang.Health;
+        check(!protectedHang.ReceiveHit(1) && !protectedHang.ReceiveFieldDamage(1) && protectedHang.Health == protectedHp,
+            "턱 매달림은 일반·필드 피해로 중단되지 않음");
+        protectedHang.SetGrounded(true); protectedHang.EndHang();
+        check(!protectedHang.IsTraversalProtected && protectedHang.ReceiveHit(1), "착지 완료 뒤 턱 보호가 즉시 끝남");
+        var releasedHang = new PlayerActor(player, Attacks(), true, player.StaminaMax);
+        releasedHang.TryJump(); releasedHang.TryHang(-1, true); releasedHang.EndHang();
+        check(!releasedHang.IsInvulnerable && releasedHang.ReceiveHit(1), "턱을 놓아 공중에 있어도 보호가 남지 않음");
+        var ladderHang = new PlayerActor(player, Attacks(), true, player.StaminaMax);
+        ladderHang.TryJump(); ladderHang.TryHang();
+        check(!ladderHang.IsTraversalProtected && ladderHang.ReceiveHit(1), "사다리는 턱 오르기 무적을 받지 않음");
+        var fatalHang = new PlayerActor(player, Attacks(), true, player.StaminaMax);
+        fatalHang.TryJump(); fatalHang.TryHang(1, true);
+        check(fatalHang.ApplyFall(int.MaxValue) && !fatalHang.IsTraversalProtected, "낙사 즉사는 턱 보호와 별개이며 사망 뒤 보호가 남지 않음");
+
         var common = new UnitStat(1006,0,"Boss",null,420,28,4,300,500,14,120,250,0);
         var phase = new BossState(4001,1006,1500,1500,2000,15,2000,"DAMAGE",1800,false,0,"Idle",10000);
         var boss = new BossPoise(new Boss(common,new[]{phase}),phase);

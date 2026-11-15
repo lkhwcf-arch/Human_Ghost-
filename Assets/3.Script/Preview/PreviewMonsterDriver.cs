@@ -35,12 +35,27 @@ namespace HumanGhost.Gameplay.Preview
         public Vector3 Position => _runtime.transform.position;
         public bool IsEngaged { get; private set; }
         public bool IsDead => _monster.IsDead;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        public string ReadFeedbackQa()
+        {
+            bool ownVisible = _body != null && InView(_body.bounds.center);
+            bool playerVisible = _playerBody != null && InView(_playerBody.bounds.center);
+            return _runtime.name + ": HP " + _monster.Health + "/" + _monster.Definition.HP +
+                " | 체세 " + _monster.Poise + " | 어그로 " + _monster.HasAggro +
+                " | 같은 바닥 " + _playerOnSpan + " | 화면(적/플레이어) " + ownVisible + "/" + playerVisible +
+                " | 보행 구간 " + _spanMin.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) + "~" +
+                _spanMax.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+        }
+#endif
         // 죽으면 불을 남기는 개체를 평소에도 구분합니다. 전용 그림 공급 뒤 지웁니다.
         private static readonly Color _burningTint = new Color(1f, 0.65f, 0.45f);
         private bool _hasSpan;
         private float _spanMin, _spanMax, _spanY;
         private Camera _camera;
         private bool _playerOnSpan;
+        private Func<Vector2?> _protectedLedge;
+        private readonly PreviewCollision _collision;
+        public void UseLedgeProtection(Func<Vector2?> protectedLedge) => _protectedLedge = protectedLedge;
 
         // 조립된 바닥에서 걸을 수 있는 구간입니다. 끝에 닿으면 벽처럼 다룹니다.
         public void UseWalkableSpan(float min, float max, float floorY)
@@ -101,6 +116,7 @@ namespace HumanGhost.Gameplay.Preview
             if (_body == null) throw new InvalidOperationException("일반몹 임시 사각형이 없습니다.");
             _sprite = runtime.transform.Find("PreviewSprite")?.GetComponent<SpriteRenderer>();
             _color = _body.color;
+            _collision = new PreviewCollision(true, 0f, _body.bounds.extents);
             // 판정 창이 한 프레임 안에 열리고 닫혀도 열리는 순간 한 번은 접촉을 확인합니다.
             Action<bool> attackChanged = _scope.Guard<bool>(OnAttackWindowChanged);
             _scope.Add(() => _monster.AttackWindowChanged -= attackChanged);
@@ -139,13 +155,26 @@ namespace HumanGhost.Gameplay.Preview
             PlayerActor actor = _player.Actor;
             int milliseconds = _clock.Advance(seconds);
             if (_hasSpan) { minX = _spanMin; maxX = _spanMax; }
+            // 턱을 차지한 플레이어가 안전하게 올라올 한 칸을 확보합니다.
+            Vector2? ledge = _protectedLedge?.Invoke();
+            if (ledge.HasValue && _hasSpan && Mathf.Abs(ledge.Value.y - _spanY) < .2f * _worldUnitsPerTile)
+            {
+                float clearance = _worldUnitsPerTile + _body.bounds.extents.x;
+                if (_runtime.transform.position.x >= ledge.Value.x)
+                    minX = Mathf.Max(minX, Mathf.Min(_runtime.transform.position.x, ledge.Value.x + clearance));
+                else maxX = Mathf.Min(maxX, Mathf.Max(_runtime.transform.position.x, ledge.Value.x - clearance));
+            }
             long delta = _motion.StepHorizontal(_monster.Velocity, milliseconds);
+            float requested = _runtime.ToWorld(delta);
+            float allowed = _collision.MoveHorizontal(_body.bounds.center, requested);
+            bool blocked = allowed != requested;
+            if (blocked) delta = _runtime.ToInteger(allowed);
             if (_monster.IsReturning)
             {
                 long remaining = _spawnX - _runtime.Position.X;
                 if (Math.Sign(delta) == Math.Sign(remaining) && Math.Abs(delta) > Math.Abs(remaining)) delta = remaining;
             }
-            bool wall = _runtime.MoveHorizontal(delta, minX, maxX);
+            bool wall = _runtime.MoveHorizontal(delta, minX, maxX) || blocked;
             if (wall) _motion.ResetHorizontal();
             Vector3 position = _runtime.ToWorld(_runtime.Position);
             if (wall) _monster.NotifyWallHit();

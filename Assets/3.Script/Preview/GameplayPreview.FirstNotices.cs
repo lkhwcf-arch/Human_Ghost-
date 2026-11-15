@@ -9,7 +9,6 @@ namespace HumanGhost.Gameplay.Preview
     {
         private readonly Queue<int> _firstNotices = new Queue<int>();
         private readonly HashSet<int> _queuedFirstNotices = new HashSet<int>();
-        private readonly object _firstNoticePauseOwner = new object();
         private int _showingFirstNotice;
         private bool? _firstNoticeCompleted;
         private bool _noticePersistPending, _noticePersisting, _noticePersistFailed;
@@ -26,12 +25,12 @@ namespace HumanGhost.Gameplay.Preview
         }
         private void StepFirstNotices()
         {
+            if (_interactor != null && _interactor.IsShrinePromptVisible) QueueFirstNotice(30363);
             if (_firstNoticeCompleted.HasValue)
             {
                 int id = _showingFirstNotice;
                 bool completed = _firstNoticeCompleted.Value;
                 _firstNoticeCompleted = null; _showingFirstNotice = 0;
-                if (_speed != null) _speed.State.SetPauseOwner(_firstNoticePauseOwner, false);
                 if (completed)
                 {
                     _queuedFirstNotices.Remove(id);
@@ -42,7 +41,7 @@ namespace HumanGhost.Gameplay.Preview
             }
             if (_noticePersistPending && !_noticePersisting && !_noticePersistFailed && _saveSession != null && !_saveSession.IsSaving)
                 PersistFirstNotices();
-            if (!_subscribed || _showingFirstNotice != 0 || _firstNotices.Count == 0 || _textbox == null || _textbox.IsOpen ||
+            if (!_subscribed || _showingFirstNotice != 0 || _firstNotices.Count == 0 || _textbox == null || _textbox.IsOpen || _textbox.IsObjectiveOpen || _textbox.IsNoticeOpen ||
                 _speed == null || !CanPause() || HasPendingDialogue || (_cutscenes != null && _cutscenes.IsBusy) ||
                 (_shrineScreen != null && _shrineScreen.IsOpen) || (_pause != null && _pause.IsOpen)) return;
             int next = _firstNotices.Dequeue();
@@ -52,14 +51,13 @@ namespace HumanGhost.Gameplay.Preview
             _showingFirstNotice = next;
             try
             {
-                _speed.State.SetPauseOwner(_firstNoticePauseOwner, true);
-                _textbox.Open(new[] { new DialogueLine(0, next) }, new LanguageTextSource(_catalog), LanguageSettings.Current, true,
-                    scope.Guard(() => _firstNoticeCompleted = _textbox != null && _textbox.LastPlaybackCompleted));
+                if (!_textbox.TryShowObjective(new LanguageTextSource(_catalog).Read(next, LanguageSettings.Current),
+                    scope.Guard<bool>(completed => _firstNoticeCompleted = completed)))
+                { _showingFirstNotice = 0; _firstNotices.Enqueue(next); }
             }
             catch
             {
                 _showingFirstNotice = 0; _firstNotices.Enqueue(next);
-                _speed.State.SetPauseOwner(_firstNoticePauseOwner, false);
                 throw;
             }
         }
@@ -87,9 +85,7 @@ namespace HumanGhost.Gameplay.Preview
             _showingFirstNotice = 0; _firstNoticeCompleted = null;
             _firstNotices.Clear(); _queuedFirstNotices.Clear();
             _noticePersisting = false; _noticePersistPending = false; _noticePersistFailed = false;
-            SubscriptionScope.Cleanup(
-                () => { if (showing && _textbox != null) _textbox.Close(); },
-                () => { if (_speed != null) _speed.State.SetPauseOwner(_firstNoticePauseOwner, false); });
+            if (showing && _textbox != null) _textbox.CancelObjective();
         }
     }
 }

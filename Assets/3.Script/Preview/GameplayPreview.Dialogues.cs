@@ -41,6 +41,8 @@ namespace HumanGhost.Gameplay.Preview
         }
         private void QueueDialogue(string trigger, int target)
         {
+            // 전환 대사는 포효와 무적을 소유한 StepBossPhase 한 곳에서만 실행합니다.
+            if (trigger == "BOSS_STATE_ENTER" && _bossPhaseDialogue != null && target == _bossPhaseDialogue.TriggerTargetID) return;
             foreach (Dialogue row in _catalog.GetTable<Dialogue>().All)
                 if (row.TriggerType == trigger && row.TriggerTargetID == target && _queuedDialogues.Add(row.ID)) _dialogueQueue.Enqueue(row.ID);
         }

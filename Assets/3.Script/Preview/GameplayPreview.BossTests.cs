@@ -13,6 +13,7 @@ namespace HumanGhost.Gameplay.Preview
         private int _bossTestPattern;
         private bool _bossTestOpen, _bossTestCursor;
         private string _bossTestStatus = "";
+        private string _feedbackQaReport = "";
         private Rect _bossTestRect = new Rect(20, 40, 560, 620);
         private Vector2 _bossTestScroll;
         private GUIStyle _bossTestWindowStyle, _bossTestButtonStyle, _bossTestLabelStyle;
@@ -84,6 +85,10 @@ namespace HumanGhost.Gameplay.Preview
         {
             _bossTestScroll = GUILayout.BeginScrollView(_bossTestScroll);
             GUILayout.Label("시험 조작은 임시 진행을 변경합니다. 저장하면 기록될 수 있습니다.", _bossTestLabelStyle);
+            if (GUILayout.Button("피드백 QA 진단 갱신", _bossTestButtonStyle)) _feedbackQaReport = CaptureFeedbackQa();
+            if (GUILayout.Button("QA 진단 기록 복사", _bossTestButtonStyle))
+            { _feedbackQaReport = CaptureFeedbackQa(); GUIUtility.systemCopyBuffer = _feedbackQaReport; }
+            if (!string.IsNullOrEmpty(_feedbackQaReport)) GUILayout.Label(_feedbackQaReport, _bossTestLabelStyle);
             GUI.enabled = CanUseBossTest;
             if (GUILayout.Button("보스방으로 바로 이동", _bossTestButtonStyle)) _bossTestCommand = BossTestCommand.Travel;
             GUI.enabled = CanUseBossTest && _bossActive && _boss != null && _boss.Actor != null && !_boss.Actor.IsDead;
@@ -100,6 +105,24 @@ namespace HumanGhost.Gameplay.Preview
             GUILayout.Label(_bossTestStatus, _bossTestLabelStyle);
             GUILayout.EndScrollView();
             GUI.DragWindow(new Rect(0, 0, _bossTestRect.width, 32));
+        }
+        public string CaptureFeedbackQa()
+        {
+            var report = new System.Text.StringBuilder();
+            report.AppendLine("인귀 1116 피드백 QA · " + DateTimeOffset.Now.ToString("O"));
+            report.AppendLine("맵 " + _stageId + " | 일반몹 " + _monsterDrivers.Length + " | 보스 추적 " + (_bossDriver?.IsEngaged ?? false));
+            if (_actor != null)
+            {
+                report.AppendLine("플레이어 " + _actor.CurrentState + " | 접지 " + _actor.Locomotion.IsGrounded +
+                    " | 매달림 " + _actor.IsHanging + " | 턱 보호 " + _actor.IsTraversalProtected + " | 무적 " + _actor.IsInvulnerable);
+                report.AppendLine("HP " + _actor.Health + "/" + _actor.MaxHealth + " | 약초 " + _actor.HerbCount + "/" + _actor.HerbCapacity);
+            }
+            if (_followCamera != null) report.AppendLine("카메라 크기 " + _followCamera.BaseSize.ToString("F2", System.Globalization.CultureInfo.InvariantCulture));
+            if (_progress?.Rewards != null)
+                report.AppendLine("혼 " + _progress.Rewards.Wallet.GetBalance(MonsterRewards.SoulCurrencyId) +
+                    " | 엽전 " + _progress.Rewards.Wallet.GetBalance(MonsterRewards.CoinCurrencyId));
+            foreach (var driver in _monsterDrivers) report.AppendLine(driver.ReadFeedbackQa());
+            return report.ToString();
         }
         private void CloseBossTests()
         {

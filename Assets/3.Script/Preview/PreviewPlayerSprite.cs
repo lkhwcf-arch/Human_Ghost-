@@ -61,7 +61,7 @@ namespace HumanGhost.Gameplay.Preview
             position.y = feet - _standingBottom * _baseScale.y;
             Renderer.transform.localPosition = _basePosition = position;
         }
-        private bool _onLadder;
+        private bool _onLadder, _wasInAir;
         private int _ladderDirection;
         protected override float AnimationDelta => _onLadder ? Time.deltaTime * _ladderDirection : base.AnimationDelta;
         private AnimationClip _action;
@@ -75,7 +75,7 @@ namespace HumanGhost.Gameplay.Preview
             RestartAnimation();
             return SaveRiseDuration;
         }
-        // 아래 점프는 도약 웅크림(0~2)을 건너뛰고 공중 몸말기(3~5)에서 낙하 프레임(6)으로 넘어가 착지까지 유지합니다.
+        // 아래 점프는 도약 준비를 건너뛰고 공중 자세를 유지합니다. 접지 뒤 착지 그림은 별도 클립으로 연결합니다.
         private const float _dropStartTime = 0.3f, _dropFallTime = 0.6f;
         private const int _dropBlendMilliseconds = 200;
         private int _dropElapsedMilliseconds = -1;
@@ -95,7 +95,7 @@ namespace HumanGhost.Gameplay.Preview
         {
             var scope = _cueScope; _cueScope = null; scope?.Dispose();
             _executionAnimation = null;
-            _action = null; _praying = _saveRising = false; _onLadder = false; _ladderDirection = 0; _nonCombatArea = false; _dropElapsedMilliseconds = -1;
+            _action = null; _praying = _saveRising = false; _onLadder = _wasInAir = false; _ladderDirection = 0; _nonCombatArea = false; _dropElapsedMilliseconds = -1;
             if (Renderer != null)
             {
                 Renderer.transform.localScale = _baseScale;
@@ -124,7 +124,18 @@ namespace HumanGhost.Gameplay.Preview
         protected override void LateUpdate()
         {
             int milliseconds = _actionClock.Advance(Time.deltaTime);
-            bool hanging = _player != null && _player.Actor != null && _player.Actor.IsHanging;
+            var actor = _player != null ? _player.Actor : null;
+            bool inAir = actor != null && !actor.Locomotion.IsGrounded && !actor.IsHanging && !actor.IsDead;
+            if (_wasInAir && actor != null && actor.Locomotion.IsGrounded && _action == null && !actor.IsParrying &&
+                (actor.CurrentState == StateKey.Idle || actor.CurrentState == StateKey.Walk))
+            {
+                // 짧은 점프는 코어의 큰 낙하 경직을 쓰지 않습니다. 착지 그림만 연결해 입력/물리는 유지합니다.
+                _action = base.SelectAnimation(StateKey.Land);
+                _actionElapsedMilliseconds = 0; _actionClock = default;
+                if (_action != null) RestartAnimation();
+            }
+            _wasInAir = inAir;
+            bool hanging = actor != null && actor.IsHanging;
             // 크기·높이 보정은 이동과 같이 양 끝을 감속합니다. 프레임 선택은 TryGetAnimationTime의 선형 진행률을 그대로 씁니다.
             float progress = hanging ? Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(_player.ClimbProgress)) : 0f;
             float scale = hanging && _player.ClimbProgress >= 0f ? Mathf.Lerp(_climbStartScale * _hangScale, 1f, progress) :

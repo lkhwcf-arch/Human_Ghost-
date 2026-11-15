@@ -15,8 +15,8 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField, InspectorName("대상 기준 카메라 높이")] private float _heightOffset = 2f;
         [SerializeField, InspectorName("따라가기 시간 (ms)"), Min(0)] private int _smoothMilliseconds = 120;
         [SerializeField, InspectorName("바라보는 쪽 여백"), Min(0f)] private float _lookAhead = 0.8f;
-        [SerializeField, InspectorName("착지 높이 구도 보정 (tile_x100)")] private int _groundHeightBiasUnits = -100;
-        [SerializeField, InspectorName("위아래 보기 대기 (ms)"), Min(0)] private int _lookDelayMilliseconds = 500;
+        [SerializeField, InspectorName("착지 높이 구도 보정 (tile_x100)")] private int _groundHeightBiasUnits = -200;
+        [SerializeField, InspectorName("위아래 보기 대기 (ms)"), Min(0)] private int _lookDelayMilliseconds = 250;
         [SerializeField, InspectorName("위아래 보기 거리 (tile_x100)"), Min(0)] private int _lookDistanceUnits = 300;
         [SerializeField, InspectorName("아래 보기 거리 (tile_x100)"), Min(0)] private int _lookDownDistanceUnits = 600;
         private PlayerRuntime _player;
@@ -25,6 +25,7 @@ namespace HumanGhost.Gameplay.Preview
         private int _lookHeldMilliseconds;
         private MillisecondClock _lookClock, _shakeClock;
         private int _lookDirection;
+        private int _lookBlendRemainingMilliseconds;
         private bool _hasGroundHeight;
         private Camera _camera;
         private Vector2 _velocity;
@@ -121,6 +122,7 @@ namespace HumanGhost.Gameplay.Preview
         {
             _hasGroundHeight = _target != null;
             _groundHeight = _target != null ? _target.position.y : 0f;
+            _lookBlendRemainingMilliseconds = 0;
             _lookHeldMilliseconds = 0; _lookOffset = 0f; _lookDirection = 0; _lookClock = default;
         }
         private void UpdateFocus(int milliseconds)
@@ -144,7 +146,9 @@ namespace HumanGhost.Gameplay.Preview
             int distanceUnits = direction < 0 ? _lookDownDistanceUnits : _lookDistanceUnits;
             long distance = IntegerPosition.FromData(distanceUnits);
             float worldDistance = _player != null ? _player.ToWorld(distance) : distanceUnits / 100f;
-            _lookOffset = direction != 0 && _lookHeldMilliseconds >= _lookDelayMilliseconds ? direction * worldDistance : 0f;
+            float nextLook = direction != 0 && _lookHeldMilliseconds >= _lookDelayMilliseconds ? direction * worldDistance : 0f;
+            _lookBlendRemainingMilliseconds = nextLook != _lookOffset ? 800 : System.Math.Max(0, _lookBlendRemainingMilliseconds - milliseconds);
+            _lookOffset = nextLook;
         }
 
         private void LateUpdate()
@@ -157,7 +161,7 @@ namespace HumanGhost.Gameplay.Preview
             if (Time.deltaTime > 0f)
             {
                 position.x = Mathf.SmoothDamp(position.x, goal.x, ref _velocity.x, _smoothMilliseconds / 1000f);
-                position.y = Mathf.SmoothDamp(position.y, goal.y, ref _velocity.y, _smoothMilliseconds / 1000f);
+                position.y = Mathf.SmoothDamp(position.y, goal.y, ref _velocity.y, (_lookBlendRemainingMilliseconds > 0 ? 300 : _smoothMilliseconds) / 1000f);
             }
             _shakeOffset = Vector3.zero;
             if (_shakeRemainingMilliseconds > 0)

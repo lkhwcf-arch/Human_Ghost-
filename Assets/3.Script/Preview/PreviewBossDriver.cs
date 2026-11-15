@@ -14,7 +14,7 @@ namespace HumanGhost.Gameplay.Preview
         private readonly float _worldUnitsPerTile;
         private readonly int _rangeUnits;
         private readonly int _secondRangeUnits;
-        private readonly int _sightUnits;
+
         private int _nextPattern;
         private readonly BossPhaseTwoSelector _phaseTwo;
         private readonly BossCombat _combat;
@@ -23,6 +23,20 @@ namespace HumanGhost.Gameplay.Preview
         private BossPattern _preparedPattern;
         private float _minX, _maxX, _landingX, _leapStartX;
         public float LandingX => _landingX;
+        public float WarningOriginX
+        {
+            get
+            {
+                var combat = _runtime.Combat; var pattern = combat.CurrentPattern;
+                if (pattern?.Kind == BossPatternKind.DesperationLeap && combat.IsAirborne) return _landingX;
+                float x = _runtime.transform.position.x;
+                // 3연타는 판정 창이 열릴 때 한 칸 전진합니다. 경고도 같은 최종 위치를 보여 줍니다.
+                if (pattern?.Kind == BossPatternKind.TripleSlam && combat.IsWindingUp &&
+                    (_preparedPattern != pattern || _preparedHit != combat.HitIndex))
+                    x = Mathf.Clamp(x + combat.Facing * _worldUnitsPerTile, _minX, _maxX);
+                return x;
+            }
+        }
         private MillisecondClock _clock;
         private readonly IntegerMotion _motion = new IntegerMotion();
         private readonly IntegerMotion _pullMotion = new IntegerMotion();
@@ -51,7 +65,7 @@ namespace HumanGhost.Gameplay.Preview
             _worldUnitsPerTile = worldUnitsPerTile;
             _rangeUnits = rangeUnits;
             _secondRangeUnits = secondRangeUnits;
-            _sightUnits = sightUnits;
+            // 보스 전투는 이 드라이버가 방에 조립된 동안 거리와 화면에 관계없이 유지합니다.
             _combat = runtime.Combat;
             _phaseTwo = new BossPhaseTwoSelector(_combat);
             Action<bool> attackChanged = _scope.Guard<bool>(OnAttackWindowChanged);
@@ -76,8 +90,9 @@ namespace HumanGhost.Gameplay.Preview
         {
             if (_scope.IsDisposed || _runtime == null || _player == null || !_player.isActiveAndEnabled) return;
             BossCombat combat = _runtime.Combat;
-            if (!_runtime.isActiveAndEnabled || _runtime.Actor.IsDead || _runtime.Actor.IsExposed || _runtime.Actor.IsTransitioning || _runtime.Actor.CurrentState == HumanGhost.Data.Definitions.StateKey.Execute) return;
-            if (_player.Actor.IsDead) { combat.Release(); return; }
+            if (!_runtime.isActiveAndEnabled || _runtime.Actor.IsDead) { IsEngaged = false; return; }
+            if (_runtime.Actor.IsExposed || _runtime.Actor.IsTransitioning || _runtime.Actor.CurrentState == HumanGhost.Data.Definitions.StateKey.Execute) return;
+            if (_player.Actor.IsDead) { IsEngaged = false; combat.Release(); return; }
             float offset = _player.transform.position.x - _runtime.transform.position.x;
             combat.Face(offset < 0f ? -1 : 1);
             _minX = minX + _body.bounds.extents.x; _maxX = maxX - _body.bounds.extents.x;
@@ -89,7 +104,7 @@ namespace HumanGhost.Gameplay.Preview
             { combat.Release(); combat.Face(offset < 0f ? -1 : 1); }
             int velocity = combat.Velocity;
             long distance = Math.Abs(checked(_player.Position.X - _runtime.Position.X));
-            bool noticed = _sightUnits == 0 || distance <= IntegerPosition.FromData(_sightUnits);
+            bool noticed = true;
             IsEngaged = noticed;
             if (AutomaticPatterns && phaseTwo && noticed && !combat.IsAttacking && !combat.IsWaiting)
             {

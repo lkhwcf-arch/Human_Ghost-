@@ -218,7 +218,6 @@ namespace HumanGhost.Gameplay.Preview
             try
             {
                 _progress.ActivateShrine(savePointId);
-                QueueFirstNotice(30363);
                 _savePoint.GetComponent<ShrineInteract>().SetActive(true);
                 if (rest) RestorePlayerVitals(_actor.MaxHealth, _actor.HerbCapacity);
                 await flow.SaveAutomaticAsync(savePointId, rest);

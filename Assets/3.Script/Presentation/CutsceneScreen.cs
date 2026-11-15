@@ -33,6 +33,7 @@ namespace HumanGhost.Gameplay.Presentation
         private string _videoError;
         private CutsceneEndReason? _finished;
         private bool _paused;
+        private bool _skipNextElapsed;
         public bool IsRunning => _playback.IsRunning;
         public event Action<CutsceneEndReason> Finished;
         public event Action SkipAvailabilityChanged;
@@ -95,7 +96,9 @@ namespace HumanGhost.Gameplay.Presentation
             }
             _finished = null;
             _clock = default;
-            _shownToken = -1;
+            _shownToken = -1; _skipNextElapsed = true;
+            // 오래된 수동 작성 프리팹의 Rect 직렬화가 0 크기로 읽혀 한 픽셀만 확대되던 문제를 차단합니다.
+            _videoImage.uvRect = new Rect(0f, 0f, 1f, 1f);
             _group.alpha = 1f;
             _group.blocksRaycasts = true;
             _playback.TryPlay(sequence);
@@ -124,7 +127,7 @@ namespace HumanGhost.Gameplay.Presentation
         public void SetPaused(bool paused)
         {
             if (_paused == paused) return;
-            _paused = paused;
+            _paused = paused; _skipNextElapsed = true;
             NotifySkipAvailability();
             _clock = default;
             if (_video != null && _playback.State == CutscenePlaybackState.Playing)
@@ -162,6 +165,8 @@ namespace HumanGhost.Gameplay.Presentation
         {
             if (_paused || (!IsRunning && !_finished.HasValue)) return;
             int elapsed = _clock.Advance(Time.unscaledDeltaTime);
+            // 시작·재개 전의 편집기 정지/백그라운드 대기를 영상 준비 시간에 더하지 않습니다.
+            if (_skipNextElapsed) { elapsed = 0; _skipNextElapsed = false; }
             try
             {
                 if (_shownToken != _playback.StepToken) { ShowCurrent(); elapsed = 0; }
@@ -173,6 +178,10 @@ namespace HumanGhost.Gameplay.Presentation
                     {
                         _videoReady = false;
                         _videoImage.texture = _video.texture;
+                        var aspect = _videoImage.GetComponent<AspectRatioFitter>();
+                        if (aspect == null) aspect = _videoImage.gameObject.AddComponent<AspectRatioFitter>();
+                        aspect.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
+                        aspect.aspectRatio = _video.height > 0 ? _video.width / (float)_video.height : 16f / 9f;
                         _videoImage.enabled = true;
                         _video.Play(); _playback.MarkReady(_shownToken); elapsed = 0;
                     }
