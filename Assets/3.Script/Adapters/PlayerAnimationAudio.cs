@@ -12,6 +12,7 @@ namespace HumanGhost.Gameplay.Adapters
         private PlayerRuntime _player;
         private Action<string> _play;
         private PlayerActor _actor;
+        private SubscriptionScope _scope;
         private int _health;
         private float _lastX;
         private int _stepRemainingMilliseconds;
@@ -31,20 +32,20 @@ namespace HumanGhost.Gameplay.Adapters
             if (_actor != null) return;
             _actor = _player.Actor;
             _health = _actor.Health; _lastX = _player.transform.position.x; _stepRemainingMilliseconds = 0; _stepClock = default;
-            _actor.States.Changed += OnStateChanged;
-            _actor.AttackStarted += OnAttack;
-            _actor.HealthChanged += OnHealthChanged;
+            var actor = _actor;
+            var scope = _scope = new SubscriptionScope();
+            Action<StateKey> state = scope.Guard<StateKey>(OnStateChanged);
+            Action<int> attack = scope.Guard<int>(OnAttack), health = scope.Guard<int>(OnHealthChanged);
+            scope.Add(() => actor.States.Changed -= state); actor.States.Changed += state;
+            scope.Add(() => actor.AttackStarted -= attack); actor.AttackStarted += attack;
+            scope.Add(() => actor.HealthChanged -= health); actor.HealthChanged += health;
         }
         private void OnEnable() { if (_player != null && _play != null) Bind(); }
         private void OnDisable() => Unbind();
         private void Unbind()
         {
-            if (_actor != null)
-            {
-                _actor.States.Changed -= OnStateChanged;
-                _actor.AttackStarted -= OnAttack;
-                _actor.HealthChanged -= OnHealthChanged;
-            }
+            var scope = _scope; _scope = null;
+            scope?.Dispose();
             _actor = null; _stepRemainingMilliseconds = 0; _stepClock = default;
         }
         public void Disconnect() { Unbind(); _player = null; _play = null; }

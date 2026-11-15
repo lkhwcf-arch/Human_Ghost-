@@ -16,6 +16,14 @@ namespace HumanGhost.Gameplay
             _viewedDialogues.Add(id);
         }
         private readonly HashSet<int> _viewedCutscenes = new HashSet<int>();
+        private readonly HashSet<int> _viewedNotices = new HashSet<int>();
+        public int[] ViewedNotices => Copy(_viewedNotices);
+        public bool HasViewedNotice(int id) => _viewedNotices.Contains(id);
+        public void MarkNoticeViewed(int id)
+        {
+            if (id <= 0) throw new ArgumentOutOfRangeException(nameof(id));
+            _viewedNotices.Add(id);
+        }
         private readonly HashSet<MonsterSpawnId> _defeatedMonsters = new HashSet<MonsterSpawnId>();
         public StageProgress Progress { get; private set; } = new StageProgress();
         public MonsterRewards Rewards { get; private set; }
@@ -79,6 +87,7 @@ namespace HumanGhost.Gameplay
             Replace(_openedGates, snapshot.OpenedGates);
             Replace(_activeShrines, snapshot.ActiveShrines);
             Replace(_viewedCutscenes, snapshot.ViewedCutscenes);
+            Replace(_viewedNotices, snapshot.ViewedNotices);
             Replace(_defeatedMonsters, snapshot.DefeatedMonsters);
             CurrentStage = snapshot.StageId; ShrineId = snapshot.ShrineId;
             ArrivalAnchor = null; ClearCarriedVitals();

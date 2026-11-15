@@ -13,25 +13,36 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField, InspectorName("처형 시 바닥 기준 몸체 (선택)")] private SpriteRenderer _executionGround = null;
 
         private MonsterActor _actor;
+        private SubscriptionScope _runtimeScope, _actorScope;
         protected override void OnEnable()
         {
             base.OnEnable();
             if (_monster == null) return;
-            _monster.Initialized += OnInitialized;
+            var runtime = _monster;
+            var scope = _runtimeScope = new SubscriptionScope();
+            System.Action<Monster> initialized = scope.Guard<Monster>(OnInitialized);
+            scope.Add(() => runtime.Initialized -= initialized); runtime.Initialized += initialized;
             Bind();
         }
         private void OnInitialized(Monster definition) => Bind();
         private void Bind()
         {
-            if (_actor != null) _actor.Parried -= OnParried;
+            _actorScope?.Dispose(); _actorScope = null;
             _actor = _monster.Actor;
-            if (_actor != null) _actor.Parried += OnParried;
+            if (_actor != null)
+            {
+                var actor = _actor;
+                var scope = _actorScope = new SubscriptionScope();
+                System.Action parried = scope.Guard(OnParried);
+                scope.Add(() => actor.Parried -= parried); actor.Parried += parried;
+            }
         }
         private void OnDisable()
         {
-            if (_monster != null) _monster.Initialized -= OnInitialized;
-            if (_actor != null) _actor.Parried -= OnParried;
+            var runtimeScope = _runtimeScope; var actorScope = _actorScope;
+            _runtimeScope = null; _actorScope = null;
             _actor = null;
+            SubscriptionScope.Cleanup(() => runtimeScope?.Dispose(), () => actorScope?.Dispose());
         }
         private void OnParried() => RestartAnimation();
 

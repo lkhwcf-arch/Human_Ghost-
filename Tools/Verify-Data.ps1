@@ -28,6 +28,7 @@ try {
         }
         if ($env:DefineConstants -match 'UNITY_EDITOR') {
             $references += Get-Item -LiteralPath (Join-Path $projectRoot 'Library/ScriptAssemblies/Unity.Addressables.Editor.dll')
+            $references += Get-Item -LiteralPath (Join-Path $projectRoot 'Library/ScriptAssemblies/Unity.2D.Animation.Runtime.dll')
         }
         $items = @()
         foreach ($file in $references) {

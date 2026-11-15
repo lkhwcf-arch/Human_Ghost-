@@ -62,14 +62,16 @@ namespace HumanGhost.Gameplay.Presentation
 
         public void Dispose()
         {
+            var cleanup = new SubscriptionScope();
+            // 먼저 소유 목록을 비운 뒤 비활성·연결 해제·파괴를 끝까지 수행합니다.
             foreach (GameObject root in _roots)
-                if (root != null) root.SetActive(false);
+                if (root != null) cleanup.Add(() => UnityEngine.Object.Destroy(root));
             foreach (HealthDisplay view in _views)
-                if (view != null) view.Unbind();
-            _views.Clear();
+                if (view != null) cleanup.Add(view.Unbind);
             foreach (GameObject root in _roots)
-                if (root != null) UnityEngine.Object.Destroy(root);
-            _roots.Clear();
+                if (root != null) cleanup.Add(() => root.SetActive(false));
+            _views.Clear(); _roots.Clear();
+            cleanup.Dispose();
         }
     }
 }

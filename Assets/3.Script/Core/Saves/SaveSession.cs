@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace HumanGhost.Gameplay
 {
     public enum SaveBuildMode { Demo, Release }
-    public enum SaveKind { NewGame, Manual, Automatic }
+    public enum SaveKind { NewGame, Manual, Automatic, NoticeHistory }
 
     // 구현체는 임시 파일 기록 후 교체하며, 실패 시 기존 슬롯을 보존해야 합니다.
     public interface ISaveStore
@@ -107,6 +107,33 @@ namespace HumanGhost.Gameplay
             Task<bool> operation = WriteCoreAsync(slot, snapshot, kind);
             PendingWrite = operation;
             return operation;
+        }
+
+        // 안내 확인만 기록합니다. 체크포인트·위치·재화·저장 시각/정렬은 앞으로 당기지 않습니다.
+        public Task<bool> SaveNoticeHistoryAsync(IEnumerable<int> notices)
+        {
+            if (notices == null) throw new ArgumentNullException(nameof(notices));
+            if (IsSaving || CurrentSnapshot == null) return Task.FromResult(false);
+            SaveRecord previous = _records[CurrentSlot.Value];
+            SaveSnapshot snapshot = previous.Snapshot.WithNotices(previous.Snapshot.ViewedNotices.Concat(notices));
+            if (snapshot.ViewedNotices.SequenceEqual(previous.Snapshot.ViewedNotices)) return Task.FromResult(true);
+            Task<bool> operation = WriteNoticeHistoryAsync(previous, snapshot);
+            PendingWrite = operation;
+            return operation;
+        }
+
+        private async Task<bool> WriteNoticeHistoryAsync(SaveRecord previous, SaveSnapshot snapshot)
+        {
+            IsSaving = true;
+            try
+            {
+                var record = new SaveRecord(previous.Version, previous.Slot, previous.SavedAtUnixMs, snapshot, previous.SaveOrder);
+                await _store.WriteAsync(record);
+                _records[record.Slot] = record;
+                Saved?.Invoke(record, SaveKind.NoticeHistory);
+                return true;
+            }
+            finally { IsSaving = false; }
         }
 
         private async Task<bool> WriteCoreAsync(int slot, SaveSnapshot snapshot, SaveKind kind)

@@ -48,12 +48,13 @@ namespace HumanGhost.Gameplay
         public UpgradeSnapshot Upgrades { get; }
         public GalimgilSnapshot Galimgil { get; }
         public ExecutionRewardSnapshot Executions { get; }
+        public IReadOnlyList<int> ViewedNotices { get; }
 
         public SaveSnapshot(int stageId, int shrineId, int positionX, int positionY, int hp, int herbs,
             IEnumerable<int> clearedStages, IEnumerable<int> activeShrines, IEnumerable<int> openedGates,
             IEnumerable<int> viewedCutscenes, IEnumerable<int> usedSavePoints, IEnumerable<MonsterSpawnId> defeatedMonsters = null,
             RewardSnapshot rewards = null, UpgradeSnapshot upgrades = null, GalimgilSnapshot galimgil = null,
-            ExecutionRewardSnapshot executions = null)
+            ExecutionRewardSnapshot executions = null, IEnumerable<int> viewedNotices = null)
         {
             if (stageId <= 0 || shrineId < 0 || hp < 0 || herbs < 0)
                 throw new ArgumentOutOfRangeException(nameof(stageId), "저장 위치와 자원 값이 유효하지 않습니다.");
@@ -67,6 +68,7 @@ namespace HumanGhost.Gameplay
             Upgrades = upgrades ?? new UpgradeSnapshot();
             Galimgil = galimgil ?? new GalimgilSnapshot();
             Executions = executions ?? new ExecutionRewardSnapshot();
+            ViewedNotices = CopyIds(viewedNotices ?? Array.Empty<int>());
             ClearedStages = CopyIds(clearedStages);
             ActiveShrines = CopyIds(activeShrines);
             OpenedGates = CopyIds(openedGates);
@@ -81,9 +83,12 @@ namespace HumanGhost.Gameplay
 
         internal SaveSnapshot WithSavePoints(IEnumerable<int> savePoints) => Copy(savePoints, OpenedGates);
         internal SaveSnapshot WithOpenedGates(IEnumerable<int> openedGates) => Copy(UsedSavePoints, openedGates);
+        internal SaveSnapshot WithNotices(IEnumerable<int> notices) => new SaveSnapshot(
+            StageId, ShrineId, PositionX, PositionY, Hp, Herbs, ClearedStages, ActiveShrines, OpenedGates,
+            ViewedCutscenes, UsedSavePoints, DefeatedMonsters, Rewards, Upgrades, Galimgil, Executions, notices);
         private SaveSnapshot Copy(IEnumerable<int> savePoints, IEnumerable<int> openedGates) => new SaveSnapshot(
             StageId, ShrineId, PositionX, PositionY, Hp, Herbs,
-            ClearedStages, ActiveShrines, openedGates, ViewedCutscenes, savePoints, DefeatedMonsters, Rewards, Upgrades, Galimgil, Executions);
+            ClearedStages, ActiveShrines, openedGates, ViewedCutscenes, savePoints, DefeatedMonsters, Rewards, Upgrades, Galimgil, Executions, ViewedNotices);
 
         private static IReadOnlyList<int> CopyIds(IEnumerable<int> source)
         {

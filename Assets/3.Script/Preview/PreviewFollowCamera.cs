@@ -60,6 +60,7 @@ namespace HumanGhost.Gameplay.Preview
 
         public void SetTestZoom(float scale)
         {
+            if (float.IsNaN(scale) || float.IsInfinity(scale)) throw new System.ArgumentOutOfRangeException(nameof(scale));
             TestZoomScale = Mathf.Clamp(scale, MinTestZoom, MaxTestZoom);
             ApplySize();
         }

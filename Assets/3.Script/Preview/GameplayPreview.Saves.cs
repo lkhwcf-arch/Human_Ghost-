@@ -24,6 +24,7 @@ namespace HumanGhost.Gameplay.Preview
         private SubscriptionScope _progressScope;
         private bool _shrineCheckPending;
         private bool _shrineSaving;
+        private bool _levelApplyPending, _upgradesApplyPending;
         private readonly System.Collections.Generic.Queue<(MonsterActor Actor, MonsterSpawnId Spawn)> _pendingMonsterRewards =
             new System.Collections.Generic.Queue<(MonsterActor, MonsterSpawnId)>();
         private bool _grantingMonsterRewards, _monsterRewardsFailed;
@@ -31,6 +32,7 @@ namespace HumanGhost.Gameplay.Preview
         private void ConnectProgress()
         {
             _progressScope?.Dispose();
+            _levelApplyPending = false; _upgradesApplyPending = false;
             _pendingMonsterRewards.Clear(); _monsterRewardsFailed = false;
             var scope = new SubscriptionScope();
             _progressScope = scope;
@@ -39,12 +41,20 @@ namespace HumanGhost.Gameplay.Preview
             scope.Add(() => player.SpatialChanged -= moved); player.SpatialChanged += moved;
             _shrineCheckPending = true;
             MonsterRewards rewards = _progress.Rewards;
-            Action applyLevel = scope.Guard(() => _actor.ApplyLevel(rewards.CurrentLevel));
+            Action applyLevel = scope.Guard(() => _levelApplyPending = true);
             Action<int, int> leveledUp = (before, after) => applyLevel();
             scope.Add(() => rewards.LeveledUp -= leveledUp); rewards.LeveledUp += leveledUp;
             UpgradeSession upgrades = _progress.Upgrades;
-            Action effectsChanged = scope.Guard(() => _actor.ApplyUpgrades(upgrades));
+            Action effectsChanged = scope.Guard(() => _upgradesApplyPending = true);
             scope.Add(() => upgrades.EffectsChanged -= effectsChanged); upgrades.EffectsChanged += effectsChanged;
+            Action<int, int> currency = (id, balance) =>
+            {
+                if (!scope.IsDisposed && balance > 0) QueueFirstNotice(id == MonsterRewards.CoinCurrencyId ? 30364 :
+                    id == MonsterRewards.SoulCurrencyId ? 30365 : 0);
+            };
+            scope.Add(() => rewards.Wallet.Changed -= currency); rewards.Wallet.Changed += currency;
+            Action skillChanged = scope.Guard(() => { if (_actor.HasSkill) QueueFirstNotice(30366); });
+            scope.Add(() => _actor.DisplayChanged -= skillChanged); _actor.DisplayChanged += skillChanged;
             if (_stage == null) return;
             foreach (var pair in _stage.MonsterIds)
             {
@@ -83,6 +93,22 @@ namespace HumanGhost.Gameplay.Preview
             }
             catch { _monsterRewardsFailed = true; throw; }
             finally { _grantingMonsterRewards = false; }
+        }
+
+        // 완료 이벤트에서는 예약만 하고 조립자의 명령 순서에서 상태를 반영합니다.
+        private void ApplyPendingProgress()
+        {
+            if (_progressScope == null || _progressScope.IsDisposed || _actor == null) return;
+            if (_levelApplyPending)
+            {
+                _levelApplyPending = false;
+                _actor.ApplyLevel(_progress.Rewards.CurrentLevel);
+            }
+            if (_upgradesApplyPending)
+            {
+                _upgradesApplyPending = false;
+                _actor.ApplyUpgrades(_progress.Upgrades);
+            }
         }
 
         private void ImportEntryProgress()
@@ -148,6 +174,7 @@ namespace HumanGhost.Gameplay.Preview
                 if (!ready) throw new InvalidOperationException("저장 세션의 게임 진입을 완료하지 못했습니다.");
                 context.CompleteEntry();
                 context.CompleteScene(true);
+                QueueAvailableFirstNotices();
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
                 if (_manualSavePrefab != null)
                 {
@@ -191,6 +218,7 @@ namespace HumanGhost.Gameplay.Preview
             try
             {
                 _progress.ActivateShrine(savePointId);
+                QueueFirstNotice(30363);
                 _savePoint.GetComponent<ShrineInteract>().SetActive(true);
                 if (rest) RestorePlayerVitals(_actor.MaxHealth, _actor.HerbCapacity);
                 await flow.SaveAutomaticAsync(savePointId, rest);
@@ -221,6 +249,7 @@ namespace HumanGhost.Gameplay.Preview
         {
             RequireSaveRuntime();
             FlushMonsterRewards();
+            ApplyPendingProgress();
             if (_monsterRewardsFailed) throw new InvalidOperationException("보상 처리 실패 상태에서는 저장하지 않습니다. 기존 저장은 유지합니다.");
             if (_actor.IsDead) throw new InvalidOperationException("사망 상태에서는 현재 위치를 저장할 수 없습니다.");
             return new SaveSnapshot(_stageId, _progress.ShrineId,
@@ -229,7 +258,7 @@ namespace HumanGhost.Gameplay.Preview
                 _actor.Health, _actor.HerbCount,
                 _progress.Progress.GetCleared(),
                 _progress.ActiveShrines, _progress.OpenedGates, _progress.ViewedCutscenes, Array.Empty<int>(),
-                _progress.DefeatedMonsters, _progress.Rewards.Capture(), _progress.Upgrades.Capture(), _progress.Galimgil.Capture(), _progress.Executions.Capture());
+                _progress.DefeatedMonsters, _progress.Rewards.Capture(), _progress.Upgrades.Capture(), _progress.Galimgil.Capture(), _progress.Executions.Capture(), _progress.ViewedNotices);
         }
         public Task PrepareAsync(SaveSnapshot snapshot, CancellationToken cancellation)
         {
@@ -261,30 +290,24 @@ namespace HumanGhost.Gameplay.Preview
         }
         private void DisconnectSaves()
         {
-            DisconnectTelemetry();
-            DisconnectGalimgilArrivals();
-            DisconnectShrine();
-            _progressScope?.Dispose(); _progressScope = null;
-            _pendingMonsterRewards.Clear();
-            if (_savePoint != null) _savePoint.GetComponent<ShrineInteract>().Connect(null);
-            _shrineCheckPending = false;
-            _shrineSaving = false;
-            _saveLifetime?.Cancel();
-            _saveLifetime?.Dispose();
-            _saveLifetime = null;
+            var lifetime = _saveLifetime;
+            var scope = _progressScope;
+            _saveLifetime = null; _progressScope = null;
+            _levelApplyPending = false; _upgradesApplyPending = false;
+            SubscriptionScope.Cleanup(
+                () => lifetime?.Cancel(),
+                () => lifetime?.Dispose(),
+                () => scope?.Dispose(),
+                DisconnectFirstNotices, DisconnectTelemetry, DisconnectGalimgilArrivals, DisconnectShrine,
+                () => _pendingMonsterRewards.Clear(),
+                () => { if (_savePoint != null) _savePoint.GetComponent<ShrineInteract>().Connect(null); },
+                () => { _shrineCheckPending = false; _shrineSaving = false; },
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-            if (_manualSaveHost != null)
-            {
-                _manualSaveHost.Disconnect(_saveFlow);
-                _manualSaveHost = null;
-            }
-            if (_manualSaveRoot != null) Destroy(_manualSaveRoot);
-            _manualSaveRoot = null;
+                () => { var host = _manualSaveHost; _manualSaveHost = null; if (host != null) host.Disconnect(_saveFlow); },
+                () => { var root = _manualSaveRoot; _manualSaveRoot = null; if (root != null) Destroy(root); },
 #endif
-            if (_saveLocked && _speed != null) _speed.State.SetPaused(false);
-            _saveLocked = false;
-            _saveFlow = null;
-            _saveSession = null;
+                () => { if (_saveLocked && _speed != null) _speed.State.SetPaused(false); },
+                () => { _saveLocked = false; _saveFlow = null; _saveSession = null; });
         }
     }
 }

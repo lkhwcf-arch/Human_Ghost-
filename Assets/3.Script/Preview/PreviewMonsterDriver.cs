@@ -21,13 +21,14 @@ namespace HumanGhost.Gameplay.Preview
         private readonly float _worldUnitsPerTile;
         private readonly long _spawnX;
         private readonly IntegerMotion _motion = new IntegerMotion();
+        private readonly SubscriptionScope _scope = new SubscriptionScope();
         private readonly Action<int, StateKey, int> _applyHitEffects;
         private MillisecondClock _clock;
         private PreviewThrownProjectile _projectile;
         private PreviewGroundFireView _fire;
         private bool _fireChecked;
         private bool _deathShown;
-        public bool NeedsStep => _runtime != null && _runtime.isActiveAndEnabled &&
+        public bool NeedsStep => !_scope.IsDisposed && _runtime != null && _runtime.isActiveAndEnabled &&
             (!_monster.IsDead || !_deathShown || !_fireChecked || (_fire != null && _fire.IsActive) ||
             (_sprite != null && _sprite.color != Color.gray) || (_body != null && _body.color != Color.gray));
         public SpriteRenderer Sprite => _sprite != null ? _sprite : _body;
@@ -48,6 +49,8 @@ namespace HumanGhost.Gameplay.Preview
 
         private bool CanEngageTarget()
         {
+            if (_scope.IsDisposed || _runtime == null || !_runtime.isActiveAndEnabled || _player == null ||
+                !_player.isActiveAndEnabled || _playerBody == null || _body == null) return false;
             PlayerActor actor = _player.Actor;
             if (actor.IsDead || actor.IsHanging || _player.ClimbProgress >= 0f)
             { _playerOnSpan = false; return false; }
@@ -99,14 +102,16 @@ namespace HumanGhost.Gameplay.Preview
             _sprite = runtime.transform.Find("PreviewSprite")?.GetComponent<SpriteRenderer>();
             _color = _body.color;
             // 판정 창이 한 프레임 안에 열리고 닫혀도 열리는 순간 한 번은 접촉을 확인합니다.
-            _monster.AttackWindowChanged += OnAttackWindowChanged;
+            Action<bool> attackChanged = _scope.Guard<bool>(OnAttackWindowChanged);
+            _scope.Add(() => _monster.AttackWindowChanged -= attackChanged);
+            _monster.AttackWindowChanged += attackChanged;
         }
 
         public void Dispose()
         {
-            _monster.AttackWindowChanged -= OnAttackWindowChanged;
-            _projectile?.Destroy();
-            _fire?.Destroy();
+            if (_scope.IsDisposed) return;
+            IsEngaged = false;
+            SubscriptionScope.Cleanup(_scope.Dispose, () => _projectile?.Destroy(), () => _fire?.Destroy());
         }
 
         public void Step(float seconds, float minX, float maxX)
@@ -157,6 +162,8 @@ namespace HumanGhost.Gameplay.Preview
 
         public HitOutcome CheckPlayerHit()
         {
+            if (_scope.IsDisposed || _player == null || _runtime == null || _body == null || _attackWindow == null ||
+                !_player.isActiveAndEnabled) return HitOutcome.None;
             PlayerActor actor = _player.Actor;
             if (!_runtime.isActiveAndEnabled || _monster.IsDead || !actor.IsAttackActive) return HitOutcome.None;
             return _attackWindow.bounds.Intersects(_body.bounds) ? actor.TryHitMonster(_targetId, _monster, _player.HitRandom) : HitOutcome.None;

@@ -17,6 +17,8 @@ namespace HumanGhost.Gameplay.Preview
         private readonly int _sightUnits;
         private int _nextPattern;
         private readonly BossPhaseTwoSelector _phaseTwo;
+        private readonly BossCombat _combat;
+        private readonly SubscriptionScope _scope = new SubscriptionScope();
         private int _platformMilliseconds, _preparedHit = -1;
         private BossPattern _preparedPattern;
         private float _minX, _maxX, _landingX, _leapStartX;
@@ -50,22 +52,29 @@ namespace HumanGhost.Gameplay.Preview
             _rangeUnits = rangeUnits;
             _secondRangeUnits = secondRangeUnits;
             _sightUnits = sightUnits;
-            runtime.Combat.AttackWindowChanged += OnAttackWindowChanged;
-            runtime.Combat.AirborneChanged += OnAirborneChanged;
-            _phaseTwo = new BossPhaseTwoSelector(runtime.Combat);
-            runtime.Combat.PatternStarted += _phaseTwo.Started;
+            _combat = runtime.Combat;
+            _phaseTwo = new BossPhaseTwoSelector(_combat);
+            Action<bool> attackChanged = _scope.Guard<bool>(OnAttackWindowChanged);
+            Action<bool> airborneChanged = _scope.Guard<bool>(OnAirborneChanged);
+            Action<BossPattern> patternStarted = _scope.Guard<BossPattern>(_phaseTwo.Started);
+            _scope.Add(() => _combat.AttackWindowChanged -= attackChanged);
+            _scope.Add(() => _combat.AirborneChanged -= airborneChanged);
+            _scope.Add(() => _combat.PatternStarted -= patternStarted);
+            _combat.AttackWindowChanged += attackChanged;
+            _combat.AirborneChanged += airborneChanged;
+            _combat.PatternStarted += patternStarted;
         }
 
         public void Dispose()
         {
-            _runtime.Combat.AttackWindowChanged -= OnAttackWindowChanged;
-            _runtime.Combat.AirborneChanged -= OnAirborneChanged;
-            _runtime.Combat.PatternStarted -= _phaseTwo.Started;
-            _runtime.Combat.Release();
+            if (_scope.IsDisposed) return;
+            IsEngaged = false;
+            SubscriptionScope.Cleanup(_scope.Dispose, _combat.Release);
         }
 
         public void Step(float seconds, float minX, float maxX)
         {
+            if (_scope.IsDisposed || _runtime == null || _player == null || !_player.isActiveAndEnabled) return;
             BossCombat combat = _runtime.Combat;
             if (!_runtime.isActiveAndEnabled || _runtime.Actor.IsDead || _runtime.Actor.IsExposed || _runtime.Actor.IsTransitioning || _runtime.Actor.CurrentState == HumanGhost.Data.Definitions.StateKey.Execute) return;
             if (_player.Actor.IsDead) { combat.Release(); return; }
@@ -133,6 +142,7 @@ namespace HumanGhost.Gameplay.Preview
 
         private void OnAirborneChanged(bool airborne)
         {
+            if (_runtime == null || _player == null || !_runtime.isActiveAndEnabled || !_player.isActiveAndEnabled) return;
             if (_runtime.Combat.CurrentPattern == null) return;
             if (airborne) { _leapStartX = _runtime.transform.position.x; _landingX = Mathf.Clamp(_player.transform.position.x, _minX, _maxX); _runtime.LandingX = _landingX; }
             else { var position = _runtime.transform.position; position.x = _landingX; _runtime.SetPosition(position); }
@@ -143,7 +153,8 @@ namespace HumanGhost.Gameplay.Preview
         private void CheckHit()
         {
             BossCombat combat = _runtime.Combat;
-            if (!_runtime.isActiveAndEnabled || !_player.isActiveAndEnabled || !combat.IsAttackActive) return;
+            if (_scope.IsDisposed || _runtime == null || _player == null || _body == null || _playerBody == null ||
+                !_runtime.isActiveAndEnabled || !_player.isActiveAndEnabled || !combat.IsAttackActive) return;
             var pattern = combat.CurrentPattern;
             if (_preparedPattern != pattern || _preparedHit != combat.HitIndex)
             {

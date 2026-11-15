@@ -86,6 +86,7 @@ namespace HumanGhost.Gameplay.Adapters
                     && document["Snapshot"] is JObject snapshot)
                 {
                     if (snapshot.Property("DefeatedMonsters") == null) snapshot.Add("DefeatedMonsters", new JArray());
+                    if (snapshot.Property("ViewedNotices") == null) snapshot.Add("ViewedNotices", new JArray());
                     if (snapshot.Property("Rewards") == null)
                         snapshot.Add("Rewards", new JObject { ["Experience"] = 0, ["Balances"] = new JObject() });
                     if (snapshot.Property("Upgrades") == null)

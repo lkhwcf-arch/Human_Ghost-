@@ -64,12 +64,12 @@ namespace HumanGhost.Gameplay.Preview
         }
         private void DisconnectDialogues()
         {
-            _dialogueScope?.Dispose(); _dialogueScope = null;
+            var scope = _dialogueScope; _dialogueScope = null;
             _dialogueQueue.Clear(); _queuedDialogues.Clear();
             DialogueRunner dialogues = _dialogues;
             _dialogues = null;
-            try { dialogues?.Dispose(); }
-            finally { if (_speed != null) _speed.State.SetPauseOwner(this, false); }
+            SubscriptionScope.Cleanup(() => scope?.Dispose(), () => dialogues?.Dispose(),
+                () => { if (_speed != null) _speed.State.SetPauseOwner(this, false); });
         }
     }
 }

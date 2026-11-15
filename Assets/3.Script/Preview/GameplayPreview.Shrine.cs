@@ -86,16 +86,20 @@ namespace HumanGhost.Gameplay.Preview
         }
         private void DisconnectShrine()
         {
-            bool opened = _shrineScreen != null && _shrineScreen.IsOpen;
-            _shrineInput?.Dispose(); _shrineInput = null;
-            if (_shrineScreen != null) _shrineScreen.Hide();
-            if (opened) Cursor.visible = _shrineCursorWasVisible;
-            if (_shrineModalBinding != null) _shrineModalBinding.SetModalOwner(this, false);
+            var screen = _shrineScreen; var input = _shrineInput; var root = _shrineRoot;
+            bool opened = screen != null && screen.IsOpen;
+            _shrineInput = null; _shrineRoot = null; _shrineScreen = null;
             _shrineClosedFrame = -1;
             _shrineRising = false; _shrineRiseRemainingMilliseconds = 0;
-            if (_player != null && _player.Actor != null && _player.isActiveAndEnabled) _player.NotifyPresentationCue("ActionExit");
-            if (_shrineRoot != null) Destroy(_shrineRoot);
-            _shrineRoot = null; _shrineScreen = null;
+            SubscriptionScope.Cleanup(
+                () => input?.Dispose(),
+                () => { if (screen != null) screen.Hide(); },
+                () => { if (opened) Cursor.visible = _shrineCursorWasVisible; },
+                () => { if (_shrineModalBinding != null) _shrineModalBinding.SetModalOwner(this, false); },
+                () => { _shrineClosedFrame = -1; _shrineRising = false; _shrineRiseRemainingMilliseconds = 0; },
+                () => { if (_player != null && _player.Actor != null && _player.isActiveAndEnabled) _player.NotifyPresentationCue("ActionExit"); },
+                () => { if (root != null) root.SetActive(false); },
+                () => { if (root != null) Destroy(root); });
         }
     }
 }

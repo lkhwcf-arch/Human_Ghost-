@@ -10,6 +10,27 @@ internal static class SaveChecks
     private static async Task RunAsync(Action<bool, string> check)
     {
         var store = new SaveTestStore();
+        // 안내 확인은 진행 자동 저장과 분리하고 실제 저장점·시각·정렬을 보존합니다.
+        var noticeStore = new SaveTestStore();
+        var noticeSession = new SaveSession(SaveBuildMode.Demo, 1, noticeStore, () => 1000, Array.Empty<SaveRecord>());
+        var noticeSnapshot = new SaveSnapshot(8001, 0, 125, -250, 70, 2,
+            Array.Empty<int>(), Array.Empty<int>(), Array.Empty<int>(), Array.Empty<int>(), Array.Empty<int>());
+        await noticeSession.NewGameAsync(noticeSnapshot);
+        var beforeNotice = noticeSession.GetRecords()[0];
+        await noticeSession.SaveNoticeHistoryAsync(new[] { 30364, 30364 });
+        var afterNotice = noticeSession.GetRecords()[0];
+        check(afterNotice.Snapshot.ViewedNotices.SequenceEqual(new[] { 30364 }) &&
+            afterNotice.Snapshot.PositionX == 125 && afterNotice.Snapshot.Hp == 70 &&
+            afterNotice.SavedAtUnixMs == beforeNotice.SavedAtUnixMs && afterNotice.SaveOrder == beforeNotice.SaveOrder,
+            "첫 안내 확인만 저장하고 진행 위치·체력·시각·정렬 보존");
+        var noticeProgress = new GameProgressState(); noticeProgress.Restore(afterNotice.Snapshot);
+        check(noticeProgress.HasViewedNotice(30364), "재실행·진행 복원 뒤 첫 안내 중복 차단");
+        noticeStore.Fail = true;
+        try { await noticeSession.SaveNoticeHistoryAsync(new[] { 30365 }); } catch (InvalidOperationException) { }
+        check(ReferenceEquals(afterNotice, noticeSession.GetRecords()[0]) && !noticeSession.IsSaving,
+            "안내 기록 실패 시 기존 저장 보존·잠금 해제");
+        check(afterNotice.WithExistingGates(_ => false).Snapshot.ViewedNotices.Single() == 30364,
+            "저장 사본·관문 정리에서도 안내 이력 유지");
         long time = 1000;
         SaveSession Create(SaveBuildMode mode, params SaveRecord[] records) =>
             new SaveSession(mode, 1, store, () => ++time, records);

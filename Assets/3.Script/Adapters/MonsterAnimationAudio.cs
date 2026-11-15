@@ -12,6 +12,7 @@ namespace HumanGhost.Gameplay.Adapters
         [SerializeField, Min(50)] private int _walkStepMilliseconds = 500;
         private MonsterRuntime _monster;
         private MonsterActor _actor;
+        private SubscriptionScope _scope;
         private Action<string> _play;
         private int _health;
         private float _lastX;
@@ -32,19 +33,20 @@ namespace HumanGhost.Gameplay.Adapters
             if (_actor != null) return;
             _actor = _monster.Actor;
             _health = _actor.Health; _lastX = _monster.transform.position.x; _stepRemainingMilliseconds = 0; _stepClock = default;
-            _actor.PatternStarted += OnPatternStarted;
-            _actor.HealthChanged += OnHealthChanged;
+            var actor = _actor;
+            var scope = _scope = new SubscriptionScope();
+            Action<MonsterPattern> pattern = scope.Guard<MonsterPattern>(OnPatternStarted);
+            Action<int> health = scope.Guard<int>(OnHealthChanged);
+            scope.Add(() => actor.PatternStarted -= pattern); actor.PatternStarted += pattern;
+            scope.Add(() => actor.HealthChanged -= health); actor.HealthChanged += health;
         }
 
         private void OnEnable() { if (_monster != null && _play != null) Bind(); }
         private void OnDisable() => Unbind();
         private void Unbind()
         {
-            if (_actor != null)
-            {
-                _actor.PatternStarted -= OnPatternStarted;
-                _actor.HealthChanged -= OnHealthChanged;
-            }
+            var scope = _scope; _scope = null;
+            scope?.Dispose();
             _actor = null; _stepRemainingMilliseconds = 0; _stepClock = default;
         }
         public void Disconnect() { Unbind(); _monster = null; _play = null; }

@@ -18,6 +18,24 @@ internal static class SoundPreparationChecks
         public void Complete() => Pending.SetResult(new AssetLease<string>("음원", () => Releases++));
     }
 
+    private sealed class FailingReleaseSource : IAssetSource<string>
+    {
+        public int Releases, Cancellations;
+        public Task<AssetLease<string>> LoadAsync(string address, CancellationToken cancellation)
+        {
+            if (address == "sound/a") cancellation.Register(() =>
+            {
+                Cancellations++;
+                throw new InvalidOperationException("검사 전용 취소 콜백 실패");
+            });
+            return Task.FromResult(new AssetLease<string>(address, () =>
+            {
+                Releases++;
+                if (address == "sound/a") throw new InvalidOperationException("검사 전용 리소스 반환 실패");
+            }));
+        }
+    }
+
     private static async Task ExpectCanceled(Task task, Action<bool, string> check, string message)
     {
         try { await task; }
@@ -76,5 +94,17 @@ internal static class SoundPreparationChecks
             check(source.Loads == 1 && store.TryGet("sound/a", out _), "공유 준비 리소스는 저장소 수명까지 유지");
         }
         check(source.Releases == 1, "취소된 호출의 공유 리소스도 종료 시 반환");
+
+        var failing = new FailingReleaseSource();
+        store = new PreparedAssetStore<string>(failing);
+        await store.PrepareAsync(new[] { "sound/a", "sound/b" });
+        bool cleanupFailed = false;
+        try { store.Dispose(); }
+        catch (AggregateException error) { cleanupFailed = error.Flatten().InnerExceptions.Count == 2; }
+        check(cleanupFailed && failing.Cancellations == 1 && failing.Releases == 2,
+            "취소 콜백과 첫 반환이 함께 실패해도 모든 리소스 반환 후 두 오류 전달");
+        store.Dispose();
+        check(failing.Releases == 2 && !store.TryGet("sound/b", out _),
+            "종료 실패 후에도 재반환·종료된 리소스 조회 차단");
     }
 }

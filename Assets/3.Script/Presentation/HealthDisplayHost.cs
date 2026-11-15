@@ -35,11 +35,8 @@ namespace HumanGhost.Gameplay.Presentation
 
         public void Disconnect()
         {
-            ReleaseGroup();
-            _data = null;
-            _prefabs = null;
-            _player = null;
-            _anchorRoot = null;
+            try { ReleaseGroup(); }
+            finally { _data = null; _prefabs = null; _player = null; _anchorRoot = null; }
         }
 
         private void OnEnable()
@@ -62,8 +59,8 @@ namespace HumanGhost.Gameplay.Presentation
 
         private void ReleaseGroup()
         {
-            _group?.Dispose();
-            _group = null;
+            var group = _group; _group = null;
+            group?.Dispose();
         }
     }
 }

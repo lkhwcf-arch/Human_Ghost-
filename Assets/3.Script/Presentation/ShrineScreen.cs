@@ -11,6 +11,7 @@ using UnityEngine.EventSystems;
 namespace HumanGhost.Gameplay.Presentation
 {
     // 같은 목록·상세 화면으로 혼 강화와 약초 강화를 표시합니다. 구매·저장 규칙은 복제하지 않습니다.
+    [DefaultExecutionOrder(1100)]
     public class ShrineScreen : MonoBehaviour
     {
         [SerializeField] private Sprite _pipOn = null;
@@ -22,6 +23,10 @@ namespace HumanGhost.Gameplay.Presentation
         private GameObject _noticeRoot;
         private EventSystem _events;
         private bool _noticeOpen;
+        private bool _purchaseConfirmation, _noticeAcceptedPending, _noticeCancelledPending;
+        private ShrinePage _confirmedPage;
+        private int _confirmedSelection, _confirmedStep, _confirmedCost;
+        private IReadOnlyDataTable<Popup> _popups;
         private readonly Dictionary<string, Transform> _nodes = new Dictionary<string, Transform>();
         private ShrineMenu _menu;
         private GameProgressState _progress;
@@ -48,6 +53,7 @@ namespace HumanGhost.Gameplay.Presentation
             _progress = progress; _player = player; _closed = closed; _failed = failed;
             _events = events;
             _language = data.GetTable<Language>();
+            _popups = data.GetTable<Popup>();
             _text = new LanguageTextSource(data);
             _soulCurrencyId = data.GetDefinition<ShrineDefinitions>().Level.SoulCurrencyId;
             _menu = new ShrineMenu(progress.Upgrades, data.GetDefinition<ShrineDefinitions>(), data.GetTable<Upgrade>().All.ToArray());
@@ -57,7 +63,7 @@ namespace HumanGhost.Gameplay.Presentation
             {
                 if (_pipOn == null || _pipOff == null) throw new InvalidOperationException("서낭당 단계 표시 이미지를 연결해 주세요.");
                 ConnectPointer();
-                Action changed = _scope.Guard(() => { if (!_commanding) RefreshSafely(); });
+                Action changed = _scope.Invalidate;
                 LanguageSettings.Changed += changed;
                 _scope.Add(() => LanguageSettings.Changed -= changed);
                 progress.Upgrades.EffectsChanged += changed;
@@ -117,6 +123,7 @@ namespace HumanGhost.Gameplay.Presentation
         public void Submit() => Execute(() =>
         {
             if (_noticeOpen) { _notice.Submit(); return; }
+            if (_menu.Page != ShrinePage.Main && ShowPurchaseConfirmation()) return;
             _menu.Submit();
             if (_menu.Result == UpgradePurchaseResult.InsufficientFunds) ShowInsufficientFunds();
         });
@@ -124,28 +131,92 @@ namespace HumanGhost.Gameplay.Presentation
         private void ShowInsufficientFunds()
         {
             if (_noticeOpen) return;
+            PrepareNotice();
+            _purchaseConfirmation = false;
+            _notice.SetNotice(_insufficientTextId == 30225 ? Ui(51719) : Text(_insufficientTextId),
+                _dismissTextId == 30052 ? Ui(51508) : Text(_dismissTextId));
+            OpenNotice(1);
+        }
+        private void PrepareNotice()
+        {
             if (_events == null || !_events.isActiveAndEnabled) throw new InvalidOperationException("서낭당 안내 팝업의 입력 시스템을 연결해 주세요.");
             if (_notice == null)
             {
                 _notice = UiPrefabScope.Create(_noticePrefab, transform, out _noticeRoot);
                 _noticeRoot.name = "ShrineNoticeScope";
                 _notice.gameObject.SetActive(false);
-                _notice.Accepted += CloseNotice;
-                _notice.CloseRequested += CloseNotice;
+                _notice.Accepted += OnNoticeAccepted;
+                _notice.CloseRequested += OnNoticeCancelled;
                 _noticeRoot.SetActive(true);
             }
-            _notice.SetNotice(_insufficientTextId == 30225 ? Ui(51719) : Text(_insufficientTextId),
-                _dismissTextId == 30052 ? Ui(51508) : Text(_dismissTextId));
+        }
+        private bool ShowPurchaseConfirmation()
+        {
+            if (_menu.Count == 0) return false;
+            bool offering = _menu.Page == ShrinePage.Offering;
+            string target = offering ? _menu.Stats[_menu.Selected].StatType : _menu.HerbTargets[_menu.Selected];
+            Upgrade next = offering ? null : _menu.NextHerb();
+            int step = offering ? _progress.Upgrades.GetShrineStep(target) : _progress.Upgrades.GetTableStep(target);
+            int? cost = offering ? _progress.Upgrades.GetShrineCost() : next?.Price;
+            if (!cost.HasValue || offering && step >= _menu.Stats[_menu.Selected].MaxStep) return false;
+            int currency = offering ? _soulCurrencyId : next.CurrencyID;
+            if (_progress.Rewards.Wallet.GetBalance(currency) < cost.Value) { ShowInsufficientFunds(); return true; }
+            PrepareNotice();
+            Popup popup = _popups.Get(offering ? 15009 : 15010);
+            if (popup.DefaultButton != 2 || popup.CancelButton != 2 || popup.Button3TextID != 0)
+                throw new InvalidOperationException("강화 확인창은 기본·취소를 아니오(2)로 공급해 주세요.");
+            int increment = offering ? _menu.Stats[_menu.Selected].Steps[step + 1] : next.Value;
+            int current = CurrentValue(target);
+            string name = offering ? Text(_menu.Stats[_menu.Selected].TextId) : Text(target == "HERB_CHARGES" ? 30223 : 30224);
+            _notice.SetText(string.Format(System.Globalization.CultureInfo.InvariantCulture, Text(popup.BodyTextID),
+                name, step, step + 1, Format(target, current), Format(target, checked(current + increment)), cost.Value),
+                Text(popup.Button1TextID), Text(popup.Button2TextID));
+            _purchaseConfirmation = true;
+            _confirmedPage = _menu.Page; _confirmedSelection = _menu.Selected; _confirmedStep = step; _confirmedCost = cost.Value;
+            OpenNotice(popup.DefaultButton);
+            return true;
+        }
+        private void OpenNotice(int defaultButton)
+        {
             string panel = _menu.Page == ShrinePage.Main ? "MenuView/Panel" : "OfferView/Panel";
             _notice.FitNoticeWithin(((RectTransform)Node(panel)).rect.size * 0.8f);
             _noticeOpen = true;
-            _notice.Show(_events, 1);
+            _notice.Show(_events, defaultButton);
             _openedFrame = Time.frameCount;
+        }
+        private void OnNoticeAccepted()
+        { if (_noticeOpen && !_blocked && Time.frameCount != _openedFrame) _noticeAcceptedPending = true; }
+        private void OnNoticeCancelled()
+        { if (_noticeOpen && !_blocked && Time.frameCount != _openedFrame) _noticeCancelledPending = true; }
+        private void Update()
+        {
+            if (!_noticeOpen || _blocked || (!_noticeAcceptedPending && !_noticeCancelledPending)) return;
+            Execute(() =>
+            {
+                bool purchase = _noticeAcceptedPending && !_noticeCancelledPending && _purchaseConfirmation;
+                _noticeAcceptedPending = false; _noticeCancelledPending = false;
+                if (purchase)
+                {
+                    bool offering = _menu.Page == ShrinePage.Offering;
+                    string target = offering ? _menu.Stats[_menu.Selected].StatType : _menu.HerbTargets[_menu.Selected];
+                    int step = offering ? _progress.Upgrades.GetShrineStep(target) : _progress.Upgrades.GetTableStep(target);
+                    int? cost = offering ? _progress.Upgrades.GetShrineCost() : _menu.NextHerb()?.Price;
+                    purchase = _menu.Page == _confirmedPage && _menu.Selected == _confirmedSelection &&
+                        step == _confirmedStep && cost == _confirmedCost;
+                }
+                CloseNotice();
+                if (purchase)
+                {
+                    _menu.Submit();
+                    if (_menu.Result == UpgradePurchaseResult.InsufficientFunds) ShowInsufficientFunds();
+                }
+            });
         }
         private void CloseNotice()
         {
             if (!_noticeOpen || _blocked || Time.frameCount == _openedFrame) return;
             _noticeOpen = false;
+            _purchaseConfirmation = false; _noticeAcceptedPending = false; _noticeCancelledPending = false;
             if (_notice != null) _notice.Hide();
             _openedFrame = Time.frameCount;
         }
@@ -157,12 +228,14 @@ namespace HumanGhost.Gameplay.Presentation
                 _commanding = true;
                 command();
                 if (_menu.Closed) { Action closed = _closed; Hide(); closed?.Invoke(); }
-                else Render();
+                else { Render(); _scope?.Invalidate(); }
             }
             catch (Exception error) { Fail(error); }
             finally { _commanding = false; }
         }
         private void RefreshSafely() { try { Render(); } catch (Exception error) { Fail(error); } }
+        // 조립자의 레벨·강화 반영 뒤 표시합니다. 이벤트 콜백에서는 화면 명령도 실행하지 않습니다.
+        private void LateUpdate() { if (IsOpen && _scope != null && _scope.TryConsumeRefresh()) RefreshSafely(); }
         private void Fail(Exception error)
         {
             Action<Exception> failed = _failed;
@@ -280,6 +353,7 @@ namespace HumanGhost.Gameplay.Presentation
         public void Hide()
         {
             _noticeOpen = false;
+            _purchaseConfirmation = false; _noticeAcceptedPending = false; _noticeCancelledPending = false; _popups = null;
             if (_notice != null) _notice.Hide();
             _events = null;
             _scope?.Dispose(); _scope = null; _menu = null; _progress = null; _player = null;
@@ -289,7 +363,7 @@ namespace HumanGhost.Gameplay.Presentation
         private void OnDisable() { if (IsOpen) { Action closed = _closed; Hide(); closed?.Invoke(); } }
         private void OnDestroy()
         {
-            if (_notice != null) { _notice.Accepted -= CloseNotice; _notice.CloseRequested -= CloseNotice; }
+            if (_notice != null) { _notice.Accepted -= OnNoticeAccepted; _notice.CloseRequested -= OnNoticeCancelled; }
         }
     }
 }

@@ -261,64 +261,63 @@ namespace HumanGhost.Gameplay.Preview
 
         private void OnDisable()
         {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-            CloseBossTests();
-#endif
-            try { DisconnectFields(); }
-            catch (Exception error) { Debug.LogException(error, this); }
+            // 새 명령을 먼저 막고, 한 종료 실패에도 나머지 소유 수명을 모두 정리합니다.
+            _subscribed = false;
             _stageNamePending = false;
-#if UNITY_EDITOR
-            ClearEditorHitDummy();
-            ClearEditorExecutionDummies();
+            // 공통 Cleanup은 요청 순서대로 모두 정리한 뒤 실패를 함께 전달합니다.
+            var actions = new System.Collections.Generic.List<Action>();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            actions.Add(CloseBossTests);
 #endif
-            if (_actor != null) _actor.ParrySucceeded -= OnParrySucceeded;
-            if (_playerAudio != null) _playerAudio.Disconnect();
-            _playerAudio = null;
+            actions.Add(DisconnectFields);
+#if UNITY_EDITOR
+            actions.Add(ClearEditorHitDummy);
+            actions.Add(ClearEditorExecutionDummies);
+#endif
+            actions.Add(() => { if (_actor != null) _actor.ParrySucceeded -= OnParrySucceeded; });
+            actions.Add(() => { var audio = _playerAudio; _playerAudio = null; if (audio != null) audio.Disconnect(); });
             foreach (MonsterRuntime monster in _monsters)
-                if (monster != null) monster.GetComponent<MonsterAnimationAudio>()?.Disconnect();
-            try { DisconnectDialogues(); }
-            catch (Exception error) { Debug.LogException(error, this); }
-            DisconnectBossPhase();
-            DisconnectCutscenes();
-            _deathRestart?.Dispose(); _deathRestart = null;
-            _presentation.Reset();
-            _feedback?.Dispose();
-            _feedback = null;
-            _parryFeedback?.Dispose(); _parryFeedback = null;
-            DisconnectSaves();
-            if (_data != null) _data.Initialized -= OnDataReady;
+                actions.Add(() => { if (monster != null) monster.GetComponent<MonsterAnimationAudio>()?.Disconnect(); });
+            actions.Add(DisconnectDialogues);
+            actions.Add(DisconnectBossPhase);
+            actions.Add(DisconnectCutscenes);
+            actions.Add(() => { var restart = _deathRestart; _deathRestart = null; restart?.Dispose(); });
+            actions.Add(_presentation.Reset);
+            actions.Add(() => { var feedback = _feedback; _feedback = null; feedback?.Dispose(); });
+            actions.Add(() => { var feedback = _parryFeedback; _parryFeedback = null; feedback?.Dispose(); });
+            actions.Add(DisconnectSaves);
+            actions.Add(() => { if (_data != null) _data.Initialized -= OnDataReady; });
             // 초기화 도중 실패해도 이미 연결한 소비자는 반드시 해제합니다.
-            if (_input != null)
+            actions.Add(() => _motion?.StopClimbing());
+            actions.Add(() => { if (_input != null)
             {
-                _motion?.StopClimbing();
                 _input.TryDropThrough = null;
                 _input.JumpAccepted -= OnJump;
                 if (_motion != null) _input.JumpRejected -= _motion.OnJumpRejected;
                 _input.InteractPressed -= OnInteract;
                 _input.VerticalPressed -= OnVertical;
-            }
-            if (_actor != null)
+            } });
+            actions.Add(() => { if (_actor != null)
             {
                 _actor.RollRequested -= OnRoll;
                 _actor.SkillStarted -= OnRoll;
                 _actor.AttackWindowChanged -= OnPlayerAttackWindowChanged;
-            }
-            DisconnectInteraction();
-            _actor?.CancelExecution(); _executingRuntime = null;
-            DisconnectGameLayer();
-            _bossDriver?.Dispose();
-            _bossDriver = null;
-            if (_healthDisplay != null) _healthDisplay.Disconnect();
-            DisposeMonsterDrivers();
-            _subscribed = false;
-            if (_actor != null && _actor.IsHanging) _actor.EndHang();
-            _motion = null;
-            _gates?.Dispose(); _gates = null;
-            _stage?.Dispose(); _stage = null;
-            _savePoint = null;
-            _exit?.Dispose(); _exit = null;
-            if (_attackWindow != null) _attackWindow.enabled = false;
-            _input?.SetLocked(true);
+            } });
+            actions.Add(DisconnectInteraction);
+            actions.Add(() => { _executingRuntime = null; _actor?.CancelExecution(); });
+            actions.Add(DisconnectGameLayer);
+            actions.Add(() => { var driver = _bossDriver; _bossDriver = null; driver?.Dispose(); });
+            actions.Add(() => { if (_healthDisplay != null) _healthDisplay.Disconnect(); });
+            actions.Add(DisposeMonsterDrivers);
+            actions.Add(() => { if (_actor != null && _actor.IsHanging) _actor.EndHang(); });
+            actions.Add(() => _motion = null);
+            actions.Add(() => { var gates = _gates; _gates = null; gates?.Dispose(); });
+            actions.Add(() => { var exit = _exit; _exit = null; exit?.Dispose(); });
+            actions.Add(() => { var stage = _stage; _stage = null; _savePoint = null; stage?.Dispose(); });
+            actions.Add(() => { if (_attackWindow != null) _attackWindow.enabled = false; });
+            actions.Add(() => { if (_input != null) _input.SetLocked(true); });
+            try { SubscriptionScope.Cleanup(actions.ToArray()); }
+            catch (Exception error) { Debug.LogException(error, this); }
         }
 
         private Transform[] GetMarkers()
@@ -331,31 +330,37 @@ namespace HumanGhost.Gameplay.Preview
 
         private void DisposeMonsterDrivers()
         {
-            foreach (PreviewMonsterDriver driver in _monsterDrivers) driver?.Dispose();
+            var drivers = _monsterDrivers;
             _monsterDrivers = Array.Empty<PreviewMonsterDriver>();
+            var cleanup = new SubscriptionScope();
+            foreach (PreviewMonsterDriver driver in drivers) if (driver != null) cleanup.Add(driver.Dispose);
+            cleanup.Dispose();
         }
 
         private void OnPlayerAttackWindowChanged(bool active)
         {
-            if (active && _player.isActiveAndEnabled) CheckPlayerHits();
+            if (_subscribed && active && _player != null && _player.isActiveAndEnabled) CheckPlayerHits();
         }
 
         // 테스트 전용 공격 판정 배율입니다(길이·높이, 기본 1, Play마다 1). 플레이어 쪽 끝은 고정하고 길이는 앞으로만 늘립니다.
         public const float MinAttackScale = 0.25f, MaxAttackScale = 3f;
-        public static float AttackLengthScale { get; private set; } = 1f;
-        public static float AttackHeightScale { get; private set; } = 1f;
+        private static int _attackLengthRate = 10000, _attackHeightRate = 10000;
+        public static float AttackLengthScale => _attackLengthRate / 10000f;
+        public static float AttackHeightScale => _attackHeightRate / 10000f;
         private Vector3 _attackBaseScale;
         private bool _attackBaseKnown;
         // 기존 기준: 중심 0.95, 기본 길이의 절반만큼 플레이어 쪽 끝.
         private float AttackNearEdge => 0.95f - _attackBaseScale.x * 0.5f;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void ResetAttackScale() => AttackLengthScale = AttackHeightScale = 1f;
+        private static void ResetAttackScale() => _attackLengthRate = _attackHeightRate = 10000;
 
         public static void SetTestAttackScale(float length, float height)
         {
-            AttackLengthScale = Mathf.Clamp(length, MinAttackScale, MaxAttackScale);
-            AttackHeightScale = Mathf.Clamp(height, MinAttackScale, MaxAttackScale);
+            if (float.IsNaN(length) || float.IsInfinity(length) || float.IsNaN(height) || float.IsInfinity(height))
+                throw new ArgumentOutOfRangeException(nameof(length), "시험 공격 배율은 유한한 값이어야 합니다.");
+            _attackLengthRate = Mathf.RoundToInt(Mathf.Clamp(length, MinAttackScale, MaxAttackScale) * 10000f);
+            _attackHeightRate = Mathf.RoundToInt(Mathf.Clamp(height, MinAttackScale, MaxAttackScale) * 10000f);
         }
 
         // 월드 기준 현재 판정 크기입니다(테스트 창 표시용).
@@ -776,8 +781,7 @@ namespace HumanGhost.Gameplay.Preview
 
         private void DisconnectGameLayer()
         {
-            if (_parallax != null) _parallax.Disconnect();
-            if (_pause != null) _pause.Disconnect();
+            // 구독은 먼저 끊습니다. 메뉴 표시 종료 실패가 전투 구독을 남기지 않습니다.
             if (_bossDriver != null)
             {
                 _bossDriver.PlayerHit -= OnBossHitPlayer;
@@ -791,7 +795,10 @@ namespace HumanGhost.Gameplay.Preview
                 _actor.HealthChanged -= OnGameLayerHealthChanged;
                 if (_hud != null) _actor.StaminaRefused -= _hud.FlashStamina;
             }
-            if (_hud != null) _hud.Disconnect();
+            SubscriptionScope.Cleanup(
+                () => { if (_parallax != null) _parallax.Disconnect(); },
+                () => { if (_pause != null) _pause.Disconnect(); },
+                () => { if (_hud != null) _hud.Disconnect(); });
         }
 
         private void OnBossHitResolving(bool active) => _bossHitThisFrame = active;
@@ -916,11 +923,13 @@ namespace HumanGhost.Gameplay.Preview
 #endif
             if (_actor != null && _actor.CurrentState == StateKey.Execute) StepExecution(0);
             FlushMonsterRewards();
+            ApplyPendingProgress();
             _parryFeedback?.Step(Time.unscaledDeltaTime);
             // 도착 준비 후에도 로딩 화면이 닫힐 때까지 이동·출구 판정을 재개하지 않습니다.
             if (_subscribed && _loadingLocked != LoadingScreen.IsActive) SetGameInputLocked(false);
             StepShrineClose();
             StepDialogues();
+            StepFirstNotices();
             StepCutsceneFlow();
             if (StepBossPhase()) return;
             if (_modalBlocked || _saveLocked || _leaving || LoadingScreen.IsActive || !_subscribed || !_player.isActiveAndEnabled || (_bossActive && !_boss.isActiveAndEnabled)) return;
@@ -952,6 +961,7 @@ namespace HumanGhost.Gameplay.Preview
             StepFields();
             CheckPlayerHits();
             FlushMonsterRewards();
+            ApplyPendingProgress();
             HandlePreviewKeys();
             RefreshLabels();
             StepGameLayer();
@@ -970,10 +980,12 @@ namespace HumanGhost.Gameplay.Preview
 
         private void HandlePreviewKeys()
         {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
             Keyboard keyboard = Keyboard.current;
             if (keyboard == null) return;
             if (keyboard.hKey.wasPressedThisFrame)
                 { if (_bossActive) _actor.ReceiveHit(CombatMath.Damage(_boss.Actor.Definition, _actor.CombatStats, 0, false)); }
+#endif
         }
 
         private void RefreshLabels()

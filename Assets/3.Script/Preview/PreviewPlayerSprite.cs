@@ -79,14 +79,21 @@ namespace HumanGhost.Gameplay.Preview
         private const float _dropStartTime = 0.3f, _dropFallTime = 0.6f;
         private const int _dropBlendMilliseconds = 200;
         private int _dropElapsedMilliseconds = -1;
+        private SubscriptionScope _cueScope;
         protected override void OnEnable()
         {
             base.OnEnable();
-            if (_player != null) _player.PresentationCue += OnPresentationCue;
+            if (_player != null)
+            {
+                var player = _player;
+                var scope = _cueScope = new SubscriptionScope();
+                System.Action<string> cue = scope.Guard<string>(OnPresentationCue);
+                scope.Add(() => player.PresentationCue -= cue); player.PresentationCue += cue;
+            }
         }
         private void OnDisable()
         {
-            if (_player != null) _player.PresentationCue -= OnPresentationCue;
+            var scope = _cueScope; _cueScope = null; scope?.Dispose();
             _executionAnimation = null;
             _action = null; _praying = _saveRising = false; _onLadder = false; _ladderDirection = 0; _nonCombatArea = false; _dropElapsedMilliseconds = -1;
             if (Renderer != null)

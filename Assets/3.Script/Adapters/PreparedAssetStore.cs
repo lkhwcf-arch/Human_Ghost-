@@ -99,9 +99,12 @@ namespace HumanGhost.Gameplay.Adapters
                 foreach (Entry entry in _entries.Values) if (entry.Lease != null) leases.Add(entry.Lease);
                 _entries.Clear();
             }
-            _lifetime.Cancel();
-            _lifetime.Dispose();
-            foreach (AssetLease<T> lease in leases) lease.Dispose();
+            // 취소 콜백·반환 하나의 실패가 나머지 리소스 반환을 막지 않습니다.
+            var cleanup = new SubscriptionScope();
+            for (int i = leases.Count - 1; i >= 0; i--) cleanup.Add(leases[i].Dispose);
+            cleanup.Add(_lifetime.Dispose);
+            cleanup.Add(_lifetime.Cancel);
+            cleanup.Dispose();
         }
     }
 }

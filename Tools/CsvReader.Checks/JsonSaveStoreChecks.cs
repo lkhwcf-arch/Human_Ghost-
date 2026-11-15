@@ -20,7 +20,7 @@ internal static class JsonSaveStoreChecks
                 new System.Collections.Generic.Dictionary<int, int> { [1] = 30, [2] = 7 }),
             new UpgradeSnapshot(2, new System.Collections.Generic.Dictionary<string, int> { ["Crit"] = 1 },
                 new System.Collections.Generic.Dictionary<string, int> { ["HERB_HEAL"] = 1 }), new GalimgilSnapshot(1, new[] { 101, 101, 102 }),
-            new ExecutionRewardSnapshot(11, new[] { new MonsterSpawnId(8002, 101, 2) }));
+            new ExecutionRewardSnapshot(11, new[] { new MonsterSpawnId(8002, 101, 2) }), new[] { 30364, 30365 });
         try
         {
             check((await store.ReadAsync()).Count == 0 && !Directory.Exists(directory));
@@ -56,6 +56,7 @@ internal static class JsonSaveStoreChecks
             check(snapshot.Rewards.Experience == 120 && snapshot.Rewards.Balances[1] == 30 && snapshot.Rewards.Balances[2] == 7);
             check(snapshot.Galimgil.Claimed == 1 && snapshot.Galimgil.InteractedObjects.SequenceEqual(new[] { 101, 102 }));
             check(snapshot.Executions.Corruption == 11 && snapshot.Executions.Claimed.Single().Equals(new MonsterSpawnId(8002,101,2)));
+            check(snapshot.ViewedNotices.SequenceEqual(new[] { 30364, 30365 }));
             check(snapshot.Upgrades.ShrineLevel == 2 && snapshot.Upgrades.ShrineSteps["Crit"] == 1
                 && snapshot.Upgrades.TableSteps["HERB_HEAL"] == 1);
             check(records.Single(record => record.Slot == 7).WithExistingGates(_ => false).Snapshot.Rewards.Experience == 120);
@@ -82,12 +83,15 @@ internal static class JsonSaveStoreChecks
             ((JObject)legacy["Snapshot"]).Remove("Upgrades");
             ((JObject)legacy["Snapshot"]).Remove("Galimgil");
             ((JObject)legacy["Snapshot"]).Remove("Executions");
+            ((JObject)legacy["Snapshot"]).Remove("ViewedNotices");
             File.WriteAllText(path, legacy.ToString(), new UTF8Encoding(false));
             check((await store.ReadAsync()).Single(record => record.Slot == 7).Snapshot.DefeatedMonsters.Count == 0);
             check((await store.ReadAsync()).Single(record => record.Slot == 7).Snapshot.Rewards.Experience == 0);
             check((await store.ReadAsync()).Single(record => record.Slot == 7).Snapshot.Upgrades.ShrineLevel == 1);
             check((await store.ReadAsync()).Single(record => record.Slot == 7).Snapshot.Galimgil.Claimed == 0);
             check((await store.ReadAsync()).Single(record => record.Slot == 7).Snapshot.Executions.Corruption == 0);
+            check((await store.ReadAsync()).Single(record => record.Slot == 7).Snapshot.ViewedNotices.Count == 0);
+            check(File.ReadAllText(path, Encoding.UTF8) == legacy.ToString());
             check((await store.ReadAsync()).Single(record => record.Slot == 7).Snapshot.Executions.Claimed.Count == 0);
             check(File.ReadAllText(path, Encoding.UTF8) == legacy.ToString());
             File.WriteAllText(path, original, new UTF8Encoding(false));

@@ -9,6 +9,7 @@ namespace HumanGhost.Gameplay.Preview
     public sealed partial class GameplayPreview
     {
         private readonly MonsterRuntime[] _editorExecutionDummies = new MonsterRuntime[2];
+        private readonly GameObject[] _editorExecutionDummyRoots = new GameObject[2];
         public bool HasEditorExecutionDummies => _editorExecutionDummies[0] != null || _editorExecutionDummies[1] != null;
 
         public void SpawnEditorExecutionDummy(int monsterId)
@@ -26,6 +27,7 @@ namespace HumanGhost.Gameplay.Preview
         {
             ClearEditorExecutionDummy(index);
             var holder = new GameObject(index == 0 ? "ExecutionTestHusugwiScope" : "ExecutionTestJigegwiScope");
+            _editorExecutionDummyRoots[index] = holder;
             holder.SetActive(false);
             SceneManager.MoveGameObjectToScene(holder, gameObject.scene);
             try
@@ -47,32 +49,28 @@ namespace HumanGhost.Gameplay.Preview
             catch
             {
                 ClearEditorExecutionDummy(index);
-                if (holder != null) { if (Application.isPlaying) Destroy(holder); else DestroyImmediate(holder); }
                 throw;
             }
         }
 
         public void ClearEditorExecutionDummies()
         {
-            for (int i = 0; i < _editorExecutionDummies.Length; i++) ClearEditorExecutionDummy(i);
+            SubscriptionScope.Cleanup(() => ClearEditorExecutionDummy(0), () => ClearEditorExecutionDummy(1));
         }
 
         private void ClearEditorExecutionDummy(int index)
         {
             MonsterRuntime dummy = _editorExecutionDummies[index];
+            GameObject holder = _editorExecutionDummyRoots[index];
             _editorExecutionDummies[index] = null;
-            if (dummy == null) return;
-            if (_executingRuntime == dummy)
-            {
-                _actor?.CancelExecution();
-                _executingRuntime = null;
-                _executionRemainingMilliseconds = 0;
-            }
-            dummy.GetComponent<MonsterAnimationAudio>()?.Disconnect();
-            GameObject holder = dummy.transform.parent.gameObject;
-            holder.SetActive(false);
-            if (Application.isPlaying) Destroy(holder); else DestroyImmediate(holder);
-            RequestInteractionRefresh();
+            _editorExecutionDummyRoots[index] = null;
+            SubscriptionScope.Cleanup(
+                () => { if (dummy != null && _executingRuntime == dummy)
+                { _executingRuntime = null; _executionRemainingMilliseconds = 0; _actor?.CancelExecution(); } },
+                () => { if (dummy != null) dummy.GetComponent<MonsterAnimationAudio>()?.Disconnect(); },
+                () => { if (holder != null) holder.SetActive(false); },
+                () => { if (holder != null) { if (Application.isPlaying) Destroy(holder); else DestroyImmediate(holder); } },
+                RequestInteractionRefresh);
         }
     }
 }
