@@ -37,10 +37,47 @@ namespace HumanGhost.Gameplay.Preview
         // 죽으면 불을 남기는 개체를 평소에도 구분합니다. 전용 그림 공급 뒤 지웁니다.
         private static readonly Color _burningTint = new Color(1f, 0.65f, 0.45f);
         private bool _hasSpan;
-        private float _spanMin, _spanMax;
+        private float _spanMin, _spanMax, _spanY;
+        private Camera _camera;
+        private bool _playerOnSpan;
 
         // 조립된 바닥에서 걸을 수 있는 구간입니다. 끝에 닿으면 벽처럼 다룹니다.
-        public void UseWalkableSpan(float min, float max) { _hasSpan = true; _spanMin = min; _spanMax = max; }
+        public void UseWalkableSpan(float min, float max, float floorY)
+        { _hasSpan = true; _spanMin = min; _spanMax = max; _spanY = floorY; _playerOnSpan = false; }
+        public void UsePerception(Camera camera) => _camera = camera != null ? camera : throw new ArgumentNullException(nameof(camera));
+
+        private bool CanEngageTarget()
+        {
+            PlayerActor actor = _player.Actor;
+            if (actor.IsDead || actor.IsHanging || _player.ClimbProgress >= 0f)
+            { _playerOnSpan = false; return false; }
+            Bounds target = _playerBody.bounds;
+            float floor = _hasSpan ? _spanY : _body.bounds.min.y;
+            bool within = !_hasSpan || target.center.x >= _spanMin && target.center.x <= _spanMax;
+            if (actor.Locomotion.IsGrounded)
+                _playerOnSpan = within && Mathf.Abs(target.min.y - floor) <= .12f * _worldUnitsPerTile;
+            else if (!within || target.min.y < floor - .12f * _worldUnitsPerTile)
+                _playerOnSpan = false;
+            // 같은 발판에서 제자리 점프는 유지하지만, 위층은 그곳에 실제 착지하기 전에는 인식하지 않습니다.
+            return _playerOnSpan && InView(_body.bounds.center) && InView(target.center);
+        }
+        private bool InView(Vector3 point)
+        {
+            if (_camera == null || !_camera.isActiveAndEnabled) return false;
+            Vector3 viewport = _camera.WorldToViewportPoint(point);
+            return viewport.z > 0f && viewport.x >= 0f && viewport.x <= 1f && viewport.y >= 0f && viewport.y <= 1f;
+        }
+        private void ObserveTarget()
+        {
+            if (_player.Actor.IsDead) { _monster.ClearTarget(); IsEngaged = false; return; }
+            float offset = _player.transform.position.x - _runtime.transform.position.x;
+            bool eligible = CanEngageTarget();
+            _monster.Observe(_playerTargetId, Distance(offset), Math.Sign(offset),
+                Distance(_player.transform.position.y - _runtime.transform.position.y),
+                IntegerPosition.ToData(Math.Abs(_runtime.Position.X - _spawnX)), Math.Sign(_spawnX - _runtime.Position.X), eligible);
+            if (!eligible) _projectile?.Stop();
+            IsEngaged = !_monster.IsDead && _monster.HasAggro;
+        }
 
         // targetId: 이 몬스터의 장면 내 양수 개체 ID, playerTargetId: 플레이어의 개체 ID(데이터 ID와 별개).
         public PreviewMonsterDriver(MonsterRuntime runtime, PlayerRuntime player, SpriteRenderer playerBody, SpriteRenderer attackWindow,
@@ -91,7 +128,7 @@ namespace HumanGhost.Gameplay.Preview
             }
             StepFire(seconds);
             if (_monster.IsDead) { IsEngaged = false; _body.color = Color.gray; _deathShown = true; return; }
-            if (_player.Actor.IsDead) _monster.ClearTarget();
+            ObserveTarget();
             if (_monster.IsExposed || _monster.IsInvulnerable) return;
             _projectile?.Step(seconds);
             PlayerActor actor = _player.Actor;
@@ -108,13 +145,7 @@ namespace HumanGhost.Gameplay.Preview
             Vector3 position = _runtime.ToWorld(_runtime.Position);
             if (wall) _monster.NotifyWallHit();
 
-            float offset = _player.transform.position.x - position.x;
-            int distance = Distance(offset);
-            if (actor.IsDead) _monster.ClearTarget();
-            else _monster.Observe(_playerTargetId, distance, offset > 0f ? 1 : offset < 0f ? -1 : 0,
-                Distance(_player.transform.position.y - position.y),
-                IntegerPosition.ToData(Math.Abs(_runtime.Position.X - _spawnX)), Math.Sign(_spawnX - _runtime.Position.X));
-            IsEngaged = !actor.IsDead && !_monster.IsDead && _monster.HasAggro;
+            ObserveTarget();
 
             CheckMonsterHit();
             _body.color = _monster.IsDead ? Color.gray : _monster.CurrentState == StateKey.Stun ? new Color(0.75f, 0.35f, 0.95f) :
@@ -133,7 +164,7 @@ namespace HumanGhost.Gameplay.Preview
 
         private void OnAttackWindowChanged(bool active)
         {
-            if (active && _monster.CurrentPattern != null && _monster.CurrentPattern.IsProjectile) StartProjectile();
+            if (active && CanEngageTarget() && _monster.CurrentPattern != null && _monster.CurrentPattern.IsProjectile) StartProjectile();
             if (!active) _projectile?.Stop();
             if (active) CheckMonsterHit();
         }
@@ -182,7 +213,7 @@ namespace HumanGhost.Gameplay.Preview
         private void CheckMonsterHit()
         {
             PlayerActor actor = _player.Actor;
-            if (!_runtime.isActiveAndEnabled || !_monster.IsAttackActive || actor.IsDead) return;
+            if (!_runtime.isActiveAndEnabled || !_monster.IsAttackActive || !CanEngageTarget()) return;
             MonsterPattern pattern = _monster.CurrentPattern;
             float offset = _player.transform.position.x - _runtime.transform.position.x;
             Bounds own = _body.bounds, target = _playerBody.bounds;

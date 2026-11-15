@@ -66,8 +66,8 @@ internal static class IntegerPolicyChecks
             check(!Regex.IsMatch(code, @"\b(float|double|decimal)\b"), "코어 정수 계약 유지: " + Path.GetFileName(source));
         }
         var camera = File.ReadAllText(Path.Combine(root, "Assets/3.Script/Preview/PreviewFollowCamera.cs"));
-        check(camera.Contains("int _lookDelayMilliseconds = 500") && camera.Contains("int _lookDistanceUnits = 300"),
-            "카메라 상하 보기 기본값 500ms·3타일 유지");
+        check(camera.Contains("int _lookDelayMilliseconds = 500") && camera.Contains("int _lookDistanceUnits = 300") && camera.Contains("int _lookDownDistanceUnits = 600"),
+            "카메라 정수 설정 500ms·위3타일·아래6타일");
         foreach (string scene in new[] { "GameplayPreview", "MapDohwagolTest" })
         {
             string serialized = File.ReadAllText(Path.Combine(root, "Assets/1.Scene", scene + ".unity"));
