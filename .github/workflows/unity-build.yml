@@ -118,6 +118,16 @@ jobs:
           if not Path("build/StandaloneWindows64/HumanGhost.exe").is_file():
               raise SystemExit("빌드 결과에 HumanGhost.exe가 없습니다.")
           print("게임 실행파일 생성을 확인했습니다.")
+      - name: Addressables 런타임 데이터 포함 확인
+        shell: python
+        run: |
+          from pathlib import Path
+          root = Path("build/StandaloneWindows64/HumanGhost_Data/StreamingAssets/aa")
+          if not (root / "settings.json").is_file():
+              raise SystemExit("Addressables 런타임 settings.json이 없습니다. 콘텐츠 빌드 설정과 Unity 로그를 확인해 주세요.")
+          if not any(root.rglob("catalog*")) or not any(root.rglob("*.bundle")):
+              raise SystemExit("Addressables 카탈로그 또는 번들이 없습니다. 인트로 리소스의 빌드 포함 여부를 확인해 주세요.")
+          print("Addressables 런타임 설정·카탈로그·번들 포함을 확인했습니다.")
       - name: 타이틀·컷씬 영상 포함 확인
         shell: python
         run: |
