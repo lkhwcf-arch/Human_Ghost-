@@ -181,6 +181,7 @@ namespace HumanGhost.Gameplay.Preview
                     if (!monster.IsInitialized) monster.Initialize(catalog);
                     _monsterDrivers[i] = new PreviewMonsterDriver(monster, _player, _playerBody, _attackWindow,
                         _firstMonsterTargetId + i, _playerTargetId, _worldUnitsPerTile, ApplyMonsterHitEffects);
+                    _monsterDrivers[i].UsePerception(_followCamera.GetComponent<Camera>());
                     var poiseView = monster.GetComponent<MonsterPoiseView>();
                     if (poiseView == null)
                     {
@@ -559,8 +560,9 @@ namespace HumanGhost.Gameplay.Preview
                 // 몬스터는 낙하하지 않으므로 배치 높이가 그림에 맞춰 낮춘 바닥보다 조금 높으면 바로 아래 바닥에 붙입니다.
                 float drop = FindFloorDrop(feet, 0.5f, filter, hits);
                 if (drop > 0f) { _monsters[i].SetPosition(_monsters[i].transform.position + Vector3.down * drop); feet.y -= drop; }
-                _monsterDrivers[i].UseWalkableSpan(FindSpanEnd(feet, half, -1, filter, hits), FindSpanEnd(feet, half, 1, filter, hits));
+                _monsterDrivers[i].UseWalkableSpan(FindSpanEnd(feet, half, -1, filter, hits), FindSpanEnd(feet, half, 1, filter, hits), feet.y);
             }
+            PreviewTraversalGuide.AddTo(_stage.MapRoot, _markersRoot, _playerBody.sprite, _playerBody.sortingLayerID, 60);
         }
 
         private static float FindSpanEnd(Vector2 feet, float halfHeight, int direction, ContactFilter2D filter, List<Collider2D> hits)

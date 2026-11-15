@@ -1764,6 +1764,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Preview.LadderClimbArea
   _volume: {fileID: 1046}
   _speedUnitsPerSecond: 300
+  _axisOffsetUnits: -50
 --- !u!61 &1050
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -1812,6 +1813,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Preview.LadderClimbArea
   _volume: {fileID: 1050}
   _speedUnitsPerSecond: 300
+  _axisOffsetUnits: -50
 --- !u!61 &1056
 BoxCollider2D:
   m_ObjectHideFlags: 0

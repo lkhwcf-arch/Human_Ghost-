@@ -9,7 +9,7 @@ namespace HumanGhost.Gameplay
         private readonly MonsterAggro _definition;
         private readonly int _sightRange;
         private int _distance, _height, _spawnDistance, _outside, _reacquire;
-        private bool _playerAlive;
+        private bool _playerAlive, _targetEligible;
         public bool IsEngaged { get; private set; }
         public bool IsReturning { get; private set; }
 
@@ -22,12 +22,14 @@ namespace HumanGhost.Gameplay
                 throw new ArgumentException("몬스터 인식·해제·복귀 수치를 확인하세요.", nameof(definition));
             _sightRange = sightRange;
         }
-        public void Observe(int distance, int height, int spawnDistance)
+        public void Observe(int distance, int height, int spawnDistance, bool targetEligible = true)
         {
             if (distance < 0 || height < 0 || spawnDistance < 0) throw new ArgumentOutOfRangeException(nameof(distance));
-            _playerAlive = true;
+            _playerAlive = true; _targetEligible = targetEligible;
             _distance = distance; _height = height; _spawnDistance = spawnDistance;
             if (IsReturning && spawnDistance == 0) IsReturning = false;
+            // 화면·연결 지면을 잃으면 거리 해제 대기나 공격 보호와 무관하게 즉시 해제합니다.
+            if (!_targetEligible) { if (IsEngaged) StartReturn(); return; }
             TryAcquire();
         }
         // true는 이번 호출에서 복귀를 새로 시작했다는 뜻입니다.
@@ -45,7 +47,7 @@ namespace HumanGhost.Gameplay
             TryAcquire();
             return false;
         }
-        public void NotifyHit() { if (_playerAlive) Engage(); }
+        public void NotifyHit() { if (_playerAlive && _targetEligible) Engage(); }
         public bool LoseTarget()
         {
             if (!_playerAlive) return false;
@@ -53,12 +55,12 @@ namespace HumanGhost.Gameplay
         }
         public void Reset()
         {
-            _playerAlive = IsEngaged = IsReturning = false;
+            _playerAlive = _targetEligible = IsEngaged = IsReturning = false;
             _outside = _reacquire = _distance = _height = _spawnDistance = 0;
         }
         private void TryAcquire()
         {
-            if (!IsEngaged && _playerAlive && _reacquire == 0 && _distance <= _sightRange && _height <= _definition.SightHeight) Engage();
+            if (!IsEngaged && _playerAlive && _targetEligible && _reacquire == 0 && _distance <= _sightRange && _height <= _definition.SightHeight) Engage();
         }
         private void Engage() { IsEngaged = true; IsReturning = false; _outside = 0; _reacquire = 0; }
         private void StartReturn()

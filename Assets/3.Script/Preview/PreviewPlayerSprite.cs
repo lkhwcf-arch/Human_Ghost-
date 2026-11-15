@@ -134,6 +134,13 @@ namespace HumanGhost.Gameplay.Preview
                 Renderer.transform.localPosition = position;
             }
             base.LateUpdate();
+            if (hanging && _onLadder && Renderer != null)
+            {
+                // 사다리 축과 몸통을 맞춥니다. 원본 셀 내부 손발 동작은 유지합니다.
+                Vector3 ladderPosition = Renderer.transform.localPosition;
+                ladderPosition.x = _basePosition.x - .12f * _baseScale.x;
+                Renderer.transform.localPosition = ladderPosition;
+            }
             if (hanging && !_onLadder && Renderer != null && Renderer.sprite != null)
             {
                 Vector2 hand = HandAnchor(Renderer.sprite);
@@ -231,7 +238,7 @@ namespace HumanGhost.Gameplay.Preview
         protected override void UpdateFacing()
         {
             int facing = _player.Actor.Facing;
-            bool flip = _sourceFacesLeft ? facing > 0 : facing < 0;
+            bool flip = !_onLadder && (_sourceFacesLeft ? facing > 0 : facing < 0);
             if (Renderer.flipX != flip) Renderer.flipX = flip;
         }
     }

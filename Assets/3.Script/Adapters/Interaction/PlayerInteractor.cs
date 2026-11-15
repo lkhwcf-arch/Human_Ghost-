@@ -42,7 +42,7 @@ namespace HumanGhost.Gameplay.Adapters
             _promptKeyIcon = _prompt != null ? _prompt.transform.Find("KeyIcon")?.GetComponent<SpriteRenderer>() : null;
             _investigationArtwork = _prompt != null ? _prompt.transform.Find("InvestigationArtwork")?.GetComponent<SpriteRenderer>() : null;
             _promptHasKeyIcon = _promptKeyIcon != null && _interactionKeySprite != null;
-            if (_promptHasKeyIcon) _promptKeyIcon.sprite = _interactionKeySprite;
+            if (_promptKeyIcon != null) { _promptKeyIcon.sprite = _promptHasKeyIcon ? _interactionKeySprite : null; _promptKeyIcon.enabled = _promptHasKeyIcon; }
             _promptTextRenderer = _prompt != null ? _prompt.GetComponent<Renderer>() : null;
             _promptBackdrop = _prompt != null ? _prompt.transform.Find("Backdrop")?.GetComponent<SpriteRenderer>() : null;
             _promptBorder = _prompt != null ? _prompt.transform.Find("Border")?.GetComponent<SpriteRenderer>() : null;

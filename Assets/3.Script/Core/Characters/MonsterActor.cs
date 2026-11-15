@@ -100,14 +100,20 @@ namespace HumanGhost.Gameplay
         // 외부 관측: 목표 개체ID(양수)·거리(tile_x100)·목표 방향(-1/0/1). 목표 사망/이탈 시 ClearTarget.
         public void Observe(int targetId, int distance, int direction) => Observe(targetId, distance, direction, 0, 0, 0);
 
-        public void Observe(int targetId, int distance, int direction, int height, int spawnDistance, int spawnDirection)
+        public void Observe(int targetId, int distance, int direction, int height, int spawnDistance, int spawnDirection, bool targetEligible = true)
         {
             if (targetId <= 0) throw new ArgumentOutOfRangeException(nameof(targetId));
             if (distance < 0) throw new ArgumentOutOfRangeException(nameof(distance));
             if (direction < -1 || direction > 1) throw new ArgumentOutOfRangeException(nameof(direction));
             if (height < 0 || spawnDistance < 0 || spawnDirection < -1 || spawnDirection > 1) throw new ArgumentOutOfRangeException(nameof(height));
-            _targetId = targetId; _distance = distance; _direction = direction; _returnDirection = spawnDirection;
-            _awareness?.Observe(distance, height, spawnDistance);
+            _targetId = targetEligible ? targetId : 0; _distance = distance; _direction = direction; _returnDirection = spawnDirection;
+            _awareness?.Observe(distance, height, spawnDistance, targetEligible);
+            if (!targetEligible)
+            {
+                // 도달할 수 없는 대상을 향한 준비/판정/돌진/잡기를 멈춥니다. 피격·노출·처형과 체세는 보존합니다.
+                if (_holding != null) { _holding.ReleaseBind(this); _holding = null; }
+                if (_pattern != null) { ClearPattern(); _waitRemaining = 0; }
+            }
             Decide();
         }
 

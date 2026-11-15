@@ -102,8 +102,8 @@ namespace HumanGhost.EditorTools
                         Focus(499);
                         Check(Mathf.Abs(Goal() - baseline) < .001f, layout + " 499ms에는 시점 이동 없음");
                         Focus(1);
-                        Check(Mathf.Abs(Goal() - baseline - direction * 3f * scale) < .001f,
-                            layout + " 500ms에 카메라 목표 높이 " + direction * 3f * scale + " / 실제 변화 " + (Goal() - baseline));
+                        Check(Mathf.Abs(Goal() - baseline - direction * (direction < 0 ? 6f : 3f) * scale) < .001f,
+                            layout + " 500ms에 카메라 목표 높이 " + direction * (direction < 0 ? 6f : 3f) * scale + " / 실제 변화 " + (Goal() - baseline));
                         Press(); Focus(1);
                         Check(input.VerticalDirection == 0 && Mathf.Abs(Goal() - baseline) < .001f, layout + " 키 해제 후 기본 목표 높이 복귀");
                     }

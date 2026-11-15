@@ -154,7 +154,7 @@ namespace HumanGhost.Gameplay.Preview
                 if (!_player.Actor.TryHang()) { _player.SetGrounded(grounded); return false; }
                 _ladder = ladder; _lastLadderArea = area; _verticalInput = Math.Sign(direction); _shownLadderDirection = 0;
                 _ladderMotion.ResetHorizontal();
-                position.x = area.center.x; _player.SetPosition(position);
+                position.x = _ladder.AxisX; _player.SetPosition(position);
                 _motion.StopRoll(); _motion.SetVerticalSpeed(); _airborne = false;
                 _jumpBufferRemaining = _coyoteRemaining = 0; _dropRequested = false;
                 _peakY = _player.Position.Y;
@@ -210,7 +210,7 @@ namespace HumanGhost.Gameplay.Preview
             float bottom = area.min.y + _halfSize.y;
             float top = area.max.y + _halfSize.y + PreviewCollision.Skin;
             long step = _ladderMotion.StepHorizontal(checked(_verticalInput * _ladder.SpeedUnitsPerSecond), milliseconds);
-            position.x = area.center.x;
+            position.x = _ladder.AxisX;
             long nextY = checked(_player.Position.Y + step);
             nextY = Math.Max(_player.ToInteger(bottom), Math.Min(_player.ToInteger(top), nextY));
             position.y = _player.ToWorld(nextY);

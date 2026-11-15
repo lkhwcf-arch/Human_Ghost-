@@ -18,6 +18,7 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField, InspectorName("착지 높이 구도 보정 (tile_x100)")] private int _groundHeightBiasUnits = -100;
         [SerializeField, InspectorName("위아래 보기 대기 (ms)"), Min(0)] private int _lookDelayMilliseconds = 500;
         [SerializeField, InspectorName("위아래 보기 거리 (tile_x100)"), Min(0)] private int _lookDistanceUnits = 300;
+        [SerializeField, InspectorName("아래 보기 거리 (tile_x100)"), Min(0)] private int _lookDownDistanceUnits = 600;
         private PlayerRuntime _player;
         private PlayerLocomotionInput _input;
         private float _groundHeight, _lookOffset;
@@ -139,8 +140,9 @@ namespace HumanGhost.Gameplay.Preview
                 ? _input.VerticalDirection : 0;
             if (direction != _lookDirection) { _lookDirection = direction; _lookHeldMilliseconds = 0; }
             _lookHeldMilliseconds = direction == 0 ? 0 : _lookHeldMilliseconds + System.Math.Min(milliseconds, int.MaxValue - _lookHeldMilliseconds);
-            long distance = IntegerPosition.FromData(_lookDistanceUnits);
-            float worldDistance = _player != null ? _player.ToWorld(distance) : _lookDistanceUnits / 100f;
+            int distanceUnits = direction < 0 ? _lookDownDistanceUnits : _lookDistanceUnits;
+            long distance = IntegerPosition.FromData(distanceUnits);
+            float worldDistance = _player != null ? _player.ToWorld(distance) : distanceUnits / 100f;
             _lookOffset = direction != 0 && _lookHeldMilliseconds >= _lookDelayMilliseconds ? direction * worldDistance : 0f;
         }
 
