@@ -736,7 +736,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "X \u25B6"
+  m_Text: "Enter \u25B6"
 --- !u!114 &900100
 MonoBehaviour:
   m_ObjectHideFlags: 0

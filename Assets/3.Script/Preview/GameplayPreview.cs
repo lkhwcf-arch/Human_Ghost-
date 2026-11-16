@@ -445,25 +445,23 @@ namespace HumanGhost.Gameplay.Preview
             if (_interactor == null || _textbox == null) return;
             DisconnectInteraction();
             _interactionScope = new SubscriptionScope();
-            PlayerLocomotionInput input = _input;
             TextboxScreen textbox = _textbox;
             PlayerActor actor = _actor;
             SubscriptionScope scope = _interactionScope;
             textbox.ConnectSkipHint(new LanguageTextSource(catalog), LanguageSettings.Current);
             scope.Add(textbox.DisconnectSkipHint);
             RefreshDialogueSkipHint();
-            var skip = new SkipKeyInput(
-                () => !scope.IsDisposed && !_modalBlocked && !_saveLocked && !_leaving && !LoadingScreen.IsActive &&
-                    (_pause == null || !_pause.IsOpen) && textbox != null && textbox.CanSkip(SkipScope.Dialogue),
-                () => textbox.TrySkip(SkipScope.Dialogue));
-            scope.Add(skip.Dispose);
-            Action advance = scope.Guard(OnAdvance);
+            // 대사 넘기기는 키 배치(A·B)와 무관하게 Enter 하나로 통일합니다(1116 유저테스트: B 배치에서 표시 X와 실제 J 불일치).
+            // 기존 Enter 입력(SkipKeyInput)을 재사용하고 동작은 이전 공격 키와 같은 Advance(출력 완료 → 다음 줄, 암전 닫기)입니다.
+            var advanceKey = new SkipKeyInput(
+                () => !scope.IsDisposed && !_modalBlocked && !_saveLocked && textbox != null && textbox.IsOpen,
+                scope.Guard(OnAdvance));
+            scope.Add(advanceKey.Dispose);
             Action<bool> openChanged = scope.Guard<bool>(OnTextboxChanged);
             Action<int> playerHealthChanged = scope.Guard<int>(OnPlayerHealthChanged);
             Action refresh = scope.Guard(RequestInteractionRefresh);
             Action<StateKey> stateChanged = scope.Guard<StateKey>(OnInteractionStateChanged);
             Action<int> monsterHealthChanged = scope.Guard<int>(OnInteractionHealthChanged);
-            scope.Add(() => input.AdvancePressed -= advance); input.AdvancePressed += advance;
             scope.Add(() => textbox.OpenChanged -= openChanged); textbox.OpenChanged += openChanged;
             scope.Add(() => actor.HealthChanged -= playerHealthChanged); actor.HealthChanged += playerHealthChanged;
             var context = new InteractionContext(_player, _textbox, _progress.Progress, catalog, GoToStage);

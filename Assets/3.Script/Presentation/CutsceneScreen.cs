@@ -112,7 +112,8 @@ namespace HumanGhost.Gameplay.Presentation
             return true;
         }
 
-        public void Advance() => _playback.Advance();
+        // 현재 장면이 다음 장 넘기기를 허용해 실제로 넘어갔으면 true입니다.
+        public bool Advance() => _playback.Advance();
         public bool CanSkip(SkipScope scope) => isActiveAndEnabled && !_paused && IsRunning &&
             (scope == SkipScope.Cutscene || scope == SkipScope.Video && _playback.Current.Media == CutsceneMedia.Video);
         public bool TrySkip(SkipScope scope)

@@ -104,7 +104,6 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier:
   _screen: {fileID: 1004}
-  _advance: {fileID: 0}
   _scope: 0
   _hint: {fileID: 900100}
 --- !u!114 &1006
