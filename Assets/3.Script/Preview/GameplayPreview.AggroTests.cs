@@ -27,8 +27,19 @@ namespace HumanGhost.Gameplay.Preview
         private string _aggroTestX = "0", _aggroTestY = "0", _aggroTestSpawn = "0", _aggroTestMs = "0";
         private string _aggroTestReport = "";
 
+#if UNITY_EDITOR
+        public static bool ShowAggroGizmos
+        {
+            get => UnityEditor.EditorPrefs.GetBool("HumanGhost.AggroGizmos", false);
+            set { UnityEditor.EditorPrefs.SetBool("HumanGhost.AggroGizmos", value); UnityEditor.SceneView.RepaintAll(); }
+        }
+#endif
         private void DrawAggroTests()
         {
+#if UNITY_EDITOR
+            bool showGizmos = GUILayout.Toggle(ShowAggroGizmos, "Scene 뷰 선택한 몬스터 인식 범위 Gizmos", _bossTestToggleStyle);
+            if (showGizmos != ShowAggroGizmos) ShowAggroGizmos = showGizmos;
+#endif
             if (GUILayout.Button(_aggroTestExpanded ? "어그로 데이터 시험 접기" : "어그로 데이터 시험 펼치기", _bossTestButtonStyle))
                 _aggroTestExpanded = !_aggroTestExpanded;
             if (!_aggroTestExpanded) return;
@@ -64,8 +75,8 @@ namespace HumanGhost.Gameplay.Preview
             _aggroTestMs = DrawAggroTestInput("진행할 정수 ms", _aggroTestMs);
             if (GUILayout.Button("바라보는 방향: " + (_aggroTestFacing > 0 ? "오른쪽" : "왼쪽") + " / 전환", _bossTestButtonStyle))
                 _aggroTestFacing = -_aggroTestFacing;
-            _aggroTestTargetActive = GUILayout.Toggle(_aggroTestTargetActive, "대상 생존·활성");
-            _aggroTestProtected = GUILayout.Toggle(_aggroTestProtected, "공격·노출 중 복귀 보류 상태");
+            _aggroTestTargetActive = GUILayout.Toggle(_aggroTestTargetActive, "대상 생존·활성", _bossTestToggleStyle);
+            _aggroTestProtected = GUILayout.Toggle(_aggroTestProtected, "공격·노출 중 복귀 보류 상태", _bossTestToggleStyle);
             if (GUILayout.Button("위치 관측만 판정", _bossTestButtonStyle)) RunAggroTest(false, false);
             if (GUILayout.Button("관측 후 입력한 ms 진행", _bossTestButtonStyle)) RunAggroTest(true, false);
             if (GUILayout.Button("피격 즉시 인식 시험", _bossTestButtonStyle)) RunAggroTest(false, true);

@@ -45,10 +45,10 @@ namespace HumanGhost.Gameplay.Preview
             return _runtime.name + ": HP " + _monster.Health + "/" + _monster.Definition.HP +
                 " | 체세 " + _monster.Poise + " | 어그로 " + _monster.HasAggro +
                 " | 대상 유효 " + CanEngageTarget() +
-                " | 가로 거리 " + IntegerPosition.ToData(Math.Abs(_player.Position.X - _runtime.Position.X)) +
+                "\n    가로 거리 " + IntegerPosition.ToData(Math.Abs(_player.Position.X - _runtime.Position.X)) +
                 " | 발 높이 차이 " + IntegerPosition.ToData(FootHeightOffset()) +
                 " | 정면/후면 " + _runtime.Aggro.FrontRange + "/" + _runtime.Aggro.BackRange +
-                " | 보행 구간 " + _spanMin.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) + "~" +
+                "\n    보행 구간 " + _spanMin.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) + "~" +
                 _spanMax.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
         }
 #endif
