@@ -106,7 +106,8 @@ namespace HumanGhost.Gameplay.Preview
             return true;
         }
 
-        private static bool IsGroundSlope(Collider2D collider) =>
+        // 경사 이동 대상 지면입니다. 몬스터 보행 구간 탐색도 같은 기준을 사용합니다.
+        internal static bool IsGroundSlope(Collider2D collider) =>
             collider is PolygonCollider2D && collider.gameObject.name.StartsWith("GroundSlope_", System.StringComparison.Ordinal);
 
         public bool FindFloor(Vector3 position, float distance, out float floorDistance) =>
