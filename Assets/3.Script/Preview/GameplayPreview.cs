@@ -614,12 +614,16 @@ namespace HumanGhost.Gameplay.Preview
         // 맵 표식에 상호작용·관문·출구를 붙입니다. 표식 이름은 맵 프리팹 기준입니다.
         private void ConnectStageObjects(IReadOnlyDataCatalog catalog)
         {
+            _ledger = null;
             if (_stage == null) return;
             foreach (Transform marker in _markersRoot)
             {
                 if (marker.name == "Myeongbu")
-                    AddTarget<LedgerInteract>(marker).Configure("",
-                        _ledgerCutsceneId == 0 ? null : PlayLedger);
+                {
+                    // 조사 완료 단위가 Stage이므로 한 맵에 명부 하나만 허용합니다. 대화·해금 연결은 ConnectDialogues에서 합니다.
+                    if (_ledger != null) throw new InvalidOperationException("한 맵에 명부(Myeongbu) 표식은 하나만 둘 수 있습니다.");
+                    _ledger = AddTarget<LedgerInteract>(marker);
+                }
                 else if (marker.name == "Seonangdang")
                 {
                     ShrineInteract shrine = AddTarget<ShrineInteract>(marker);
@@ -940,6 +944,7 @@ namespace HumanGhost.Gameplay.Preview
             if (_subscribed && _loadingLocked != LoadingScreen.IsActive) SetGameInputLocked(false);
             StepShrineClose();
             StepDialogues();
+            StepLedger();
             StepFirstNotices();
             StepCutsceneFlow();
             if (StepBossPhase()) return;

@@ -10,6 +10,7 @@ namespace HumanGhost.Gameplay.Preview
     public sealed partial class GameplayPreview
     {
         private DialogueRunner _dialogues;
+        private LedgerInteract _ledger;
         private SubscriptionScope _dialogueScope;
         private readonly Queue<int> _dialogueQueue = new Queue<int>();
         private readonly HashSet<int> _queuedDialogues = new HashSet<int>();
@@ -30,6 +31,10 @@ namespace HumanGhost.Gameplay.Preview
             if (_stage != null)
                 foreach (NpcTalk npc in _stage.MapRoot.GetComponentsInChildren<NpcTalk>(true))
                     if (npc.NpcId != 0) npc.Configure(npc.NpcId, _catalog, _dialogues, _playerLabel);
+            // 명부: 조사 종류와 현재 Stage로 대화·해금 Skill을 데이터에서 찾습니다. 누락·중복은 맵 준비 실패로 전달합니다.
+            if (_ledger != null)
+                _ledger.Configure(new LedgerInvestigation(LedgerInvestigationDefinition.Resolve(_stageId,
+                    _catalog.GetTable<Dialogue>().All, _catalog.GetTable<Skill>().All), _progress.Progress), _dialogues);
             _dialogueScope = new SubscriptionScope();
             if (!_bossActive) return;
             BossPoise boss = _boss.Actor;
@@ -64,13 +69,21 @@ namespace HumanGhost.Gameplay.Preview
                 ReportCutsceneError(new InvalidOperationException("대화 연결 또는 실행에 실패했습니다.", error));
             }
         }
+        // 대화 실행기 Step 다음 순서에서 명부 요청 결과를 소비합니다. 실패는 대화 실행기와 분리해 보고합니다.
+        private void StepLedger()
+        {
+            if (_ledger == null) return;
+            try { _ledger.StepResult(); }
+            catch (Exception error) { ReportCutsceneError(new InvalidOperationException("명부 조사 완료 적용에 실패했습니다.", error)); }
+        }
         private void DisconnectDialogues()
         {
             var scope = _dialogueScope; _dialogueScope = null;
+            LedgerInteract ledger = _ledger;
             _dialogueQueue.Clear(); _queuedDialogues.Clear();
             DialogueRunner dialogues = _dialogues;
             _dialogues = null;
-            SubscriptionScope.Cleanup(() => scope?.Dispose(), () => dialogues?.Dispose(),
+            SubscriptionScope.Cleanup(() => scope?.Dispose(), () => { if (ledger != null) ledger.Disconnect(); }, () => dialogues?.Dispose(),
                 () => { if (_speed != null) _speed.State.SetPauseOwner(this, false); });
         }
     }

@@ -17,10 +17,10 @@ namespace HumanGhost.Gameplay.Preview
         private GameObject _cutsceneRoot;
         private DemoEndingFlow _ending;
         private bool _endingReturnPending;
-        private int _ledgerCutsceneId, _endingCutsceneId;
+        // 명부 조사는 Cutscene Ledger 대신 Dialogue(LEDGER_INVESTIGATE)를 사용합니다. GameplayPreview.Dialogues 참고.
+        private int _endingCutsceneId;
         private void ConnectCutsceneData()
         {
-            _ledgerCutsceneId = CutsceneSequenceSource.FindId(_catalog, CutsceneSequenceSource.LedgerKey);
             _endingCutsceneId = CutsceneSequenceSource.FindId(_catalog, CutsceneSequenceSource.EndingKey);
             bool viewed = _endingCutsceneId != 0 && Array.IndexOf(_progress.ViewedCutscenes, _endingCutsceneId) >= 0;
             _ending = _stageId == BossStage ? new DemoEndingFlow(viewed && _progress.HasDefeatedBoss(BossStage)) : null;
@@ -28,7 +28,6 @@ namespace HumanGhost.Gameplay.Preview
         private Action _afterCutscene;
         private int _pendingCutsceneId;
 
-        private bool PlayLedger(Action complete) => BeginCutscene(_ledgerCutsceneId, complete);
         private bool BeginCutscene(int id, Action complete)
         {
             if (_afterCutscene != null || _modalBlocked || _leaving || _saveLocked || _actor.IsDead) return false;

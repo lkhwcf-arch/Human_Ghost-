@@ -144,7 +144,7 @@ Lines의 순서가 대사 순서입니다. 파일명은 24001.json, Dialogue.ID�
 
 - 대사 JSON만 먼저 올렸는데 Dialogue 표가 없으면 실패합니다. 관련 파일을 함께 준비합니다.
 - Dialogue 행이 있는데 파일이 없으면 실패합니다. LineFile과 파일명을 확인합니다.
-- TALK의 TriggerTargetID는 0입니다. 보스 상태 진입은 BossState ID, 보스 처치는 UnitStat ID를 사용합니다.
+- TALK의 TriggerTargetID는 0입니다. 보스 상태 진입은 BossState ID, 보스 처치는 UnitStat ID를 사용합니다. 명부 조사(`LEDGER_INVESTIGATE`)는 Stage ID를 사용하며 [명부 조사 대화 안내](명부%20조사%20대화%20작성과%20확인%20안내.md)를 따릅니다.
 - DialogueID·NpcID·화자·대사 ID는 정수이며 참조 대상이 있어야 합니다. 소수나 임의 번호로 우회하지 않습니다.
 - 다른 폴더의 JSON과 파일명이 같아 로딩 키가 겹치면 실패합니다.
 
