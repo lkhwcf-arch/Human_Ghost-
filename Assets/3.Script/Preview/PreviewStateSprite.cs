@@ -117,6 +117,11 @@ namespace HumanGhost.Gameplay.Preview
         }
         protected virtual void OnEnable() => _hasState = false;
         protected virtual void UpdateFacing() { }
+        protected float ContactBottom(Sprite sprite)
+        {
+            PrepareLookup();
+            return _contactBottoms.TryGetValue(sprite, out float bottom) ? bottom : PreviewPresentation.VisibleBottom(sprite);
+        }
         protected bool GroundCurrentFrame(SpriteRenderer ground)
         {
             PrepareLookup();

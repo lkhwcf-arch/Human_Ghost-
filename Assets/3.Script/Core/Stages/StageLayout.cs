@@ -91,7 +91,7 @@ namespace HumanGhost.Gameplay
     // 출구 통과와 전멸 기록은 별개입니다. 목적지 잠금은 ContentAccess가 판단합니다.
     public static class StageExitRules
     {
-        public const int VillageStage = 8001, LedgerStage = 8005;
+        public const int VillageStage = 8001, LedgerStage = 8005, BossStage = 8004;
         public static bool CanLeave(int stageId, bool ledgerCleared)
             => stageId != VillageStage || ledgerCleared;
     }

@@ -16,6 +16,14 @@ namespace HumanGhost.Gameplay.Adapters
             public TextAsset Spawn = null;
             [Min(0.1f)] public float CameraSize = 5.625f;
             public BackgroundPosition[] BackgroundPositions = Array.Empty<BackgroundPosition>();
+            public WorldTextBinding[] WorldTexts = Array.Empty<WorldTextBinding>();
+        }
+
+        [Serializable] public sealed class WorldTextBinding
+        {
+            public string Anchor = "";
+            public int[] TextIds = Array.Empty<int>();
+            public Vector2Int OffsetUnits = new Vector2Int(0, 150);
         }
 
         [Serializable]

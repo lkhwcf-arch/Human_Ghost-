@@ -1,6 +1,6 @@
 Shader "HumanGhost/Boss Phase Two Flash"
 {
-    Properties { [PerRendererData] _MainTex("Sprite Texture",2D)="white"{} _Color("Tint",Color)=(1,1,1,1) _FlashAmount("Hit Flash",Range(0,1))=0 _AuraStrength("Dark Red Aura",Range(0,1))=.18 }
+    Properties { [PerRendererData] _MainTex("Sprite Texture",2D)="white"{} _Color("Tint",Color)=(1,1,1,1) _FlashAmount("Hit Flash",Range(0,1))=0 _WarningAmount("Warning",Range(0,1))=0 _WarningColor("Warning Color",Color)=(1,1,1,1) _AuraStrength("Dark Red Aura",Range(0,1))=.18 }
     SubShader
     {
         Tags { "Queue"="Transparent" "RenderType"="Transparent" "RenderPipeline"="UniversalPipeline" }
@@ -27,7 +27,7 @@ Shader "HumanGhost/Boss Phase Two Flash"
             TEXTURE2D(_MainTex); SAMPLER(sampler_MainTex);
             float4 _MainTex_TexelSize;
             CBUFFER_START(UnityPerMaterial)
-                half4 _Color; half _FlashAmount; half _AuraStrength;
+                half4 _Color; half4 _WarningColor; half _WarningAmount; half _FlashAmount; half _AuraStrength;
             CBUFFER_END
             Varyings Vertex(Attributes v)
             {
@@ -42,6 +42,7 @@ Shader "HumanGhost/Boss Phase Two Flash"
             half4 Fragment(Varyings i):SV_Target
             {
                 half4 c=SAMPLE_TEXTURE2D(_MainTex,sampler_MainTex,i.uv)*i.color;
+                c.rgb=lerp(c.rgb,_WarningColor.rgb,_WarningAmount);
                 c.rgb=lerp(c.rgb,half3(1,1,1),_FlashAmount);
                 half aura=0;
                 for(int n=0;n<8;n++)

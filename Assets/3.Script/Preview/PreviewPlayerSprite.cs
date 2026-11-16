@@ -9,6 +9,7 @@ namespace HumanGhost.Gameplay.Preview
     public class PreviewPlayerSprite : PreviewStateSprite
     {
         [SerializeField, InspectorName("플레이어 런타임")] private PlayerRuntime _player = null;
+        [SerializeField, InspectorName("발 기준 몸체")] private SpriteRenderer _ground = null;
         [SerializeField, InspectorName("원본이 왼쪽을 봄")] private bool _sourceFacesLeft = true;
         [SerializeField] private AnimationClip _airAttack = null;
         [SerializeField, InspectorName("패링 애니메이션")] private AnimationClip _parry = null;
@@ -54,11 +55,13 @@ namespace HumanGhost.Gameplay.Preview
                 foreach (Vector2 vertex in hang.vertices) _hangTop = Mathf.Max(_hangTop, vertex.y);
             var idle = base.SelectAnimation(StateKey.Idle);
             if (idle == null || Fallback == null) return;
-            float feet = Renderer.transform.localPosition.y + PreviewPresentation.VisibleBottom(Fallback) * _baseScale.y;
+            float feet = _ground != null
+                ? Renderer.transform.parent.InverseTransformPoint(new Vector3(Renderer.transform.position.x, _ground.bounds.min.y, Renderer.transform.position.z)).y
+                : Renderer.transform.localPosition.y + PreviewPresentation.VisibleBottom(Fallback) * _baseScale.y;
             idle.SampleAnimation(Renderer.gameObject, 0f);
             if (Renderer.sprite == null) return;
             Vector3 position = Renderer.transform.localPosition;
-            _standingBottom = PreviewPresentation.VisibleBottom(Renderer.sprite);
+            _standingBottom = ContactBottom(Renderer.sprite);
             position.y = feet - _standingBottom * _baseScale.y;
             Renderer.transform.localPosition = _basePosition = position;
         }
@@ -173,7 +176,7 @@ namespace HumanGhost.Gameplay.Preview
                 if (climbing)
                 {
                     float contact = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((linear - .55f) / .2f));
-                    float localY = _basePosition.y + (_standingBottom - PreviewPresentation.VisibleBottom(Renderer.sprite)) * _baseScale.y;
+                    float localY = _basePosition.y + (_standingBottom - ContactBottom(Renderer.sprite)) * _baseScale.y;
                     float groundedY = Renderer.transform.parent.TransformPoint(new Vector3(0f, localY, 0f)).y;
                     position.y = Mathf.Lerp(position.y, groundedY, contact);
                 }

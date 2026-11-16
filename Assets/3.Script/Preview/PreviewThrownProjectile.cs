@@ -9,6 +9,7 @@ namespace HumanGhost.Gameplay.Preview
         private const long _arcUnits = IntegerPosition.UnitsPerTile * 3 / 2;
         private readonly SpriteRenderer _view;
         private readonly float _worldUnitsPerTile;
+        private readonly Vector3 _hitSize;
         private IntegerPosition _start;
         private float _z;
         private IntegerPosition _end;
@@ -19,10 +20,11 @@ namespace HumanGhost.Gameplay.Preview
         public PreviewThrownProjectile(SpriteRenderer view, float worldUnitsPerTile)
         {
             _view = view; _worldUnitsPerTile = worldUnitsPerTile;
+            _hitSize = view.bounds.size;
         }
 
         public bool IsFlying => _view.enabled;
-        public Bounds Bounds => _view.bounds;
+        public Bounds Bounds => new Bounds(_view.transform.position, _hitSize);
 
         public void Throw(Vector3 from, Vector3 to, int milliseconds)
         {

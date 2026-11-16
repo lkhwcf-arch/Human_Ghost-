@@ -58,7 +58,7 @@ internal static class PriorityChecks
                 new AttackSpec(1,500,100,0,0,0,0),bindTime:grab?1000:0,bindPresses:grab?3:0,
                 chargeSpeed:charge?800:0,wallStun:charge?800:0,isProjectile:projectile)},300,500,(min,max)=>min);
         int NoRoll(int min,int max) => throw new Exception("패링 성공 시 난수 소비 금지");
-        foreach (var enemy in new[]{Enemy(),Enemy(charge:true),Enemy(projectile:true)})
+        foreach (var enemy in new[]{Enemy(),Enemy(projectile:true)})
         {
             var target = Actor(); target.TryParry(); enemy.Observe(2001,100,1); enemy.Tick(1);
             int parried = 0;
@@ -73,7 +73,7 @@ internal static class PriorityChecks
             };
             check(enemy.TryHitPlayer(2001,target,NoRoll,1) == HitOutcome.Parried && target.Health == definition.HP &&
                 enemy.CurrentState == StateKey.Stun && !enemy.IsAttackActive && enemy.Velocity == 0,
-                "근접·돌진·투척 패링 피해0·창 닫힘·정지·스턴");
+                "근접·투척 패링 피해0·창 닫힘·정지·스턴");
             check(parried == 1 && !enemy.ReceiveParried(1000) && parried == 1,
                 "동일 공격 패링 알림 한 번·중복 수신 무시");
             check(enemy.TryHitPlayer(2001,target,NoRoll,1) == HitOutcome.None && target.Health == definition.HP,
@@ -81,6 +81,13 @@ internal static class PriorityChecks
             enemy.Tick(999); check(enemy.CurrentState == StateKey.Stun,"스턴999ms 유지");
             enemy.Tick(1); check(enemy.CurrentState != StateKey.Stun,"스턴1000ms 종료");
         }
+        var charger = Enemy(charge:true); var chargingTarget = Actor();
+        chargingTarget.TryParry(); charger.Observe(2001,100,1); charger.Tick(1); int chargeParried = 0;
+        charger.Parried += () => chargeParried++;
+        check(!charger.CurrentPattern.IsParryable && !charger.ReceiveParried(1000) && charger.IsCharging,
+            "돌진은 직접 패링 수신도 거부하고 공격 유지");
+        check(charger.TryHitPlayer(2001,chargingTarget,(min,max)=>max-1,1) == HitOutcome.Hit && chargingTarget.Health < definition.HP &&
+            chargeParried == 0 && charger.CurrentState != StateKey.Stun, "돌진은 패링을 우회해 정상 피해·패링 이벤트 없음");
         var direct = Enemy();
         check(!direct.ReceiveParried(1000), "공격 전 패링 수신 거부");
         direct.Observe(2001,100,1);
@@ -104,7 +111,7 @@ internal static class PriorityChecks
         check(propagated && broken.CurrentState == StateKey.Stun && !broken.IsAttackActive && broken.CurrentPattern == null,
             "알림 예외는 전파하되 확정된 경직·공격 취소는 유지");
 
-        var feedbackEnemy = Enemy(charge:true); var feedbackTarget = Actor();
+        var feedbackEnemy = Enemy(); var feedbackTarget = Actor();
         feedbackTarget.TryParry(); feedbackEnemy.Observe(2001,100,1); feedbackEnemy.Tick(1);
         feedbackTarget.ParrySucceeded += _ => throw new InvalidOperationException("feedback fixture");
         propagated=false;

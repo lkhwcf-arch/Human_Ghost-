@@ -119,7 +119,8 @@ namespace HumanGhost.Gameplay.Presentation
             MenuText.Connect(Node(path).gameObject, hover, click);
         }
         private void Select(int index) => Execute(() => { if (!_noticeOpen) _menu.Select(index); });
-        public void Move(int direction) => Execute(() => { if (_noticeOpen) _notice.Move(direction); else _menu.Move(direction); });
+        public void Move(int direction) => Execute(() => { if (!_noticeOpen) _menu.Move(direction); });
+        public void Adjust(int direction) => Execute(() => { if (_noticeOpen) _notice.Move(direction); });
         public void Submit() => Execute(() =>
         {
             if (_noticeOpen) { _notice.Submit(); return; }
