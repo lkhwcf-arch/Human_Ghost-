@@ -37,7 +37,32 @@ def VideoPaths(project):
     root = project / "Assets/StreamingAssets"
     # 시작 맵 안내 영상은 데이터 주소 없이 이름 규칙(StartGuide_동작[_A|_B])으로 직접 재생하므로 모두 검사합니다.
     paths.update("Video/" + file.name for file in sorted((root / "Video").glob("StartGuide_*.mp4")))
+    paths.update(StartGuideVideos(project, root))
     return [(relative, StreamingPath(root, relative)) for relative in sorted(paths)]
+
+
+def StartGuideVideos(project, root):
+    # StartMapControlsView.ResolveVideo와 같은 규칙입니다. A(방향키)=_A, B(WASD)=_B, 없으면 접미사 없는 파일.
+    # Linux 빌드는 대소문자를 구분하므로 UI_Lang Key의 동작 이름과 파일 이름이 정확히 같아야 합니다.
+    table = project / "Assets/Data/Csv/UI_Lang.csv"
+    if not table.is_file():
+        return set()
+    names = {file.name for file in (root / "Video").glob("StartGuide_*.mp4")}
+    required = set()
+    with table.open(encoding="utf-8-sig", newline="") as source:
+        for row in csv.DictReader(source):
+            key = row["Key"]
+            if not key.startswith("StartGuide."):
+                continue
+            action = key[len("StartGuide."):]
+            for suffix, layout in (("_A", "A 방향키"), ("_B", "B WASD")):
+                name = next((candidate for candidate in ("StartGuide_" + action + suffix + ".mp4", "StartGuide_" + action + ".mp4")
+                             if candidate in names), None)
+                if name is None:
+                    raise ValueError("시작 안내 영상이 없습니다(" + layout + "): Video/StartGuide_" + action + suffix +
+                                     ".mp4 또는 StartGuide_" + action + ".mp4. UI_Lang 행: " + row["ID"])
+                required.add("Video/" + name)
+    return required
 
 
 def Run(command):

@@ -77,6 +77,24 @@ class BuildChecks(unittest.TestCase):
         (self.output / "HumanGhost_Data/StreamingAssets/Video" / name).write_bytes(b"guide fixture")
         CheckArtifact(self.root, self.output, VideoPaths(self.root), "build-settings")
 
+    def test_start_guide_key_requires_both_layout_videos(self):
+        video = self.root / "Assets/StreamingAssets/Video"
+        (self.root / "Assets/Data/Csv/UI_Lang.csv").write_text(
+            "ID,Key,TextID\n52202,StartGuide.Jump,30369\n52206,StartGuide.Execute,30373\n", encoding="utf-8")
+        (video / "StartGuide_Jump_A.mp4").write_bytes(b"guide fixture")
+        (video / "StartGuide_Execute.mp4").write_bytes(b"guide fixture")
+        with self.assertRaisesRegex(ValueError, "B WASD"):
+            VideoPaths(self.root)
+        # 대소문자가 다른 이름은 Linux 빌드에서 다른 파일이므로 연결로 인정하지 않습니다.
+        (video / "startguide_jump_b.mp4").write_bytes(b"guide fixture")
+        with self.assertRaisesRegex(ValueError, "B WASD"):
+            VideoPaths(self.root)
+        (video / "startguide_jump_b.mp4").unlink()
+        (video / "StartGuide_Jump_B.mp4").write_bytes(b"guide fixture")
+        relatives = [relative for relative, _ in VideoPaths(self.root)]
+        for name in ("StartGuide_Jump_A.mp4", "StartGuide_Jump_B.mp4", "StartGuide_Execute.mp4"):
+            self.assertIn("Video/" + name, relatives)
+
     def test_addressable_video_rejected_before_linux_build(self):
         (self.root / "Assets/Data/Csv/CutsceneStep.csv").write_text(
             "ID,MediaType,ResourceAddress\n1,Video,Cutscene_Intro_Video\n", encoding="utf-8")
