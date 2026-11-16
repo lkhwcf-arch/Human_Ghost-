@@ -15,6 +15,11 @@ namespace HumanGhost.Gameplay
             return checked((int)Math.Round(seconds * 1000.0, MidpointRounding.AwayFromZero));
         }
 
+        // Unity 단계 실행에서 생기는 유한한 음수 프레임은 건너뛰고 나머지를 보존합니다.
+        // 일반 시간 입력의 엄격한 검사는 Advance에서 유지합니다.
+        public int AdvanceFrame(double seconds) =>
+            seconds < 0 && !double.IsInfinity(seconds) ? 0 : Advance(seconds);
+
         public int Advance(double seconds)
         {
             if (double.IsNaN(seconds) || double.IsInfinity(seconds) || seconds < 0 || seconds > double.MaxValue / 1000.0)

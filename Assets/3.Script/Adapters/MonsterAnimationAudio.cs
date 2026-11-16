@@ -81,7 +81,7 @@ namespace HumanGhost.Gameplay.Adapters
                 _stepRemainingMilliseconds = 0; _stepClock = default;
                 return;
             }
-            _stepRemainingMilliseconds -= _stepClock.Advance(seconds);
+            _stepRemainingMilliseconds -= _stepClock.AdvanceFrame(seconds);
             if (_stepRemainingMilliseconds > 0) return;
             Play("WALK");
             _stepRemainingMilliseconds = System.Math.Max(50, _walkStepMilliseconds);

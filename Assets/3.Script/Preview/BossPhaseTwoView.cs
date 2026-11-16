@@ -61,8 +61,8 @@ namespace HumanGhost.Gameplay.Preview
         private void LateUpdate()
         {
             if (_boss.Actor == null) return;
-            _elapsedMilliseconds = _scaledClock.Advance(Time.deltaTime);
-            _flashRemainingMilliseconds = System.Math.Max(0, _flashRemainingMilliseconds - _unscaledClock.Advance(Time.unscaledDeltaTime));
+            _elapsedMilliseconds = _scaledClock.AdvanceFrame(Time.deltaTime);
+            _flashRemainingMilliseconds = System.Math.Max(0, _flashRemainingMilliseconds - _unscaledClock.AdvanceFrame(Time.unscaledDeltaTime));
             _flash.enabled = _flashRemainingMilliseconds > 0 && _camera != null;
             if (_flash.enabled)
             {
@@ -81,7 +81,7 @@ namespace HumanGhost.Gameplay.Preview
             _hitFlashMilliseconds = System.Math.Max(0, _hitFlashMilliseconds - _elapsedMilliseconds);
             if (!_rig.activeSelf) { _warning.enabled = false; _dust.enabled = false; return; }
             _idleMilliseconds = checked(_idleMilliseconds + _elapsedMilliseconds);
-            _loopMilliseconds = checked(_loopMilliseconds + _loopClock.Advance(Time.deltaTime * _loopRate / 10000d));
+            _loopMilliseconds = checked(_loopMilliseconds + _loopClock.AdvanceFrame(Time.deltaTime * _loopRate / 10000d));
             bool moving = Mathf.Abs(transform.position.x - _lastX) > .00001f; _lastX = transform.position.x;
             AnimationClip clip = moving ? _walk : _idle;
             float time = _loopMilliseconds / 1000f;

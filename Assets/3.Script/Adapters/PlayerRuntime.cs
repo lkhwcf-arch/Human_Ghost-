@@ -107,7 +107,7 @@ namespace HumanGhost.Gameplay.Adapters
         private void Update()
         {
             if (Actor == null) return;
-            Actor.Tick(_clock.Advance(Time.deltaTime));
+            Actor.Tick(_clock.AdvanceFrame(Time.deltaTime));
         }
     }
 }

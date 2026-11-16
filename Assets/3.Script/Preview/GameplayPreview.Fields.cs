@@ -103,7 +103,7 @@ namespace HumanGhost.Gameplay.Preview
         }
         private void StepFields()
         {
-            if (_fields != null && _fields.NeedsTick) _fields.Tick(_fieldClock.Advance(Time.deltaTime));
+            if (_fields != null && _fields.NeedsTick) _fields.Tick(_fieldClock.AdvanceFrame(Time.deltaTime));
         }
         private void DisconnectFields()
         {

@@ -77,7 +77,7 @@ namespace HumanGhost.Gameplay.Presentation
         private void Update()
         {
             if (_ghost == null || _ghostRatio == _targetRatio) return;
-            if (_ghostHoldMilliseconds > 0) { _ghostHoldMilliseconds = Math.Max(0, _ghostHoldMilliseconds - _clock.Advance(Time.unscaledDeltaTime)); return; }
+            if (_ghostHoldMilliseconds > 0) { _ghostHoldMilliseconds = Math.Max(0, _ghostHoldMilliseconds - _clock.AdvanceFrame(Time.unscaledDeltaTime)); return; }
             _ghostRatio = Mathf.MoveTowards(_ghostRatio, _targetRatio, Time.unscaledDeltaTime);
             SetFillRatio(_ghost, _ghostRatio);
         }
