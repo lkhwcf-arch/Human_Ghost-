@@ -576,7 +576,7 @@ namespace HumanGhost.Gameplay.Preview
                 _monsterDrivers[i].UseWalkableSpan(min, max, feet.y);
             }
             if (_stageId == StageExitRules.VillageStage)
-                StartMapControlsView.AddTo(_stage.MapRoot, _markersRoot, _feedbackTextPrefab, _playerBody.sprite, new LanguageTextSource(_catalog));
+            StartMapControlsView.AddTo(_stage.MapRoot, _markersRoot, _feedbackTextPrefab, _playerBody.sprite, _catalog);
             PreviewTraversalGuide.AddTo(_stage.MapRoot, _markersRoot, _playerBody.sprite, _playerBody.sortingLayerID, 60);
         }
 

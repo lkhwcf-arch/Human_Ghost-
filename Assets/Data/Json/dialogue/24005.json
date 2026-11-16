@@ -1,0 +1,14 @@
+{
+  "_note": "장부방 명부 살펴보기 대사 줄. 설정은 tables/Npc.xlsx Dialogue 24005.",
+  "DialogueID": 24005,
+  "Lines": [
+    { "SpeakerTextID": 30380, "TextID": 30381 },
+    { "SpeakerTextID": 30001, "TextID": 30382 },
+    { "SpeakerTextID": 30380, "TextID": 30383 },
+    { "SpeakerTextID": 30001, "TextID": 30384 },
+    { "SpeakerTextID": 30380, "TextID": 30385 },
+    { "SpeakerTextID": 30001, "TextID": 30386 },
+    { "SpeakerTextID": 30380, "TextID": 30387 },
+    { "SpeakerTextID": 30001, "TextID": 30388 }
+  ]
+}

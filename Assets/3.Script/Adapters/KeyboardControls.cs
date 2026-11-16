@@ -46,12 +46,25 @@ namespace HumanGhost.Gameplay.Adapters
                 default: return null;
             }
         }
-        public static string[] ReadActionKeys()
+        public static string ReadActionKey(string action)
         {
             bool wasd = Layout == KeyboardLayout.Wasd;
-            string Key(string action) => ReadKeyboardKey(action).ToUpperInvariant();
-            return new[] { wasd ? "W A S D" : "← ↑ ↓ →", Key("Jump"), (wasd ? "S + " : "↓ + ") + Key("Jump"),
-                Key("Attack"), Key("Roll"), wasd ? "Right Shift" : "Left Shift", Key("Skill"), Key("Herb"), Key("Interact") };
+            switch (action)
+            {
+                case "Move": return wasd ? "W A S D" : "← ↑ ↓ →";
+                case "DropThrough": return (wasd ? "S + " : "↓ + ") + ReadActionKey("Jump");
+                case "Parry": return wasd ? "Right Shift" : "Left Shift";
+                case "Execute": case "Shrine": action = "Interact"; break;
+            }
+            string key = ReadKeyboardKey(action);
+            if (key == null) throw new ArgumentException("입력 안내에 연결할 동작이 없습니다: " + action, nameof(action));
+            return key.ToUpperInvariant();
+        }
+
+        public static string[] ReadActionKeys()
+        {
+            return new[] { ReadActionKey("Move"), ReadActionKey("Jump"), ReadActionKey("DropThrough"),
+                ReadActionKey("Attack"), ReadActionKey("Roll"), ReadActionKey("Parry"), ReadActionKey("Skill"), ReadActionKey("Herb"), ReadActionKey("Interact") };
         }
 
         public static void Apply(InputActionAsset asset)

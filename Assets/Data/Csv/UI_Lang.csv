@@ -120,3 +120,11 @@ ID,Key,TextID
 52115,Error.Feature.MapTransition,30345
 52116,Error.Feature.Combat,30346
 52117,Error.Feature.Controls,30347
+52201,StartGuide.Move,30368
+52202,StartGuide.Jump,30369
+52203,StartGuide.Attack,30370
+52204,StartGuide.Herb,30371
+52205,StartGuide.Skill,30372
+52206,StartGuide.Execute,30373
+52207,StartGuide.Parry,30374
+52208,StartGuide.Shrine,30375
