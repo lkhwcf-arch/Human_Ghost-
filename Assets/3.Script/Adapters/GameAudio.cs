@@ -23,8 +23,36 @@ namespace HumanGhost.Gameplay.Adapters
         }
 
         private const int _crossfadeMilliseconds = 1000;
-        private int _fadeElapsedMilliseconds;
         private MillisecondClock _fadeClock;
+        private MusicFade _fadeA, _fadeB;
+
+        private struct MusicFade
+        {
+            private float _start, _target;
+            private int _elapsed, _duration;
+            public float Gain { get; private set; }
+            public bool IsRunning => _elapsed < _duration;
+            public bool IsFadingOut => IsRunning && _target == 0f;
+
+            public void Begin(float target, int milliseconds)
+            {
+                _start = Gain;
+                _target = target;
+                _elapsed = 0;
+                _duration = milliseconds;
+            }
+
+            public void Step(AudioSource source, int milliseconds)
+            {
+                if (!IsRunning) return;
+                _elapsed += Math.Min(milliseconds, _duration - _elapsed);
+                Gain = Mathf.Lerp(_start, _target, _elapsed / (float)_duration);
+                if (!IsRunning && _target == 0f) source.Stop();
+            }
+        }
+
+        private ref MusicFade CurrentFade => ref (_usingA ? ref _fadeA : ref _fadeB);
+        public bool IsMusicFadingOut => _fadeA.IsFadingOut || _fadeB.IsFadingOut;
         [SerializeField, InspectorName("소리 목록")] private Entry[] _clips = Array.Empty<Entry>();
         [SerializeField] private AudioSource _musicA = null;
         [SerializeField] private AudioSource _musicB = null;
@@ -51,7 +79,7 @@ namespace HumanGhost.Gameplay.Adapters
             }
         }
         private bool _usingA = true;
-        private float _fade = 1f;
+        private int _fadeInMilliseconds = _crossfadeMilliseconds;
         private float _musicVolume = 0.8f;
         private float _pauseScale = 1f;
         private GameSettings _settings = new GameSettings();
@@ -81,8 +109,9 @@ namespace HumanGhost.Gameplay.Adapters
             if (_catalog == null) return;
             string music = _currentMusic;
             _currentMusic = null; _tableMusicId = 0;
+            StopSourceMusic();
             ConnectTable(_catalog);
-            if (!string.IsNullOrEmpty(music)) PlayMusic(music);
+            if (!string.IsNullOrEmpty(music)) PlayMusic(music, _fadeInMilliseconds);
         }
 
         public void Apply(GameSettings settings)
@@ -149,32 +178,58 @@ namespace HumanGhost.Gameplay.Adapters
             if (_tablePlayer != null) _tablePlayer.SetPaused(paused);
         }
 
-        public void PlayMusic(string key)
+        public void PlayMusic(string key) => PlayMusic(key, _crossfadeMilliseconds);
+
+        public void PlayMusic(string key, int fadeInMilliseconds)
         {
+            if (fadeInMilliseconds <= 0) throw new ArgumentOutOfRangeException(nameof(fadeInMilliseconds));
             if (string.IsNullOrEmpty(key) || key == _currentMusic) return;
             if (_cueIds.TryGetValue(key, out List<int> ids))
             {
                 _tablePlayer.Play(ids[0]);
                 if (_tableMusicId != 0) _tablePlayer.Stop(_tableMusicId);
-                _musicA.Stop(); _musicB.Stop();
+                StopSourceMusic();
                 _tableMusicId = ids[0]; _currentMusic = key;
+                _fadeInMilliseconds = fadeInMilliseconds;
                 return;
             }
             if (!_lookup.TryGetValue(key, out List<AudioClip> clips)) return;
             if (_tableMusicId != 0) { _tablePlayer.Stop(_tableMusicId); _tableMusicId = 0; }
             AudioClip clip = clips[0];
+            if (_currentMusic != null && !CurrentFade.IsFadingOut)
+                CurrentFade.Begin(0f, _crossfadeMilliseconds);
             _currentMusic = key;
+            _fadeInMilliseconds = fadeInMilliseconds;
             _usingA = !_usingA;
             AudioSource next = _usingA ? _musicA : _musicB;
-            next.clip = clip; next.loop = true; next.Play();
-            _fade = 0f; _fadeElapsedMilliseconds = 0; _fadeClock = default;
+            CurrentFade = default;
+            CurrentFade.Begin(1f, fadeInMilliseconds);
+            next.clip = clip;
+            next.loop = true;
             UpdateVolumes();
+            next.Play();
+        }
+
+        public void FadeOutMusic(int milliseconds)
+        {
+            if (milliseconds <= 0) throw new ArgumentOutOfRangeException(nameof(milliseconds));
+            if (_currentMusic == null) return;
+            if (_tableMusicId != 0) { StopMusic(); return; }
+            _currentMusic = null;
+            CurrentFade.Begin(0f, milliseconds);
         }
 
         public void StopMusic()
         {
             if (_tableMusicId != 0 && _tablePlayer != null) _tablePlayer.Stop(_tableMusicId);
             _tableMusicId = 0; _currentMusic = null;
+            StopSourceMusic();
+        }
+
+        private void StopSourceMusic()
+        {
+            _fadeA = _fadeB = default;
+            _fadeClock = default;
             if (_musicA != null) _musicA.Stop();
             if (_musicB != null) _musicB.Stop();
         }
@@ -192,18 +247,18 @@ namespace HumanGhost.Gameplay.Adapters
 
         private void Update()
         {
-            if (_fade >= 1f) return;
-            _fadeElapsedMilliseconds += Math.Min(_fadeClock.AdvanceFrame(Time.unscaledDeltaTime), _crossfadeMilliseconds - _fadeElapsedMilliseconds);
-            _fade = _fadeElapsedMilliseconds / (float)_crossfadeMilliseconds;
+            if (!_fadeA.IsRunning && !_fadeB.IsRunning) return;
+            int milliseconds = _fadeClock.AdvanceFrame(Time.unscaledDeltaTime);
+            _fadeA.Step(_musicA, milliseconds);
+            _fadeB.Step(_musicB, milliseconds);
             UpdateVolumes();
-            if (_fade >= 1f) (_usingA ? _musicB : _musicA).Stop();
         }
 
         private void UpdateVolumes()
         {
             float volume = _musicVolume * _pauseScale;
-            (_usingA ? _musicA : _musicB).volume = volume * _fade;
-            (_usingA ? _musicB : _musicA).volume = volume * (1f - _fade);
+            _musicA.volume = volume * _fadeA.Gain;
+            _musicB.volume = volume * _fadeB.Gain;
         }
     }
 }

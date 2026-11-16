@@ -76,7 +76,7 @@ namespace HumanGhost.Gameplay.Preview
                 || _actor.CurrentState == HumanGhost.Data.Definitions.StateKey.Execute) return;
             // 1114 A2: 처치(처형·대화 종료 포함) 뒤 정해진 시간이 지나야 영상을 시작합니다.
             _endingWaitMilliseconds += Math.Min(_gameElapsedMilliseconds, _endingDelayMs - _endingWaitMilliseconds);
-            if (_endingWaitMilliseconds < _endingDelayMs) return;
+            if (_endingWaitMilliseconds < _endingDelayMs || (_audio != null && _audio.IsMusicFadingOut)) return;
             try
             {
                 if (BeginCutscene(_endingCutsceneId, () => _ending.EndMovie(CutsceneEndReason.Completed)))

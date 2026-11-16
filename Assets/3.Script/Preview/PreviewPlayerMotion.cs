@@ -209,12 +209,12 @@ namespace HumanGhost.Gameplay.Preview
             Bounds area = _ladder.Area;
             _lastLadderArea = area;
             Vector3 position = _player.transform.position;
-            float bottom = area.min.y + _halfSize.y;
-            float top = area.max.y + _halfSize.y + PreviewCollision.Skin;
+            long bottom = _player.ToInteger(area.min.y + _halfSize.y);
+            long top = _player.ToInteger(area.max.y + _halfSize.y + PreviewCollision.Skin);
             long step = _ladderMotion.StepHorizontal(checked(_verticalInput * _ladder.SpeedUnitsPerSecond), milliseconds);
             position.x += _collision.MoveHorizontal(position, _ladder.AxisX - position.x);
             long nextY = checked(_player.Position.Y + step);
-            nextY = Math.Max(_player.ToInteger(bottom), Math.Min(_player.ToInteger(top), nextY));
+            nextY = Math.Max(bottom, Math.Min(top, nextY));
             position.y = _player.ToWorld(nextY);
             _player.SetPosition(position);
             if (_shownLadderDirection != _verticalInput)
@@ -222,7 +222,7 @@ namespace HumanGhost.Gameplay.Preview
                 _shownLadderDirection = _verticalInput;
                 _player.NotifyPresentationCue(_verticalInput > 0 ? "LadderUp" : _verticalInput < 0 ? "LadderDown" : "LadderHold");
             }
-            if (_verticalInput > 0 && position.y >= top || _verticalInput < 0 && position.y <= bottom) LeaveLadder(_verticalInput > 0);
+            if (_verticalInput > 0 && nextY == top || _verticalInput < 0 && nextY == bottom) LeaveLadder(_verticalInput > 0);
             return true;
         }
 

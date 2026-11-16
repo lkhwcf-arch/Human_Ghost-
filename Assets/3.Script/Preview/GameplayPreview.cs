@@ -799,9 +799,10 @@ namespace HumanGhost.Gameplay.Preview
             if (_audio != null) _audio.ConnectTable(catalog);
             if (_audio != null) _audio.Apply(settings);
             if (_followCamera != null) _followCamera.ShakeEnabled = settings.CameraShake;
-            // 사용자 임시 요청: 인게임은 전투 여부와 관계없이 불 환경음만 반복합니다.
             _normalMusic = _battleMusic = "AMBIANCE_FIRE";
-            if (_audio != null) _audio.PlayMusic(_normalMusic);
+            _bossMusicPhase = null;
+            if (_bossActive) StepBossMusic();
+            else _audio?.PlayMusic(_normalMusic);
             _combat = new CombatPresence(_combatHoldMilliseconds);
             _lastHealth = _actor.Health;
             _feedback?.Dispose();
@@ -917,7 +918,7 @@ namespace HumanGhost.Gameplay.Preview
             foreach (PreviewMonsterDriver monster in _monsterDrivers) engaged |= monster.IsEngaged;
             if (engaged) _combat.Engage();
             _combat.Tick(_realElapsedMilliseconds);
-            if (_audio != null) _audio.PlayMusic(_combat.InCombat ? _battleMusic : _normalMusic);
+            if (!_bossActive) _audio?.PlayMusic(_combat.InCombat ? _battleMusic : _normalMusic);
             if (_hud != null)
             {
                 _hud.SetBright(_combat.InCombat && (_textbox == null || !_textbox.IsOpen));
@@ -996,6 +997,7 @@ namespace HumanGhost.Gameplay.Preview
             StepLedger();
             StepFirstNotices();
             StepCutsceneFlow();
+            if (_subscribed && _bossActive) StepBossMusic();
             if (StepBossPhase()) return;
             if (_modalBlocked || _saveLocked || _leaving || LoadingScreen.IsActive || !_subscribed || !_player.isActiveAndEnabled || (_bossActive && !_boss.isActiveAndEnabled)) return;
             if (_stageNamePending && CanPause() && (_textbox == null || !_textbox.IsOpen))

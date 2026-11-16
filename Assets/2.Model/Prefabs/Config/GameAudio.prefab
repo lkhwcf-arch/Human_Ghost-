@@ -351,6 +351,12 @@ MonoBehaviour:
   - _key: BGM_BOSS
     _clip: {fileID: 8300000, guid: 0570030454d77764c94b4df97c4265ef, type: 3}
     _soundId: 0
+  - _key: BGM_BOSS_PHASE1
+    _clip: {fileID: 8300000, guid: 6bcc146ec379b8e46b1ced4cec1efe5d, type: 3}
+    _soundId: 0
+  - _key: BGM_BOSS_PHASE2
+    _clip: {fileID: 8300000, guid: f28b0114d7dc6b144b428a5262e747f0, type: 3}
+    _soundId: 0
   - _key: SFX_HIT
     _clip: {fileID: 8300000, guid: f38c81019fa50e643b5ade1ff8100941, type: 3}
     _soundId: 0

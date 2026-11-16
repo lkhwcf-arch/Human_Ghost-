@@ -15,6 +15,21 @@ namespace HumanGhost.Gameplay.Preview
         private bool _bossPhaseRunning, _bossPhasePaused;
         private int _bossPhaseLine;
         private int _bossPhaseElapsedMilliseconds;
+        private int? _bossMusicPhase;
+        private const int _bossMusicFadeInMilliseconds = 2000, _bossMusicFadeOutMilliseconds = 3000;
+
+        private void StepBossMusic()
+        {
+            if (_audio == null) return;
+            BossPoise boss = _boss.Actor;
+            int? phase = boss.IsDead || boss.IsTransitioning ? (int?)null : boss.Phase.Phase;
+            if (phase == _bossMusicPhase) return;
+
+            if (_bossMusicPhase.HasValue) _audio.FadeOutMusic(_bossMusicFadeOutMilliseconds);
+            _bossMusicPhase = phase;
+            if (phase == 0) _audio.PlayMusic("BGM_BOSS_PHASE1", _bossMusicFadeInMilliseconds);
+            if (phase == 1) _audio.PlayMusic("BGM_BOSS_PHASE2", _bossMusicFadeInMilliseconds);
+        }
         private void ConnectBossPhaseData()
         {
             _boss.GetComponent<BossPhaseTwoView>()?.ConnectCamera(_followCamera);
