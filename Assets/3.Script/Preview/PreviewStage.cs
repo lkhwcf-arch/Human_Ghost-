@@ -101,7 +101,7 @@ namespace HumanGhost.Gameplay.Preview
             foreach (StagePlacement placement in layout.Placements)
             {
                 GameObject prefab = content.GetPlatform(placement.Prefab);
-                if (prefab == null) { Debug.LogWarning($"배치 {placement.PlacementID}: 플랫폼 프리팹이 없습니다: {placement.Prefab}"); continue; }
+                if (prefab == null) throw new InvalidOperationException($"배치 {placement.PlacementID}: 플랫폼 프리팹이 없습니다: {placement.Prefab}");
                 Transform anchor = anchors.Get(placement.Anchor);
                 GameObject platform = UnityEngine.Object.Instantiate(prefab, anchor.position, Quaternion.identity, MapRoot);
                 platform.name = prefab.name;
@@ -141,7 +141,7 @@ namespace HumanGhost.Gameplay.Preview
         private void SpawnMonster(StageContentSet content, StageMonsterSpawn spawn, StagePlacement placement, Transform anchor, MonsterSpawnId id)
         {
             MonsterRuntime prefab = content.GetMonster(spawn.Code);
-            if (prefab == null) { Debug.LogWarning("몬스터 프리팹이 없습니다: " + spawn.Code); return; }
+            if (prefab == null) throw new InvalidOperationException("몬스터 프리팹이 없습니다: " + spawn.Code);
             // 스테이지 소유 범위에서 위치와 데이터를 먼저 준비합니다. 원본 프리팹은 변경하지 않습니다.
             MonsterRuntime monster = UnityEngine.Object.Instantiate(prefab, _root.transform);
             monster.name = $"{prefab.name}_{spawn.PlacementId}_{spawn.Sequence}";

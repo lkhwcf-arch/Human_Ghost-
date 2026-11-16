@@ -46,6 +46,38 @@ try {
         [IO.File]::WriteAllText($project, $xml)
         dotnet build $project --nologo --verbosity quiet
         if ($LASTEXITCODE -ne 0) { throw '엔진 모듈 참조 컴파일에 실패했습니다.' }
+        # Unity 의존성을 실행하지 않고 DLL 메타데이터로 테스트 전용 코드의 포함 여부를 확인합니다.
+        $includeTests = $env:DefineConstants -match 'UNITY_EDITOR|DEVELOPMENT_BUILD'
+        $testTypes = @('ManualSaveHost', 'DemoResetHost', 'TitleSaveSelection', 'SaveSlotScreen', 'DataLoadViewer')
+        $testMethods = @('StepBossTests', 'CaptureFeedbackQa', 'CloseBossTests', 'DrawAggroTests', 'ClearAggroTests', 'RunAggroTest')
+        $stream = [IO.File]::OpenRead((Join-Path $compileRoot 'bin/Debug/net10.0/Assembly-CSharp.dll'))
+        $pe = $null
+        try {
+            $pe = [System.Reflection.PortableExecutable.PEReader]::new($stream)
+            $metadata = [System.Reflection.Metadata.PEReaderExtensions]::GetMetadataReader($pe)
+            $typeNames = [Collections.Generic.HashSet[string]]::new()
+            $methodNames = [Collections.Generic.HashSet[string]]::new()
+            foreach ($handle in $metadata.TypeDefinitions) {
+                $definition = $metadata.GetTypeDefinition($handle)
+                [void]$typeNames.Add($metadata.GetString($definition.Name))
+                if ($metadata.GetString($definition.Name) -eq 'GameplayPreview') {
+                    foreach ($method in $definition.GetMethods()) {
+                        [void]$methodNames.Add($metadata.GetString($metadata.GetMethodDefinition($method).Name))
+                    }
+                }
+            }
+            foreach ($name in $testTypes) {
+                if ($typeNames.Contains($name) -ne $includeTests) { throw "테스트 기능의 빌드 포함 조건이 잘못됐습니다: $name" }
+            }
+            foreach ($name in $testMethods) {
+                if ($methodNames.Contains($name) -ne $includeTests) { throw "개발 시험 메서드의 빌드 포함 조건이 잘못됐습니다: $name" }
+            }
+            Write-Host "DLL 테스트 기능 포함 검사 통과: 포함=$includeTests (타입 $($testTypes.Count)개·시험 메서드 $($testMethods.Count)개)"
+        }
+        finally {
+            if ($null -ne $pe) { $pe.Dispose() }
+            $stream.Dispose()
+        }
         Write-Host '엔진 모듈을 참조한 코드 컴파일을 통과했습니다. 실제 플레이·빌드 확인은 별도로 필요합니다.'
     }
     $exitCode = 0

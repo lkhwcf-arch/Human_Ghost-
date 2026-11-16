@@ -17,6 +17,7 @@ namespace HumanGhost.Gameplay.Adapters
         public int MonsterId => _monsterId;
         public MonsterPatternSettings Patterns => _patterns;
         public Monster Definition { get; private set; }
+        public MonsterAggro Aggro { get; private set; }
         public MonsterActor Actor { get; private set; }
         // 이 몬스터가 공격자일 때의 회피·치명 난수. 패턴/대기 난수열과 분리합니다.
         public Func<int, int, int> HitRandom { get; private set; }
@@ -46,6 +47,7 @@ namespace HumanGhost.Gameplay.Adapters
             if (aggro == null) throw new InvalidOperationException($"몬스터 {definition.ID}의 MonsterAggro 설정이 없습니다.");
             Actor = new MonsterActor(definition, _patterns.CreatePatterns(), _patterns.HitStun, _patterns.CritHitStun, _random.Next, keepHealth, aggro);
             HitRandom = _hitRandom.Next;
+            Aggro = aggro;
             Definition = definition;
             Initialized?.Invoke(definition);
         }

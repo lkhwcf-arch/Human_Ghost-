@@ -5,22 +5,40 @@ namespace HumanGhost.Data.Definitions
     {
         public int ID { get; }
         public int MonsterID { get; }
-        public int SightHeight { get; }
+        public int FrontRange { get; }
+        public int BackRange { get; }
+        public int UpRange { get; }
+        public int DownRange { get; }
+        public int FrontUpRange { get; }
+        public int BackUpRange { get; }
+        public int FrontDownRange { get; }
+        public int BackDownRange { get; }
         public int LoseRange { get; }
         public int LoseHeight { get; }
         public int LoseTime { get; }
         public int LeashRange { get; }
         public int ReacquireDelay { get; }
-        public MonsterAggro(int id, int monsterID, int sightHeight, int loseRange, int loseHeight, int loseTime, int leashRange, int reacquireDelay)
+        public int SameLevelHeight { get; }
+        public MonsterAggro(int id, int monsterID, int frontRange, int backRange, int upRange, int downRange,
+            int frontUpRange, int backUpRange, int frontDownRange, int backDownRange,
+            int loseRange, int loseHeight, int loseTime, int leashRange, int reacquireDelay, int sameLevelHeight)
         {
             ID = id;
             MonsterID = monsterID;
-            SightHeight = sightHeight;
+            FrontRange = frontRange;
+            BackRange = backRange;
+            UpRange = upRange;
+            DownRange = downRange;
+            FrontUpRange = frontUpRange;
+            BackUpRange = backUpRange;
+            FrontDownRange = frontDownRange;
+            BackDownRange = backDownRange;
             LoseRange = loseRange;
             LoseHeight = loseHeight;
             LoseTime = loseTime;
             LeashRange = leashRange;
             ReacquireDelay = reacquireDelay;
+            SameLevelHeight = sameLevelHeight;
         }
     }
 }

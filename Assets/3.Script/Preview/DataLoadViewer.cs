@@ -1,3 +1,4 @@
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -21,8 +22,6 @@ namespace HumanGhost.Gameplay.Preview
         private string _selected = "";
         private Vector2 _scroll;
         private readonly List<TextAsset> _jsonFiles = new List<TextAsset>();
-
-        private void Awake() { if (!Debug.isDebugBuild) Destroy(this); }
 
         private void Update()
         {
@@ -117,3 +116,4 @@ namespace HumanGhost.Gameplay.Preview
         }
     }
 }
+#endif

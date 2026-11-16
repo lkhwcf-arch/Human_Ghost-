@@ -62,6 +62,7 @@ internal static class Program
         await JsonSaveStoreChecks.RunAsync(Check);
         await DataLoadSequenceChecks.RunAsync(Check);
         DataTableChecks.Run(Check);
+        AggroTrialCopyChecks.Run(Check);
         CutsceneMappingChecks.Run(Check);
         ErrorPopupDataChecks.Run(Check);
         ErrorLogDispatchChecks.Run(Check);

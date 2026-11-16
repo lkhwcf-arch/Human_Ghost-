@@ -221,13 +221,13 @@ ID,KO,EN
 30366,결박 가르기: 요괴를 묶은 결박을 끊어 풀어 준다,Bind Cleave: Cuts the bindings that hold a spirit and sets it free.
 30367,나가기,Exit
 30368,{0} 이동,{0} Move
-30369,{0} 점프. 아래를 누른 채 누르면 발판 아래로 내려간다,{0} Jump. Hold Down and press it to drop through platforms.
+30369,{0} 점프,{0} Jump
 30370,{0} 공격,{0} Attack
-30371,{0} 약초: 체력을 되찾는다. 먹는 동안 맞으면 끊긴다,{0} Herb: Restores health. Getting hit interrupts it.
-30372,{0} 결박 가르기: 요괴를 묶은 결박을 끊어 풀어 준다,{0} Bind Cleave: Cuts the bindings that hold a spirit and sets it free.
-30373,{0} 처형: 체세가 무너진 요괴 앞에서 누르면 끝장내고 체력을 되찾는다,{0} Execute: Finish off a spirit whose poise is broken and regain health.
-30374,{0} 패링: 공격이 닿기 직전에 누르면 막아 낸다. 큰 기술과 잡기는 막을 수 없다,{0} Parry: Press just before a hit lands to deflect it. Big attacks and grabs can't be parried.
-30375,"{0} 서낭당: 기도하면 기록되고, 쓰러지면 여기서 다시 일어난다","{0} Shrine: Pray to record your journey. If you fall, you will rise here again."
+30371,{0} 약초,{0} Herb
+30372,{0} 결박 가르기,{0} Bind Cleave
+30373,{0} 처형,{0} Execute
+30374,{0} 패링,{0} Parry
+30375,{0} 서낭당,{0} Shrine
 30376,바위 협곡,Rocky Gorge
 30377,폐광,Old Mine
 30378,산사,Mountain Temple

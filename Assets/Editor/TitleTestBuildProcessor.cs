@@ -1,6 +1,7 @@
 ﻿#if UNITY_EDITOR
 using HumanGhost.Gameplay.Adapters;
 using HumanGhost.Gameplay.Presentation;
+using HumanGhost.Gameplay.Preview;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
@@ -19,6 +20,8 @@ namespace HumanGhost.EditorTools
             if (report == null || (report.summary.options & UnityEditor.BuildOptions.Development) != 0) return;
             foreach (var root in scene.GetRootGameObjects())
             {
+                foreach (var viewer in root.GetComponentsInChildren<DataLoadViewer>(true))
+                { Unpack(viewer.gameObject); Object.DestroyImmediate(viewer); }
                 foreach (var reset in root.GetComponentsInChildren<DemoResetHost>(true))
                 { Unpack(reset.gameObject); reset.StripFromReleaseBuild(); }
                 var manualScreens = root.GetComponentsInChildren<ManualSaveHost>(true);

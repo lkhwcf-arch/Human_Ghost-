@@ -77,6 +77,15 @@ def CheckVideo(path, ffprobe, ffmpeg):
          "-map", "0:v:0", "-map", "0:a?", "-f", "null", "-"])
 
 
+def FileDigest(path):
+    # 로컬 Python 3.10과 CI에서 같은 해시 검사를 사용하고 영상 전체를 메모리에 올리지 않습니다.
+    digest = hashlib.sha256()
+    with path.open("rb") as source:
+        for block in iter(lambda: source.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.digest()
+
+
 def CheckArtifact(project, output, videos, scene):
     if not (output / "HumanGhost.exe").is_file():
         raise ValueError("빌드 결과에 HumanGhost.exe가 없습니다.")
@@ -93,9 +102,8 @@ def CheckArtifact(project, output, videos, scene):
         raise ValueError("선택한 시작 씬과 빌드의 첫 씬이 다릅니다.")
     for relative, source in videos:
         built = StreamingPath(output / "HumanGhost_Data/StreamingAssets", relative)
-        with source.open("rb") as source_file, built.open("rb") as built_file:
-            if hashlib.file_digest(source_file, "sha256").digest() != hashlib.file_digest(built_file, "sha256").digest():
-                raise ValueError("빌드 영상이 원본과 다릅니다: " + relative)
+        if FileDigest(source) != FileDigest(built):
+            raise ValueError("빌드 영상이 원본과 다릅니다: " + relative)
     # 등록 리소스가 없는 프로젝트에는 빈 Addressables 번들을 강제하지 않습니다.
     groups = project / "Assets/AddressableAssetsData/AssetGroups"
     has_addresses = any(re.search(r"^\s+m_Address:", file.read_text(encoding="utf-8"), re.MULTILINE) for file in groups.glob("*.asset"))

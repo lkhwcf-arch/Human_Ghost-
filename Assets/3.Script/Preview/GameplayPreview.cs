@@ -181,7 +181,6 @@ namespace HumanGhost.Gameplay.Preview
                     if (!monster.IsInitialized) monster.Initialize(catalog);
                     _monsterDrivers[i] = new PreviewMonsterDriver(monster, _player, _playerBody, _attackWindow,
                         _firstMonsterTargetId + i, _playerTargetId, _worldUnitsPerTile, ApplyMonsterHitEffects);
-                    _monsterDrivers[i].UsePerception(_followCamera.GetComponent<Camera>());
                     _monsterDrivers[i].UseLedgeProtection(() => _motion?.ProtectedLedge);
                     var poiseView = monster.GetComponent<MonsterPoiseView>();
                     if (poiseView == null)
@@ -255,8 +254,12 @@ namespace HumanGhost.Gameplay.Preview
             catch (Exception error)
             {
                 GameSaveContext.Current?.CompleteScene(false);
-                Debug.LogException(error, this);
-                enabled = false;
+                try
+                {
+                    if (_shrineModalBinding != null) _shrineModalBinding.Report(error, this, "맵 준비 실패");
+                    else Debug.LogException(error, this);
+                }
+                finally { enabled = false; }
             }
         }
 

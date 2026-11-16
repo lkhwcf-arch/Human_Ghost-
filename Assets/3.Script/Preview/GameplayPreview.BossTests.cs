@@ -77,7 +77,7 @@ namespace HumanGhost.Gameplay.Preview
                 _bossTestRect.x = Mathf.Clamp(_bossTestRect.x, 0, Mathf.Max(0, width - _bossTestRect.width));
                 _bossTestRect.y = Mathf.Clamp(_bossTestRect.y, 0, Mathf.Max(0, height - _bossTestRect.height));
                 GUI.matrix = Matrix4x4.Scale(new Vector3(scale, scale, 1));
-                _bossTestRect = GUILayout.Window(GetInstanceID(), _bossTestRect, DrawBossTests, "보스 시험 · F8 닫기", _bossTestWindowStyle);
+                _bossTestRect = GUILayout.Window(GetInstanceID(), _bossTestRect, DrawBossTests, "개발 시험 · F8 닫기", _bossTestWindowStyle);
             }
             finally { GUI.matrix = previousMatrix; GUI.enabled = previousEnabled; }
         }
@@ -89,6 +89,7 @@ namespace HumanGhost.Gameplay.Preview
             if (GUILayout.Button("QA 진단 기록 복사", _bossTestButtonStyle))
             { _feedbackQaReport = CaptureFeedbackQa(); GUIUtility.systemCopyBuffer = _feedbackQaReport; }
             if (!string.IsNullOrEmpty(_feedbackQaReport)) GUILayout.Label(_feedbackQaReport, _bossTestLabelStyle);
+            DrawAggroTests();
             GUI.enabled = CanUseBossTest;
             if (GUILayout.Button("보스방으로 바로 이동", _bossTestButtonStyle)) _bossTestCommand = BossTestCommand.Travel;
             GUI.enabled = CanUseBossTest && _bossActive && _boss != null && _boss.Actor != null && !_boss.Actor.IsDead;
@@ -126,6 +127,7 @@ namespace HumanGhost.Gameplay.Preview
         }
         private void CloseBossTests()
         {
+            ClearAggroTests();
             if (_bossTestOpen) Cursor.visible = _bossTestCursor;
             _bossTestOpen = false; _bossTestCommand = BossTestCommand.None;
         }

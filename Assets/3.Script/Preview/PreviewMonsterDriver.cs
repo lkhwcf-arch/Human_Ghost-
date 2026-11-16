@@ -40,11 +40,13 @@ namespace HumanGhost.Gameplay.Preview
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         public string ReadFeedbackQa()
         {
-            bool ownVisible = _body != null && InView(_body.bounds.center);
-            bool playerVisible = _playerBody != null && InView(_playerBody.bounds.center);
+            if (_scope.IsDisposed || _runtime == null || _player == null) return "몬스터 관측 수명이 끝났습니다.";
             return _runtime.name + ": HP " + _monster.Health + "/" + _monster.Definition.HP +
                 " | 체세 " + _monster.Poise + " | 어그로 " + _monster.HasAggro +
-                " | 같은 바닥 " + _playerOnSpan + " | 화면(적/플레이어) " + ownVisible + "/" + playerVisible +
+                " | 대상 유효 " + CanEngageTarget() +
+                " | 가로 거리 " + IntegerPosition.ToData(Math.Abs(_player.Position.X - _runtime.Position.X)) +
+                " | 발 높이 차이 " + IntegerPosition.ToData(FootHeightOffset()) +
+                " | 정면/후면 " + _runtime.Aggro.FrontRange + "/" + _runtime.Aggro.BackRange +
                 " | 보행 구간 " + _spanMin.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) + "~" +
                 _spanMax.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
         }
@@ -53,51 +55,36 @@ namespace HumanGhost.Gameplay.Preview
         private static readonly Color _burningTint = new Color(1f, 0.65f, 0.45f);
         private bool _hasSpan;
         private float _spanMin, _spanMax, _spanY;
-        private Camera _camera;
-        private bool _playerOnSpan;
         private Func<Vector2?> _protectedLedge;
         private readonly PreviewCollision _collision;
         public void UseLedgeProtection(Func<Vector2?> protectedLedge) => _protectedLedge = protectedLedge;
 
         // 조립된 바닥에서 걸을 수 있는 구간입니다. 끝에 닿으면 벽처럼 다룹니다.
         public void UseWalkableSpan(float min, float max, float floorY)
-        { _hasSpan = true; _spanMin = min; _spanMax = max; _spanY = floorY; _playerOnSpan = false; }
-        public void UsePerception(Camera camera) => _camera = camera != null ? camera : throw new ArgumentNullException(nameof(camera));
+        { _hasSpan = true; _spanMin = min; _spanMax = max; _spanY = floorY; }
 
         private bool CanEngageTarget()
         {
             if (_scope.IsDisposed || _runtime == null || !_runtime.isActiveAndEnabled || _player == null ||
                 !_player.isActiveAndEnabled || _playerBody == null || _body == null) return false;
-            PlayerActor actor = _player.Actor;
-            if (actor.IsDead || actor.IsHanging || _player.ClimbProgress >= 0f)
-            { _playerOnSpan = false; return false; }
-            Bounds target = _playerBody.bounds;
-            float floor = _hasSpan ? _spanY : _body.bounds.min.y;
-            bool within = !_hasSpan || target.center.x >= _spanMin && target.center.x <= _spanMax;
-            if (actor.Locomotion.IsGrounded)
-                _playerOnSpan = within && Mathf.Abs(target.min.y - floor) <= .12f * _worldUnitsPerTile;
-            else if (!within || target.min.y < floor - .12f * _worldUnitsPerTile)
-                _playerOnSpan = false;
-            // 같은 발판에서 제자리 점프는 유지하지만, 위층은 그곳에 실제 착지하기 전에는 인식하지 않습니다.
-            return _playerOnSpan && InView(_body.bounds.center) && InView(target.center);
-        }
-        private bool InView(Vector3 point)
-        {
-            if (_camera == null || !_camera.isActiveAndEnabled) return false;
-            Vector3 viewport = _camera.WorldToViewportPoint(point);
-            return viewport.z > 0f && viewport.x >= 0f && viewport.x <= 1f && viewport.y >= 0f && viewport.y <= 1f;
+            // 객체 수명만 확인합니다. 거리·높이·해제·복귀 판단은 데이터 기반 코어가 소유합니다.
+            return _player.Actor != null && !_player.Actor.IsDead && !_monster.IsDead;
         }
         private void ObserveTarget()
         {
-            if (_player.Actor.IsDead) { _monster.ClearTarget(); IsEngaged = false; return; }
-            float offset = _player.transform.position.x - _runtime.transform.position.x;
-            bool eligible = CanEngageTarget();
-            _monster.Observe(_playerTargetId, Distance(offset), Math.Sign(offset),
-                Distance(_player.transform.position.y - _runtime.transform.position.y),
-                IntegerPosition.ToData(Math.Abs(_runtime.Position.X - _spawnX)), Math.Sign(_spawnX - _runtime.Position.X), eligible);
-            if (!eligible) _projectile?.Stop();
+            if (!CanEngageTarget())
+            { _monster.ClearTarget(); IsEngaged = false; _projectile?.Stop(); return; }
+            IntegerPosition target = _player.Position, own = _runtime.Position;
+            long offset = target.X - own.X;
+            long height = FootHeightOffset();
+            _monster.Observe(_playerTargetId, IntegerPosition.ToData(Math.Abs(offset)), Math.Sign(offset),
+                IntegerPosition.ToData(Math.Abs(height)),
+                IntegerPosition.ToData(Math.Abs(own.X - _spawnX)), Math.Sign(_spawnX - own.X), true, Math.Sign(height));
             IsEngaged = !_monster.IsDead && _monster.HasAggro;
         }
+
+        // 발 기준 물리 관측만 Unity 경계에서 정수화합니다. 그림 프레임이나 중심 높이 차이를 층 차이로 쓰지 않습니다.
+        private long FootHeightOffset() => _player.ToInteger(_playerBody.bounds.min.y) - _runtime.ToInteger(_body.bounds.min.y);
 
         // targetId: 이 몬스터의 장면 내 양수 개체 ID, playerTargetId: 플레이어의 개체 ID(데이터 ID와 별개).
         public PreviewMonsterDriver(MonsterRuntime runtime, PlayerRuntime player, SpriteRenderer playerBody, SpriteRenderer attackWindow,
@@ -258,6 +245,9 @@ namespace HumanGhost.Gameplay.Preview
             return renderer;
         }
 
+        // 기존 접촉 판정의 Unity 경계 변환입니다. 인식 관측은 위의 정수 좌표를 사용합니다.
+        private int Distance(float offset) => Mathf.RoundToInt(Mathf.Abs(offset) / _worldUnitsPerTile * 100f);
+
         // 임시 판정: 근접·잡기는 높이가 겹치고 앞쪽 거리 안, 돌진은 사각형 겹침. 회피/치명은 확률 경로를 씁니다.
         private void CheckMonsterHit()
         {
@@ -278,6 +268,5 @@ namespace HumanGhost.Gameplay.Preview
                 _applyHitEffects?.Invoke(_runtime.MonsterId, pattern.Key, direction == 0 ? _monster.Facing : -direction);
         }
 
-        private int Distance(float offset) => Mathf.RoundToInt(Mathf.Abs(offset) / _worldUnitsPerTile * 100f);
     }
 }

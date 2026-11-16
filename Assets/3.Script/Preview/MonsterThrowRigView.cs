@@ -13,7 +13,7 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField] private GameObject _rig = null, _heldStone = null;
         [SerializeField] private Transform _hand = null;
         [SerializeField] private AnimationClip _throw = null;
-        [SerializeField] private float _sourceFeet;
+        [SerializeField] private float _sourceFeet = 0f;
         private Vector3 _scale;
         private RigBindPose _bind;
         private MaterialPropertyBlock _properties;
