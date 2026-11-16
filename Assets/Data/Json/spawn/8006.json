@@ -21,7 +21,7 @@
         },
         {
           "MonsterCode": 3002,
-          "MonsterCount": 8,
+          "MonsterCount": 4,
           "Points": [
             [
               2700,
@@ -38,7 +38,13 @@
             [
               10800,
               0
-            ],
+            ]
+          ]
+        },
+        {
+          "MonsterCode": 3005,
+          "MonsterCount": 4,
+          "Points": [
             [
               4400,
               0

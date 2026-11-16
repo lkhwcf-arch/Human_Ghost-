@@ -5,3 +5,4 @@ ID,TextID,Type,Tier,HP,ATK,DEF,Dodge,Crit,CritDamage,Poise,MoveSpeed,ArmorPen
 1004,30004,Monster,3,90,12,4,500,0,16,48,300,0
 1005,30005,Monster,3,90,12,4,500,0,16,48,250,0
 1006,30006,Boss,,500,34,4,300,500,14,80,300,0
+1007,30350,Monster,2,60,10,2,300,0,13,24,200,0
