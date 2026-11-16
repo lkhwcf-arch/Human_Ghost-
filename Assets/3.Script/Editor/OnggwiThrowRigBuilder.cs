@@ -22,7 +22,7 @@ namespace HumanGhost.EditorTools
         private const string _folder = "Assets/5.Animation/Characters/Onggwi/Throw";
         private static readonly string[] _names = { "Root", "Body", "UpperArm", "Forearm", "Hand" };
         private static readonly int[] _parents = { -1, 0, 1, 2, 3 };
-        private static readonly Vector2[] _pixels = { new Vector2(128,128), new Vector2(128,128), new Vector2(177,140), new Vector2(177,95), new Vector2(165,32) };
+        private static readonly Vector2[] _pixels = { new Vector2(128,128), new Vector2(128,128), new Vector2(135,111), new Vector2(175,96), new Vector2(154,36) };
         [MenuItem("인귀/애니메이션/옹귀 투척 리그 최초 생성")]
         public static void Build()
         {
@@ -102,42 +102,140 @@ namespace HumanGhost.EditorTools
             }
             finally {if(rig!=null)UnityEngine.Object.DestroyImmediate(rig);EditorSceneManager.ClosePreviewScene(scene);PrefabUtility.UnloadPrefabContents(gameplay);}
         }
-        private static Sprite MakeSprite(Sprite source,Transform[] bones,Transform root)
+
+        // 기존 GUID를 유지한 채 파생 메시·관절·클립만 다시 굽습니다. 원본 PNG/Importer와 전투 설정은 건드리지 않습니다.
+        [MenuItem("인귀/애니메이션/옹귀 투척 리그 재생성")]
+        public static void RebuildThrowRig()
         {
-            var sprite=Sprite.Create(source.texture,source.rect,source.pivot/source.rect.size,source.pixelsPerUnit,0,SpriteMeshType.FullRect);sprite.name="Onggwi_ThrowSprite";
-            const int steps=26;var positions=new Vector3[(steps+1)*(steps+1)];var uv=new Vector2[positions.Length];var weights=new BoneWeight[positions.Length];var indices=new List<ushort>();
-            for(int y=0;y<=steps;y++)for(int x=0;x<=steps;x++)
+            if (EditorApplication.isPlaying) throw new InvalidOperationException("Play를 종료하고 리그를 재생성해 주세요.");
+            var prefab = PrefabUtility.LoadPrefabContents(_folder + "/Onggwi_ThrowRig.prefab");
+            try
             {
-                int i=y*(steps+1)+x;var p=new Vector2(x*source.rect.width/steps,y*source.rect.height/steps);positions[i]=(p-source.pivot)/source.pixelsPerUnit;uv[i]=(p+source.rect.position)/new Vector2(source.texture.width,source.texture.height);
-                float arm=Mathf.SmoothStep(0,1,Mathf.InverseLerp(135,166,p.x))*(1-Mathf.SmoothStep(0,1,Mathf.InverseLerp(138,165,p.y)));
-                float lower=1-Mathf.SmoothStep(0,1,Mathf.InverseLerp(78,115,p.y));float body=(1-arm)*Mathf.SmoothStep(0,1,Mathf.InverseLerp(25,60,p.y));
-                weights[i]=new BoneWeight{boneIndex0=0,weight0=1-arm-body,boneIndex1=1,weight1=body,boneIndex2=2,weight2=arm*(1-lower),boneIndex3=3,weight3=arm*lower};
-                if(x<steps&&y<steps){ushort a=(ushort)i,b=(ushort)(i+1),c=(ushort)(i+steps+1),d=(ushort)(i+steps+2);indices.Add(a);indices.Add(c);indices.Add(b);indices.Add(b);indices.Add(c);indices.Add(d);}
+                var source = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/5.Animation/Characters/Onggwi/Sprites/Onggui_00.asset");
+                var bones = new Transform[_names.Length]; var positions = new Vector2[bones.Length];
+                for (int b = 0; b < bones.Length; b++)
+                {
+                    bones[b] = prefab.GetComponentsInChildren<Transform>(true).Single(t => t.name == _names[b]);
+                    positions[b] = (_pixels[b] - source.pivot) / source.pixelsPerUnit;
+                    bones[b].localPosition = b == 0 ? Vector3.zero : (Vector3)(positions[b] - positions[_parents[b]]);
+                    bones[b].localRotation = Quaternion.identity; bones[b].localScale = Vector3.one;
+                }
+                var mesh = MakeSprite(source, bones, prefab.transform);
+                var existing = AssetDatabase.LoadAssetAtPath<Sprite>(_folder + "/Onggwi_ThrowSprite.asset");
+                EditorUtility.CopySerialized(mesh, existing); UnityEngine.Object.DestroyImmediate(mesh);
+                var clip = MakeClip(bones, positions);
+                var existingClip = AssetDatabase.LoadAssetAtPath<AnimationClip>(_folder + "/Onggwi_Throw.anim");
+                EditorUtility.CopySerialized(clip, existingClip); UnityEngine.Object.DestroyImmediate(clip);
+                // 클립 생성 후 기본 자세를 저장합니다. 마지막 투척 자세를 bind pose로 저장하지 않습니다.
+                for (int b = 0; b < bones.Length; b++) bones[b].localRotation = Quaternion.identity;
+                prefab.GetComponent<SpriteRenderer>().sprite = existing;
+                var skin = prefab.GetComponent<SpriteSkin>(); skin.SetRootBone(bones[0]); skin.SetBoneTransforms(bones);
+                skin.alwaysUpdate = true;
+                PrefabUtility.SaveAsPrefabAsset(prefab, _folder + "/Onggwi_ThrowRig.prefab");
+                EditorUtility.SetDirty(existing); EditorUtility.SetDirty(existingClip);
+                AssetDatabase.SaveAssetIfDirty(existing); AssetDatabase.SaveAssetIfDirty(existingClip);
             }
-            sprite.SetVertexCount(positions.Length);
-            using(var data=new NativeArray<Vector3>(positions,Allocator.Temp))sprite.SetVertexAttribute(VertexAttribute.Position,data);
-            using(var data=new NativeArray<Vector2>(uv,Allocator.Temp))sprite.SetVertexAttribute(VertexAttribute.TexCoord0,data);
-            using(var data=new NativeArray<ushort>(indices.ToArray(),Allocator.Temp))sprite.SetIndices(data);
-            var definitions=new SpriteBone[bones.Length];var poses=new Matrix4x4[bones.Length];
-            for(int i=0;i<bones.Length;i++){definitions[i]=new SpriteBone{name=bones[i].name,parentId=_parents[i],position=bones[i].localPosition,rotation=Quaternion.identity,length=.1f};poses[i]=bones[i].worldToLocalMatrix*root.localToWorldMatrix;}
-            sprite.SetBones(definitions);using(var data=new NativeArray<Matrix4x4>(poses,Allocator.Temp))sprite.SetBindPoses(data);
-            using(var data=new NativeArray<BoneWeight>(weights,Allocator.Temp))sprite.SetVertexAttribute(VertexAttribute.BlendWeight,data);return sprite;
+            finally { PrefabUtility.UnloadPrefabContents(prefab); }
         }
-        private static AnimationClip MakeClip(Transform[] bones,Vector2[] positions)
+
+        // 실제 팔 윤곽입니다. 몸통과 팔의 경계 정점을 복제해 팔을 움직일 때 항아리가 늘어나지 않습니다.
+        private static readonly Vector2[] _armOutline = {
+            new Vector2(129,121), new Vector2(181,105), new Vector2(189,98), new Vector2(186,83),
+            new Vector2(169,43), new Vector2(182,43), new Vector2(182,0), new Vector2(110,0),
+            new Vector2(110,43), new Vector2(142,49),
+            new Vector2(152,74), new Vector2(162,94), new Vector2(129,104)
+        };
+        private static bool InArm(Vector2 point)
         {
-            var clip=new AnimationClip{name="Onggwi_Throw",frameRate=10,wrapMode=WrapMode.ClampForever};var curves=new AnimationCurve[bones.Length,4];for(int i=0;i<bones.Length;i++)for(int j=0;j<4;j++)curves[i,j]=new AnimationCurve();
-            var times=new[]{0f,.2f,.4f,.5f,.7f,1.2f,1.7f};var targets=new[]{_pixels[4],new Vector2(215,145),new Vector2(180,215),new Vector2(65,165),new Vector2(65,105),new Vector2(145,45),_pixels[4]};
-            Vector2 upper=positions[3]-positions[2],lower=positions[4]-positions[3];
-            for(int frame=0;frame<=17;frame++)
+            bool inside = false;
+            for (int i = 0, j = _armOutline.Length - 1; i < _armOutline.Length; j = i++)
             {
-                float time=frame/10f;int segment=0;while(segment<times.Length-2&&time>times[segment+1])segment++;var target=Vector2.Lerp(targets[segment],targets[segment+1],Mathf.InverseLerp(times[segment],times[segment+1],time));target=(target-new Vector2(128,128))/100f;
-                for(int i=0;i<bones.Length;i++){bones[i].localPosition=i==0?Vector3.zero:(Vector3)(positions[i]-positions[_parents[i]]);bones[i].localRotation=Quaternion.identity;}
-                Vector2 origin=bones[2].position,delta=target-origin;float a=upper.magnitude,b=lower.magnitude,d=Mathf.Clamp(delta.magnitude,.001f,a+b-.0001f);var direction=delta.normalized;float along=(a*a+d*d-b*b)/(2*d),height=Mathf.Sqrt(Mathf.Max(0,a*a-along*along));var elbow=origin+direction*along+new Vector2(-direction.y,direction.x)*height;
-                bones[2].rotation=Quaternion.Euler(0,0,(Mathf.Atan2(elbow.y-origin.y,elbow.x-origin.x)-Mathf.Atan2(upper.y,upper.x))*Mathf.Rad2Deg);Vector2 actual=bones[3].position;bones[3].rotation=Quaternion.Euler(0,0,(Mathf.Atan2(target.y-actual.y,target.x-actual.x)-Mathf.Atan2(lower.y,lower.x))*Mathf.Rad2Deg);
-                for(int i=0;i<bones.Length;i++){var q=bones[i].localRotation;for(int j=0;j<4;j++)curves[i,j].AddKey(time,q[j]);}
+                Vector2 a = _armOutline[i], b = _armOutline[j];
+                if ((a.y > point.y) != (b.y > point.y) && point.x < (b.x-a.x)*(point.y-a.y)/(b.y-a.y)+a.x) inside = !inside;
             }
-            for(int i=0;i<bones.Length;i++)for(int j=0;j<4;j++)AnimationUtility.SetEditorCurve(clip,EditorCurveBinding.FloatCurve(AnimationUtility.CalculateTransformPath(bones[i],bones[0].parent),typeof(Transform),"m_LocalRotation."+"xyzw"[j]),curves[i,j]);
-            var settings=AnimationUtility.GetAnimationClipSettings(clip);settings.loopTime=false;settings.stopTime=1.7f;AnimationUtility.SetAnimationClipSettings(clip,settings);clip.EnsureQuaternionContinuity();return clip;
+            return inside;
+        }
+        private static Sprite MakeSprite(Sprite source, Transform[] bones, Transform root)
+        {
+            var sprite = Sprite.Create(source.texture, source.rect, source.pivot/source.rect.size, source.pixelsPerUnit, 0, SpriteMeshType.FullRect);
+            sprite.name = "Onggwi_ThrowSprite";
+            const int steps = 128;
+            var vertices = new List<Vector3>(); var uv = new List<Vector2>(); var weights = new List<BoneWeight>();
+            var indices = new List<ushort>(); var armIndices = new List<ushort>(); var lookup = new Dictionary<int, ushort>();
+            Action<int,int,int> addVertex = (x,y,part) => {
+                bool arm = part == 1;
+                int key = (part*(steps+1)+y)*(steps+1)+x;
+                if (!lookup.TryGetValue(key, out ushort index))
+                {
+                    index = checked((ushort)vertices.Count); lookup.Add(key,index);
+                    var pixel = new Vector2(x*source.rect.width/steps,y*source.rect.height/steps);
+                    vertices.Add((pixel-source.pivot)/source.pixelsPerUnit);
+                    uv.Add(((part == 2 ? new Vector2(151.5f,140.5f) : pixel)+source.rect.position)/new Vector2(source.texture.width,source.texture.height));
+                    // 팔꿈치 인접 13픽셀만 부드럽게 연결하고 나머지 몸통·뚜껑은 Root에 고정합니다.
+                    float forearm = 1f-Mathf.SmoothStep(0,1,Mathf.InverseLerp(90,103,pixel.y));
+                    weights.Add(arm ? new BoneWeight{boneIndex0=2,weight0=1f-forearm,boneIndex1=3,weight1=forearm}
+                        : new BoneWeight{boneIndex0=0,weight0=1f});
+                }
+                if (arm) armIndices.Add(index); else indices.Add(index);
+            };
+            Action<int,int> addCell = (x,y) => {
+                bool a=InArm(new Vector2((x+1f/3)*2,(y+1f/3)*2));
+                if (a && y >= 22) { addVertex(x,y,2); addVertex(x,y+1,2); addVertex(x+1,y,2); }
+                addVertex(x,y,a?1:0); addVertex(x,y+1,a?1:0); addVertex(x+1,y,a?1:0);
+                bool b=InArm(new Vector2((x+2f/3)*2,(y+2f/3)*2));
+                if (b && y >= 22) { addVertex(x+1,y,2); addVertex(x,y+1,2); addVertex(x+1,y+1,2); }
+                addVertex(x+1,y,b?1:0); addVertex(x,y+1,b?1:0); addVertex(x+1,y+1,b?1:0);
+            };
+            // 움직이지 않는 항아리는 8px 격자, 윤곽이 분리되는 팔 주변만 2px 격자로 유지합니다.
+            for (int y=0;y<steps;y+=4) for (int x=0;x<steps;x+=4)
+            {
+                if (x*2 >= 104 && x*2 <= 192 && y*2 <= 128)
+                {
+                    for(int sy=y;sy<y+4;sy++)for(int sx=x;sx<x+4;sx++)addCell(sx,sy);
+                }
+                else
+                {
+                    addVertex(x,y,0); addVertex(x,y+4,0); addVertex(x+4,y,0);
+                    addVertex(x+4,y,0); addVertex(x,y+4,0); addVertex(x+4,y+4,0);
+                }
+            }
+            indices.AddRange(armIndices);
+            sprite.SetVertexCount(vertices.Count);
+            using(var data=new NativeArray<Vector3>(vertices.ToArray(),Allocator.Temp))sprite.SetVertexAttribute(VertexAttribute.Position,data);
+            using(var data=new NativeArray<Vector2>(uv.ToArray(),Allocator.Temp))sprite.SetVertexAttribute(VertexAttribute.TexCoord0,data);
+            using(var data=new NativeArray<ushort>(indices.ToArray(),Allocator.Temp))sprite.SetIndices(data);
+            var definitions=new SpriteBone[bones.Length]; var poses=new Matrix4x4[bones.Length];
+            for(int i=0;i<bones.Length;i++)
+            {
+                definitions[i]=new SpriteBone{name=bones[i].name,parentId=_parents[i],position=bones[i].localPosition,rotation=Quaternion.identity,length=.1f};
+                poses[i]=bones[i].worldToLocalMatrix*root.localToWorldMatrix;
+            }
+            sprite.SetBones(definitions);
+            using(var data=new NativeArray<Matrix4x4>(poses,Allocator.Temp))sprite.SetBindPoses(data);
+            using(var data=new NativeArray<BoneWeight>(weights.ToArray(),Allocator.Temp))sprite.SetVertexAttribute(VertexAttribute.BlendWeight,data);
+            return sprite;
+        }
+        private static AnimationClip MakeClip(Transform[] bones, Vector2[] positions)
+        {
+            var clip=new AnimationClip{name="Onggwi_Throw",frameRate=10,wrapMode=WrapMode.ClampForever};
+            // 불가능한 IK 목표를 따라 팔꿈치가 뒤집히던 경로 대신, 관절 길이를 고정한 연속 회전입니다.
+            var times=new[]{0f,.2f,.4f,.5f,.7f,1.2f,1.7f};
+            var upper=new[]{0f,45f,95f,155f,200f,80f,0f};
+            var lower=new[]{0f,85f,145f,100f,90f,40f,0f};
+            foreach (int bone in new[]{2,3})
+            {
+                var values=bone==2?upper:lower;
+                var curve=new AnimationCurve();
+                for(int i=0;i<times.Length;i++)curve.AddKey(new Keyframe(times[i],values[i]));
+                for(int i=0;i<curve.length;i++)
+                {
+                    AnimationUtility.SetKeyLeftTangentMode(curve,i,AnimationUtility.TangentMode.ClampedAuto);
+                    AnimationUtility.SetKeyRightTangentMode(curve,i,AnimationUtility.TangentMode.ClampedAuto);
+                }
+                AnimationUtility.SetEditorCurve(clip,EditorCurveBinding.FloatCurve(AnimationUtility.CalculateTransformPath(bones[bone],bones[0].parent),typeof(Transform),"localEulerAnglesRaw.z"),curve);
+            }
+            var settings=AnimationUtility.GetAnimationClipSettings(clip);settings.loopTime=false;settings.stopTime=1.7f;AnimationUtility.SetAnimationClipSettings(clip,settings);
+            return clip;
         }
     }
 }

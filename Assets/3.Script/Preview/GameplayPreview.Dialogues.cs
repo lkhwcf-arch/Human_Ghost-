@@ -9,7 +9,7 @@ namespace HumanGhost.Gameplay.Preview
 {
     public sealed partial class GameplayPreview
     {
-        [SerializeField, InspectorName("NPC 이름표 글꼴")] private Font _npcNameFont;
+        [SerializeField, InspectorName("NPC 이름표 글꼴")] private Font _npcNameFont = null;
         private DialogueRunner _dialogues;
         private LedgerInteract _ledger;
         private SubscriptionScope _dialogueScope;
