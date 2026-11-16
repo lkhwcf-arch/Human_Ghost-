@@ -138,7 +138,7 @@ ID,KO,EN
 30259,시간 -{0}%,Time -{0}%
 30260,{0}초,{0}s
 30261,지금은 저장할 수 없습니다.,Cannot save right now.
-30262,이미 살펴본 명부다.,You have already examined the ledger.
+30262,도화의 이름이 적힌 명부다. 검은 줄은 이미 끊었다.,The ledger bearing Dohwa's name. The black cord is already cut.
 30263,피난민,Refugee
 30264,…사람이오?,...A living soul?
 30265,이 마을에 살아 있는 사람이 아직 있었구려.,I thought no one was left alive in this village.
@@ -232,3 +232,12 @@ ID,KO,EN
 30377,폐광,Old Mine
 30378,산사,Mountain Temple
 30379,막힘,Closed
+30380,명부,Ledger
+30381,피난 명부다. 목책 안에 들일 이름과 밖에 남길 이름이 갈라 적혀 있다.,"An evacuation ledger. Names to shelter behind the palisade, and names to leave outside, written apart."
+30382,…밖에 남길 이름.,...Names to leave outside.
+30383,밖에 남은 이름마다 검은 줄이 칭칭 감겨 있다.,Every name left outside is wrapped in black cord.
+30384,도화…,Dohwa...
+30385,딸의 이름이 그 줄에 묶여 있다.,His daughter's name is bound in that cord.
+30386,누가 내 딸을 여기 적었느냐.,Who wrote my daughter here?
+30387,"버선칼 끝을 대자 검은 줄이 끊기고, 묶였던 이름 하나가 풀려난다.","He sets the tip of his Beoseonkal to it. The black cord snaps, and one bound name comes loose."
+30388,묶인 것은 끊으면 된다.,What is bound can be cut.
