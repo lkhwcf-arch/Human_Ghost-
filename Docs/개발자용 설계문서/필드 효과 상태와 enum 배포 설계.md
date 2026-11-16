@@ -63,7 +63,7 @@ flowchart TD
 | FieldObject.Kind=ICE | 유지 상태 + 넉백 배율 동작 + Ice 분류 |
 | FieldObjectPlacement | StageID·PlacementID로 생성된 플랫폼 연결, X·Y·Width로 영역 구성 |
 | Monster.EffectImmunities | 몬스터별 분류 면역 공통 조회. 예: FIRE는 불만 제외 |
-| MonsterSkill → StatusEffect | 실제 유효 타격의 몬스터·상태 ID로 넉백 거리·시간 조회 |
+| MonsterSkill → StatusEffect | 실제 유효 타격의 몬스터·상태 ID로 넉백 거리·시간 조회. 시트 계약(`ZeroMeansNone=Y`)대로 EffectID 0 행은 특수효과 없음으로 건너뜀(2026-11-16, 옹귀 투사체 `StatusEffect 0` 조회 예외 수정) |
 
 필드 배치 위치는 현행 시트에 이미 있는 **플랫폼 기준 상대 좌표**를 사용합니다. 장면 전체 검색이나 누락 시 원점 생성은 하지 않습니다. PreviewStage가 생성한 플랫폼의 배치 ID별 기준점을 제공합니다. Ground 계열의 기준 높이는 기존 몬스터 배치와 같은 바닥선 규칙입니다. 현재는 생성 후 이동하지 않는 플랫폼 기준이며, 이동 플랫폼을 추가한다면 영역 기준점 갱신 연결도 필요합니다.
 

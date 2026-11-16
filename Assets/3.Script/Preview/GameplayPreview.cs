@@ -576,7 +576,7 @@ namespace HumanGhost.Gameplay.Preview
                 float max = FindSpanEnd(feet, half, 1, filter, hits) - halfWidth;
                 // 몸체보다 좁은 지형은 최초 배치점을 유지합니다. 정상 지면은 발 전체가 가장자리 안에 남습니다.
                 if (min > max) min = max = feet.x;
-                _monsterDrivers[i].UseWalkableSpan(min, max, feet.y);
+                _monsterDrivers[i].UseWalkableSpan(min, max);
             }
             if (_stageId == StageExitRules.VillageStage)
             StartMapControlsView.AddTo(_stage.MapRoot, _markersRoot, _feedbackTextPrefab, _playerBody.sprite, _catalog);
@@ -587,15 +587,45 @@ namespace HumanGhost.Gameplay.Preview
         private static float FindSpanEnd(Vector2 feet, float halfHeight, int direction, ContactFilter2D filter, List<Collider2D> hits)
         {
             const float step = 0.25f;
-            float x = feet.x;
+            // 한 칸에서 따라갈 경사 높이 한도(약 31도). 이보다 가파르면 벽·낭떠러지로 끝냅니다.
+            const float slopeReach = step * 0.6f;
+            float x = feet.x, y = feet.y;
+            Collider2D floor = SolidAt(new Vector2(x, y - 0.1f), filter, hits);
             for (int i = 0; i < 800; i++)
             {
                 float next = x + direction * step;
-                // 앞이 막히거나 발밑이 비면 그 앞에서 멈춥니다.
-                if (IsSolid(new Vector2(next, feet.y + halfHeight), filter, hits) || !IsSolid(new Vector2(next, feet.y - 0.1f), filter, hits)) break;
-                x = next;
+                // 경사 지면은 이동의 경사 추종과 같은 기준(GroundSlope_)으로 표면 높이를 따라갑니다.
+                if (TryFindSurface(next, y, slopeReach, filter, hits, out float surface, out Collider2D nextFloor) &&
+                    (PreviewCollision.IsGroundSlope(floor) || PreviewCollision.IsGroundSlope(nextFloor)))
+                {
+                    if (IsSolid(new Vector2(next, surface + halfHeight), filter, hits)) break;
+                    x = next; y = surface; floor = nextFloor;
+                    continue;
+                }
+                // 평지: 앞이 막히거나 발밑이 비면 그 앞에서 멈춥니다.
+                if (IsSolid(new Vector2(next, y + halfHeight), filter, hits)) break;
+                Collider2D flat = SolidAt(new Vector2(next, y - 0.1f), filter, hits);
+                if (flat == null) break;
+                x = next; floor = flat;
             }
             return x;
+        }
+
+        // x 위치에서 기준 높이 ±reach 안의 가장 높은 지면 윗면을 찾습니다. 시작점이 이미 막혀 있으면 가파른 벽으로 봅니다.
+        private static bool TryFindSurface(float x, float y, float reach, ContactFilter2D filter, List<Collider2D> hits,
+            out float surface, out Collider2D floor)
+        {
+            const float step = 1f / 96f;
+            surface = y; floor = null;
+            if (IsSolid(new Vector2(x, y + reach), filter, hits)) return false;
+            for (float height = y + reach; height >= y - reach; height -= step)
+            {
+                floor = SolidAt(new Vector2(x, height - 0.01f), filter, hits);
+                if (floor == null) continue;
+                surface = height;
+                return true;
+            }
+            return false;
         }
 
         private static float FindFloorDrop(Vector2 feet, float maxDrop, ContactFilter2D filter, List<Collider2D> hits)
@@ -607,12 +637,15 @@ namespace HumanGhost.Gameplay.Preview
         }
 
         private static bool IsSolid(Vector2 point, ContactFilter2D filter, List<Collider2D> hits)
+            => SolidAt(point, filter, hits) != null;
+
+        private static Collider2D SolidAt(Vector2 point, ContactFilter2D filter, List<Collider2D> hits)
         {
             hits.Clear();
             Physics2D.OverlapPoint(point, filter, hits);
             foreach (Collider2D hit in hits)
-                if (!hit.isTrigger && hit.GetComponentInParent<MonsterRuntime>() == null && hit.GetComponentInParent<PlayerRuntime>() == null) return true;
-            return false;
+                if (!hit.isTrigger && hit.GetComponentInParent<MonsterRuntime>() == null && hit.GetComponentInParent<PlayerRuntime>() == null) return hit;
+            return null;
         }
 
         // 맵 표식에 상호작용·관문·출구를 붙입니다. 표식 이름은 맵 프리팹 기준입니다.

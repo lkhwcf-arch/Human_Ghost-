@@ -127,6 +127,8 @@ namespace HumanGhost.Gameplay.Preview
             foreach (var skill in _catalog.GetTable<MonsterSkill>().All)
             {
                 if (skill.MonsterID != monsterID || skill.StateID != (int)state) continue;
+                // 시트 계약(EffectID ZeroMeansNone=Y): 0은 특수효과 없는 스킬 행이므로 조회하지 않습니다.
+                if (skill.EffectID == 0) continue;
                 var effect = _catalog.GetTable<StatusEffect>().Get(skill.EffectID);
                 switch (StatusEffectKindKeys.Parse(effect.Category))
                 {
