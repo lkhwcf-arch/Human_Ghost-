@@ -164,7 +164,7 @@ namespace HumanGhost.Gameplay.Presentation
         protected virtual void Update()
         {
             if (_paused || (!IsRunning && !_finished.HasValue)) return;
-            int elapsed = _clock.Advance(Time.unscaledDeltaTime);
+            int elapsed = _clock.AdvanceFrame(Time.unscaledDeltaTime);
             // 시작·재개 전의 편집기 정지/백그라운드 대기를 영상 준비 시간에 더하지 않습니다.
             if (_skipNextElapsed) { elapsed = 0; _skipNextElapsed = false; }
             try

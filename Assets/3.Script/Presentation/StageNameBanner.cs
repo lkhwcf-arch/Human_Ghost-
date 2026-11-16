@@ -29,7 +29,7 @@ namespace HumanGhost.Gameplay.Presentation
             gameObject.SetActive(true);
         }
 
-        private void Update() => Advance(_clock.Advance(Time.unscaledDeltaTime));
+        private void Update() => Advance(_clock.AdvanceFrame(Time.unscaledDeltaTime));
         private void Advance(int milliseconds)
         {
             long total = (long)_fadeInMilliseconds + _holdMilliseconds + _fadeOutMilliseconds;

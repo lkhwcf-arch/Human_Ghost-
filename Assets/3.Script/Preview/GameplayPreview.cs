@@ -927,8 +927,8 @@ namespace HumanGhost.Gameplay.Preview
 
         private void LateUpdate()
         {
-            _gameElapsedMilliseconds = _gameClock.Advance(Time.deltaTime);
-            _realElapsedMilliseconds = _realClock.Advance(Time.unscaledDeltaTime);
+            _gameElapsedMilliseconds = _gameClock.AdvanceFrame(Time.deltaTime);
+            _realElapsedMilliseconds = _realClock.AdvanceFrame(Time.unscaledDeltaTime);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             if (_subscribed) StepBossTests();
 #endif

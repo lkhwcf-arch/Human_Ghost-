@@ -116,7 +116,7 @@ namespace HumanGhost.Gameplay.Adapters
         {
             if (IsBusy && _preparing && !_pending.HasValue)
             {
-                _prepareElapsedMs += Math.Min(_clock.Advance(Time.unscaledDeltaTime), 30000 - _prepareElapsedMs);
+                _prepareElapsedMs += Math.Min(_clock.AdvanceFrame(Time.unscaledDeltaTime), 30000 - _prepareElapsedMs);
                 if (_prepareElapsedMs == 30000)
                 {
                     _pending = CutsceneEndReason.Failed;

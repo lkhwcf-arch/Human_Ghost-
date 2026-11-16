@@ -36,7 +36,7 @@ namespace HumanGhost.Gameplay.Preview
         public void Step(float seconds)
         {
             if (!_view.enabled) return;
-            _elapsed += System.Math.Min(_clock.Advance(seconds), _duration - _elapsed);
+            _elapsed += System.Math.Min(_clock.AdvanceFrame(seconds), _duration - _elapsed);
             long x = _start.X + (_end.X - _start.X) * _elapsed / _duration;
             long y = _start.Y + (_end.Y - _start.Y) * _elapsed / _duration;
             y += 4 * _arcUnits * _elapsed * (_duration - _elapsed) / ((long)_duration * _duration);

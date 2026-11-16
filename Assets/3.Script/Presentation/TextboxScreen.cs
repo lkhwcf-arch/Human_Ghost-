@@ -221,7 +221,7 @@ namespace HumanGhost.Gameplay.Presentation
 
         private void Update()
         {
-            int noticeElapsed = _noticeClock.Advance(Time.unscaledDeltaTime);
+            int noticeElapsed = _noticeClock.AdvanceFrame(Time.unscaledDeltaTime);
             if (IsBlackoutOpen && (_blackoutRemainingMilliseconds -= noticeElapsed) <= 0) CloseBlackout();
             if (_objective.activeSelf && (_objectiveRemainingMilliseconds -= noticeElapsed) <= 0)
             {
@@ -232,7 +232,7 @@ namespace HumanGhost.Gameplay.Presentation
             if (_playback == null) return;
             if (_unscaledPlayback && _playbackBlocked) return;
             // 글자 출력은 일시정지 중 멈춥니다(O01_2 #6). 히트스톱과 같은 시간을 씁니다.
-            _playback.Tick(_clock.Advance(_unscaledPlayback ? Time.unscaledDeltaTime : Time.deltaTime));
+            _playback.Tick(_clock.AdvanceFrame(_unscaledPlayback ? Time.unscaledDeltaTime : Time.deltaTime));
             Refresh();
         }
 

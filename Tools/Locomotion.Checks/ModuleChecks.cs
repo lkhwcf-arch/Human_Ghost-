@@ -33,6 +33,16 @@ internal static class ModuleChecks
         ExpectInvalid(() => clock.Advance(double.MaxValue));
         Check(clock.Advance(0.0005) == 1, "거부한 시간 입력이 기존 나머지를 바꾸지 않음");
 
+        var frame = new MillisecondClock();
+        Check(frame.AdvanceFrame(.0005) == 0 && frame.AdvanceFrame(-.01) == 0 &&
+            frame.AdvanceFrame(0) == 0 && frame.AdvanceFrame(.0005) == 1, "음수 Unity 프레임을 건너뛰어도 소수 ms 나머지 보존");
+        foreach (double invalid in new[] { double.NaN, double.PositiveInfinity, double.NegativeInfinity, double.MaxValue })
+            ExpectInvalid(() => frame.AdvanceFrame(invalid));
+        var frameDivided = new MillisecondClock();
+        int frameTotal = 0;
+        for (int i = 0; i < 128; i++) frameTotal += frameDivided.AdvanceFrame(1d / 128);
+        Check(frameTotal == 1000, "Unity 프레임 경계에서도 정상 경과 시간 보존");
+
         // Actor 공개 API로 설정 스냅샷·판정 창·큐·이벤트의 독립성을 확인합니다.
         AttackSpec[] source = specs();
         AttackSpec first = source[0];

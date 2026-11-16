@@ -145,7 +145,7 @@ namespace HumanGhost.Gameplay.Adapters
         protected virtual void Update()
         {
             if (_voices.Count == 0) return;
-            int elapsed = _clock.Advance(Time.unscaledDeltaTime);
+            int elapsed = _clock.AdvanceFrame(Time.unscaledDeltaTime);
             for (int index = _voices.Count - 1; index >= 0; --index)
             {
                 Voice voice = _voices[index];

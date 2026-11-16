@@ -154,7 +154,7 @@ namespace HumanGhost.Gameplay.Preview
         private void LateUpdate()
         {
             if (_target == null) return;
-            UpdateFocus(_lookClock.Advance(Time.deltaTime));
+            UpdateFocus(_lookClock.AdvanceFrame(Time.deltaTime));
             Vector3 goal = GetGoal();
             Vector3 position = transform.position - _shakeOffset;
             // 일시정지·히트스톱의 경과 시간 0에서는 SmoothDamp가 NaN을 낼 수 있습니다.
@@ -166,7 +166,7 @@ namespace HumanGhost.Gameplay.Preview
             _shakeOffset = Vector3.zero;
             if (_shakeRemainingMilliseconds > 0)
             {
-                _shakeRemainingMilliseconds = System.Math.Max(0, _shakeRemainingMilliseconds - _shakeClock.Advance(Time.unscaledDeltaTime));
+                _shakeRemainingMilliseconds = System.Math.Max(0, _shakeRemainingMilliseconds - _shakeClock.AdvanceFrame(Time.unscaledDeltaTime));
                 float strength = _shakeStrength * (_shakeRemainingMilliseconds / (float)_shakeDurationMilliseconds);
                 _shakeOffset = new Vector3(UnityEngine.Random.Range(-strength, strength), UnityEngine.Random.Range(-strength, strength), 0f);
             }

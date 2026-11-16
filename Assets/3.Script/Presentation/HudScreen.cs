@@ -122,7 +122,7 @@ namespace HumanGhost.Gameplay.Presentation
         {
             if (_player == null) return;
             if (_scope != null && _scope.TryConsumeRefresh()) RefreshData();
-            int milliseconds = _clock.Advance(Time.unscaledDeltaTime);
+            int milliseconds = _clock.AdvanceFrame(Time.unscaledDeltaTime);
             float delta = milliseconds / 1000f;
             if (_staminaFlashMilliseconds > 0)
             {

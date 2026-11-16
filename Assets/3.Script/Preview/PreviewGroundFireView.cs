@@ -18,7 +18,7 @@ namespace HumanGhost.Gameplay.Preview
         public void Step(float seconds, PlayerActor player, Bounds playerBounds)
         {
             if (!_fire.IsActive) return;
-            int ticks = _fire.Tick(_clock.Advance(seconds));
+            int ticks = _fire.Tick(_clock.AdvanceFrame(seconds));
             if (ticks > 0 && !player.IsDead && _view.bounds.Intersects(playerBounds)) player.ReceiveHit(_fire.Damage);
             if (!_fire.IsActive) _view.enabled = false;
         }

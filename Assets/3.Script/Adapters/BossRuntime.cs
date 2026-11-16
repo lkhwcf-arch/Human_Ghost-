@@ -58,7 +58,7 @@ namespace HumanGhost.Gameplay.Adapters
         private void Update()
         {
             if (Actor == null) return;
-            int milliseconds = _clock.Advance(Time.deltaTime);
+            int milliseconds = _clock.AdvanceFrame(Time.deltaTime);
             TransitionMilliseconds = Actor.IsTransitioning ? Math.Min(1000, TransitionMilliseconds + milliseconds) : 0;
             Actor.Tick(milliseconds);
             Combat?.Tick(milliseconds);

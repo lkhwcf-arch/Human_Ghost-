@@ -63,7 +63,7 @@ namespace HumanGhost.Gameplay.Adapters
             if (FreezeForEditorTest) return;
 #endif
             if (Actor == null || Actor.IsDead) return;
-            Actor.Tick(_clock.Advance(Time.deltaTime));
+            Actor.Tick(_clock.AdvanceFrame(Time.deltaTime));
         }
     }
 }

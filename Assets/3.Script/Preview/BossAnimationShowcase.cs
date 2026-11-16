@@ -31,7 +31,7 @@ namespace HumanGhost.Gameplay.Preview
 
         private void Update()
         {
-            int milliseconds = _clock.Advance(Time.deltaTime);
+            int milliseconds = _clock.AdvanceFrame(Time.deltaTime);
             _oneRemainingMilliseconds -= milliseconds;
             if (_oneRemainingMilliseconds <= 0)
             {
@@ -51,7 +51,7 @@ namespace HumanGhost.Gameplay.Preview
             }
             AnimationClip clip = _phaseTwoSteps[_twoIndex].Clip;
             // 게임과 같이 대기·걷기만 재생 배율을 적용합니다. 공격 클립은 실제 게임에서 판정 시간에 맞춰 늘거나 줄어듭니다.
-            _twoElapsedMilliseconds = checked(_twoElapsedMilliseconds + _sampleClock.Advance(Time.deltaTime * (clip.isLooping ? _settings.LoopRate : 10000) / 10000d));
+            _twoElapsedMilliseconds = checked(_twoElapsedMilliseconds + _sampleClock.AdvanceFrame(Time.deltaTime * (clip.isLooping ? _settings.LoopRate : 10000) / 10000d));
             float time = clip.isLooping ? Mathf.Repeat(_twoElapsedMilliseconds / 1000f, clip.length) : Mathf.Min(_twoElapsedMilliseconds / 1000f, clip.length);
             _bind.Restore();
             clip.SampleAnimation(_phaseTwoRig, BossPhaseTwoView.Frame(time, _settings.FramesPerSecond));

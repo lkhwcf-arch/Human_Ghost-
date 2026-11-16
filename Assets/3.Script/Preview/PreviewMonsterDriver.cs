@@ -153,7 +153,7 @@ namespace HumanGhost.Gameplay.Preview
             if (_monster.IsExposed || _monster.IsInvulnerable) return;
             _projectile?.Step(seconds);
             PlayerActor actor = _player.Actor;
-            int milliseconds = _clock.Advance(seconds);
+            int milliseconds = _clock.AdvanceFrame(seconds);
             if (_hasSpan) { minX = _spanMin; maxX = _spanMax; }
             // 턱을 차지한 플레이어가 안전하게 올라올 한 칸을 확보합니다.
             Vector2? ledge = _protectedLedge?.Invoke();

@@ -264,7 +264,7 @@ namespace HumanGhost.Gameplay.Preview
         public void Move(float seconds, float minX, float maxX)
         {
             if (_player.Actor.CurrentState == StateKey.Execute) return;
-            int milliseconds = _clock.Advance(seconds);
+            int milliseconds = _clock.AdvanceFrame(seconds);
             if (milliseconds == 0) return;
             PlayerActor actor = _player.Actor;
             if (IsClimbingLedge)
