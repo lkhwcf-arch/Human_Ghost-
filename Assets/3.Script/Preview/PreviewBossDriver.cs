@@ -96,7 +96,7 @@ namespace HumanGhost.Gameplay.Preview
             float offset = _player.transform.position.x - _runtime.transform.position.x;
             combat.Face(offset < 0f ? -1 : 1);
             _minX = minX + _body.bounds.extents.x; _maxX = maxX - _body.bounds.extents.x;
-            int milliseconds = _clock.Advance(seconds);
+            int milliseconds = _clock.AdvanceFrame(seconds);
             bool phaseTwo = _runtime.Actor.Phase.Phase > 0 && combat.HasPhaseTwoPatterns;
             _platformMilliseconds = _playerBody.bounds.min.y - _body.bounds.min.y >= 1.5f * _worldUnitsPerTile
                 ? Math.Min(3001, _platformMilliseconds + milliseconds) : 0;

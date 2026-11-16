@@ -123,7 +123,7 @@ namespace HumanGhost.Gameplay.Preview
         }
         protected override void LateUpdate()
         {
-            int milliseconds = _actionClock.Advance(Time.deltaTime);
+            int milliseconds = _actionClock.AdvanceFrame(Time.deltaTime);
             var actor = _player != null ? _player.Actor : null;
             bool inAir = actor != null && !actor.Locomotion.IsGrounded && !actor.IsHanging && !actor.IsDead;
             if (_wasInAir && actor != null && actor.Locomotion.IsGrounded && _action == null && !actor.IsParrying &&

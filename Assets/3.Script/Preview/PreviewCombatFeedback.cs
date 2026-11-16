@@ -88,8 +88,8 @@ namespace HumanGhost.Gameplay.Preview
         // 다른 표시가 색을 정한 뒤 마지막에 덮습니다.
         public void Step(float unscaledSeconds, float seconds)
         {
-            int realMilliseconds = _unscaledClock.Advance(unscaledSeconds);
-            int milliseconds = _scaledClock.Advance(seconds);
+            int realMilliseconds = _unscaledClock.AdvanceFrame(unscaledSeconds);
+            int milliseconds = _scaledClock.AdvanceFrame(seconds);
             for (int i = _impacts.Count - 1; i >= 0; i--)
             {
                 SpriteClipEffect impact = _impacts[i];

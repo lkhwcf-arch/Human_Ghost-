@@ -122,7 +122,7 @@ namespace HumanGhost.Gameplay.Presentation
             if (!_begun) return;
             try
             {
-                _elapsed += Math.Min(_clock.Advance(Time.unscaledDeltaTime), int.MaxValue - _elapsed);
+                _elapsed += Math.Min(_clock.AdvanceFrame(Time.unscaledDeltaTime), int.MaxValue - _elapsed);
                 if (!_fadeOnly) _seal.Rotate(0f, 0f, -240f * Time.unscaledDeltaTime);
                 if (_phase == 0)
                 {

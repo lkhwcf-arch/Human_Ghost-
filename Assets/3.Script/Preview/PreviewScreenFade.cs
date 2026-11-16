@@ -48,7 +48,7 @@ namespace HumanGhost.Gameplay.Preview
             }
             if (failed) yield break;
             var holdClock = new MillisecondClock();
-            for (int elapsed = 0; elapsed < hold; elapsed += Math.Min(holdClock.Advance(Time.unscaledDeltaTime), hold - elapsed))
+            for (int elapsed = 0; elapsed < hold; elapsed += Math.Min(holdClock.AdvanceFrame(Time.unscaledDeltaTime), hold - elapsed))
                 yield return null;
             yield return Tween(1f, 0f, fadeIn);
             Destroy(gameObject);
@@ -57,7 +57,7 @@ namespace HumanGhost.Gameplay.Preview
         private IEnumerator Tween(float from, float to, int milliseconds)
         {
             var clock = new MillisecondClock();
-            for (int elapsed = 0; elapsed < milliseconds; elapsed += Math.Min(clock.Advance(Time.unscaledDeltaTime), milliseconds - elapsed))
+            for (int elapsed = 0; elapsed < milliseconds; elapsed += Math.Min(clock.AdvanceFrame(Time.unscaledDeltaTime), milliseconds - elapsed))
             {
                 SetAlpha(Mathf.Lerp(from, to, elapsed / (float)milliseconds));
                 yield return null;

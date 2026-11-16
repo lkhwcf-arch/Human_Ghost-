@@ -52,7 +52,7 @@ namespace HumanGhost.Gameplay.Preview
             bool visible = eligible && (Time.deltaTime <= 0f ? _visible : moved);
             if (!visible) { Show(false); _timeMilliseconds = 0; _clock = default; return; }
             Show(true);
-            _timeMilliseconds = checked(_timeMilliseconds + _clock.Advance(Time.deltaTime * (actor.IsCharging ? _chargeRate : 10000) / 10000d));
+            _timeMilliseconds = checked(_timeMilliseconds + _clock.AdvanceFrame(Time.deltaTime * (actor.IsCharging ? _chargeRate : 10000) / 10000d));
             _timeMilliseconds %= System.Math.Max(1, MillisecondClock.ToMilliseconds(_run.length));
             float sampleTime = BossPhaseTwoView.Frame(_timeMilliseconds / 1000f, _framesPerSecond);
             _run.SampleAnimation(_rig, sampleTime);

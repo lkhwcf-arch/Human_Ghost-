@@ -193,7 +193,7 @@ namespace HumanGhost.Gameplay.Adapters
         private void Update()
         {
             if (_fade >= 1f) return;
-            _fadeElapsedMilliseconds += Math.Min(_fadeClock.Advance(Time.unscaledDeltaTime), _crossfadeMilliseconds - _fadeElapsedMilliseconds);
+            _fadeElapsedMilliseconds += Math.Min(_fadeClock.AdvanceFrame(Time.unscaledDeltaTime), _crossfadeMilliseconds - _fadeElapsedMilliseconds);
             _fade = _fadeElapsedMilliseconds / (float)_crossfadeMilliseconds;
             UpdateVolumes();
             if (_fade >= 1f) (_usingA ? _musicB : _musicA).Stop();

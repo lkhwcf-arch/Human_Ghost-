@@ -29,7 +29,7 @@ namespace HumanGhost.Gameplay.Preview
         public void Step(PlayerActor actor, float seconds)
         {
             if (_lifetime.IsDisposed || _restarting || !actor.IsDead || PreviewScreenFade.IsActive) return;
-            _deadMilliseconds += System.Math.Min(_clock.Advance(seconds), _deathAnimationMilliseconds - _deadMilliseconds);
+            _deadMilliseconds += System.Math.Min(_clock.AdvanceFrame(seconds), _deathAnimationMilliseconds - _deadMilliseconds);
             if (_deadMilliseconds < _deathAnimationMilliseconds) return;
             _restarting = true;
             string scene = _scene;

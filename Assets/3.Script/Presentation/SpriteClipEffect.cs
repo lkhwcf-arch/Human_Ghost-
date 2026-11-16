@@ -26,7 +26,7 @@ namespace HumanGhost.Gameplay.Presentation
         {
             if (float.IsNaN(seconds) || float.IsInfinity(seconds) || seconds < 0f) throw new ArgumentOutOfRangeException(nameof(seconds));
             if (!IsPlaying) return;
-            _elapsedMilliseconds += Math.Min(_clock.Advance(seconds), _durationMilliseconds - _elapsedMilliseconds);
+            _elapsedMilliseconds += Math.Min(_clock.AdvanceFrame(seconds), _durationMilliseconds - _elapsedMilliseconds);
             if (_elapsedMilliseconds >= _durationMilliseconds) { gameObject.SetActive(false); return; }
             _playingClip.SampleAnimation(_renderer.gameObject, _elapsedMilliseconds / 1000f);
         }
