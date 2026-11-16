@@ -35,6 +35,8 @@ def VideoPaths(project):
                 raise ValueError("Linux 빌드의 컷씬 영상은 streaming: 파일 주소를 사용해야 합니다. 행: " + row["ID"])
             paths.add(address[len("streaming:"):])
     root = project / "Assets/StreamingAssets"
+    # 시작 맵 안내 영상은 데이터 주소 없이 이름 규칙(StartGuide_동작[_A|_B])으로 직접 재생하므로 모두 검사합니다.
+    paths.update("Video/" + file.name for file in sorted((root / "Video").glob("StartGuide_*.mp4")))
     return [(relative, StreamingPath(root, relative)) for relative in sorted(paths)]
 
 

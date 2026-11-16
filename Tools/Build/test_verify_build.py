@@ -68,6 +68,15 @@ class BuildChecks(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Addressables"):
             CheckArtifact(self.root, self.output, VideoPaths(self.root), "build-settings")
 
+    def test_start_guide_videos_checked_without_data_address(self):
+        name = "StartGuide_Jump_A.mp4"
+        (self.root / "Assets/StreamingAssets/Video" / name).write_bytes(b"guide fixture")
+        self.assertIn("Video/" + name, [relative for relative, _ in VideoPaths(self.root)])
+        with self.assertRaisesRegex(ValueError, "없거나 비어"):
+            CheckArtifact(self.root, self.output, VideoPaths(self.root), "build-settings")
+        (self.output / "HumanGhost_Data/StreamingAssets/Video" / name).write_bytes(b"guide fixture")
+        CheckArtifact(self.root, self.output, VideoPaths(self.root), "build-settings")
+
     def test_addressable_video_rejected_before_linux_build(self):
         (self.root / "Assets/Data/Csv/CutsceneStep.csv").write_text(
             "ID,MediaType,ResourceAddress\n1,Video,Cutscene_Intro_Video\n", encoding="utf-8")
