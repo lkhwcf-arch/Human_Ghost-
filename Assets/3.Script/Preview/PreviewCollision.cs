@@ -83,9 +83,39 @@ namespace HumanGhost.Gameplay.Preview
             return policy != null ? policy.Allowed : _dropThroughRoot != null && support.transform.IsChildOf(_dropThroughRoot);
         }
 
-        public bool FindFloor(Vector3 position, float distance, out float floorDistance)
+        public bool TryFollowGroundSlope(Vector3 position, float delta, out float height)
+        {
+            height = position.y;
+            if (!_useColliders || delta == 0f ||
+                !FindFloor(position, 0.05f, out _, out Collider2D currentFloor)) return false;
+
+            // 단차나 다른 층으로 건너뛰지 않도록 이번 수평 이동 거리만큼의 경사만 따라갑니다.
+            float reach = Mathf.Abs(delta) + Skin * 2f;
+            Vector3 target = position + new Vector3(delta, reach, 0f);
+            if (!FindFloor(target, reach * 2f, out float gap, out Collider2D nextFloor) ||
+                nextFloor.usedByEffector ||
+                (!IsGroundSlope(currentFloor) && !IsGroundSlope(nextFloor))) return false;
+
+            float nextHeight = target.y - gap;
+            float rise = Mathf.Max(0f, nextHeight - position.y);
+            if (rise > 0f && MoveUp(position, rise, out _) < rise - Skin) return false;
+            position.y += rise;
+            if (Mathf.Abs(MoveHorizontal(position, delta) - delta) > 0.0001f) return false;
+
+            height = nextHeight;
+            return true;
+        }
+
+        private static bool IsGroundSlope(Collider2D collider) =>
+            collider is PolygonCollider2D && collider.gameObject.name.StartsWith("GroundSlope_", System.StringComparison.Ordinal);
+
+        public bool FindFloor(Vector3 position, float distance, out float floorDistance) =>
+            FindFloor(position, distance, out floorDistance, out _);
+
+        private bool FindFloor(Vector3 position, float distance, out float floorDistance, out Collider2D floor)
         {
             floorDistance = distance;
+            floor = null;
             if (!_useColliders)
             {
                 float gap = position.y - _flatFloorY;
@@ -109,7 +139,11 @@ namespace HumanGhost.Gameplay.Preview
                 // 단방향 발판은 발이 윗면보다 위에 있을 때만 밟습니다.
                 if (hit.collider.usedByEffector && feet < hit.collider.bounds.max.y - Skin) continue;
                 float value = Mathf.Max(0f, hit.distance - Skin);
-                if (!found || value < floorDistance) floorDistance = value;
+                if (!found || value < floorDistance)
+                {
+                    floorDistance = value;
+                    floor = hit.collider;
+                }
                 found = true;
             }
             return found;

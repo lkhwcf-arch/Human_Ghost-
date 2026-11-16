@@ -1,0 +1,1756 @@
+fileFormatVersion: 2
+guid: c4f15d8e45d890d4eb5beb2980b9d8da
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 7216493110000000000
+    second: WindblownSnow_01
+  - first:
+      213: 7216493110000000001
+    second: WindblownSnow_02
+  - first:
+      213: 7216493110000000002
+    second: WindblownSnow_03
+  - first:
+      213: 7216493110000000003
+    second: WindblownSnow_04
+  - first:
+      213: 7216493110000000004
+    second: WindblownSnow_05
+  - first:
+      213: 7216493110000000005
+    second: WindblownSnow_06
+  - first:
+      213: 7216493110000000006
+    second: WindblownSnow_07
+  - first:
+      213: 7216493110000000007
+    second: WindblownSnow_08
+  - first:
+      213: 7216493110000000008
+    second: WindblownSnow_09
+  - first:
+      213: 7216493110000000009
+    second: WindblownSnow_10
+  - first:
+      213: 7216493110000000010
+    second: WindblownSnow_11
+  - first:
+      213: 7216493110000000011
+    second: WindblownSnow_12
+  - first:
+      213: 7216493110000000012
+    second: WindblownSnow_13
+  - first:
+      213: 7216493110000000013
+    second: WindblownSnow_14
+  - first:
+      213: 7216493110000000014
+    second: WindblownSnow_15
+  - first:
+      213: 7216493110000000015
+    second: WindblownSnow_16
+  - first:
+      213: 7216493110000000016
+    second: WindblownSnow_17
+  - first:
+      213: 7216493110000000017
+    second: WindblownSnow_18
+  - first:
+      213: 7216493110000000018
+    second: WindblownSnow_19
+  - first:
+      213: 7216493110000000019
+    second: WindblownSnow_20
+  - first:
+      213: 7216493110000000020
+    second: WindblownSnow_21
+  - first:
+      213: 7216493110000000021
+    second: WindblownSnow_22
+  - first:
+      213: 7216493110000000022
+    second: WindblownSnow_23
+  - first:
+      213: 7216493110000000023
+    second: WindblownSnow_24
+  - first:
+      213: 7216493110000000024
+    second: WindblownSnow_25
+  - first:
+      213: 7216493110000000025
+    second: WindblownSnow_26
+  - first:
+      213: 7216493110000000026
+    second: WindblownSnow_27
+  - first:
+      213: 7216493110000000027
+    second: WindblownSnow_28
+  - first:
+      213: 7216493110000000028
+    second: WindblownSnow_29
+  - first:
+      213: 7216493110000000029
+    second: WindblownSnow_30
+  - first:
+      213: 7216493110000000030
+    second: WindblownSnow_31
+  - first:
+      213: 7216493110000000031
+    second: WindblownSnow_32
+  - first:
+      213: 7216493110000000032
+    second: WindblownSnow_33
+  - first:
+      213: 7216493110000000033
+    second: WindblownSnow_34
+  - first:
+      213: 7216493110000000034
+    second: WindblownSnow_35
+  - first:
+      213: 7216493110000000035
+    second: WindblownSnow_36
+  - first:
+      213: 7216493110000000036
+    second: WindblownSnow_37
+  - first:
+      213: 7216493110000000037
+    second: WindblownSnow_38
+  - first:
+      213: 7216493110000000038
+    second: WindblownSnow_39
+  - first:
+      213: 7216493110000000039
+    second: WindblownSnow_40
+  - first:
+      213: 7216493110000000040
+    second: WindblownSnow_41
+  - first:
+      213: 7216493110000000041
+    second: WindblownSnow_42
+  - first:
+      213: 7216493110000000042
+    second: WindblownSnow_43
+  - first:
+      213: 7216493110000000043
+    second: WindblownSnow_44
+  - first:
+      213: 7216493110000000044
+    second: WindblownSnow_45
+  - first:
+      213: 7216493110000000045
+    second: WindblownSnow_46
+  - first:
+      213: 7216493110000000046
+    second: WindblownSnow_47
+  - first:
+      213: 7216493110000000047
+    second: WindblownSnow_48
+  - first:
+      213: 7216493110000000048
+    second: WindblownSnow_49
+  - first:
+      213: 7216493110000000049
+    second: WindblownSnow_50
+  - first:
+      213: 7216493110000000050
+    second: WindblownSnow_51
+  - first:
+      213: 7216493110000000051
+    second: WindblownSnow_52
+  - first:
+      213: 7216493110000000052
+    second: WindblownSnow_53
+  - first:
+      213: 7216493110000000053
+    second: WindblownSnow_54
+  - first:
+      213: 7216493110000000054
+    second: WindblownSnow_55
+  - first:
+      213: 7216493110000000055
+    second: WindblownSnow_56
+  - first:
+      213: 7216493110000000056
+    second: WindblownSnow_57
+  - first:
+      213: 7216493110000000057
+    second: WindblownSnow_58
+  - first:
+      213: 7216493110000000058
+    second: WindblownSnow_59
+  - first:
+      213: 7216493110000000059
+    second: WindblownSnow_60
+  - first:
+      213: 7216493110000000060
+    second: WindblownSnow_61
+  - first:
+      213: 7216493110000000061
+    second: WindblownSnow_62
+  - first:
+      213: 7216493110000000062
+    second: WindblownSnow_63
+  - first:
+      213: 7216493110000000063
+    second: WindblownSnow_64
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 4096
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 0
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 0
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: WindblownSnow_01
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1512
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d3b248ca0515459aa45a572fdc1b93e1
+      internalID: 7216493110000000000
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_02
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 1512
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2cf3df54fca74a7db307f3a72c2a766a
+      internalID: 7216493110000000001
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_03
+      rect:
+        serializedVersion: 2
+        x: 768
+        y: 1512
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 048e26a076db4511a5e9206627e4ca14
+      internalID: 7216493110000000002
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_04
+      rect:
+        serializedVersion: 2
+        x: 1152
+        y: 1512
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b283c8f5b0e84116b1f4bd078501c60d
+      internalID: 7216493110000000003
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_05
+      rect:
+        serializedVersion: 2
+        x: 1536
+        y: 1512
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9bbdb8bc71414e02a9acc5af2aee33e3
+      internalID: 7216493110000000004
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_06
+      rect:
+        serializedVersion: 2
+        x: 1920
+        y: 1512
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 98d32ce1c3634b4dae3dcb46e4093e45
+      internalID: 7216493110000000005
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_07
+      rect:
+        serializedVersion: 2
+        x: 2304
+        y: 1512
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dfc3e0647cd5438ebc20c857157cadfc
+      internalID: 7216493110000000006
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_08
+      rect:
+        serializedVersion: 2
+        x: 2688
+        y: 1512
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d871dbf2c36d4c6bb0f24ee757793485
+      internalID: 7216493110000000007
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_09
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1296
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28b28d1e121c47559bfddb6125ca0b34
+      internalID: 7216493110000000008
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_10
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 1296
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: acb059f5267c4a89aed4fbfd3bdbc0e4
+      internalID: 7216493110000000009
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_11
+      rect:
+        serializedVersion: 2
+        x: 768
+        y: 1296
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 26d1ee853ebc412f9c639d3d5acf5dc5
+      internalID: 7216493110000000010
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_12
+      rect:
+        serializedVersion: 2
+        x: 1152
+        y: 1296
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 10dcaaff438d4756b1578f249264764d
+      internalID: 7216493110000000011
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_13
+      rect:
+        serializedVersion: 2
+        x: 1536
+        y: 1296
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: abd05e07018d4e32b6f25b182b2b5b0b
+      internalID: 7216493110000000012
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_14
+      rect:
+        serializedVersion: 2
+        x: 1920
+        y: 1296
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e294eb7218414d6687640c7676edcca2
+      internalID: 7216493110000000013
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_15
+      rect:
+        serializedVersion: 2
+        x: 2304
+        y: 1296
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b9d7cacd91154570b562b787356771a1
+      internalID: 7216493110000000014
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_16
+      rect:
+        serializedVersion: 2
+        x: 2688
+        y: 1296
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1ade2aa8d1bd44ebaf00f7060355287c
+      internalID: 7216493110000000015
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_17
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1080
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 194e226dee4c4434a7ae2eeb7d8a3506
+      internalID: 7216493110000000016
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_18
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 1080
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 46564886fe63433cab2777756f854466
+      internalID: 7216493110000000017
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_19
+      rect:
+        serializedVersion: 2
+        x: 768
+        y: 1080
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5561ed22769c4ded8286d196a7503cfa
+      internalID: 7216493110000000018
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_20
+      rect:
+        serializedVersion: 2
+        x: 1152
+        y: 1080
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2f1b9e79315044ba85a0625ec9784299
+      internalID: 7216493110000000019
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_21
+      rect:
+        serializedVersion: 2
+        x: 1536
+        y: 1080
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a181ac6e128f416cb5d076d1b41a4005
+      internalID: 7216493110000000020
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_22
+      rect:
+        serializedVersion: 2
+        x: 1920
+        y: 1080
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c53b36d750b04f4693f7bbf6bf8da0c7
+      internalID: 7216493110000000021
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_23
+      rect:
+        serializedVersion: 2
+        x: 2304
+        y: 1080
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 726d40fc307d4cd08c686bb6ce8f96bb
+      internalID: 7216493110000000022
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_24
+      rect:
+        serializedVersion: 2
+        x: 2688
+        y: 1080
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c609a691250b46d19163ac1614203a15
+      internalID: 7216493110000000023
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_25
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 864
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1298bb5f3c5345818d81ee62b3931480
+      internalID: 7216493110000000024
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_26
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 864
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e9da7438b22f43e0b024153f0cba3a78
+      internalID: 7216493110000000025
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_27
+      rect:
+        serializedVersion: 2
+        x: 768
+        y: 864
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e3611b6abf0a443994b7fd33457b4d05
+      internalID: 7216493110000000026
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_28
+      rect:
+        serializedVersion: 2
+        x: 1152
+        y: 864
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d2cd36054139418c9393934da04a3947
+      internalID: 7216493110000000027
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_29
+      rect:
+        serializedVersion: 2
+        x: 1536
+        y: 864
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4db4882b89a9446cbc53e29fc6341690
+      internalID: 7216493110000000028
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_30
+      rect:
+        serializedVersion: 2
+        x: 1920
+        y: 864
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ed63f465993c4840a3524b64c56595bc
+      internalID: 7216493110000000029
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_31
+      rect:
+        serializedVersion: 2
+        x: 2304
+        y: 864
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e12193ebdc0249e4b121dc1f0317846c
+      internalID: 7216493110000000030
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_32
+      rect:
+        serializedVersion: 2
+        x: 2688
+        y: 864
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bd74fbe6360e4a0bb304fd75a9ece68d
+      internalID: 7216493110000000031
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_33
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 648
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8be32c0c5c30455ca335161f8a076740
+      internalID: 7216493110000000032
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_34
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 648
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 631a9037e94b47e7b5656a210dab8639
+      internalID: 7216493110000000033
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_35
+      rect:
+        serializedVersion: 2
+        x: 768
+        y: 648
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8eca9d1e1744462ca95f16c06304d626
+      internalID: 7216493110000000034
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_36
+      rect:
+        serializedVersion: 2
+        x: 1152
+        y: 648
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b2328b3075b3403882c86d28ea028bfa
+      internalID: 7216493110000000035
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_37
+      rect:
+        serializedVersion: 2
+        x: 1536
+        y: 648
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 61d3b6c9c8bf45af8711e9e94ace6b8c
+      internalID: 7216493110000000036
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_38
+      rect:
+        serializedVersion: 2
+        x: 1920
+        y: 648
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bb0b40894adc4220931200bbe61be234
+      internalID: 7216493110000000037
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_39
+      rect:
+        serializedVersion: 2
+        x: 2304
+        y: 648
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 070c9dc99e904948ab30f99e5aea73af
+      internalID: 7216493110000000038
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_40
+      rect:
+        serializedVersion: 2
+        x: 2688
+        y: 648
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f244d77f42014097a00adcbf4b9779b1
+      internalID: 7216493110000000039
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_41
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 432
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0473da7eeb3a4b05aec0b533939d170d
+      internalID: 7216493110000000040
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_42
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 432
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f285e3ab37584de6b02cc48119121b64
+      internalID: 7216493110000000041
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_43
+      rect:
+        serializedVersion: 2
+        x: 768
+        y: 432
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 762cf43f31e64772b55bb3e2c37fe368
+      internalID: 7216493110000000042
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_44
+      rect:
+        serializedVersion: 2
+        x: 1152
+        y: 432
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0f6f164f58534b9b89d440c0950a12b3
+      internalID: 7216493110000000043
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_45
+      rect:
+        serializedVersion: 2
+        x: 1536
+        y: 432
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e609f39683e04501bbea0dfa874e6145
+      internalID: 7216493110000000044
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_46
+      rect:
+        serializedVersion: 2
+        x: 1920
+        y: 432
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2e1ef71ac8824f989c2c8e6dc1c6eb40
+      internalID: 7216493110000000045
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_47
+      rect:
+        serializedVersion: 2
+        x: 2304
+        y: 432
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4be79562321f4928b239271bf2f73f21
+      internalID: 7216493110000000046
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_48
+      rect:
+        serializedVersion: 2
+        x: 2688
+        y: 432
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5c0d0601063e4950877a040dbe11ca52
+      internalID: 7216493110000000047
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_49
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 216
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8c46615d5e1349fc917f76cac0762bfb
+      internalID: 7216493110000000048
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_50
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 216
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7c4416ebc6a346a0bbbafed224af33d9
+      internalID: 7216493110000000049
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_51
+      rect:
+        serializedVersion: 2
+        x: 768
+        y: 216
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7a24440193f948da8617948f56739c3c
+      internalID: 7216493110000000050
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_52
+      rect:
+        serializedVersion: 2
+        x: 1152
+        y: 216
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 57b582fe960e4ed0a4f782b2f101d60e
+      internalID: 7216493110000000051
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_53
+      rect:
+        serializedVersion: 2
+        x: 1536
+        y: 216
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 386a17bd382140d393232285b93e2d8b
+      internalID: 7216493110000000052
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_54
+      rect:
+        serializedVersion: 2
+        x: 1920
+        y: 216
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7ea6644d9c634576a6f424293d50e159
+      internalID: 7216493110000000053
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_55
+      rect:
+        serializedVersion: 2
+        x: 2304
+        y: 216
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4738bb2362a44f9d8a9ca51d3941e441
+      internalID: 7216493110000000054
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_56
+      rect:
+        serializedVersion: 2
+        x: 2688
+        y: 216
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6653d1b091b84e0b92dfc25254bd2f53
+      internalID: 7216493110000000055
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_57
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0bfca4c26ce14a9b8a7d8e9b6892fe43
+      internalID: 7216493110000000056
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_58
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 0
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ee5ded65b86842c7a98367abc7f0c076
+      internalID: 7216493110000000057
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_59
+      rect:
+        serializedVersion: 2
+        x: 768
+        y: 0
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fb2121e1899e471bb31de605119b1b2b
+      internalID: 7216493110000000058
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_60
+      rect:
+        serializedVersion: 2
+        x: 1152
+        y: 0
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2eb1892d110c4e2da6e061160462798f
+      internalID: 7216493110000000059
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_61
+      rect:
+        serializedVersion: 2
+        x: 1536
+        y: 0
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c6e824a91c914d16bb462d6b80a498a4
+      internalID: 7216493110000000060
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_62
+      rect:
+        serializedVersion: 2
+        x: 1920
+        y: 0
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6c98677d096e4f6a80baf062e8fef395
+      internalID: 7216493110000000061
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_63
+      rect:
+        serializedVersion: 2
+        x: 2304
+        y: 0
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3ed0983df16342e6959850c1b5f2076d
+      internalID: 7216493110000000062
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WindblownSnow_64
+      rect:
+        serializedVersion: 2
+        x: 2688
+        y: 0
+        width: 384
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 314ee55d11c844e99d8463604958e193
+      internalID: 7216493110000000063
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      WindblownSnow_01: 7216493110000000000
+      WindblownSnow_02: 7216493110000000001
+      WindblownSnow_03: 7216493110000000002
+      WindblownSnow_04: 7216493110000000003
+      WindblownSnow_05: 7216493110000000004
+      WindblownSnow_06: 7216493110000000005
+      WindblownSnow_07: 7216493110000000006
+      WindblownSnow_08: 7216493110000000007
+      WindblownSnow_09: 7216493110000000008
+      WindblownSnow_10: 7216493110000000009
+      WindblownSnow_11: 7216493110000000010
+      WindblownSnow_12: 7216493110000000011
+      WindblownSnow_13: 7216493110000000012
+      WindblownSnow_14: 7216493110000000013
+      WindblownSnow_15: 7216493110000000014
+      WindblownSnow_16: 7216493110000000015
+      WindblownSnow_17: 7216493110000000016
+      WindblownSnow_18: 7216493110000000017
+      WindblownSnow_19: 7216493110000000018
+      WindblownSnow_20: 7216493110000000019
+      WindblownSnow_21: 7216493110000000020
+      WindblownSnow_22: 7216493110000000021
+      WindblownSnow_23: 7216493110000000022
+      WindblownSnow_24: 7216493110000000023
+      WindblownSnow_25: 7216493110000000024
+      WindblownSnow_26: 7216493110000000025
+      WindblownSnow_27: 7216493110000000026
+      WindblownSnow_28: 7216493110000000027
+      WindblownSnow_29: 7216493110000000028
+      WindblownSnow_30: 7216493110000000029
+      WindblownSnow_31: 7216493110000000030
+      WindblownSnow_32: 7216493110000000031
+      WindblownSnow_33: 7216493110000000032
+      WindblownSnow_34: 7216493110000000033
+      WindblownSnow_35: 7216493110000000034
+      WindblownSnow_36: 7216493110000000035
+      WindblownSnow_37: 7216493110000000036
+      WindblownSnow_38: 7216493110000000037
+      WindblownSnow_39: 7216493110000000038
+      WindblownSnow_40: 7216493110000000039
+      WindblownSnow_41: 7216493110000000040
+      WindblownSnow_42: 7216493110000000041
+      WindblownSnow_43: 7216493110000000042
+      WindblownSnow_44: 7216493110000000043
+      WindblownSnow_45: 7216493110000000044
+      WindblownSnow_46: 7216493110000000045
+      WindblownSnow_47: 7216493110000000046
+      WindblownSnow_48: 7216493110000000047
+      WindblownSnow_49: 7216493110000000048
+      WindblownSnow_50: 7216493110000000049
+      WindblownSnow_51: 7216493110000000050
+      WindblownSnow_52: 7216493110000000051
+      WindblownSnow_53: 7216493110000000052
+      WindblownSnow_54: 7216493110000000053
+      WindblownSnow_55: 7216493110000000054
+      WindblownSnow_56: 7216493110000000055
+      WindblownSnow_57: 7216493110000000056
+      WindblownSnow_58: 7216493110000000057
+      WindblownSnow_59: 7216493110000000058
+      WindblownSnow_60: 7216493110000000059
+      WindblownSnow_61: 7216493110000000060
+      WindblownSnow_62: 7216493110000000061
+      WindblownSnow_63: 7216493110000000062
+      WindblownSnow_64: 7216493110000000063
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

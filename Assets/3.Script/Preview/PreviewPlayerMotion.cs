@@ -305,13 +305,18 @@ namespace HumanGhost.Gameplay.Preview
             float previousFeet = position.y - _halfSize.y;
             long delta = GetHorizontalDelta(actor, milliseconds);
             float requested = _player.ToWorld(delta);
-            float allowed = _collision.MoveHorizontal(position, requested);
+            float targetX = position.x + requested;
+            float slopeHeight = position.y;
+            bool onSlope = !_airborne && targetX >= minX && targetX <= maxX &&
+                _collision.TryFollowGroundSlope(position, requested, out slopeHeight);
+            float allowed = onSlope ? requested : _collision.MoveHorizontal(position, requested);
             long x = checked(previous.X + (allowed == requested ? delta : _player.ToInteger(allowed)));
             if (!float.IsNegativeInfinity(minX)) x = Math.Max(x, _player.ToInteger(minX));
             if (!float.IsPositiveInfinity(maxX)) x = Math.Min(x, _player.ToInteger(maxX));
             if (allowed != requested || x != previous.X + delta) { _motion.ResetHorizontal(); _knockback.StopRoll(); }
             position.x = _player.ToWorld(x);
-            long y = MoveVertical(position, previous.Y, milliseconds);
+            long y = onSlope ? _player.ToInteger(slopeHeight) : MoveVertical(position, previous.Y, milliseconds);
+            if (onSlope) _coyoteRemaining = 0;
             _player.SetPosition(new IntegerPosition(x, y));
             position = _player.ToWorld(_player.Position);
             _peakY = Math.Max(_peakY, y);
