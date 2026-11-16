@@ -11,6 +11,7 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField, InspectorName("플레이어 런타임")] private PlayerRuntime _player = null;
         [SerializeField, InspectorName("원본이 왼쪽을 봄")] private bool _sourceFacesLeft = true;
         [SerializeField] private AnimationClip _airAttack = null;
+        [SerializeField, InspectorName("패링 애니메이션")] private AnimationClip _parry = null;
         private AnimationClip _executionAnimation;
         public void SetExecutionAnimation(AnimationClip clip) => _executionAnimation = clip;
         [SerializeField] private AnimationClip _walk = null;
@@ -187,7 +188,7 @@ namespace HumanGhost.Gameplay.Preview
         {
             if (state == StateKey.Stun && _player.KnockdownAnimation != null) return _player.KnockdownAnimation;
             if (state == StateKey.Execute && _executionAnimation != null) return _executionAnimation;
-            if (_player.Actor.IsParrying) return null;
+            if (_player.Actor.IsParrying) return _parry;
             if (state == StateKey.Hang && _player.ClimbProgress >= 0f && _climb != null) return _climb;
             if (_onLadder && state == StateKey.Hang && _ladderClimb != null) return _ladderClimb;
             if (_action != null)
