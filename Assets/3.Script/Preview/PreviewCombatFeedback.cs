@@ -123,6 +123,22 @@ namespace HumanGhost.Gameplay.Preview
         {
             if (prefab == null) prefab = _hitPrefab;
             if (prefab == null) return;
+            Vector3 center = target != null ? target.bounds.center : position;
+            PlayEffect(prefab, target, center + Vector3.right * (direction * 0.2f), direction, 1);
+        }
+
+        public void ShowRollDust(SpriteClipEffect prefab, SpriteRenderer playerBody, int direction)
+        {
+            if (prefab == null || playerBody == null) return;
+            Bounds body = playerBody.bounds;
+            // 두 줄의 발밑 기준을 맞춘 스프라이트에서 먼지는 왼쪽으로 퍼집니다.
+            var center = new Vector3(body.center.x - direction * (body.extents.x + 0.3f),
+                body.min.y + 0.216f, body.center.z);
+            PlayEffect(prefab, playerBody, center, -direction, -1);
+        }
+
+        private void PlayEffect(SpriteClipEffect prefab, SpriteRenderer target, Vector3 position, int direction, int sortingOffset)
+        {
             if (!_impactPools.TryGetValue(prefab, out var pool))
             {
                 pool = new Stack<SpriteClipEffect>();
@@ -136,9 +152,9 @@ namespace HumanGhost.Gameplay.Preview
                 var renderer = impact.GetComponent<SpriteRenderer>();
                 // 원본이 오른쪽으로 펼쳐지는 이펙트는 프리팹의 Flip X로 구분합니다.
                 renderer.flipX = (direction > 0) != source.flipX;
-                if (target != null) { renderer.sortingLayerID = target.sortingLayerID; renderer.sortingOrder = target.sortingOrder + 1; }
+                if (target != null) { renderer.sortingLayerID = target.sortingLayerID; renderer.sortingOrder = target.sortingOrder + sortingOffset; }
                 else { renderer.sortingLayerID = source.sortingLayerID; renderer.sortingOrder = source.sortingOrder; }
-                impact.Play((target != null ? target.bounds.center : position) + Vector3.right * (direction * 0.2f));
+                impact.Play(position);
                 _impacts.Add((impact, pool));
             }
             catch (System.Exception error) { Debug.LogException(error); if (impact != null) Object.Destroy(impact.gameObject); }

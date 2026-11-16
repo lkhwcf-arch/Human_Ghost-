@@ -84,6 +84,7 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField] private SpriteClipEffect _parryImpactPrefab = null;
         [SerializeField] private SpriteClipEffect _hitImpactPrefab = null;
         [SerializeField] private SpriteClipEffect _jigegwiHitImpactPrefab = null;
+        [SerializeField] private SpriteClipEffect _rollDustPrefab = null;
         private const int _jigegwiMonsterId = 3002;
         private PlayerAnimationAudio _playerAudio;
         private readonly PreviewPresentation _presentation = new PreviewPresentation();
@@ -222,7 +223,7 @@ namespace HumanGhost.Gameplay.Preview
                 ConnectGameLayer(catalog);
                 ConnectDialogues();
                 _actor.RollRequested += OnRoll;
-                _actor.SkillStarted += OnRoll;
+                _actor.SkillStarted += OnSkillMovement;
                 _player.EnableSkill(catalog.GetTable<Skill>().Get(_skillId), new ContentAccess(_progress.Progress.IsCleared));
                 _player.EnableHerbs(catalog.GetTable<Buff>().Get(_herbBuffId));
                 _actor.ApplyUpgrades(_progress.Upgrades);
@@ -306,7 +307,7 @@ namespace HumanGhost.Gameplay.Preview
             actions.Add(() => { if (_actor != null)
             {
                 _actor.RollRequested -= OnRoll;
-                _actor.SkillStarted -= OnRoll;
+                _actor.SkillStarted -= OnSkillMovement;
                 _actor.AttackWindowChanged -= OnPlayerAttackWindowChanged;
             } });
             actions.Add(DisconnectInteraction);
@@ -969,6 +970,12 @@ namespace HumanGhost.Gameplay.Preview
         }
 
         private void OnRoll(int direction, int distance, int duration)
+        {
+            _motion.StartRoll(direction, distance, duration);
+            if (duration > 0) _feedback?.ShowRollDust(_rollDustPrefab, _playerBody, direction);
+        }
+
+        private void OnSkillMovement(int direction, int distance, int duration)
             => _motion.StartRoll(direction, distance, duration);
 
         private void LateUpdate()
