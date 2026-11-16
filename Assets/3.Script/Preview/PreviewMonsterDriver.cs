@@ -54,14 +54,14 @@ namespace HumanGhost.Gameplay.Preview
         // 죽으면 불을 남기는 개체를 평소에도 구분합니다. 전용 그림 공급 뒤 지웁니다.
         private static readonly Color _burningTint = new Color(1f, 0.65f, 0.45f);
         private bool _hasSpan;
-        private float _spanMin, _spanMax, _spanY;
+        private float _spanMin, _spanMax;
         private Func<Vector2?> _protectedLedge;
         private readonly PreviewCollision _collision;
         public void UseLedgeProtection(Func<Vector2?> protectedLedge) => _protectedLedge = protectedLedge;
 
-        // 조립된 바닥에서 걸을 수 있는 구간입니다. 끝에 닿으면 벽처럼 다룹니다.
-        public void UseWalkableSpan(float min, float max, float floorY)
-        { _hasSpan = true; _spanMin = min; _spanMax = max; _spanY = floorY; }
+        // 조립된 바닥에서 걸을 수 있는 구간입니다. 경사 지면을 포함하며 끝에 닿으면 벽처럼 다룹니다.
+        public void UseWalkableSpan(float min, float max)
+        { _hasSpan = true; _spanMin = min; _spanMax = max; }
 
         private bool CanEngageTarget()
         {
@@ -85,6 +85,22 @@ namespace HumanGhost.Gameplay.Preview
 
         // 발 기준 물리 관측만 Unity 경계에서 정수화합니다. 그림 프레임이나 중심 높이 차이를 층 차이로 쓰지 않습니다.
         private long FootHeightOffset() => _player.ToInteger(_playerBody.bounds.min.y) - _runtime.ToInteger(_body.bounds.min.y);
+
+        // 구간·복귀 제한까지 반영된 실제 이동 거리로 경사 높이를 따라갑니다. 평지·낭떠러지에서는 높이를 바꾸지 않습니다.
+        // Unity 물리 관측은 경계에서만 실수로 쓰고, 결과 높이 차이를 정수 좌표로 반영합니다.
+        // 요청 거리 그대로 이동했으면 이동 전 조회 결과를 재사용해 프레임당 물리 조회를 한 번으로 유지합니다.
+        private void FollowGroundSlope(IntegerPosition before, Vector3 center, long requestedDelta, bool slopeAhead, float slopeHeight)
+        {
+            IntegerPosition after = _runtime.Position;
+            long movedDelta = after.X - before.X;
+            if (movedDelta == 0) return;
+            float height = slopeHeight;
+            bool onSlope = movedDelta == requestedDelta ? slopeAhead
+                : _collision.TryFollowGroundSlope(center, _runtime.ToWorld(movedDelta), out height);
+            if (!onSlope) return;
+            long rise = _runtime.ToInteger(height) - _runtime.ToInteger(center.y);
+            if (rise != 0) _runtime.SetPosition(new IntegerPosition(after.X, checked(before.Y + rise)));
+        }
 
         // targetId: 이 몬스터의 장면 내 양수 개체 ID, playerTargetId: 플레이어의 개체 ID(데이터 ID와 별개).
         public PreviewMonsterDriver(MonsterRuntime runtime, PlayerRuntime player, SpriteRenderer playerBody, SpriteRenderer attackWindow,
@@ -148,7 +164,8 @@ namespace HumanGhost.Gameplay.Preview
             if (_hasSpan) { minX = _spanMin; maxX = _spanMax; }
             // 턱을 차지한 플레이어가 안전하게 올라올 한 칸을 확보합니다.
             Vector2? ledge = _protectedLedge?.Invoke();
-            if (ledge.HasValue && _hasSpan && Mathf.Abs(ledge.Value.y - _spanY) < .2f * _worldUnitsPerTile)
+            // 경사를 따라 높이가 바뀌므로 최초 바닥이 아닌 현재 발 높이와 비교합니다.
+            if (ledge.HasValue && _hasSpan && Mathf.Abs(ledge.Value.y - _body.bounds.min.y) < .2f * _worldUnitsPerTile)
             {
                 float clearance = _worldUnitsPerTile + _body.bounds.extents.x;
                 if (_runtime.transform.position.x >= ledge.Value.x)
@@ -157,7 +174,12 @@ namespace HumanGhost.Gameplay.Preview
             }
             long delta = _motion.StepHorizontal(_monster.Velocity, milliseconds);
             float requested = _runtime.ToWorld(delta);
-            float allowed = _collision.MoveHorizontal(_body.bounds.center, requested);
+            // 플레이어 이동과 같은 경사 판정을 재사용합니다. 경사 면은 벽으로 막지 않습니다.
+            IntegerPosition before = _runtime.Position;
+            Vector3 center = _body.bounds.center;
+            long requestedDelta = delta;
+            bool slopeAhead = _collision.TryFollowGroundSlope(center, requested, out float slopeHeight);
+            float allowed = slopeAhead ? requested : _collision.MoveHorizontal(center, requested);
             bool blocked = allowed != requested;
             if (blocked) delta = _runtime.ToInteger(allowed);
             if (_monster.IsReturning)
@@ -166,6 +188,7 @@ namespace HumanGhost.Gameplay.Preview
                 if (Math.Sign(delta) == Math.Sign(remaining) && Math.Abs(delta) > Math.Abs(remaining)) delta = remaining;
             }
             bool wall = _runtime.MoveHorizontal(delta, minX, maxX) || blocked;
+            FollowGroundSlope(before, center, requestedDelta, slopeAhead, slopeHeight);
             if (wall) _motion.ResetHorizontal();
             Vector3 position = _runtime.ToWorld(_runtime.Position);
             if (wall) _monster.NotifyWallHit();
