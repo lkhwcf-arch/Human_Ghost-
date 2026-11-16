@@ -354,6 +354,7 @@ MonoBehaviour:
   _player: {fileID: 383945511}
   _sourceFacesLeft: 1
   _airAttack: {fileID: 7400000, guid: 48d243d972470124a82dfcc472b4a601, type: 2}
+  _parry: {fileID: 7400000, guid: 3a8633a9a5282854384acdc1cc4b323f, type: 2}
   _walk: {fileID: 7400000, guid: 3334a1f7516430b42bf8cda4683e3c2e, type: 2}
   _climb: {fileID: 7400000, guid: 6d2bf8909bcce0d4781c45984a4d084e, type: 2}
   _save: {fileID: 7400000, guid: 8b98f4955cee7ad408645c317b727aa1, type: 2}
