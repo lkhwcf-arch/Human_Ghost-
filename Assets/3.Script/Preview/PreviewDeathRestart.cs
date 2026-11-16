@@ -3,7 +3,7 @@ using UnityEngine.SceneManagement;
 
 namespace HumanGhost.Gameplay.Preview
 {
-    // 체크포인트 위치로 돌아가되 개별 처치는 현재 슬롯의 마지막 저장 성공 상태로 되돌립니다.
+    // 사망 복귀 정책을 적용하며 개별 처치는 현재 슬롯의 마지막 저장 성공 상태로 되돌립니다.
     internal sealed class PreviewDeathRestart : System.IDisposable
     {
         // 1500ms를 어두워짐·검은 화면·밝아짐으로 나눕니다. Dead 애니 원본 전까지 보여 줄 시간은 개발 값입니다.

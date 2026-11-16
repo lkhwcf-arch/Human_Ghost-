@@ -577,6 +577,7 @@ namespace HumanGhost.Gameplay.Preview
             }
             if (_stageId == StageExitRules.VillageStage)
             StartMapControlsView.AddTo(_stage.MapRoot, _markersRoot, _feedbackTextPrefab, _playerBody.sprite, _catalog);
+            WorldGuideLabels.AddTo(_stage.MapRoot, _feedbackTextPrefab, _catalog, _content.GetStage(_stageId).WorldTexts);
             PreviewTraversalGuide.AddTo(_stage.MapRoot, _markersRoot, _playerBody.sprite, _playerBody.sortingLayerID, 60);
         }
 
@@ -913,6 +914,7 @@ namespace HumanGhost.Gameplay.Preview
             var anchors = new SpawnAnchors(_markersRoot);
             Vector3 point = anchors.Get(anchor).position;
             _player.SetPosition(new Vector3(point.x, point.y + _playerHalfSize.y, _player.transform.position.z));
+            if (anchor != "Respawn_Seonangdang") _progress.SetStageEntrance(anchor);
             _progress.TakeArrival();
         }
 

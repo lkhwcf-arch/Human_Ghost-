@@ -1,0 +1,624 @@
+fileFormatVersion: 2
+guid: 21fdc2a844664b348bc4c0421b1efddd
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 4937127939952337423
+    second: Heosugui_Execution_1116_0
+  - first:
+      213: -850197929770037637
+    second: Heosugui_Execution_1116_1
+  - first:
+      213: 1993370294000303588
+    second: Heosugui_Execution_1116_2
+  - first:
+      213: -3269736450352896795
+    second: Heosugui_Execution_1116_3
+  - first:
+      213: -91864127093600777
+    second: Heosugui_Execution_1116_4
+  - first:
+      213: 8239082719658279314
+    second: Heosugui_Execution_1116_5
+  - first:
+      213: 1006036525013707192
+    second: Heosugui_Execution_1116_6
+  - first:
+      213: 8086751144999716775
+    second: Heosugui_Execution_1116_7
+  - first:
+      213: 2791070981056530608
+    second: Heosugui_Execution_1116_8
+  - first:
+      213: 7453465720221683352
+    second: Heosugui_Execution_1116_9
+  - first:
+      213: 7633204953593890436
+    second: Heosugui_Execution_1116_10
+  - first:
+      213: 3033358210480789114
+    second: Heosugui_Execution_1116_11
+  - first:
+      213: 2494328721361939493
+    second: Heosugui_Execution_1116_12
+  - first:
+      213: 944732923804348718
+    second: Heosugui_Execution_1116_13
+  - first:
+      213: 467845162916896986
+    second: Heosugui_Execution_1116_14
+  - first:
+      213: 7970901960205824199
+    second: Heosugui_Execution_1116_15
+  - first:
+      213: -3399069970919194852
+    second: Heosugui_Execution_1116_16
+  - first:
+      213: 2699065401427648216
+    second: Heosugui_Execution_1116_17
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Heosugui_Execution_1116_0
+      rect:
+        serializedVersion: 2
+        x: 38
+        y: 718
+        width: 294
+        height: 351
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f02e38f04b3348440800000000000000
+      internalID: 4937127939952337423
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execution_1116_1
+      rect:
+        serializedVersion: 2
+        x: 395
+        y: 716
+        width: 302
+        height: 353
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b7ec847cc7d7334f0800000000000000
+      internalID: -850197929770037637
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execution_1116_2
+      rect:
+        serializedVersion: 2
+        x: 734
+        y: 718
+        width: 331
+        height: 351
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4ed34b798bfd9ab10800000000000000
+      internalID: 1993370294000303588
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execution_1116_3
+      rect:
+        serializedVersion: 2
+        x: 1097
+        y: 721
+        width: 332
+        height: 362
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5e4a19fa5009f92d0800000000000000
+      internalID: -3269736450352896795
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execution_1116_4
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 344
+        height: 238
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7fd0cf82012a9bef0800000000000000
+      internalID: -91864127093600777
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execution_1116_5
+      rect:
+        serializedVersion: 2
+        x: 20
+        y: 231
+        width: 1415
+        height: 480
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2918a4cb41a175270800000000000000
+      internalID: 8239082719658279314
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execution_1116_6
+      rect:
+        serializedVersion: 2
+        x: 54
+        y: 314
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8b9a288a3e826fd00800000000000000
+      internalID: 1006036525013707192
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execution_1116_7
+      rect:
+        serializedVersion: 2
+        x: 343
+        y: 0
+        width: 1109
+        height: 237
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7a701b82259e93070800000000000000
+      internalID: 8086751144999716775
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execution_1116_8
+      rect:
+        serializedVersion: 2
+        x: 817
+        y: 231
+        width: 9
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0b886c00540ebb620800000000000000
+      internalID: 2791070981056530608
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execution_1116_9
+      rect:
+        serializedVersion: 2
+        x: 831
+        y: 232
+        width: 9
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 89e4d571597007760800000000000000
+      internalID: 7453465720221683352
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execution_1116_10
+      rect:
+        serializedVersion: 2
+        x: 839
+        y: 241
+        width: 7
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 48647bc76779ee960800000000000000
+      internalID: 7633204953593890436
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execution_1116_11
+      rect:
+        serializedVersion: 2
+        x: 851
+        y: 245
+        width: 23
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a76d8349837a81a20800000000000000
+      internalID: 3033358210480789114
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execution_1116_12
+      rect:
+        serializedVersion: 2
+        x: 879
+        y: 243
+        width: 11
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 52c25dda1c2ad9220800000000000000
+      internalID: 2494328721361939493
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execution_1116_13
+      rect:
+        serializedVersion: 2
+        x: 901
+        y: 271
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e2179fab69d5c1d00800000000000000
+      internalID: 944732923804348718
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execution_1116_14
+      rect:
+        serializedVersion: 2
+        x: 905
+        y: 281
+        width: 6
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ad0eb8962be1e7600800000000000000
+      internalID: 467845162916896986
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execution_1116_15
+      rect:
+        serializedVersion: 2
+        x: 1026
+        y: 280
+        width: 14
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7c07885e9155e9e60800000000000000
+      internalID: 7970901960205824199
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execution_1116_16
+      rect:
+        serializedVersion: 2
+        x: 1149
+        y: 223
+        width: 16
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c1ff9a8ded314d0d0800000000000000
+      internalID: -3399069970919194852
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Heosugui_Execution_1116_17
+      rect:
+        serializedVersion: 2
+        x: 1247
+        y: 250
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8de54adaea1057520800000000000000
+      internalID: 2699065401427648216
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    outline: []
+    customData:
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices:
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Heosugui_Execution_1116_0: 4937127939952337423
+      Heosugui_Execution_1116_1: -850197929770037637
+      Heosugui_Execution_1116_10: 7633204953593890436
+      Heosugui_Execution_1116_11: 3033358210480789114
+      Heosugui_Execution_1116_12: 2494328721361939493
+      Heosugui_Execution_1116_13: 944732923804348718
+      Heosugui_Execution_1116_14: 467845162916896986
+      Heosugui_Execution_1116_15: 7970901960205824199
+      Heosugui_Execution_1116_16: -3399069970919194852
+      Heosugui_Execution_1116_17: 2699065401427648216
+      Heosugui_Execution_1116_2: 1993370294000303588
+      Heosugui_Execution_1116_3: -3269736450352896795
+      Heosugui_Execution_1116_4: -91864127093600777
+      Heosugui_Execution_1116_5: 8239082719658279314
+      Heosugui_Execution_1116_6: 1006036525013707192
+      Heosugui_Execution_1116_7: 8086751144999716775
+      Heosugui_Execution_1116_8: 2791070981056530608
+      Heosugui_Execution_1116_9: 7453465720221683352
+  mipmapLimitGroupName:
+  pSDRemoveMatte: 0
+  userData:
+  assetBundleName:
+  assetBundleVariant:

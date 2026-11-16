@@ -23,6 +23,7 @@ namespace HumanGhost.Gameplay
         public bool IsProjectile { get; }
         public bool IsGrab => BindPresses > 0;
         public bool IsCharge => ChargeSpeed > 0;
+        public bool IsParryable => !IsGrab && !IsCharge;
 
         public MonsterPattern(StateKey key, int range, AttackSpec attack, int bindTime = 0, int bindPresses = 0, int chargeSpeed = 0, int wallStun = 0, int minRange = 0, bool isProjectile = false)
         {

@@ -9,7 +9,7 @@ namespace HumanGhost.Gameplay.Presentation
     [DefaultExecutionOrder(1100)]
     public class HudScreen : MonoBehaviour
     {
-        private const float _dimAlpha = 0.9f;
+        private const float _dimAlpha = 1f;
         private const int _fadeMilliseconds = 300;
         private const int _damageFlashMilliseconds = 250;
         private MillisecondClock _clock;
@@ -57,11 +57,13 @@ namespace HumanGhost.Gameplay.Presentation
             _bossGhost = 1f; _bossGhostHoldMilliseconds = 500;
             SetWidth(_bossHealthGhost, _bossGhost);
             _extraGroups = alsoFade;
+            _group.alpha = 1f;
+            foreach (CanvasGroup group in _extraGroups) if (group != null) group.alpha = 1f;
             _bossRoot.SetActive(_boss != null);
             if (_boss != null) { _bossName.text = bossName; _bossName.fontSize = Mathf.Max(42, _bossName.fontSize); }
             _damageEdge.enabled = false;
             _damageFlashMillisecondsRemaining = _staminaFlashMilliseconds = 0;
-            _staminaBack.color = new Color(0.05f, 0.05f, 0.05f, 0.8f);
+            _staminaBack.color = new Color(0.05f, 0.05f, 0.05f, 1f);
             if (isActiveAndEnabled) Subscribe();
         }
 
@@ -127,7 +129,7 @@ namespace HumanGhost.Gameplay.Presentation
             if (_staminaFlashMilliseconds > 0)
             {
                 _staminaFlashMilliseconds = System.Math.Max(0, _staminaFlashMilliseconds - milliseconds);
-                Color color = _staminaFlashMilliseconds > 0 && (_staminaFlashMilliseconds / 50) % 2 == 0 ? Color.white : new Color(0.05f, 0.05f, 0.05f, 0.8f);
+                Color color = _staminaFlashMilliseconds > 0 && (_staminaFlashMilliseconds / 50) % 2 == 0 ? Color.white : new Color(0.05f, 0.05f, 0.05f, 1f);
                 if (_staminaBack.color != color) _staminaBack.color = color;
             }
             UpdateBoss(milliseconds);

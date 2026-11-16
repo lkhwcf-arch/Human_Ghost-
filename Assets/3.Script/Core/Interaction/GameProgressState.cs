@@ -54,6 +54,12 @@ namespace HumanGhost.Gameplay
         public int ShrineId { get; private set; }
         public bool CheckpointPassed => ShrineId != 0;
         public string ArrivalAnchor { get; private set; }
+        public string StageEntrance { get; private set; }
+        public void SetStageEntrance(string anchor)
+        {
+            if (string.IsNullOrWhiteSpace(anchor)) throw new ArgumentException("맵 입구 앵커를 연결해 주세요.", nameof(anchor));
+            StageEntrance = anchor;
+        }
         public int? CarriedHealth { get; private set; }
         public int CarriedHerbs { get; private set; }
         public int[] OpenedGates => Copy(_openedGates);
@@ -71,7 +77,7 @@ namespace HumanGhost.Gameplay
         public void ActivateShrine(int id) { ShrineId = id; _activeShrines.Add(id); }
         public void Travel(int stageId, string anchor, int health, int herbs)
         {
-            CurrentStage = stageId; ArrivalAnchor = anchor; CarriedHealth = health; CarriedHerbs = herbs;
+            CurrentStage = stageId; ArrivalAnchor = StageEntrance = anchor; CarriedHealth = health; CarriedHerbs = herbs;
         }
         public string TakeArrival() { string anchor = ArrivalAnchor; ArrivalAnchor = null; return anchor; }
         public void ClearCarriedVitals() { CarriedHealth = null; CarriedHerbs = 0; }
@@ -90,7 +96,7 @@ namespace HumanGhost.Gameplay
             Replace(_viewedNotices, snapshot.ViewedNotices);
             Replace(_defeatedMonsters, snapshot.DefeatedMonsters);
             CurrentStage = snapshot.StageId; ShrineId = snapshot.ShrineId;
-            ArrivalAnchor = null; ClearCarriedVitals();
+            ArrivalAnchor = StageEntrance = null; ClearCarriedVitals();
         }
         public void RestartAfterDeath(SaveSnapshot lastSaved, int? stageAfterLedger = null)
         {
@@ -100,14 +106,20 @@ namespace HumanGhost.Gameplay
             _defeatedMonsters.Clear();
             if (lastSaved != null) _defeatedMonsters.UnionWith(lastSaved.DefeatedMonsters);
             ClearCarriedVitals();
-            CurrentStage = CheckpointPassed ? ShrineId : StageExitRules.VillageStage;
-            ArrivalAnchor = CheckpointPassed ? "Respawn_Seonangdang" : null;
+            // 보스방만 마지막 서낭당, 필드는 죽은 맵에 들어온 입구를 유지합니다.
+            if (CurrentStage == StageExitRules.BossStage)
+            {
+                CurrentStage = CheckpointPassed ? ShrineId : StageExitRules.VillageStage;
+                ArrivalAnchor = CheckpointPassed ? "Respawn_Seonangdang" : null;
+                StageEntrance = null;
+            }
+            else ArrivalAnchor = StageEntrance;
             // 조사 완료 뒤의 초반 사망은 장부방을 반복하지 않습니다. 후반 서낭당은 우선 유지합니다.
             if (stageAfterLedger.HasValue && Progress.IsCleared(StageExitRules.LedgerStage)
                 && (CurrentStage == StageExitRules.VillageStage || CurrentStage == StageExitRules.LedgerStage))
             {
                 CurrentStage = stageAfterLedger.Value;
-                ArrivalAnchor = null;
+                ArrivalAnchor = StageEntrance = null;
             }
         }
         private static T[] Copy<T>(HashSet<T> source) { var result = new T[source.Count]; source.CopyTo(result); return result; }

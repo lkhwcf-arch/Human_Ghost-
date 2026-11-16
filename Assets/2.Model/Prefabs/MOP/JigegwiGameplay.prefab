@@ -80,7 +80,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  - {fileID: 2100000, guid: 7beaf84b8a42bfe44bc6d528868d9479, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -127,6 +127,7 @@ GameObject:
   - component: {fileID: 695029493892967079}
   - component: {fileID: 1586763236878798711}
   - component: {fileID: 8657224006886159312}
+  - component: {fileID: 3042531729018001512}
   m_Layer: 0
   m_Name: JigegwiGameplay
   m_TagString: Untagged
@@ -488,6 +489,7 @@ MonoBehaviour:
     _bottom: -0.99
   _monster: {fileID: 8711519359393882842}
   _playerExecution: {fileID: 7400000, guid: a0b7867d86ea6334d9b237c6b7dbcf37, type: 2}
+  _projectileSprite: {fileID: 21300000, guid: b0555fafbabae0c4b9dbc33e0420b177, type: 2}
   _executionGround: {fileID: 4866634274398671786}
 --- !u!114 &1586763236878798711
 MonoBehaviour:
@@ -907,6 +909,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8331596325398093873, guid: 882f1b1bf95b67f44967d3765db0719e, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value:
+      objectReference: {fileID: 2100000, guid: 7beaf84b8a42bfe44bc6d528868d9479, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -927,3 +933,24 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 3661636100984400423, guid: 882f1b1bf95b67f44967d3765db0719e, type: 3}
   m_PrefabInstance: {fileID: 6906550050691277859}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &3042531729018001512
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 795029493892967079}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17155aeee06b97f49b7d83657e6886ec, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Preview.AttackWarningView
+  _monster: {fileID: 8711519359393882842}
+  _boss: {fileID: 0}
+  _renderers:
+  - {fileID: 8950335773594631280}
+  - {fileID: 3190580548047553554}
+  _intensity: 9000
+  _pulseMilliseconds: 200
+  _parryColor: {r: 1, g: 1, b: 1, a: 1}
+  _unparryColor: {r: 1, g: 0, b: 0, a: 1}

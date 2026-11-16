@@ -10,6 +10,8 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField, InspectorName("일반몹 런타임")] private MonsterRuntime _monster = null;
         [SerializeField, InspectorName("이 대상의 플레이어 처형 모션 (선택)")] private AnimationClip _playerExecution = null;
         public AnimationClip PlayerExecution => _playerExecution;
+        [SerializeField, InspectorName("투사체 그림 (선택)")] private Sprite _projectileSprite = null;
+        public Sprite ProjectileSprite => _projectileSprite;
         [SerializeField, InspectorName("처형 시 바닥 기준 몸체 (선택)")] private SpriteRenderer _executionGround = null;
 
         private MonsterActor _actor;

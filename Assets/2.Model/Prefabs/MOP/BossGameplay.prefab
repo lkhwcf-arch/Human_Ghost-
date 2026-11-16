@@ -113,7 +113,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  - {fileID: 2100000, guid: 7beaf84b8a42bfe44bc6d528868d9479, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -159,6 +159,7 @@ GameObject:
   - component: {fileID: 5277484808439752839}
   - component: {fileID: 500923264472456021}
   - component: {fileID: 980679627253612533}
+  - component: {fileID: 5284342658282813238}
   m_Layer: 0
   m_Name: BossGameplay
   m_TagString: Untagged
@@ -1200,7 +1201,7 @@ Transform:
   m_GameObject: {fileID: 6633388230281084882}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.9, z: -0.049999993}
+  m_LocalPosition: {x: 0, y: -1.25, z: -0.049999993}
   m_LocalScale: {x: 2.3, y: 2.3, z: 2.3}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1796,3 +1797,26 @@ MonoBehaviour:
   _boss: {fileID: 818725543056190857}
   _body: {fileID: 3777643855908687980}
   _source: {fileID: 6237389046124455517}
+--- !u!114 &5284342658282813238
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4120953336507526381}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17155aeee06b97f49b7d83657e6886ec, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Preview.AttackWarningView
+  _monster: {fileID: 0}
+  _boss: {fileID: 818725543056190857}
+  _renderers:
+  - {fileID: 6237389046124455517}
+  - {fileID: 709896739927960600}
+  - {fileID: 4267110341255218816}
+  - {fileID: 25659048141418218}
+  _intensity: 9000
+  _pulseMilliseconds: 200
+  _parryColor: {r: 1, g: 1, b: 1, a: 1}
+  _unparryColor: {r: 1, g: 0, b: 0, a: 1}

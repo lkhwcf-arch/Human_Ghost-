@@ -36,7 +36,7 @@ namespace HumanGhost.Gameplay.Preview
                     _shrineRoot.transform.SetParent(transform, false);
                     _shrineScreen = Instantiate(_shrinePrefab, _shrineRoot.transform);
                     _shrineScreen.gameObject.SetActive(false);
-                    _shrineInput = new MenuInput(_input.Source, _shrineScreen.Move, _shrineScreen.Submit, _shrineScreen.Back);
+                    _shrineInput = new MenuInput(_input.Source, _shrineScreen.Move, _shrineScreen.Submit, _shrineScreen.Back, _shrineScreen.Adjust);
                     _shrineRoot.SetActive(true);
                 }
                 _shrineCursorWasVisible = Cursor.visible;

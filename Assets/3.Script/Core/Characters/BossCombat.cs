@@ -34,6 +34,7 @@ namespace HumanGhost.Gameplay
         }
         public bool IsAirborne => _pattern?.Kind == BossPatternKind.DesperationLeap && _hit % 2 == 0 &&
             _elapsed >= (_hit == 0 ? _pattern.Hits[0].Windup - 900 : 0) && _elapsed < _pattern.Hits[_hit].Windup;
+        public bool IsParryable => _pattern != null && !_pattern.IsChain && (CurrentReaction == null || CurrentReaction.Parryable);
         public bool IsWindingUp => _pattern != null && _elapsed < _pattern.Hits[_hit].Windup;
 
         public BossPoise Boss { get; }
@@ -177,7 +178,7 @@ namespace HumanGhost.Gameplay
         {
             if (target == null) throw new ArgumentNullException(nameof(target));
             if (_pattern != null && _pattern.Areas.Count > 0 && _pattern.Areas[_hit].DamageGroup > 0 && _groupTargets.Contains(targetId)) return HitOutcome.None;
-            if (!IsBlocked && _pattern != null && !_pattern.IsChain && (CurrentReaction == null || CurrentReaction.Parryable) && target.TryParryContact(_attackWindow, targetId, direction, deferFeedback: true))
+            if (!IsBlocked && IsParryable && target.TryParryContact(_attackWindow, targetId, direction, deferFeedback: true))
             {
                 // 본체와 충격파가 같은 피해 묶음이면 패링 뒤에도 중복 타격하지 않습니다.
                 _groupTargets.Add(targetId);

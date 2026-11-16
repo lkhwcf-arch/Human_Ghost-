@@ -25,6 +25,8 @@ namespace HumanGhost.Gameplay.Preview
         private readonly Action<int, StateKey, int> _applyHitEffects;
         private MillisecondClock _clock;
         private PreviewThrownProjectile _projectile;
+        private readonly Sprite _projectileSprite;
+        private readonly MonsterThrowRigView _throwRig;
         private PreviewGroundFireView _fire;
         private bool _fireChecked;
         private bool _deathShown;
@@ -115,6 +117,8 @@ namespace HumanGhost.Gameplay.Preview
             _body = runtime.GetComponentInChildren<SpriteRenderer>(true);
             if (_body == null) throw new InvalidOperationException("일반몹 임시 사각형이 없습니다.");
             _sprite = runtime.transform.Find("PreviewSprite")?.GetComponent<SpriteRenderer>();
+            _projectileSprite = runtime.GetComponent<PreviewMonsterSprite>()?.ProjectileSprite;
+            _throwRig = runtime.GetComponent<MonsterThrowRigView>();
             _color = _body.color;
             _collision = new PreviewCollision(true, 0f, _body.bounds.extents);
             // 판정 창이 한 프레임 안에 열리고 닫혀도 열리는 순간 한 번은 접촉을 확인합니다.
@@ -209,8 +213,17 @@ namespace HumanGhost.Gameplay.Preview
         private void StartProjectile()
         {
             if (_projectile == null)
-                _projectile = new PreviewThrownProjectile(CreateView("PreviewProjectile", new Color(0.45f, 0.3f, 0.15f), new Vector3(0.5f, 0.5f, 1f)), _worldUnitsPerTile);
-            _projectile.Throw(_runtime.transform.position, _player.transform.position, _monster.CurrentPattern.Attack.Active);
+            {
+                var view = CreateView("PreviewProjectile", new Color(0.45f, 0.3f, 0.15f), new Vector3(0.5f, 0.5f, 1f));
+                _projectile = new PreviewThrownProjectile(view, _worldUnitsPerTile);
+                if (_projectileSprite != null)
+                {
+                    view.sprite = _projectileSprite;
+                    view.color = Color.white;
+                    view.transform.localScale = Vector3.one * (0.5f / Mathf.Max(_projectileSprite.bounds.size.x, _projectileSprite.bounds.size.y));
+                }
+            }
+            _projectile.Throw(_throwRig != null ? _throwRig.ProjectilePosition : _runtime.transform.position, _player.transform.position, _monster.CurrentPattern.Attack.Active);
         }
 
         // 불붙은 허수귀(C08): 죽은 자리에 불을 남기고 범위 안 플레이어에게 초당 고정 피해를 줍니다.

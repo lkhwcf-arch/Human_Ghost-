@@ -174,7 +174,7 @@ namespace HumanGhost.Gameplay
         public bool ReceiveParried(int stunMilliseconds, int poiseDamage = 0)
         {
             if (stunMilliseconds <= 0 || poiseDamage < 0) throw new ArgumentOutOfRangeException(nameof(stunMilliseconds));
-            if (IsDead || !IsAttackActive || _pattern == null || _pattern.IsGrab) return false;
+            if (IsDead || !IsAttackActive || _pattern == null || !_pattern.IsParryable) return false;
             ClearPattern(); _waitRemaining = 0;
             _stunRemaining = _stunDuration = stunMilliseconds;
             DamagePoise(poiseDamage);
@@ -200,7 +200,7 @@ namespace HumanGhost.Gameplay
         {
             if (target == null) throw new ArgumentNullException(nameof(target));
             bool grab = _pattern != null && _pattern.IsGrab;
-            if (!IsDead && !grab && target.TryParryContact(_attackWindow, targetId, direction, deferFeedback: true))
+            if (!IsDead && _pattern != null && _pattern.IsParryable && target.TryParryContact(_attackWindow, targetId, direction, deferFeedback: true))
             {
                 ReceiveParried(target.ParryStunTime, target.ParryPoiseDamage);
                 target.CompleteParryContact();
