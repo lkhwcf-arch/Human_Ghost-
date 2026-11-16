@@ -83,6 +83,8 @@ namespace HumanGhost.Gameplay.Preview
         private PreviewParryFeedback _parryFeedback;
         [SerializeField] private SpriteClipEffect _parryImpactPrefab = null;
         [SerializeField] private SpriteClipEffect _hitImpactPrefab = null;
+        [SerializeField] private SpriteClipEffect _jigegwiHitImpactPrefab = null;
+        private const int _jigegwiMonsterId = 3002;
         private PlayerAnimationAudio _playerAudio;
         private readonly PreviewPresentation _presentation = new PreviewPresentation();
         private SubscriptionScope _interactionScope;
@@ -404,7 +406,11 @@ namespace HumanGhost.Gameplay.Preview
             foreach (PreviewMonsterDriver monster in _monsterDrivers)
             {
                 HitOutcome outcome = monster.CheckPlayerHit();
-                if (_feedback != null) _feedback.OnPlayerHit(outcome, monster.Sprite, monster.Position, _actor.Facing);
+                if (_feedback != null)
+                {
+                    SpriteClipEffect impact = monster.MonsterId == _jigegwiMonsterId ? _jigegwiHitImpactPrefab : null;
+                    _feedback.OnPlayerHit(outcome, monster.Sprite, monster.Position, _actor.Facing, impact);
+                }
             }
         }
 

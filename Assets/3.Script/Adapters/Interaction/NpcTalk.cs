@@ -20,7 +20,7 @@ namespace HumanGhost.Gameplay.Adapters
         private SubscriptionScope _dialogueScope;
         public int NpcId => _npcId;
         public void SetDefinitionId(int id) => _npcId = id;
-        public void Configure(int npcId, IReadOnlyDataCatalog data, DialogueRunner dialogues, TextMesh nameTemplate = null)
+        public void Configure(int npcId, IReadOnlyDataCatalog data, DialogueRunner dialogues, TextMesh nameTemplate = null, Font nameFont = null)
         {
             _dialogueScope?.Dispose(); _dialogueScope = null;
             _dialogues?.Cancel(this);
@@ -29,6 +29,14 @@ namespace HumanGhost.Gameplay.Adapters
             if (nameTemplate != null && _nameLabel == null)
             {
                 _nameLabel = Instantiate(nameTemplate, transform);
+                _nameLabel.characterSize = 0.055f;
+                if (nameFont != null)
+                {
+                    _nameLabel.font = nameFont;
+                    _nameLabel.fontSize = 96;
+                    _nameLabel.characterSize = 0.027f;
+                    _nameLabel.GetComponent<MeshRenderer>().sharedMaterial = nameFont.material;
+                }
                 _nameLabel.name = "NpcName";
                 _nameLabel.transform.localPosition = Vector3.up * 2.5f;
                 _nameLabel.text = _dialogues.ReadText(_definition.NameTextID);

@@ -161,7 +161,9 @@ namespace HumanGhost.Gameplay.Adapters
                 int id = _selected.PromptTextId;
                 if (_shownPromptId != id) { _shownPromptId = id; int uiId = id switch { 30063 => 51901, 30064 => 51902, 30065 => 51903, 30066 => 51904, 30367 => 51905, _ => 0 };
                     _shownPrompt = "F " + (uiId == 0 ? _context.Text(id) : LanguageTextSource.SelectUi(_context.Data, uiId)); }
-                ShowPrompt(_shownPrompt, (Vector3)_selected.Position + Vector3.up * _promptHeight, _selected is LedgerInteract);
+                // 피난민 머리와 이름표 사이에 말 걸기 안내를 표시합니다.
+                float promptHeight = _selected is NpcTalk ? _promptHeight + 0.6f : _promptHeight;
+                ShowPrompt(_shownPrompt, (Vector3)_selected.Position + Vector3.up * promptHeight, _selected is LedgerInteract);
             }
             else if (_prompt.gameObject.activeSelf)
                 _prompt.gameObject.SetActive(false);

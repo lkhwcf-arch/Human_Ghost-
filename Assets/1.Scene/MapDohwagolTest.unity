@@ -2508,6 +2508,8 @@ MonoBehaviour:
   _boss: {fileID: 1780465634}
   _monsters: []
   _playerLabel: {fileID: 383945510}
+  _jigegwiHitImpactPrefab: {fileID: 2581699890305169595, guid: 29bae68bc82c4663a68adbd3e11ff3a7, type: 3}
+  _npcNameFont: {fileID: 12800000, guid: 7c5cc61f706fd4c479b99c9c7d7a4d37, type: 3}
   _bossLabel: {fileID: 1780465633}
   _playerBody: {fileID: 383945509}
   _bossBody: {fileID: 1780465632}

@@ -35,6 +35,7 @@ namespace HumanGhost.Gameplay.Preview
             (_sprite != null && _sprite.color != Color.gray) || (_body != null && _body.color != Color.gray));
         public SpriteRenderer Sprite => _sprite != null ? _sprite : _body;
         public Vector3 Position => _runtime.transform.position;
+        public int MonsterId => _runtime.MonsterId;
         public bool IsEngaged { get; private set; }
         public bool IsDead => _monster.IsDead;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD

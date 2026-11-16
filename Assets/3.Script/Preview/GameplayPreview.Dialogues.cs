@@ -9,6 +9,7 @@ namespace HumanGhost.Gameplay.Preview
 {
     public sealed partial class GameplayPreview
     {
+        [SerializeField, InspectorName("NPC 이름표 글꼴")] private Font _npcNameFont;
         private DialogueRunner _dialogues;
         private LedgerInteract _ledger;
         private SubscriptionScope _dialogueScope;
@@ -30,7 +31,7 @@ namespace HumanGhost.Gameplay.Preview
             }, error => { _dialogueFailed = true; ReportCutsceneError(error); });
             if (_stage != null)
                 foreach (NpcTalk npc in _stage.MapRoot.GetComponentsInChildren<NpcTalk>(true))
-                    if (npc.NpcId != 0) npc.Configure(npc.NpcId, _catalog, _dialogues, _playerLabel);
+                    if (npc.NpcId != 0) npc.Configure(npc.NpcId, _catalog, _dialogues, _playerLabel, _npcNameFont);
             // 명부: 조사 종류와 현재 Stage로 대화·해금 Skill을 데이터에서 찾습니다. 누락·중복은 맵 준비 실패로 전달합니다.
             if (_ledger != null)
                 _ledger.Configure(new LedgerInvestigation(LedgerInvestigationDefinition.Resolve(_stageId,
