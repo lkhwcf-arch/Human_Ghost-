@@ -26,18 +26,6 @@
               0
             ],
             [
-              1450,
-              250
-            ],
-            [
-              1700,
-              250
-            ],
-            [
-              1950,
-              250
-            ],
-            [
               6450,
               0
             ],
@@ -98,7 +86,26 @@
       "PlatformCode": 16507,
       "Prefab": "Air_Platform_7",
       "Anchor": "Anchor_Air_Platform_7",
-      "Monsters": []
+      "Monsters": [
+        {
+          "MonsterCode": 3001,
+          "MonsterCount": 3,
+          "Points": [
+            [
+              50,
+              0
+            ],
+            [
+              300,
+              0
+            ],
+            [
+              550,
+              0
+            ]
+          ]
+        }
+      ]
     },
     {
       "PlacementID": 204,
