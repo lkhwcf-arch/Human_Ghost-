@@ -16,7 +16,7 @@ namespace HumanGhost.Gameplay.Preview
         private string _feedbackQaReport = "";
         private Rect _bossTestRect = new Rect(20, 40, 560, 620);
         private Vector2 _bossTestScroll;
-        private GUIStyle _bossTestWindowStyle, _bossTestButtonStyle, _bossTestLabelStyle;
+        private GUIStyle _bossTestWindowStyle, _bossTestButtonStyle, _bossTestLabelStyle, _bossTestToggleStyle;
         private bool CanUseBossTest => _subscribed && !_modalBlocked && !_saveLocked && !_leaving && !LoadingScreen.IsActive
             && _actor != null && !_actor.IsDead && _actor.CurrentState != HumanGhost.Data.Definitions.StateKey.Execute
             && (_textbox == null || !_textbox.IsOpen) && (_pause == null || !_pause.IsOpen);
@@ -65,6 +65,7 @@ namespace HumanGhost.Gameplay.Preview
                 _bossTestWindowStyle = new GUIStyle(GUI.skin.window) { fontSize = 22, padding = new RectOffset(16, 16, 38, 16) };
                 _bossTestButtonStyle = new GUIStyle(GUI.skin.button) { fontSize = 20, fixedHeight = 48, wordWrap = true };
                 _bossTestLabelStyle = new GUIStyle(GUI.skin.label) { fontSize = 18, wordWrap = true };
+                _bossTestToggleStyle = new GUIStyle(GUI.skin.toggle) { fontSize = 18, wordWrap = true };
             }
             Matrix4x4 previousMatrix = GUI.matrix;
             bool previousEnabled = GUI.enabled;

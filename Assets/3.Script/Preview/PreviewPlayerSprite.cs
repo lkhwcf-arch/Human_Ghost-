@@ -23,13 +23,25 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField] private AnimationClip _ladderClimb = null;
         [SerializeField, InspectorName("사다리 표시 배율"), Range(1f, 1.5f)] private float _ladderScale = 1.1f;
         [SerializeField, Range(0.5f, 1.5f)] private float _climbStartScale = 1f;
-        [SerializeField, Range(1f, 2f)] private float _hangScale = 1f;
+        [SerializeField, Range(1f, 2f)] private float _hangScale = 1.25f;
         [SerializeField, Range(-0.5f, 0f)] private float _hangVerticalOffset = -0.1f;
         private Vector3 _baseScale = Vector3.one;
         private Vector3 _basePosition;
         private float _hangTop;
         private float _standingBottom;
         private Vector2 _ledgeHalfSize = new Vector2(.3f, .65f);
+        [Serializable] private sealed class TraversalAnchor
+        {
+            [SerializeField] private Sprite _sprite = null;
+            public Sprite Sprite => _sprite;
+            [SerializeField] private Vector2 _hand = Vector2.zero;
+            public Vector2 Hand => _hand;
+        }
+        [SerializeField] private TraversalAnchor[] _traversalAnchors = Array.Empty<TraversalAnchor>();
+        private bool _wasOnLedge;
+        private int _ledgeExitRemaining;
+        private Vector3 _ledgeExitOffset;
+        private const int _ledgeExitBlendMilliseconds = 120;
         private Vector3 _climbHandAnchor;
         private readonly System.Collections.Generic.Dictionary<Sprite, Vector2> _handAnchors = new System.Collections.Generic.Dictionary<Sprite, Vector2>();
         public void SetLedgeBody(Vector2 halfSize) => _ledgeHalfSize = halfSize;
@@ -48,6 +60,8 @@ namespace HumanGhost.Gameplay.Preview
         {
             base.Awake();
             if (Renderer == null) return;
+            foreach (var anchor in _traversalAnchors)
+                if (anchor != null && anchor.Sprite != null) _handAnchors[anchor.Sprite] = anchor.Hand;
             _baseScale = Renderer.transform.localScale;
             _basePosition = Renderer.transform.localPosition;
             Sprite hang = FindFrame(StateKey.Hang);
@@ -99,6 +113,7 @@ namespace HumanGhost.Gameplay.Preview
         {
             var scope = _cueScope; _cueScope = null; scope?.Dispose();
             _executionAnimation = null;
+            _wasOnLedge = false; _ledgeExitRemaining = 0;
             _action = null; _praying = _saveRising = false; _onLadder = _wasInAir = false; _ladderDirection = 0; _nonCombatArea = false; _dropElapsedMilliseconds = -1;
             if (Renderer != null)
             {
@@ -127,6 +142,7 @@ namespace HumanGhost.Gameplay.Preview
         }
         protected override void LateUpdate()
         {
+            Vector3 previousPosition = Renderer != null ? Renderer.transform.localPosition : Vector3.zero;
             int milliseconds = _actionClock.AdvanceFrame(Time.deltaTime);
             var actor = _player != null ? _player.Actor : null;
             bool inAir = actor != null && !actor.Locomotion.IsGrounded && !actor.IsHanging && !actor.IsDead;
@@ -140,9 +156,9 @@ namespace HumanGhost.Gameplay.Preview
             }
             _wasInAir = inAir;
             bool hanging = actor != null && actor.IsHanging;
-            // 크기·높이 보정은 이동과 같이 양 끝을 감속합니다. 프레임 선택은 TryGetAnimationTime의 선형 진행률을 그대로 씁니다.
+            // 원화별 크기를 구분하고 오르기 중 배율은 고정합니다. 높이·손의 이동만 부드럽게 연결합니다.
             float progress = hanging ? Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(_player.ClimbProgress)) : 0f;
-            float scale = hanging && _player.ClimbProgress >= 0f ? Mathf.Lerp(_climbStartScale * _hangScale, 1f, progress) :
+            float scale = hanging && _player.ClimbProgress >= 0f ? _climbStartScale :
                 hanging ? (_onLadder ? _ladderScale : _hangScale) : 1f;
             if (Renderer != null)
             {
@@ -182,6 +198,24 @@ namespace HumanGhost.Gameplay.Preview
                 }
                 Renderer.transform.position = position;
             }
+            bool onLedge = hanging && !_onLadder;
+            if (Renderer != null)
+            {
+                bool canBlendExit = actor != null && (actor.CurrentState == StateKey.Jump || actor.CurrentState == StateKey.Idle || actor.CurrentState == StateKey.Walk);
+                if (_wasOnLedge && !onLedge && canBlendExit)
+                {
+                    _ledgeExitOffset = previousPosition - Renderer.transform.localPosition;
+                    _ledgeExitRemaining = _ledgeExitBlendMilliseconds;
+                }
+                if (onLedge || !canBlendExit) _ledgeExitRemaining = 0;
+                if (_ledgeExitRemaining > 0)
+                {
+                    _ledgeExitRemaining = Math.Max(0, _ledgeExitRemaining - milliseconds);
+                    float blend = Mathf.SmoothStep(0f, 1f, _ledgeExitRemaining / (float)_ledgeExitBlendMilliseconds);
+                    Renderer.transform.localPosition += _ledgeExitOffset * blend;
+                }
+            }
+            _wasOnLedge = onLedge;
             if (_action != null && !_praying && (_actionElapsedMilliseconds += Math.Min(milliseconds, int.MaxValue - _actionElapsedMilliseconds)) >= MillisecondClock.ToMilliseconds(_saveRising ? SaveRiseDuration : _action.length))
             { _action = null; _saveRising = false; }
             if (_dropElapsedMilliseconds >= 0) _dropElapsedMilliseconds = _player != null && _player.Actor != null && _player.Actor.CurrentState == StateKey.Jump ? _dropElapsedMilliseconds + Math.Min(milliseconds, int.MaxValue - _dropElapsedMilliseconds) : -1;
