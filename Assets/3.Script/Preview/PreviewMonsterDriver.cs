@@ -25,6 +25,12 @@ namespace HumanGhost.Gameplay.Preview
         private readonly Action<int, StateKey, int> _applyHitEffects;
         private MillisecondClock _clock;
         private PreviewThrownProjectile _projectile;
+        // 높이 던지기(옹귀 1117): 던진 순간 기억한 바닥 자리와 그림자입니다.
+        private Vector3 _lobTarget;
+        private SpriteRenderer _lobShadow;
+        private static UnityEngine.Sprite _shadowSprite;
+        private const int _lobArc100 = 600;
+        private const int _lobLandingMilliseconds = 100;
         private readonly Sprite _projectileSprite;
         private readonly MonsterThrowRigView _throwRig;
         private PreviewGroundFireView _fire;
@@ -78,6 +84,7 @@ namespace HumanGhost.Gameplay.Preview
             IntegerPosition target = _player.Position, own = _runtime.Position;
             long offset = target.X - own.X;
             long height = FootHeightOffset();
+            _monster.CanRetreat = CanRetreatFrom(-Math.Sign(offset));
             _monster.Observe(_playerTargetId, IntegerPosition.ToData(Math.Abs(offset)), Math.Sign(offset),
                 IntegerPosition.ToData(Math.Abs(height)),
                 IntegerPosition.ToData(Math.Abs(own.X - _spawnX)), Math.Sign(_spawnX - own.X), true, Math.Sign(height));
@@ -135,7 +142,8 @@ namespace HumanGhost.Gameplay.Preview
         {
             if (_scope.IsDisposed) return;
             IsEngaged = false;
-            SubscriptionScope.Cleanup(_scope.Dispose, () => _projectile?.Destroy(), () => _fire?.Destroy());
+            SubscriptionScope.Cleanup(_scope.Dispose, () => _projectile?.Destroy(), () => _fire?.Destroy(),
+                () => { if (_lobShadow != null) UnityEngine.Object.Destroy(_lobShadow.gameObject); });
         }
 
         public void Step(float seconds, float minX, float maxX)
@@ -153,13 +161,19 @@ namespace HumanGhost.Gameplay.Preview
             {
                 _sprite.flipX = _monster.Facing > 0;
                 _sprite.color = _monster.IsDead ? Color.gray : _monster.CurrentState == StateKey.Stun ? new Color(0.75f,0.35f,0.95f) :
-                    _monster.IsAttackActive ? new Color(1f,0.3f,0.3f) : _runtime.Patterns.LeavesDeathFire ? _burningTint : Color.white;
+                    _monster.IsAttackActive && !_monster.IsRetreating ? new Color(1f,0.3f,0.3f) : _runtime.Patterns.LeavesDeathFire ? _burningTint : Color.white;
             }
             StepFire(seconds);
             if (_monster.IsDead) { IsEngaged = false; _body.color = Color.gray; _deathShown = true; return; }
             ObserveTarget();
             if (_monster.IsExposed || _monster.IsInvulnerable) return;
             _projectile?.Step(seconds);
+            if (_lobShadow != null)
+            {
+                bool falling = _projectile != null && _projectile.IsFlying && _monster.CurrentPattern != null && _monster.CurrentPattern.IsLob;
+                _lobShadow.enabled = falling;
+                if (falling) _lobShadow.transform.localScale = new Vector3(1f, .3f, 1f) * _worldUnitsPerTile * Mathf.Lerp(.5f, 1f, _projectile.Progress);
+            }
             PlayerActor actor = _player.Actor;
             int milliseconds = _clock.AdvanceFrame(seconds);
             if (_hasSpan) { minX = _spanMin; maxX = _spanMax; }
@@ -198,7 +212,7 @@ namespace HumanGhost.Gameplay.Preview
 
             CheckMonsterHit();
             _body.color = _monster.IsDead ? Color.gray : _monster.CurrentState == StateKey.Stun ? new Color(0.75f, 0.35f, 0.95f) :
-                _monster.IsAttackActive ? new Color(1f, 0.3f, 0.3f) : _color;
+                _monster.IsAttackActive && !_monster.IsRetreating ? new Color(1f, 0.3f, 0.3f) : _color;
         }
 
         // 플레이어 판정 창과 이 몬스터의 접촉. GameplayPreview가 창 열림 순간과 매 프레임 호출합니다. 중복은 창 등록이 막습니다.
@@ -220,6 +234,22 @@ namespace HumanGhost.Gameplay.Preview
             if (active) CheckMonsterHit();
         }
 
+        // 뒤로 깡총(옹귀 1117): 물러설 쪽 RetreatDistance 안에 벽·보행 구간 끝·바닥 없음이 있으면 뛰지 않습니다.
+        private bool CanRetreatFrom(int direction)
+        {
+            if (direction == 0) return false;
+            int distance = 0;
+            foreach (MonsterPattern pattern in _runtime.Actor.Patterns) if (pattern.IsRetreat) distance = Math.Max(distance, pattern.RetreatDistance);
+            if (distance == 0) return false;
+            float delta = direction * distance / 100f * _worldUnitsPerTile;
+            Vector3 center = _body.bounds.center;
+            float x = _runtime.transform.position.x + delta;
+            if (_hasSpan && (x < _spanMin || x > _spanMax)) return false;
+            if (Mathf.Abs(_collision.MoveHorizontal(center, delta) - delta) > .01f) return false;
+            // 보행 구간이 없는 곳(직접 배치)은 착지점 아래 바닥을 확인합니다.
+            return _hasSpan || _collision.FindFloor(new Vector3(center.x + delta, center.y, center.z), _body.bounds.extents.y + .3f * _worldUnitsPerTile, out _);
+        }
+
         // 짐 투척(C08): 판정 창 동안 던진 순간의 플레이어 위치로 포물선을 그립니다.
         private void StartProjectile()
         {
@@ -234,7 +264,42 @@ namespace HumanGhost.Gameplay.Preview
                     view.transform.localScale = Vector3.one * (0.5f / Mathf.Max(_projectileSprite.bounds.size.x, _projectileSprite.bounds.size.y));
                 }
             }
-            _projectile.Throw(_throwRig != null ? _throwRig.ProjectilePosition : _runtime.transform.position, _player.transform.position, _monster.CurrentPattern.Attack.Active);
+            Vector3 from = _throwRig != null ? _throwRig.ProjectilePosition : _runtime.transform.position;
+            if (!_monster.CurrentPattern.IsLob)
+            {
+                _projectile.Throw(from, _player.transform.position, _monster.CurrentPattern.Attack.Active);
+                return;
+            }
+            // 높이 던지기: 던진 순간 막손이 서 있던 자리의 바닥(땅·발판 윗면)을 기억하고 그 자리에 그림자를 둡니다.
+            Vector3 feet = new Vector3(_player.transform.position.x, _playerBody.bounds.min.y, _player.transform.position.z);
+            Vector3 probe = new Vector3(feet.x, _playerBody.bounds.center.y, feet.z);
+            _lobTarget = _collision.FindFloor(probe, 30f * _worldUnitsPerTile, out float gap)
+                ? new Vector3(feet.x, probe.y - gap - _body.bounds.extents.y, feet.z) : feet;
+            if (_lobShadow == null)
+            {
+                _lobShadow = CreateView("PreviewLobShadow", new Color(0f, 0f, 0f, .45f), Vector3.one);
+                _lobShadow.sprite = ShadowSprite();
+                _lobShadow.sortingOrder = _body.sortingOrder - 1;
+            }
+            _lobShadow.transform.position = _lobTarget;
+            _lobShadow.enabled = true;
+            _projectile.Throw(from, _lobTarget + Vector3.up * (.25f * _worldUnitsPerTile), _monster.CurrentPattern.Attack.Active, _lobArc100);
+        }
+
+        // 기존 원형 이펙트가 없어 런타임에 원 하나를 만듭니다(아트 공급 시 교체).
+        private static UnityEngine.Sprite ShadowSprite()
+        {
+            if (_shadowSprite != null) return _shadowSprite;
+            const int size = 32;
+            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp };
+            for (int y = 0; y < size; y++)
+                for (int x = 0; x < size; x++)
+                {
+                    float d = new Vector2(x + .5f - size / 2f, y + .5f - size / 2f).magnitude / (size / 2f);
+                    texture.SetPixel(x, y, new Color(1f, 1f, 1f, Mathf.Clamp01((1f - d) * 3f)));
+                }
+            texture.Apply();
+            return _shadowSprite = UnityEngine.Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(.5f, .5f), size);
         }
 
         // 불붙은 허수귀(C08): 죽은 자리에 불을 남기고 범위 안 플레이어에게 초당 고정 피해를 줍니다.
@@ -282,7 +347,14 @@ namespace HumanGhost.Gameplay.Preview
             Bounds own = _body.bounds, target = _playerBody.bounds;
             bool sameHeight = target.min.y <= own.max.y && target.max.y >= own.min.y;
             bool inFront = offset * _monster.Facing >= 0f;
-            bool touching = pattern.IsProjectile ? _projectile != null && _projectile.IsFlying && _projectile.Bounds.Intersects(target) :
+            // 높이 던지기는 떨어지는 마지막 순간, 기억한 자리 가로 1칸에만 맞습니다.
+            float half = .5f * _worldUnitsPerTile;
+            bool touching = pattern.IsRetreat ? false :
+                pattern.IsLob ? _projectile != null && _projectile.IsFlying &&
+                    _projectile.Progress >= 1f - _lobLandingMilliseconds / (float)pattern.Attack.Active &&
+                    target.max.x >= _lobTarget.x - half && target.min.x <= _lobTarget.x + half &&
+                    target.min.y <= _lobTarget.y + _worldUnitsPerTile && target.max.y >= _lobTarget.y :
+                pattern.IsProjectile ? _projectile != null && _projectile.IsFlying && _projectile.Bounds.Intersects(target) :
                 pattern.IsCharge ? own.Intersects(target) : sameHeight && inFront && Distance(offset) <= pattern.Range;
             int direction = System.Math.Sign(_runtime.transform.position.x - _player.transform.position.x);
             if (!touching) return;

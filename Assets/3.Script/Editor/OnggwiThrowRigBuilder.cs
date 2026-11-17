@@ -126,6 +126,12 @@ namespace HumanGhost.EditorTools
                 var clip = MakeClip(bones, positions);
                 var existingClip = AssetDatabase.LoadAssetAtPath<AnimationClip>(_folder + "/Onggwi_Throw.anim");
                 EditorUtility.CopySerialized(clip, existingClip); UnityEngine.Object.DestroyImmediate(clip);
+                // 높이 던지기(1117): 같은 리그를 위쪽 각도로 놓는 클립. 없으면 만들고 있으면 GUID를 유지해 덮어씁니다.
+                var high = MakeClip(bones, positions, true);
+                var existingHigh = AssetDatabase.LoadAssetAtPath<AnimationClip>(_folder + "/Onggwi_ThrowHigh.anim");
+                if (existingHigh == null) { AssetDatabase.CreateAsset(high, _folder + "/Onggwi_ThrowHigh.anim"); existingHigh = high; }
+                else { EditorUtility.CopySerialized(high, existingHigh); UnityEngine.Object.DestroyImmediate(high); }
+                EditorUtility.SetDirty(existingHigh); AssetDatabase.SaveAssetIfDirty(existingHigh);
                 // 클립 생성 후 기본 자세를 저장합니다. 마지막 투척 자세를 bind pose로 저장하지 않습니다.
                 for (int b = 0; b < bones.Length; b++) bones[b].localRotation = Quaternion.identity;
                 prefab.GetComponent<SpriteRenderer>().sprite = existing;
@@ -245,9 +251,9 @@ namespace HumanGhost.EditorTools
             using(var data=new NativeArray<BoneWeight>(weights.ToArray(),Allocator.Temp))sprite.SetVertexAttribute(VertexAttribute.BlendWeight,data);
             return sprite;
         }
-        private static AnimationClip MakeClip(Transform[] bones, Vector2[] positions)
+        private static AnimationClip MakeClip(Transform[] bones, Vector2[] positions, bool high = false)
         {
-            var clip=new AnimationClip{name="Onggwi_Throw",frameRate=10,wrapMode=WrapMode.ClampForever};
+            var clip=new AnimationClip{name=high?"Onggwi_ThrowHigh":"Onggwi_Throw",frameRate=10,wrapMode=WrapMode.ClampForever};
             // 기본 자세는 왼쪽(-x)이 정면. 위팔 기본 방향 -20도, 아래팔은 위팔 기준 -89도 꺾여 있습니다.
             // 음수 회전으로 앞→머리 위(팔 일직선, 수직)까지 0.3초에 번쩍 들어 올리고, 살짝 뒤로 젖혔다가
             // 0.5초 발사 시점에 앞쪽 위로 뻗으며 놓고 앞아래로 따라 내려옵니다. 뒤로 도는 구간은 없습니다.
@@ -255,6 +261,8 @@ namespace HumanGhost.EditorTools
             var times=new[]{0f,.15f,.3f,.4f,.5f,.7f,1.2f,1.7f};
             var upper=new[]{0f,-131f,-250f,-241f,-180f,-86f,-30f,0f};
             var lower=new[]{0f,60f,89f,50f,89f,60f,10f,0f};
+            // 높이 던지기: 머리 위에서 더 뒤로 젖혔다가(-270) 0.5초에 거의 수직(-235)으로 하늘에 놓고, 천천히 내립니다.
+            if (high) { upper=new[]{0f,-131f,-250f,-270f,-235f,-215f,-60f,0f}; lower=new[]{0f,60f,80f,40f,89f,80f,30f,0f}; }
             foreach (int bone in new[]{2,3})
             {
                 var values=bone==2?upper:lower;

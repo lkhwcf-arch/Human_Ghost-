@@ -22,8 +22,8 @@ MonoBehaviour:
       _active: 120
       _recovery: 600
       _extraDamage: 6
-      _range: 0
-      _height: 0
+      _range: 450
+      _height: 200
       _damageGroup: 0
       _radial: 0
       _knockbackDistance: 100
@@ -48,8 +48,8 @@ MonoBehaviour:
       _active: 100
       _recovery: 0
       _extraDamage: 0
-      _range: 0
-      _height: 0
+      _range: 420
+      _height: 200
       _damageGroup: 0
       _radial: 0
       _knockbackDistance: 100
@@ -62,8 +62,8 @@ MonoBehaviour:
       _active: 100
       _recovery: 600
       _extraDamage: 0
-      _range: 0
-      _height: 0
+      _range: 450
+      _height: 200
       _damageGroup: 0
       _radial: 0
       _knockbackDistance: 200

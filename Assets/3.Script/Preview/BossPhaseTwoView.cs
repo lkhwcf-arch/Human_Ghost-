@@ -28,7 +28,6 @@ namespace HumanGhost.Gameplay.Preview
         public void ConnectWarningOrigin(System.Func<float> origin) => _warningOrigin = origin;
         private long _idleMilliseconds;
         private int _slumpMilliseconds;
-        private int _dustMilliseconds = 1000;
         private int _elapsedMilliseconds;
         private int _impactHit = -1;
         private BossPattern _impactPattern;
@@ -79,7 +78,8 @@ namespace HumanGhost.Gameplay.Preview
             _properties.SetFloat("_FlashAmount", _hitFlashMilliseconds > 0 ? 1f : 0f);
             _properties.SetFloat("_AuraStrength", actor.IsDead ? 0f : .18f);
             _hitFlashMilliseconds = System.Math.Max(0, _hitFlashMilliseconds - _elapsedMilliseconds);
-            if (!_rig.activeSelf) { _warning.enabled = false; _dust.enabled = false; return; }
+            // 1페이즈도 범위가 있는 패턴은 같은 바닥 예고를 씁니다(2B3).
+            if (!_rig.activeSelf) { _dust.enabled = false; DrawWarning(combat); return; }
             _idleMilliseconds = checked(_idleMilliseconds + _elapsedMilliseconds);
             _loopMilliseconds = checked(_loopMilliseconds + _loopClock.AdvanceFrame(Time.deltaTime * _loopRate / 10000d));
             bool moving = Mathf.Abs(transform.position.x - _lastX) > .00001f; _lastX = transform.position.x;
@@ -115,7 +115,7 @@ namespace HumanGhost.Gameplay.Preview
                 bool heavy = pattern.Kind == BossPatternKind.GroundSlam || pattern.Kind == BossPatternKind.DesperationLeap;
                 if (impact && heavy && combat.HitIndex % 2 == 0 && (_impactPattern != pattern || _impactHit != combat.HitIndex))
                 {
-                    _impactPattern = pattern; _impactHit = combat.HitIndex; _dustMilliseconds = 0;
+                    _impactPattern = pattern; _impactHit = combat.HitIndex;
                     _camera?.Shake(.18f, 200);
                     _dust.transform.position = new Vector3(transform.position.x, _body.bounds.min.y + .05f, -.12f);
                 }
@@ -137,24 +137,19 @@ namespace HumanGhost.Gameplay.Preview
                 pulse = .25f + .75f * Mathf.Abs(Mathf.Sin(combat.HitElapsed / (float)combat.CurrentPattern.Hits[0].Windup * Mathf.PI * 3f));
             Color color = actor.IsDead ? Color.gray : red ? Color.Lerp(Color.white, new Color(1f,.15f,.1f), pulse) : actor.IsExposed ? new Color(.9f,.8f,1f) : Color.white;
             foreach (var part in _parts) { part.color = color; part.SetPropertyBlock(_properties); }
-            _warning.enabled = combat.IsWindingUp;
-            if (_warning.enabled)
-            {
-                var area = combat.CurrentPattern.Areas[combat.HitIndex];
-                float width = area.Range / 100f;
-                float center = _warningOrigin != null ? _warningOrigin() : transform.position.x;
-                if (!area.Radial) center += combat.Facing * width * .5f;
-                _warning.transform.position = new Vector3(center, _body.bounds.min.y + .04f, -.1f);
-                Ring(_warning, area.Radial ? width : width * .5f, .12f);
-            }
-            _dustMilliseconds += System.Math.Min(_elapsedMilliseconds, int.MaxValue - _dustMilliseconds);
-            _dust.enabled = _dustMilliseconds < 350;
+            DrawWarning(combat);
+            // 충격파 흙먼지 원 = 판정 반지름(BossHitGeometry.ShockwaveReach, B06). 판정과 같은 값 하나에서 그립니다.
+            var current = combat.CurrentPattern;
+            int reach = current != null && combat.IsAttacking ? BossHitGeometry.ShockwaveReach(current, combat.HitIndex, combat.HitElapsed) : -1;
+            _dust.enabled = reach > 0;
             if (_dust.enabled)
             {
-                var colorDust = new Color(.55f,.34f,.17f,1f-_dustMilliseconds/350f);
+                int wave = BossHitGeometry.IsShockwave(current, combat.HitIndex) ? combat.HitIndex : combat.HitIndex + 1;
+                float progress = reach / (float)current.Areas[wave].Range;
+                var colorDust = new Color(.55f,.34f,.17f,1f-.6f*progress);
                 _dust.startColor = _dust.endColor = colorDust;
-                float radius = combat.CurrentPattern?.Kind == BossPatternKind.DesperationLeap ? 4f : 6f;
-                Ring(_dust, radius * _dustMilliseconds/350f, .12f);
+                _dust.transform.position = new Vector3(transform.position.x, _body.bounds.min.y + .05f, -.12f);
+                Ring(_dust, reach / 100f, .12f);
             }
         }
         // 공급 도약 클립의 착지 자세는 1.2초입니다. 실제 공중 구간 끝과 두 번째 착지에도 같은 자세를 맞춥니다.
@@ -175,6 +170,19 @@ namespace HumanGhost.Gameplay.Preview
             return Mathf.Lerp(1.7f, end, (float)combat.HitElapsed / spec.TotalTime);
         }
 
+        // 선딜 동안 바닥에 판정 범위를 그립니다. 범위가 없는 패턴은 그리지 않습니다.
+        private void DrawWarning(BossCombat combat)
+        {
+            var pattern = combat.CurrentPattern;
+            _warning.enabled = pattern != null && combat.IsWindingUp && pattern.Areas.Count > combat.HitIndex;
+            if (!_warning.enabled) return;
+            var area = pattern.Areas[combat.HitIndex];
+            float width = area.Range / 100f;
+            float center = _warningOrigin != null ? _warningOrigin() : transform.position.x;
+            if (!area.Radial) center += combat.Facing * width * .5f;
+            _warning.transform.position = new Vector3(center, _body.bounds.min.y + .04f, -.1f);
+            Ring(_warning, area.Radial ? width : width * .5f, .12f);
+        }
         private static float Map(int elapsed, AttackSpec spec, float contact, float recovery, float end, float start = 0f)
         {
             if (elapsed < spec.Windup) return Mathf.Lerp(start, contact, (float)elapsed / spec.Windup);

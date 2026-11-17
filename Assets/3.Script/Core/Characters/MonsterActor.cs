@@ -32,6 +32,12 @@ namespace HumanGhost.Gameplay
         private int _exposedRemaining;
         private readonly MonsterAwareness _awareness;
         private int _returnDirection;
+        private int _height;
+        private int[] _cooldowns;
+        // 물러서기 착지점(뒤 RetreatDistance 안)에 벽·낭떠러지·발판 끝이 없는지. 공간 관측은 어댑터가 공급합니다.
+        public bool CanRetreat { get; set; } = true;
+        // 같은 층으로 보는 발 높이 차이(tile_x100) 상한입니다. 물러서기 조건에만 씁니다.
+        private const int _sameFloorHeight = 50;
 
         public Monster Definition { get; }
         public ActorStateMachine States { get; }
@@ -47,6 +53,7 @@ namespace HumanGhost.Gameplay
         public bool IsDead => Health == 0;
         public int Facing { get; private set; } = 1;
         public MonsterPattern CurrentPattern => _pattern;
+        public IReadOnlyList<MonsterPattern> Patterns => _patterns;
         public int AttackElapsed => _pattern == null ? 0 : _elapsed;
         public bool IsHolding => _holding != null;
         public bool IsAttackActive => _attackWindow.IsActive;
@@ -54,7 +61,10 @@ namespace HumanGhost.Gameplay
         // SuperArmor는 돌진 판정 구간에만 적용합니다. 상시 피격 면제가 아닙니다.
         public bool IsSuperArmor => IsCharging && Definition.SuperArmor;
         // tile_x100/초 그대로. 월드 단위 변환·실제 이동은 어댑터 책임입니다.
-        public int Velocity => IsCharging ? Facing * _pattern.ChargeSpeed : CurrentState == StateKey.Walk ? Facing * Definition.MoveSpeed : 0;
+        public bool IsRetreating => _pattern != null && _pattern.IsRetreat;
+        public int Velocity => IsCharging ? Facing * _pattern.ChargeSpeed :
+            IsRetreating && IsAttackActive ? -Facing * (int)((long)_pattern.RetreatDistance * 1000 / _pattern.Attack.Active) :
+            CurrentState == StateKey.Walk ? Facing * Definition.MoveSpeed : 0;
         public event Action<int> HealthChanged;
         public event Action<MonsterPattern> PatternStarted;
         // 공격 취소와 경직 진입을 완료한 뒤 표시 소비자에게 알립니다.
@@ -89,6 +99,7 @@ namespace HumanGhost.Gameplay
             if (hitStun < 0 || critHitStun < 0) throw new ArgumentOutOfRangeException(nameof(hitStun));
             _patterns = new MonsterPattern[patterns.Count];
             for (int i = 0; i < _patterns.Length; i++) _patterns[i] = patterns[i] ?? throw new ArgumentException("빈 패턴 설정입니다.", nameof(patterns));
+            _cooldowns = new int[_patterns.Length];
             _random = random ?? throw new ArgumentNullException(nameof(random));
             _hitStun = hitStun; _critHitStun = critHitStun;
             States = new ActorStateMachine(_idle);
@@ -109,7 +120,7 @@ namespace HumanGhost.Gameplay
             if (height < 0 || spawnDistance < 0 || spawnDirection < -1 || spawnDirection > 1) throw new ArgumentOutOfRangeException(nameof(height));
             if (heightDirection < -1 || heightDirection > 1 || height > 0 && heightDirection == 0)
                 throw new ArgumentOutOfRangeException(nameof(heightDirection));
-            _targetId = targetEligible ? targetId : 0; _distance = distance; _direction = direction; _returnDirection = spawnDirection;
+            _targetId = targetEligible ? targetId : 0; _distance = distance; _direction = direction; _returnDirection = spawnDirection; _height = height;
             _awareness?.Observe(distance * direction, height * heightDirection, spawnDistance, targetEligible, Facing);
             if (!targetEligible)
             {
@@ -202,6 +213,7 @@ namespace HumanGhost.Gameplay
         private HitOutcome HitPlayer(int targetId, PlayerActor target, Func<int, int, int> random, bool dodged, bool critical, int direction = 0)
         {
             if (target == null) throw new ArgumentNullException(nameof(target));
+            if (_pattern != null && _pattern.IsRetreat) return HitOutcome.None;
             bool grab = _pattern != null && _pattern.IsGrab;
             if (!IsDead && _pattern != null && _pattern.IsParryable && target.TryParryContact(_attackWindow, targetId, direction, deferFeedback: true))
             {
@@ -286,6 +298,7 @@ namespace HumanGhost.Gameplay
         {
             if (milliseconds < 0) throw new ArgumentOutOfRangeException(nameof(milliseconds));
             if (IsDead || IsInvulnerable || milliseconds == 0) return;
+            for (int i = 0; i < _cooldowns.Length; i++) _cooldowns[i] = Math.Max(0, _cooldowns[i] - milliseconds);
             if (_awareness != null)
             {
                 if (_awareness.Advance(milliseconds, _pattern != null || _stunRemaining > 0 || IsExposed)) BeginReturn();
@@ -317,7 +330,13 @@ namespace HumanGhost.Gameplay
                     int step = Math.Min(milliseconds, end - _elapsed);
                     _elapsed += step; milliseconds -= step;
                     SetAttackActive(_elapsed >= spec.Windup && _elapsed < spec.Windup + spec.Active);
-                    if (_elapsed == spec.TotalTime) { ClearPattern(); StartWait(); }
+                    if (_elapsed == spec.TotalTime)
+                    {
+                        // 뒤로 깡총 착지 직후에는 대기 없이 보통 던지기로 이어집니다.
+                        MonsterPattern next = _pattern.IsRetreat ? FollowUpThrow() : null;
+                        ClearPattern();
+                        if (next != null && _targetId != 0 && HasAggro) StartPattern(next); else StartWait();
+                    }
                 }
                 else if (_stunRemaining > 0)
                 {
@@ -353,8 +372,16 @@ namespace HumanGhost.Gameplay
             if (_direction != 0) Facing = _direction;
             if (_distance <= Definition.AttackRange)
             {
+                // 붙으면(같은 층·거리 안·뒤 공간 있음·쿨타임 끝) 물러서기가 먼저입니다. 막혔으면 그 자리에서 다른 패턴을 고릅니다.
+                for (int i = 0; i < _patterns.Length; i++)
+                {
+                    MonsterPattern pattern = _patterns[i];
+                    if (pattern.IsRetreat && _cooldowns[i] == 0 && CanRetreat && _height <= _sameFloorHeight &&
+                        _distance <= pattern.Range && _distance >= pattern.MinRange) { StartPattern(pattern); return; }
+                }
                 _candidates.Clear();
-                foreach (MonsterPattern pattern in _patterns) if (_distance <= pattern.Range && _distance >= pattern.MinRange) _candidates.Add(pattern);
+                foreach (MonsterPattern pattern in _patterns)
+                    if (!pattern.IsRetreat && _distance <= pattern.Range && _distance >= pattern.MinRange) _candidates.Add(pattern);
                 if (_candidates.Count > 0) { StartPattern(_candidates[Pick(0, _candidates.Count)]); return; }
             }
             States.Change(_walk);
@@ -366,8 +393,16 @@ namespace HumanGhost.Gameplay
             Poise = Definition.Poise; _sinceHit = _poiseRemainder = 0;
         }
 
+        private MonsterPattern FollowUpThrow()
+        {
+            foreach (MonsterPattern pattern in _patterns) if (pattern.IsProjectile && !pattern.IsLob) return pattern;
+            return null;
+        }
+
         private void StartPattern(MonsterPattern pattern)
         {
+            int index = Array.IndexOf(_patterns, pattern);
+            if (index >= 0) _cooldowns[index] = pattern.Cooldown;
             _pattern = pattern; _elapsed = 0; _attackWindow.ClearTargets();
             if (pattern.Key == StateKey.Skill1) States.Call(StateKey.Skill1);
             else States.Change(new AttackState(pattern.Key));

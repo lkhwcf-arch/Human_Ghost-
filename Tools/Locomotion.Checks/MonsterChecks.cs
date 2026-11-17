@@ -335,7 +335,7 @@ internal static class MonsterChecks
         Expect<ArgumentException>(() => new MonsterActor(husugwi, new MonsterPattern[0], 300, 500, Random));
         Expect<ArgumentNullException>(() => new MonsterActor(husugwi, HusugwiPatterns(), 300, 500, null));
         Expect<ArgumentOutOfRangeException>(() => new MonsterPattern(StateKey.Attack2, 150, new AttackSpec(1, 1, 0, 0, 0, 0, 0), bindTime: 1000));
-        Expect<ArgumentOutOfRangeException>(() => new MonsterPattern(StateKey.Attack3, 150, new AttackSpec(1, 1, 0, 0, 0, 0, 0)));
+        Expect<ArgumentOutOfRangeException>(() => new MonsterPattern(StateKey.Attack4, 150, new AttackSpec(1, 1, 0, 0, 0, 0, 0)));
         Expect<InvalidOperationException>(() => new MonsterActor(husugwi, HusugwiPatterns(), 300, 500, (min, max) => max).Observe(1, 100, 1));
         return checks + HitChecks.Run(player, jigegwi,
             () => new MonsterActor(husugwi, HusugwiPatterns(), 300, 500, (min, max) => min),

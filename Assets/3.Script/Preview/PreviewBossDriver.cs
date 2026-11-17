@@ -185,7 +185,11 @@ namespace HumanGhost.Gameplay.Preview
             if (pattern.Areas.Count > 0)
             {
                 float origin = pattern.Kind == BossPatternKind.DesperationLeap ? _landingX : _runtime.transform.position.x;
-                touching = BossHitGeometry.Contains(pattern.Areas[combat.HitIndex],
+                BossHitArea area = pattern.Areas[combat.HitIndex];
+                // 충격파는 화면의 흙먼지 원과 같은 현재 반지름까지만 맞습니다(B06).
+                int reach = BossHitGeometry.IsShockwave(pattern, combat.HitIndex)
+                    ? BossHitGeometry.ShockwaveReach(pattern, combat.HitIndex, combat.HitElapsed) : area.Range;
+                touching = BossHitGeometry.Contains(area, reach,
                     Mathf.RoundToInt((_player.transform.position.x - origin) / _worldUnitsPerTile * 100f),
                     Mathf.RoundToInt((target.min.y - own.min.y) / _worldUnitsPerTile * 100f),
                     Mathf.RoundToInt((target.max.y - own.min.y) / _worldUnitsPerTile * 100f), combat.Facing);

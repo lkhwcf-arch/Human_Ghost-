@@ -23,6 +23,7 @@ namespace HumanGhost.Gameplay.Adapters
             [SerializeField] private bool _parryable = true;
             public BossHitReaction CreateReaction() => new BossHitReaction(_knockbackDistance,_knockbackTime,_downTime,_slowRate,_slowTime,_parryable);
             public BossHitArea CreateArea() => new BossHitArea(_range, _height, _radial, _damageGroup);
+            public bool HasArea => _range > 0;
             public AttackSpec Create(StateKey key, int index)
             {
                 if (_windup < 0 || _active <= 0 || _recovery < 0)
@@ -58,7 +59,9 @@ namespace HumanGhost.Gameplay.Adapters
                 for (int i = 0; i < hits.Length; i++)
                     hits[i] = (_hits[i] ?? throw new InvalidOperationException("보스 타격 설정이 비어 있습니다.")).Create(_key, i);
                 BossHitArea[] areas = null;
-                if (_kind != BossPatternKind.Legacy)
+                // 1페이즈(Legacy) 패턴도 타격마다 범위를 적으면 같은 판정·예고 범위를 씁니다(2B3).
+                bool legacyAreas = _kind == BossPatternKind.Legacy && Array.TrueForAll(_hits, hit => hit != null && hit.HasArea);
+                if (_kind != BossPatternKind.Legacy || legacyAreas)
                 {
                     areas = new BossHitArea[_hits.Length];
                     for (int i = 0; i < areas.Length; i++) areas[i] = _hits[i].CreateArea();
