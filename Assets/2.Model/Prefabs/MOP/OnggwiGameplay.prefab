@@ -217,6 +217,7 @@ GameObject:
   - component: {fileID: 2453115469342912412}
   - component: {fileID: 2299183735442136735}
   - component: {fileID: 5456245392257694520}
+  - component: {fileID: 6556471941990492835}
   m_Layer: 0
   m_Name: OnggwiGameplay
   m_TagString: Untagged
@@ -429,6 +430,21 @@ MonoBehaviour:
   _pulseMilliseconds: 200
   _parryColor: {r: 1, g: 1, b: 1, a: 1}
   _unparryColor: {r: 1, g: 0, b: 0, a: 1}
+--- !u!114 &6556471941990492835
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5695515789192891272}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9196d1c8bcb043278fbe22199946659d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Adapters.MonsterAnimationAudio
+  _soundPrefix: M3
+  _separateCriticalHit: 0
+  _walkStepMilliseconds: 500
 --- !u!1 &6479756317502007801
 GameObject:
   m_ObjectHideFlags: 0

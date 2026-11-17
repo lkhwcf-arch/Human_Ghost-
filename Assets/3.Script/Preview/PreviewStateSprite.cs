@@ -82,6 +82,7 @@ namespace HumanGhost.Gameplay.Preview
         }
         public float ExecutionDuration => SelectAnimation(StateKey.Execute)?.length ?? 0f;
         protected AnimationClip CurrentAnimation => _animation;
+        protected float AnimationTime { get; private set; }
         protected void RestartAnimation() => _hasState = false;
         protected SpriteRenderer Renderer => _renderer;
         protected Sprite Fallback => _fallback;
@@ -165,6 +166,7 @@ namespace HumanGhost.Gameplay.Preview
                     time = duration > 0f ? _elapsedMilliseconds / 1000f / duration * _animation.length : _elapsedMilliseconds / 1000f;
                     time = _animation.isLooping && duration <= 0f ? Mathf.Repeat(time, _animation.length) : Mathf.Min(time, _animation.length);
                 }
+                AnimationTime = time;
                 _animation.SampleAnimation(_renderer.gameObject, time);
             }
             else if (_selected != null && _renderer.sprite != _selected) _renderer.sprite = _selected;

@@ -27,6 +27,7 @@ namespace HumanGhost.Gameplay
         private int _targetId;
         private int _distance;
         private int _direction;
+        private bool _initialFacingSet;
         private int _sinceHit;
         private int _poiseRemainder;
         private int _exposedRemaining;
@@ -121,7 +122,12 @@ namespace HumanGhost.Gameplay
             if (heightDirection < -1 || heightDirection > 1 || height > 0 && heightDirection == 0)
                 throw new ArgumentOutOfRangeException(nameof(heightDirection));
             _targetId = targetEligible ? targetId : 0; _distance = distance; _direction = direction; _returnDirection = spawnDirection; _height = height;
+            // 생성 뒤 첫 관측에서 한 번 플레이어 쪽을 봅니다(같은 x면 왼쪽). 정면 인식 거리가 의도대로 적용됩니다(몬스터생성방향_1117).
+            if (!_initialFacingSet) { _initialFacingSet = true; Facing = direction > 0 ? 1 : -1; }
+            bool wasReturning = IsReturning;
             _awareness?.Observe(distance * direction, height * heightDirection, spawnDistance, targetEligible, Facing);
+            // 스폰 자리로 돌아와 멈추면 다시 플레이어 쪽을 봅니다.
+            if (wasReturning && !IsReturning && !_awareness.IsEngaged) Facing = direction > 0 ? 1 : -1;
             if (!targetEligible)
             {
                 // 비활성 등 유효하지 않은 대상을 향한 준비·판정·돌진·잡기를 멈춥니다. 피격·노출·처형과 체세는 보존합니다.

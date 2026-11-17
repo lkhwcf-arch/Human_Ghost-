@@ -7,16 +7,11 @@ namespace HumanGhost.Gameplay.Adapters
     // 플레이어 결과를 표현 소리로 연결합니다. 동작 선택·판정·진행 상태는 변경하지 않습니다.
     public sealed class PlayerAnimationAudio : MonoBehaviour
     {
-        [SerializeField, InspectorName("임시 자동 발소리(애니 이벤트 연결 시 끔)")] private bool _automaticFootsteps = true;
-        [SerializeField, Min(50)] private int _walkStepMilliseconds = 500;
         private PlayerRuntime _player;
         private Action<string> _play;
         private PlayerActor _actor;
         private SubscriptionScope _scope;
         private int _health;
-        private float _lastX;
-        private int _stepRemainingMilliseconds;
-        private MillisecondClock _stepClock;
 
         public void Connect(PlayerRuntime player, Action<string> play)
         {
@@ -31,7 +26,7 @@ namespace HumanGhost.Gameplay.Adapters
         {
             if (_actor != null) return;
             _actor = _player.Actor;
-            _health = _actor.Health; _lastX = _player.transform.position.x; _stepRemainingMilliseconds = 0; _stepClock = default;
+            _health = _actor.Health;
             var actor = _actor;
             var scope = _scope = new SubscriptionScope();
             Action<StateKey> state = scope.Guard<StateKey>(OnStateChanged);
@@ -46,7 +41,7 @@ namespace HumanGhost.Gameplay.Adapters
         {
             var scope = _scope; _scope = null;
             scope?.Dispose();
-            _actor = null; _stepRemainingMilliseconds = 0; _stepClock = default;
+            _actor = null;
         }
         public void Disconnect() { Unbind(); _player = null; _play = null; }
 
@@ -74,24 +69,8 @@ namespace HumanGhost.Gameplay.Adapters
                 // 매달리기 소리는 실제 모서리 잡기에서만 냅니다(사다리도 Hang 상태를 쓰므로 상태로 판단하지 않음).
                 case StateKey.Heal: PlayAnimationSound("PLAYER_HEAL"); break;
                 case StateKey.Execute: PlayAnimationSound("PLAYER_EXECUTE_1"); break;
+                case StateKey.Skill1: PlayAnimationSound("PLAYER_SKILL"); break;
             }
-        }
-        private void Update()
-        {
-            if (_actor == null || _player == null) return;
-            float x = _player.transform.position.x;
-            bool moving = Mathf.Abs(x - _lastX) > 0.0001f;
-            _lastX = x;
-            if (!_automaticFootsteps || Time.deltaTime <= 0f || !_player.isActiveAndEnabled ||
-                _actor.CurrentState != StateKey.Walk || !_actor.Locomotion.IsGrounded || !moving)
-            {
-                _stepRemainingMilliseconds = 0; _stepClock = default;
-                return;
-            }
-            _stepRemainingMilliseconds -= _stepClock.AdvanceFrame(Time.deltaTime);
-            if (_stepRemainingMilliseconds > 0) return;
-            PlayAnimationSound("PLAYER_WALK");
-            _stepRemainingMilliseconds = System.Math.Max(50, _walkStepMilliseconds);
         }
     }
 }

@@ -57,6 +57,8 @@ namespace HumanGhost.Gameplay.Adapters
         [SerializeField] private AudioSource _musicA = null;
         [SerializeField] private AudioSource _musicB = null;
         [SerializeField] private AudioSource _effects = null;
+        [SerializeField, InspectorName("환경음(루프)")] private AudioSource _ambience = null;
+        private string _currentAmbience;
         private readonly Dictionary<string, List<AudioClip>> _lookup = new Dictionary<string, List<AudioClip>>();
         private readonly System.Random _effectRandom = new System.Random();
         private string _currentMusic;
@@ -91,6 +93,7 @@ namespace HumanGhost.Gameplay.Adapters
             if (muted) _cutsceneOwners.Add(owner); else _cutsceneOwners.Remove(owner);
             bool blocked = _cutsceneOwners.Count > 0;
             _musicA.mute = _musicB.mute = _effects.mute = blocked;
+            if (_ambience != null) _ambience.mute = blocked;
             if (_tablePlayer != null) _tablePlayer.SetMuted(blocked);
         }
 
@@ -210,6 +213,17 @@ namespace HumanGhost.Gameplay.Adapters
             next.Play();
         }
 
+        // 배경음과 겹쳐 도는 방 환경음입니다. 빈 키·없는 키는 정지, 같은 키는 이어서 재생합니다.
+        public void PlayAmbience(string key)
+        {
+            if (_ambience == null || key == _currentAmbience) return;
+            _currentAmbience = key;
+            if (string.IsNullOrEmpty(key) || !_lookup.TryGetValue(key, out List<AudioClip> clips)) { _ambience.Stop(); _ambience.clip = null; return; }
+            _ambience.clip = clips[0]; _ambience.loop = true;
+            UpdateVolumes();
+            _ambience.Play();
+        }
+
         public void FadeOutMusic(int milliseconds)
         {
             if (milliseconds <= 0) throw new ArgumentOutOfRangeException(nameof(milliseconds));
@@ -273,6 +287,7 @@ namespace HumanGhost.Gameplay.Adapters
             float volume = _musicVolume * _pauseScale;
             _musicA.volume = volume * _fadeA.Gain;
             _musicB.volume = volume * _fadeB.Gain;
+            if (_ambience != null) _ambience.volume = volume;
         }
     }
 }

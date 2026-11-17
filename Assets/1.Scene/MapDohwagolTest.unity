@@ -326,7 +326,7 @@ MonoBehaviour:
     _clip: {fileID: 7400000, guid: cc3de20f8d416da4a8114f1d071446a9, type: 2}
     _hitFrames: []
   - _state: 10015
-    _clip: {fileID: 7400000, guid: 4441b72c85f07f743a79c23b9d1d96cf, type: 2}
+    _clip: {fileID: 7400000, guid: a0b7867d86ea6334d9b237c6b7dbcf37, type: 2}
     _hitFrames: []
   - _state: 10016
     _clip: {fileID: 7400000, guid: bf1d874e061184e41935fa6c11b19f4c, type: 2}

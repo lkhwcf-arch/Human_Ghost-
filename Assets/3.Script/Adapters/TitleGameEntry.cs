@@ -68,7 +68,7 @@ namespace HumanGhost.Gameplay.Adapters
         private void OnDisable()
         {
             if (_backgroundVideo != null) _backgroundVideo.Ready -= PlayTitleMusic;
-            if (_audio != null) _audio.StopMusic();
+            if (_audio != null) { _audio.StopMusic(); _audio.PlayAmbience(null); }
             _layoutResultReady = false;
             _layoutPending = false;
             _layoutResult = null;
@@ -219,7 +219,7 @@ namespace HumanGhost.Gameplay.Adapters
             }
         }
 
-        private void PlayTitleMusic() { if (_audio != null) _audio.PlayMusic(_musicKey); }
+        private void PlayTitleMusic() { if (_audio != null) { _audio.PlayMusic(_musicKey); _audio.PlayAmbience("TITLE_AMBIANCE"); } }
 
         private void ConnectAudioData(IReadOnlyDataCatalog data)
         {
