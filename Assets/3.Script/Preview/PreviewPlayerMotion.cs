@@ -307,6 +307,8 @@ namespace HumanGhost.Gameplay.Preview
             float requested = _player.ToWorld(delta);
             float targetX = position.x + requested;
             float slopeHeight = position.y;
+            // [정수 경사 규칙 미적용 이유] 2026-11-17 사용자 결정으로 플레이어 비탈 개선은 보류입니다. 기존 몸통 폭·실수 비탈 추종을 그대로 씁니다.
+            // 적용할 때는 몬스터와 같은 PreviewFootCollision(정수 TryFollowFootSlope)을 재사용합니다.
             bool onSlope = !_airborne && targetX >= minX && targetX <= maxX &&
                 _collision.TryFollowGroundSlope(position, requested, out slopeHeight);
             float allowed = onSlope ? requested : _collision.MoveHorizontal(position, requested);

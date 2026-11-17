@@ -16,6 +16,7 @@ internal static class Program
             Player definition = TestDefinitions.Player();
             CheckLocomotion(definition);
             IntegerMotionChecks.Run(Check);
+            GroundSlopeRuleChecks.Run(Check);
             FieldEffectChecks.Run(Check);
             GameProgressChecks.Run(Check);
             ProgressionChecks.Run(Check);

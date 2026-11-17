@@ -31,13 +31,19 @@ namespace HumanGhost.Gameplay.Adapters
         public void SetPosition(IntegerPosition position) => SetPosition(position, transform.position.z);
         public bool MoveHorizontal(long delta, float minX, float maxX)
         {
-            IntegerPosition position = Position;
-            long requested = checked(position.X + delta);
+            long x = ClampHorizontal(delta, minX, maxX, out bool hitEdge);
+            SetPosition(new IntegerPosition(x, Position.Y));
+            return hitEdge;
+        }
+        // 위치를 바꾸지 않고 구간 제한을 적용한 수평 목표 X만 계산합니다(이벤트 없음).
+        // 높이까지 정한 뒤 SetPosition으로 한 번에 확정해 구독자가 중간 위치를 관측하지 않게 할 때 씁니다.
+        public long ClampHorizontal(long delta, float minX, float maxX, out bool hitEdge)
+        {
+            long requested = checked(Position.X + delta);
             long minimum = ToInteger(minX), maximum = ToInteger(maxX);
             if (minimum > maximum) throw new ArgumentException("이동 구간의 최소값이 최대값보다 큽니다.");
-            long x = Math.Max(minimum, Math.Min(maximum, requested));
-            SetPosition(new IntegerPosition(x, position.Y));
-            return requested < minimum || requested > maximum;
+            hitEdge = requested < minimum || requested > maximum;
+            return Math.Max(minimum, Math.Min(maximum, requested));
         }
         private void SetPosition(IntegerPosition position, float z)
         {

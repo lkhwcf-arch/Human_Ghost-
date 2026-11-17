@@ -577,8 +577,8 @@ namespace HumanGhost.Gameplay.Preview
                 float drop = FindFloorDrop(feet, 0.5f, filter, hits);
                 if (drop > 0f) { _monsters[i].SetPosition(_monsters[i].transform.position + Vector3.down * drop); feet.y -= drop; }
                 float halfWidth = body.bounds.extents.x;
-                float min = FindSpanEnd(feet, half, -1, filter, hits) + halfWidth;
-                float max = FindSpanEnd(feet, half, 1, filter, hits) - halfWidth;
+                float min = FindSpanEnd(feet, half, -1, filter, hits, _worldUnitsPerTile) + halfWidth;
+                float max = FindSpanEnd(feet, half, 1, filter, hits, _worldUnitsPerTile) - halfWidth;
                 // 몸체보다 좁은 지형은 최초 배치점을 유지합니다. 정상 지면은 발 전체가 가장자리 안에 남습니다.
                 if (min > max) min = max = feet.x;
                 _monsterDrivers[i].UseWalkableSpan(min, max);
@@ -589,11 +589,15 @@ namespace HumanGhost.Gameplay.Preview
             PreviewTraversalGuide.AddTo(_stage.MapRoot, _markersRoot, _playerBody.sprite, _playerBody.sortingLayerID, 60);
         }
 
-        private static float FindSpanEnd(Vector2 feet, float halfHeight, int direction, ContactFilter2D filter, List<Collider2D> hits)
+        // [정수화 미적용 이유] 맵 조립 때 한 번 Physics2D.OverlapPoint로 지형을 훑는 관측이라 탐사 좌표는 Unity API가 받는 float입니다.
+        // 결과 구간(월드 좌표)은 이동 때 SpatialRuntime.ClampHorizontal이 정수로 바꿔 적용합니다. 경사 한도만 정수 규칙에서 만듭니다.
+        private static float FindSpanEnd(Vector2 feet, float halfHeight, int direction, ContactFilter2D filter, List<Collider2D> hits,
+            float worldUnitsPerTile)
         {
-            const float step = 0.25f;
-            // 한 칸에서 따라갈 경사 높이 한도(약 31도). 이보다 가파르면 벽·낭떠러지로 끝냅니다.
-            const float slopeReach = step * 0.6f;
+            // 0.25칸 간격으로 훑고, 한 칸에서 따라갈 높이 한도는 이동과 같은 GroundSlopeRule(최대 45°)에서 만듭니다.
+            long stepUnits = IntegerPosition.UnitsPerTile / 4;
+            float step = SpatialRuntime.ToWorld(stepUnits, worldUnitsPerTile);
+            float slopeReach = SpatialRuntime.ToWorld(GroundSlopeRule.MaxRise(stepUnits), worldUnitsPerTile);
             float x = feet.x, y = feet.y;
             Collider2D floor = SolidAt(new Vector2(x, y - 0.1f), filter, hits);
             for (int i = 0; i < 800; i++)
