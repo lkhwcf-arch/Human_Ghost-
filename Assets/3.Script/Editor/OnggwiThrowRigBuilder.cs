@@ -131,6 +131,26 @@ namespace HumanGhost.EditorTools
                 prefab.GetComponent<SpriteRenderer>().sprite = existing;
                 var skin = prefab.GetComponent<SpriteSkin>(); skin.SetRootBone(bones[0]); skin.SetBoneTransforms(bones);
                 skin.alwaysUpdate = true;
+                // 그리는 순서: 항아리 본체 < 돌 < 팔 전체(HandOverlay). 돌이 팔·손 뒤에 쥐어진 것처럼 보입니다.
+                int order = prefab.GetComponent<SpriteRenderer>().sortingOrder;
+                var held = prefab.GetComponentsInChildren<Transform>(true).Single(t => t.name == "HeldStone").GetComponent<SpriteRenderer>();
+                held.sortingOrder = order + 1;
+                // 손가락 끝에 걸쳐 쥡니다. 팔 덮개(손가락)가 돌 안쪽 절반을 덮고, 손끝 바깥으로 나온 절반이 보입니다.
+                held.transform.localPosition = (_palmPixel - _pixels[4]) / source.pixelsPerUnit;
+                var hand = MakeSprite(source, bones, prefab.transform, true);
+                var handAsset = AssetDatabase.LoadAssetAtPath<Sprite>(_folder + "/Onggwi_HandOverlaySprite.asset");
+                if (handAsset == null) { AssetDatabase.CreateAsset(hand, _folder + "/Onggwi_HandOverlaySprite.asset"); handAsset = hand; }
+                else { EditorUtility.CopySerialized(hand, handAsset); UnityEngine.Object.DestroyImmediate(hand); }
+                var overlay = prefab.transform.Find(HandOverlayName);
+                if (overlay == null) { overlay = new GameObject(HandOverlayName, typeof(SpriteRenderer)).transform; overlay.SetParent(prefab.transform, false); }
+                var overlayRenderer = overlay.GetComponent<SpriteRenderer>();
+                overlayRenderer.sharedMaterial = prefab.GetComponent<SpriteRenderer>().sharedMaterial;
+                overlayRenderer.sprite = handAsset; overlayRenderer.sortingOrder = order + 2;
+                var overlaySkin = overlay.GetComponent<SpriteSkin>() ?? overlay.gameObject.AddComponent<SpriteSkin>();
+                overlaySkin.autoRebind = false; overlaySkin.alwaysUpdate = true;
+                overlaySkin.SetRootBone(bones[0]); overlaySkin.SetBoneTransforms(bones);
+                var overlayBounds = new SerializedObject(overlaySkin); overlayBounds.FindProperty("m_Bounds").boundsValue = new Bounds(existing.bounds.center, existing.bounds.size * 3f); overlayBounds.ApplyModifiedPropertiesWithoutUndo();
+                EditorUtility.SetDirty(handAsset); AssetDatabase.SaveAssetIfDirty(handAsset);
                 PrefabUtility.SaveAsPrefabAsset(prefab, _folder + "/Onggwi_ThrowRig.prefab");
                 EditorUtility.SetDirty(existing); EditorUtility.SetDirty(existingClip);
                 AssetDatabase.SaveAssetIfDirty(existing); AssetDatabase.SaveAssetIfDirty(existingClip);
@@ -155,10 +175,13 @@ namespace HumanGhost.EditorTools
             }
             return inside;
         }
-        private static Sprite MakeSprite(Sprite source, Transform[] bones, Transform root)
+        public const string HandOverlayName = "HandOverlay";
+        private static readonly Vector2 _palmPixel = new Vector2(148,8);
+        // handOnly: 팔(위팔~손가락) 삼각형만 담은 덮개 메시. 같은 뼈·가중치를 써서 본체와 정확히 겹칩니다.
+        private static Sprite MakeSprite(Sprite source, Transform[] bones, Transform root, bool handOnly = false)
         {
             var sprite = Sprite.Create(source.texture, source.rect, source.pivot/source.rect.size, source.pixelsPerUnit, 0, SpriteMeshType.FullRect);
-            sprite.name = "Onggwi_ThrowSprite";
+            sprite.name = handOnly ? "Onggwi_HandOverlaySprite" : "Onggwi_ThrowSprite";
             const int steps = 128;
             var vertices = new List<Vector3>(); var uv = new List<Vector2>(); var weights = new List<BoneWeight>();
             var indices = new List<ushort>(); var armIndices = new List<ushort>(); var lookup = new Dictionary<int, ushort>();
@@ -180,6 +203,13 @@ namespace HumanGhost.EditorTools
             };
             Action<int,int> addCell = (x,y) => {
                 bool a=InArm(new Vector2((x+1f/3)*2,(y+1f/3)*2));
+                if (handOnly)
+                {
+                    bool c=InArm(new Vector2((x+2f/3)*2,(y+2f/3)*2));
+                    if (a) { addVertex(x,y,1); addVertex(x,y+1,1); addVertex(x+1,y,1); }
+                    if (c) { addVertex(x+1,y,1); addVertex(x,y+1,1); addVertex(x+1,y+1,1); }
+                    return;
+                }
                 if (a && y >= 22) { addVertex(x,y,2); addVertex(x,y+1,2); addVertex(x+1,y,2); }
                 addVertex(x,y,a?1:0); addVertex(x,y+1,a?1:0); addVertex(x+1,y,a?1:0);
                 bool b=InArm(new Vector2((x+2f/3)*2,(y+2f/3)*2));
@@ -193,7 +223,7 @@ namespace HumanGhost.EditorTools
                 {
                     for(int sy=y;sy<y+4;sy++)for(int sx=x;sx<x+4;sx++)addCell(sx,sy);
                 }
-                else
+                else if (!handOnly)
                 {
                     addVertex(x,y,0); addVertex(x,y+4,0); addVertex(x+4,y,0);
                     addVertex(x+4,y,0); addVertex(x,y+4,0); addVertex(x+4,y+4,0);
@@ -218,10 +248,13 @@ namespace HumanGhost.EditorTools
         private static AnimationClip MakeClip(Transform[] bones, Vector2[] positions)
         {
             var clip=new AnimationClip{name="Onggwi_Throw",frameRate=10,wrapMode=WrapMode.ClampForever};
-            // 불가능한 IK 목표를 따라 팔꿈치가 뒤집히던 경로 대신, 관절 길이를 고정한 연속 회전입니다.
-            var times=new[]{0f,.2f,.4f,.5f,.7f,1.2f,1.7f};
-            var upper=new[]{0f,45f,95f,155f,200f,80f,0f};
-            var lower=new[]{0f,85f,145f,100f,90f,40f,0f};
+            // 기본 자세는 왼쪽(-x)이 정면. 위팔 기본 방향 -20도, 아래팔은 위팔 기준 -89도 꺾여 있습니다.
+            // 음수 회전으로 앞→머리 위(팔 일직선, 수직)까지 0.3초에 번쩍 들어 올리고, 살짝 뒤로 젖혔다가
+            // 0.5초 발사 시점에 앞쪽 위로 뻗으며 놓고 앞아래로 따라 내려옵니다. 뒤로 도는 구간은 없습니다.
+            // 아래팔 절대각: 앞수평 -180 → 수직 -270 → 젖힘 -300 → 발사 -200 → 앞아래 -135.
+            var times=new[]{0f,.15f,.3f,.4f,.5f,.7f,1.2f,1.7f};
+            var upper=new[]{0f,-131f,-250f,-241f,-180f,-86f,-30f,0f};
+            var lower=new[]{0f,60f,89f,50f,89f,60f,10f,0f};
             foreach (int bone in new[]{2,3})
             {
                 var values=bone==2?upper:lower;
