@@ -176,7 +176,7 @@ namespace HumanGhost.Gameplay.Preview
                 context.CompleteScene(true);
                 QueueAvailableFirstNotices();
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-                if (_manualSavePrefab != null)
+                if (_manualSavePrefab != null && TestFeatureGate.IsEnabled)
                 {
                     var holder = new GameObject("ManualSave");
                     _manualSaveRoot = holder;

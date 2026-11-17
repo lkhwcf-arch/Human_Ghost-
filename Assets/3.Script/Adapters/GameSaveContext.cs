@@ -38,7 +38,8 @@ namespace HumanGhost.Gameplay.Adapters
             get
             {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-                return SaveBuildMode.Demo;
+                // 에디터의 출시 빌드 미리보기는 출시 저장 폴더·1칸·수동 저장 없음으로 실행합니다.
+                return TestFeatureGate.IsEnabled ? SaveBuildMode.Demo : SaveBuildMode.Release;
 #else
                 return SaveBuildMode.Release;
 #endif

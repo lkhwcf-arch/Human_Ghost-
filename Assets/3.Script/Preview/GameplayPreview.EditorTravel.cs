@@ -2,13 +2,15 @@
 using System;
 using System.Linq;
 using HumanGhost.Data.Definitions;
+using HumanGhost.Gameplay.Adapters;
 using HumanGhost.Gameplay.Presentation;
 
 namespace HumanGhost.Gameplay.Preview
 {
     public sealed partial class GameplayPreview
     {
-        public bool CanEditorTravel => UnityEngine.Application.isPlaying && isActiveAndEnabled && _subscribed &&
+        // 출시 빌드 미리보기에서는 이동·더미 생성 테스트 메뉴를 모두 막습니다.
+        public bool CanEditorTravel => TestFeatureGate.IsEnabled && UnityEngine.Application.isPlaying && isActiveAndEnabled && _subscribed &&
             !_modalBlocked && !_saveLocked && !_leaving && !LoadingScreen.IsActive && !_actor.IsDead &&
             _saveFlow != null && _saveFlow.IsPlayable && !_saveFlow.IsBusy &&
             (_textbox == null || !_textbox.IsOpen);

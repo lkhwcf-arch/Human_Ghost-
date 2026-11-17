@@ -1,5 +1,6 @@
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
+using HumanGhost.Gameplay.Adapters;
 using HumanGhost.Gameplay.Presentation;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -58,7 +59,7 @@ namespace HumanGhost.Gameplay.Preview
         }
         private void OnGUI()
         {
-            if (!_bossTestOpen) return;
+            if (!_bossTestOpen || !TestFeatureGate.IsEnabled) return;
             if (_bossTestWindowStyle == null)
             {
                 // 시험 화면의 표시 크기입니다. 게임 규칙·콘텐츠 데이터와 무관합니다.

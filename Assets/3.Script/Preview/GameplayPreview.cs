@@ -151,7 +151,7 @@ namespace HumanGhost.Gameplay.Preview
             if (_attackWindow != null)
             {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-                _attackWindow.forceRenderingOff = false;
+                _attackWindow.forceRenderingOff = !TestFeatureGate.IsEnabled;
 #else
                 _attackWindow.forceRenderingOff = true;
 #endif
@@ -1017,7 +1017,7 @@ namespace HumanGhost.Gameplay.Preview
             _gameElapsedMilliseconds = _gameClock.AdvanceFrame(Time.deltaTime);
             _realElapsedMilliseconds = _realClock.AdvanceFrame(Time.unscaledDeltaTime);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-            if (_subscribed) StepBossTests();
+            if (_subscribed && TestFeatureGate.IsEnabled) StepBossTests();
 #endif
             if (_actor != null && _actor.CurrentState == StateKey.Execute) StepExecution(0);
             FlushMonsterRewards();
@@ -1082,7 +1082,7 @@ namespace HumanGhost.Gameplay.Preview
         {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             Keyboard keyboard = Keyboard.current;
-            if (keyboard == null) return;
+            if (keyboard == null || !TestFeatureGate.IsEnabled) return;
             if (keyboard.hKey.wasPressedThisFrame)
                 { if (_bossActive) _actor.ReceiveHit(CombatMath.Damage(_boss.Actor.Definition, _actor.CombatStats, 0, false)); }
 #endif

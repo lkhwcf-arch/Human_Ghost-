@@ -11,7 +11,7 @@ namespace HumanGhost.Gameplay.Preview.Editor
         private const string _objectName = "PreviewKeyLayoutB";
 
         [MenuItem("인귀/테스트/키 배치 B 켜기 (WASD·J공격·K점프·L구르기)", true)]
-        private static bool CanEnable() => EditorApplication.isPlaying && Object.FindAnyObjectByType<PreviewKeyLayout>() == null;
+        private static bool CanEnable() => EditorApplication.isPlaying && HumanGhost.Gameplay.Adapters.TestFeatureGate.IsEnabled && Object.FindAnyObjectByType<PreviewKeyLayout>() == null;
 
         [MenuItem("인귀/테스트/키 배치 B 켜기 (WASD·J공격·K점프·L구르기)")]
         private static void Enable()

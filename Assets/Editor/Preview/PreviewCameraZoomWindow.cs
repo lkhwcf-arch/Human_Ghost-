@@ -20,6 +20,11 @@ namespace HumanGhost.Gameplay.Preview.Editor
                 EditorGUILayout.HelpBox("Play 중 게임 맵에서 사용할 수 있습니다. 다음 Play 시작 시 배율은 1, 위치 이동은 0으로 초기화됩니다.", MessageType.Info);
                 return;
             }
+            if (!HumanGhost.Gameplay.Adapters.TestFeatureGate.IsEnabled)
+            {
+                EditorGUILayout.HelpBox("출시 빌드 미리보기 중에는 테스트 조절을 사용할 수 없습니다. 인귀/출시 빌드처럼 보기를 해제한 뒤 Play를 다시 시작해 주세요.", MessageType.Info);
+                return;
+            }
             DrawCamera(FindAnyObjectByType<PreviewFollowCamera>());
             EditorGUILayout.Space();
             DrawAttack(FindAnyObjectByType<GameplayPreview>());

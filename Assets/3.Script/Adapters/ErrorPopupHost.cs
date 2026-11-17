@@ -157,7 +157,7 @@ namespace HumanGhost.Gameplay.Adapters
         {
             if (!_captureUnityErrors) return;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-            if ( _collector == null && _menuInput != null && isActiveAndEnabled)
+            if (TestFeatureGate.IsEnabled && _collector == null && _menuInput != null && isActiveAndEnabled)
                 _collector = new UnityErrorLogCollector(PresentCaptured);
 #endif
         }
