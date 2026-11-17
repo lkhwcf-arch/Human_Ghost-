@@ -16,6 +16,12 @@ namespace HumanGhost.Gameplay.Preview
         private AnimationClip _executionAnimation;
         public void SetExecutionAnimation(AnimationClip clip) => _executionAnimation = clip;
         [SerializeField] private AnimationClip _walk = null;
+        // 발이 바닥에 닿는 클립 시간(ms). 표시 프레임이 이 시간에 들어서면 발소리를 냅니다(10fps 원화 기준 3·7칸 / 5·11칸).
+        [SerializeField, InspectorName("달리기 발 닿는 시간 (ms)")] private int[] _runSteps = { 300, 700 };
+        [SerializeField, InspectorName("걷기 발 닿는 시간 (ms)")] private int[] _walkSteps = { 500, 1100 };
+        public event Action<bool> Footstep;
+        private AnimationClip _stepClip;
+        private int _stepFrame = -1;
         private bool _nonCombatArea;
         public void SetNonCombatArea(bool value) { _nonCombatArea = value; RestartAnimation(); }
         [SerializeField] private AnimationClip _climb = null;
@@ -175,6 +181,7 @@ namespace HumanGhost.Gameplay.Preview
                 Renderer.transform.localPosition = position;
             }
             base.LateUpdate();
+            UpdateFootstep(actor);
             if (hanging && _onLadder && Renderer != null)
             {
                 // 사다리 축과 몸통을 맞춥니다. 원본 셀 내부 손발 동작은 유지합니다.
@@ -292,6 +299,24 @@ namespace HumanGhost.Gameplay.Preview
             // 4타 원본이 없을 때만 이전 마무리 프레임을 재사용합니다.
             if (sprite == null && state == StateKey.Attack4) sprite = FindFrame(StateKey.Attack3);
             return sprite ?? Fallback;
+        }
+
+        // 걷기 상태로 땅 위에서 반복 클립이 재생될 때만 발 닿는 프레임 진입을 알립니다. true = 달리기.
+        private void UpdateFootstep(PlayerActor actor)
+        {
+            AnimationClip clip = CurrentAnimation;
+            bool stepping = actor != null && actor.CurrentState == StateKey.Walk && actor.Locomotion.IsGrounded && _action == null && !actor.IsParrying && clip != null;
+            if (!stepping || clip != _stepClip) { _stepClip = stepping ? clip : null; _stepFrame = -1; if (!stepping) return; }
+            int frame = Mathf.FloorToInt(AnimationTime * clip.frameRate + .001f);
+            if (frame == _stepFrame) return;
+            int previous = _stepFrame; _stepFrame = frame;
+            if (previous < 0) return;
+            bool run = clip != _walk;
+            foreach (int step in run ? _runSteps : _walkSteps)
+            {
+                int at = Mathf.FloorToInt(step / 1000f * clip.frameRate + .001f);
+                if (frame > previous ? at > previous && at <= frame : at > previous || at <= frame) { Footstep?.Invoke(run); return; }
+            }
         }
 
         protected override void UpdateFacing()

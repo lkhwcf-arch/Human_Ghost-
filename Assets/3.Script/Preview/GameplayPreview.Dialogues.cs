@@ -45,6 +45,12 @@ namespace HumanGhost.Gameplay.Preview
                 _ledger.Configure(new LedgerInvestigation(LedgerInvestigationDefinition.Resolve(_stageId,
                     _catalog.GetTable<Dialogue>().All, _catalog.GetTable<Skill>().All), _progress.Progress), _dialogues);
             _dialogueScope = new SubscriptionScope();
+            if (_ledger != null)
+            {
+                LedgerInteract ledger = _ledger;
+                Action unlocked = _dialogueScope.Guard(() => _audio?.PlayEffect("SKILL_LEARN"));
+                _dialogueScope.Add(() => ledger.SkillUnlocked -= unlocked); ledger.SkillUnlocked += unlocked;
+            }
             if (!_bossActive) return;
             BossPoise boss = _boss.Actor;
             Action<BossState> phase = _dialogueScope.Guard<BossState>(row => QueueDialogue("BOSS_STATE_ENTER", row.ID));

@@ -124,6 +124,33 @@ namespace HumanGhost.Gameplay.Preview
         }
 
         public bool IsReady => _subscribed;
+        private void OnFootstep(bool run) => _audio?.PlayEffect(run ? "PLAYER_RUN" : "PLAYER_WALK");
+
+        // 방 환경음(루프). 장부방 문을 지나 들어오거나 나왔으면 문소리를 냅니다.
+        private void StartStageAmbience()
+        {
+            if (_audio == null) return;
+            _audio.PlayAmbience(StageAmbience(_stageId));
+            string anchor = _progress.ArrivalAnchor;
+            if (!string.IsNullOrEmpty(anchor) && _catalog.GetTable<StageExit>().All.Any(row => row.TargetStageID == _stageId && row.ArrivalAnchorName == anchor &&
+                (row.StageID == StageExitRules.LedgerStage || row.TargetStageID == StageExitRules.LedgerStage)))
+                _audio.PlayEffect("SFX_DOOR");
+        }
+
+        private static string StageAmbience(int stageId)
+        {
+            switch (stageId)
+            {
+                // 맵 프리팹 번호 기준: Map_1 도화골, Map_2 산길(2b 옹기·X01 갈림길 포함), Map_3 협곡, 보스방만 5번.
+                case 8001: return "AMB_1";
+                case 8005: return "AMB_2";
+                case 8002: case 8006: case 8007: return "AMB_3";
+                case 8003: return "AMB_4";
+                case 8004: return "AMB_5";
+                default: return null;
+            }
+        }
+
         private void OnBossPatternStarted(BossPattern pattern) => _audio?.PlayEffect(BossAttackSound(pattern));
 
         private static string BossAttackSound(BossPattern pattern)
@@ -233,6 +260,7 @@ namespace HumanGhost.Gameplay.Preview
                 _playerSprite = _player.GetComponentInChildren<PreviewPlayerSprite>(true);
                 _playerSprite?.SetLedgeBody(_playerHalfSize);
                 _playerSprite?.SetNonCombatArea(_stageId == StageExitRules.LedgerStage);
+                if (_playerSprite != null) { _playerSprite.Footstep -= OnFootstep; _playerSprite.Footstep += OnFootstep; }
                 ConnectCutsceneData();
                 ConnectBossPhaseData();
                 ConnectStageObjects(catalog);
@@ -300,6 +328,7 @@ namespace HumanGhost.Gameplay.Preview
             actions.Add(ClearEditorExecutionDummies);
 #endif
             actions.Add(() => { if (_actor != null) _actor.ParrySucceeded -= OnParrySucceeded; });
+            actions.Add(() => { if (_playerSprite != null) _playerSprite.Footstep -= OnFootstep; });
             actions.Add(() => { if (_boss != null && _boss.Combat != null) _boss.Combat.PatternStarted -= OnBossPatternStarted; });
             actions.Add(() => { var audio = _playerAudio; _playerAudio = null; if (audio != null) audio.Disconnect(); });
             foreach (MonsterRuntime monster in _monsters)
@@ -833,6 +862,7 @@ namespace HumanGhost.Gameplay.Preview
             if (_audio != null) _audio.Apply(settings);
             if (_followCamera != null) _followCamera.ShakeEnabled = settings.CameraShake;
             _normalMusic = _battleMusic = "AMBIANCE_FIRE";
+            StartStageAmbience();
             _bossMusicPhase = null;
             if (_bossActive) StepBossMusic();
             else _audio?.PlayMusic(_normalMusic);

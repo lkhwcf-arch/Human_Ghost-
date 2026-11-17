@@ -15,6 +15,7 @@ namespace HumanGhost.Gameplay.Adapters
         private SubscriptionScope _dialogueScope;
         private InteractionContext _context;
 
+        public event Action SkillUnlocked;
         public void Configure(LedgerInvestigation investigation, DialogueRunner dialogues)
         {
             if (investigation == null) throw new ArgumentNullException(nameof(investigation));
@@ -70,7 +71,10 @@ namespace HumanGhost.Gameplay.Adapters
                 LedgerOutcome outcome = investigation.Finish(requestId, reason,
                     skill => context.Player.EnableSkill(skill, new ContentAccess(context.Progress.IsCleared)));
                 if (outcome == LedgerOutcome.Unlocked)
+                {
                     context.Textbox.ShowNotice(LanguageTextSource.SelectUi(context.Data, UnlockNoticeUiId));
+                    SkillUnlocked?.Invoke();
+                }
             }
             finally { NotifyChanged(); }
         }

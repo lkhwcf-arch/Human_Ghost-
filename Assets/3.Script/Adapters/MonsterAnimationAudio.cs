@@ -15,6 +15,7 @@ namespace HumanGhost.Gameplay.Adapters
         private SubscriptionScope _scope;
         private Action<string> _play;
         private int _health;
+        private bool _deathPlayed;
         private float _lastX;
         private int _stepRemainingMilliseconds;
         private MillisecondClock _stepClock;
@@ -37,6 +38,9 @@ namespace HumanGhost.Gameplay.Adapters
             var scope = _scope = new SubscriptionScope();
             Action<MonsterPattern> pattern = scope.Guard<MonsterPattern>(OnPatternStarted);
             Action<int> health = scope.Guard<int>(OnHealthChanged);
+            Action<StateKey> state = scope.Guard<StateKey>(OnStateChanged);
+            _deathPlayed = actor.IsDead;
+            scope.Add(() => actor.States.Changed -= state); actor.States.Changed += state;
             scope.Add(() => actor.PatternStarted -= pattern); actor.PatternStarted += pattern;
             scope.Add(() => actor.HealthChanged -= health); actor.HealthChanged += health;
         }
@@ -57,6 +61,9 @@ namespace HumanGhost.Gameplay.Adapters
             try { _play(_soundPrefix + "_" + suffix); }
             catch (Exception error) { Debug.LogException(error, this); }
         }
+        // 처형 애니메이션이 곧 사망 연출이라 처형 시작에 한 번, 일반 사망은 체력 0에 한 번 냅니다.
+        private void OnStateChanged(StateKey state) { if (state == StateKey.Execute) PlayDeath(); }
+        private void PlayDeath() { if (_deathPlayed) return; _deathPlayed = true; Play("DEATH"); }
         private void OnPatternStarted(MonsterPattern pattern)
         {
             if (pattern.Key == StateKey.Attack1) Play("ATTACK_1");
@@ -66,6 +73,8 @@ namespace HumanGhost.Gameplay.Adapters
         {
             bool damaged = (health < _health || _actor.KeepsHealth) && health > 0;
             _health = health;
+            if (health == 0) PlayDeath();
+            else _deathPlayed = false;
             if (damaged) Play(_separateCriticalHit && _actor.CurrentState == StateKey.CritHit ? "CRIT_HIT" : "HIT");
         }
 
