@@ -26,7 +26,8 @@ namespace HumanGhost.Gameplay.Preview
             if(_play) _elapsed=(int)(((long)_elapsed+_clock.AdvanceFrame(Time.deltaTime))%2200);
             else _elapsed=_sampleMilliseconds;
             _bind.Restore();
-            float time=Mathf.Min(_elapsed/1000f,_throw.length);
+            // 다른 옹귀 스프라이트 애니와 같은 프레임 간격(클립 frameRate, 10fps)으로 끊어 샘플합니다.
+            float time=Mathf.Min(Mathf.Floor(_elapsed/1000f*_throw.frameRate)/_throw.frameRate,_throw.length);
             _throw.SampleAnimation(gameObject,time);
             transform.localScale=new Vector3(_scale.x*(_faceRight?-1:1),_scale.y,_scale.z);
             _heldStone.SetActive(_elapsed<500 || _elapsed>=1700);

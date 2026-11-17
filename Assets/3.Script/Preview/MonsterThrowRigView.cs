@@ -17,6 +17,7 @@ namespace HumanGhost.Gameplay.Preview
         private Vector3 _scale;
         private RigBindPose _bind;
         private MaterialPropertyBlock _properties;
+        private SpriteRenderer _heldRenderer, _handOverlay;
         private void Awake()
         {
             if (_monster == null || _source == null || _ground == null || _skin == null || _rig == null ||
@@ -24,6 +25,8 @@ namespace HumanGhost.Gameplay.Preview
                 throw new InvalidOperationException("투척 리그의 적·그림·손·돌·클립을 연결해 주세요.");
             _scale = _rig.transform.localScale; _bind = new RigBindPose(_rig);
             _properties = new MaterialPropertyBlock();
+            _heldRenderer = _heldStone.GetComponent<SpriteRenderer>();
+            _handOverlay = _rig.transform.Find("HandOverlay")?.GetComponent<SpriteRenderer>();
         }
         public Vector3 ProjectilePosition { get { Sample(); return _hand.position; } }
         private void LateUpdate()
@@ -47,6 +50,13 @@ namespace HumanGhost.Gameplay.Preview
             _heldStone.SetActive(actor.AttackElapsed < pattern.Attack.Windup);
             _skin.color = _source.color;
             _skin.sortingLayerID = _source.sortingLayerID; _skin.sortingOrder = _source.sortingOrder;
+            // 그리는 순서: 항아리 본체 < 돌 < 팔 덮개. 돌이 손 뒤에 쥐어진 것처럼 보입니다.
+            if (_heldRenderer != null) { _heldRenderer.sortingLayerID = _source.sortingLayerID; _heldRenderer.sortingOrder = _source.sortingOrder + 1; }
+            if (_handOverlay != null)
+            {
+                _handOverlay.sortingLayerID = _source.sortingLayerID; _handOverlay.sortingOrder = _source.sortingOrder + 2;
+                _handOverlay.color = _source.color; _handOverlay.SetPropertyBlock(_properties);
+            }
             _source.GetPropertyBlock(_properties); _skin.SetPropertyBlock(_properties);
         }
         private void Show(bool value)
