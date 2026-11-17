@@ -216,22 +216,8 @@ MonoBehaviour:
     _maxPhase: 1
     _key: 10005
     _hits:
-    - _windup: 500
-      _active: 100
-      _recovery: 0
-      _extraDamage: 0
-      _range: 300
-      _height: 200
-      _damageGroup: 0
-      _radial: 0
-      _knockbackDistance: 100
-      _knockbackTime: 200
-      _downTime: 0
-      _slowTime: 0
-      _slowRate: 10000
-      _parryable: 1
-    - _windup: 250
-      _active: 100
+    - _windup: 750
+      _active: 120
       _recovery: 600
       _extraDamage: 0
       _range: 400
