@@ -161,9 +161,10 @@ namespace HumanGhost.Gameplay.Adapters
                 int id = _selected.PromptTextId;
                 if (_shownPromptId != id) { _shownPromptId = id; int uiId = id switch { 30063 => 51901, 30064 => 51902, 30065 => 51903, 30066 => 51904, 30367 => 51905, _ => 0 };
                     _shownPrompt = "F " + (uiId == 0 ? _context.Text(id) : LanguageTextSource.SelectUi(_context.Data, uiId)); }
-                // 피난민 머리와 이름표 사이에 말 걸기 안내를 표시합니다.
-                float promptHeight = _selected is NpcTalk ? _promptHeight + 0.6f : _promptHeight;
-                ShowPrompt(_shownPrompt, (Vector3)_selected.Position + Vector3.up * promptHeight, _selected is LedgerInteract);
+                // 안내 위치를 알려 주는 대상(NPC 이름표 위)은 안내 묶음의 아랫변을 그 위치에 맞추고, 나머지(서낭당·문·명부)는 기존 높이를 씁니다.
+                if (_selected is IInteractionPromptAnchor anchor && anchor.TryGetPromptBase(out Vector2 promptBase))
+                    ShowPrompt(_shownPrompt, promptBase, _selected is LedgerInteract, alignBottom: true);
+                else ShowPrompt(_shownPrompt, (Vector3)_selected.Position + Vector3.up * _promptHeight, _selected is LedgerInteract);
             }
             else if (_prompt.gameObject.activeSelf)
                 _prompt.gameObject.SetActive(false);
@@ -174,7 +175,7 @@ namespace HumanGhost.Gameplay.Adapters
         private void OnDisable() => StopBindings();
         private void OnDestroy() => Disconnect();
 
-        private void ShowPrompt(string text, Vector3 position, bool investigation = false)
+        private void ShowPrompt(string text, Vector3 position, bool investigation = false, bool alignBottom = false)
         {
             // 기존 조사 그림에는 E 키가 포함돼 있습니다. F 그림 공급 전에는 공통 글자 안내를 씁니다.
             bool artwork = false;
@@ -195,9 +196,24 @@ namespace HumanGhost.Gameplay.Adapters
                 _promptKeyIcon.transform.localPosition = keyPosition;
                 if (textWidth > 0) position.x += (keyWidth + gap) * 0.5f;
             }
-            var next = new Vector3(position.x, position.y + _promptPrefab.transform.localPosition.y, _prompt.transform.position.z);
+            // 아랫변 맞춤에서는 프리팹 높이 보정을 더하지 않습니다(최종 위치 계산을 한곳에서 하여 보정이 두 번 더해지지 않게).
+            var next = new Vector3(position.x, position.y + (alignBottom ? 0f : _promptPrefab.transform.localPosition.y), _prompt.transform.position.z);
             if (_prompt.transform.position != next) _prompt.transform.position = next;
             UpdatePromptBackdrop();
+            if (alignBottom) AlignPromptBottom(position.y);
+        }
+
+        // 글자·키 아이콘·배경·테두리 배치가 끝난 뒤의 실제 아랫변을 기준 높이에 맞춥니다.
+        // 이동량은 정수로 계산하고 Transform 대입 때만 월드 좌표로 바꿉니다(표시 경계).
+        private void AlignPromptBottom(float baseY)
+        {
+            Renderer lowest = _promptBorder != null && _promptBorder.enabled ? _promptBorder
+                : _promptBackdrop != null && _promptBackdrop.enabled ? _promptBackdrop : _promptTextRenderer;
+            if (lowest == null) return;
+            PlayerRuntime player = _context.Player;
+            long shift = checked(player.ToInteger(baseY) - player.ToInteger(lowest.bounds.min.y));
+            if (shift == 0) return;
+            _prompt.transform.position += Vector3.up * player.ToWorld(shift);
         }
         private void UpdatePromptBackdrop()
         {

@@ -10,6 +10,11 @@ namespace HumanGhost.Gameplay.Preview
     public sealed partial class GameplayPreview
     {
         [SerializeField, InspectorName("NPC 이름표 글꼴")] private Font _npcNameFont = null;
+        // NPC 이름표 공용 배치 설정입니다(모든 NPC 공통, 2026-11-17). 간격은 tile_x100, 배율은 분모 10000 정수입니다.
+        // 기본값은 기획 요청 제안값(머리 위 0.3칸·기존 2배)이며 확정 시 이 칸에서 조정합니다.
+        [SerializeField, InspectorName("NPC 이름표 머리 위 간격 (tile_x100)"), Min(0)] private int _npcNameGapUnits = 30;
+        [SerializeField, InspectorName("NPC 이름표 글자 배율 (10000 = 기존 크기)"), Min(1)] private int _npcNameScaleRatio = 20000;
+        [SerializeField, InspectorName("NPC 이름표 위 말걸기 안내 간격 (tile_x100)"), Min(0)] private int _npcPromptGapUnits = 10;
         private DialogueRunner _dialogues;
         private LedgerInteract _ledger;
         private SubscriptionScope _dialogueScope;
@@ -30,8 +35,11 @@ namespace HumanGhost.Gameplay.Preview
                 if (_speed != null) _speed.State.SetPauseOwner(this, paused);
             }, error => { _dialogueFailed = true; ReportCutsceneError(error); });
             if (_stage != null)
+            {
+                var layout = new NpcNameLayout(_npcNameGapUnits, _npcNameScaleRatio, _npcPromptGapUnits, _worldUnitsPerTile);
                 foreach (NpcTalk npc in _stage.MapRoot.GetComponentsInChildren<NpcTalk>(true))
-                    if (npc.NpcId != 0) npc.Configure(npc.NpcId, _catalog, _dialogues, _playerLabel, _npcNameFont);
+                    if (npc.NpcId != 0) npc.Configure(npc.NpcId, _catalog, _dialogues, _playerLabel, _npcNameFont, layout);
+            }
             // 명부: 조사 종류와 현재 Stage로 대화·해금 Skill을 데이터에서 찾습니다. 누락·중복은 맵 준비 실패로 전달합니다.
             if (_ledger != null)
                 _ledger.Configure(new LedgerInvestigation(LedgerInvestigationDefinition.Resolve(_stageId,
