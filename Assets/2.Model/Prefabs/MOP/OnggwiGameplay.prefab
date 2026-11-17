@@ -117,7 +117,7 @@ Transform:
   m_GameObject: {fileID: 2916443189287277157}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.150343336, z: -0.05}
+  m_LocalPosition: {x: 0, y: -0.15034333, z: -0.05}
   m_LocalScale: {x: 0.75, y: 0.75, z: 0.75}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -140,7 +140,7 @@ Animator:
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
   m_AnimatePhysics: 0
-  m_WarningMessage:
+  m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
@@ -252,7 +252,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b450a6f96d12b4745a97add2547973b3, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Adapters.MonsterRuntime
   _monsterId: 3005
   _patterns: {fileID: 11400000, guid: 6c49d734ad2216e40894fe14910af5b2, type: 2}
@@ -266,7 +266,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 51ad19b83d5fac64595e86589895ee05, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Preview.MonsterPreviewLabel
   _runtime: {fileID: 1980982738135429473}
   _label: {fileID: 1345750011303844615}
@@ -281,8 +281,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a4d82f6e13b74c59b0e27f91c6d3a805, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   _renderer: {fileID: 3214380095250589458}
   _fallback: {fileID: 21300000, guid: 8bc84380881d8c54c862c88dc1781c59, type: 2}
   _frames: []
@@ -385,6 +385,7 @@ MonoBehaviour:
   _playerExecution: {fileID: 0}
   _projectileSprite: {fileID: 21300000, guid: b0555fafbabae0c4b9dbc33e0420b177, type: 2}
   _executionGround: {fileID: 4452050456959029098}
+  _hopHeight: 1
 --- !u!114 &2299183735442136735
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -395,7 +396,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 07b83af2165e757459bdf62d58c08715, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Preview.MonsterThrowRigView
   _monster: {fileID: 1980982738135429473}
   _source: {fileID: 3214380095250589458}
@@ -405,6 +406,7 @@ MonoBehaviour:
   _heldStone: {fileID: 7721216811964451353}
   _hand: {fileID: 113200614254078780}
   _throw: {fileID: 7400000, guid: 8353196343312c54980c2e0e33644c92, type: 2}
+  _throwHigh: {fileID: 7400000, guid: beb05b6bfc6e66e4e8bf7bf21a5403cb, type: 2}
   _sourceFeet: -1.2
 --- !u!114 &5456245392257694520
 MonoBehaviour:
@@ -416,7 +418,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 17155aeee06b97f49b7d83657e6886ec, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Preview.AttackWarningView
   _monster: {fileID: 1980982738135429473}
   _boss: {fileID: 0}
@@ -582,7 +584,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7213323018252176186, guid: 1f59e84cbc6af3443bf1f67b951a493f, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
-      value:
+      value: 
       objectReference: {fileID: 2100000, guid: 7beaf84b8a42bfe44bc6d528868d9479, type: 2}
     - target: {fileID: 7288915171513616061, guid: 1f59e84cbc6af3443bf1f67b951a493f, type: 3}
       propertyPath: m_LocalScale.x

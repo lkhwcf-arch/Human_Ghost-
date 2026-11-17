@@ -234,14 +234,28 @@ namespace HumanGhost.Gameplay.Adapters
             if (_musicB != null) _musicB.Stop();
         }
 
+        // 같은 프레임 근처에 여러 몹이 함께 맞으면 같은 피격음이 겹쳐 크게 들립니다.
+        // 같은 소리 묶음(몹 피격음은 종류와 무관하게 한 묶음, 플레이어 소리는 별도)은 짧은 간격 안에 한 번만 재생합니다.
+        private const float _effectMergeSeconds = .06f;
+        private readonly Dictionary<string, float> _lastEffectTimes = new Dictionary<string, float>(StringComparer.Ordinal);
+        private bool ShouldMergeEffect(string key)
+        {
+            string group = key.EndsWith("_HIT", StringComparison.Ordinal) && !key.StartsWith("PLAYER_", StringComparison.Ordinal) ? "*_HIT" : key;
+            float now = Time.unscaledTime;
+            if (_lastEffectTimes.TryGetValue(group, out float last) && now - last < _effectMergeSeconds) return true;
+            _lastEffectTimes[group] = now;
+            return false;
+        }
+
         public void PlayEffect(string key)
         {
-            if (!string.IsNullOrEmpty(key) && _cueIds.TryGetValue(key, out List<int> ids))
+            if (string.IsNullOrEmpty(key) || ShouldMergeEffect(key)) return;
+            if (_cueIds.TryGetValue(key, out List<int> ids))
             {
                 _tablePlayer.Play(ids[_effectRandom.Next(ids.Count)]);
                 return;
             }
-            if (_effects != null && !string.IsNullOrEmpty(key) && _lookup.TryGetValue(key, out List<AudioClip> clips))
+            if (_effects != null && _lookup.TryGetValue(key, out List<AudioClip> clips))
                 _effects.PlayOneShot(clips[_effectRandom.Next(clips.Count)]);
         }
 

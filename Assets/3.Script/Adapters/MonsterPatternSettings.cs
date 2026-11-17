@@ -23,9 +23,12 @@ namespace HumanGhost.Gameplay.Adapters
             [SerializeField] private int _wallStun = 0;
             [SerializeField] private int _minRange = 0;
             [SerializeField] private bool _projectile = false;
+            [SerializeField, Tooltip("높이 던지기: 던진 순간 목표 바닥에 판정 창 끝에 떨어짐, 패링 불가")] private bool _lob = false;
+            [SerializeField, Min(0), Tooltip("뒤로 물러서기 거리(tile_x100). 0이면 아님. 판정 창 = 공중 시간")] private int _retreatDistance = 0;
+            [SerializeField, Min(0), Tooltip("시작 후 재사용 대기(ms)")] private int _cooldown = 0;
 
             public MonsterPattern Create() => new MonsterPattern(_key, _range, new AttackSpec(_windup, _active, _recovery, 0, _extraDamage, 0, 0),
-                _bindTime, _bindPresses, _chargeSpeed, _wallStun, _minRange, _projectile);
+                _bindTime, _bindPresses, _chargeSpeed, _wallStun, _minRange, _projectile, _lob, _retreatDistance, _cooldown);
         }
 
         [SerializeField] private PatternSetup[] _patterns = Array.Empty<PatternSetup>();

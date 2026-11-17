@@ -117,6 +117,8 @@ namespace HumanGhost.Gameplay.Preview
         }
         protected virtual void OnEnable() => _hasState = false;
         protected virtual void UpdateFacing() { }
+        // 확인 씬이 게임과 같은 접지 기준을 쓰도록 공개합니다.
+        public float GroundContactOf(Sprite sprite) => ContactBottom(sprite);
         protected float ContactBottom(Sprite sprite)
         {
             PrepareLookup();

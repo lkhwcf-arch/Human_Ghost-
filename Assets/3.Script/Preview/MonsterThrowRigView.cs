@@ -13,6 +13,7 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField] private GameObject _rig = null, _heldStone = null;
         [SerializeField] private Transform _hand = null;
         [SerializeField] private AnimationClip _throw = null;
+        [SerializeField, InspectorName("높이 던지기 클립 (선택)")] private AnimationClip _throwHigh = null;
         [SerializeField] private float _sourceFeet = 0f;
         private Vector3 _scale;
         private RigBindPose _bind;
@@ -41,8 +42,9 @@ namespace HumanGhost.Gameplay.Preview
             var actor = _monster.Actor; var pattern = actor?.CurrentPattern;
             if (pattern == null || !pattern.IsProjectile) return;
             Show(true); _bind.Restore();
-            float time = (float)AttackAnimationTiming.FrameAt(pattern.Attack, actor.AttackElapsed, 0, 5, 12, 17) / _throw.frameRate;
-            _throw.SampleAnimation(_rig, time);
+            AnimationClip clip = pattern.IsLob && _throwHigh != null ? _throwHigh : _throw;
+            float time = (float)AttackAnimationTiming.FrameAt(pattern.Attack, actor.AttackElapsed, 0, 5, 12, 17) / clip.frameRate;
+            clip.SampleAnimation(_rig, time);
             _rig.transform.localScale = new Vector3(_scale.x * (actor.Facing > 0 ? -1f : 1f), _scale.y, _scale.z);
             Vector3 position = _source.transform.position;
             position.y = _ground.bounds.min.y - _sourceFeet * _rig.transform.lossyScale.y;

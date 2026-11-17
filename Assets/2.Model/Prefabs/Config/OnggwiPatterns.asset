@@ -25,6 +25,39 @@ MonoBehaviour:
     _wallStun: 0
     _minRange: 0
     _projectile: 1
+    _lob: 0
+    _retreatDistance: 0
+    _cooldown: 0
+  - _key: 10005
+    _range: 600
+    _windup: 500
+    _active: 1200
+    _recovery: 500
+    _extraDamage: 0
+    _bindTime: 0
+    _bindPresses: 0
+    _chargeSpeed: 0
+    _wallStun: 0
+    _minRange: 300
+    _projectile: 1
+    _lob: 1
+    _retreatDistance: 0
+    _cooldown: 0
+  - _key: 10006
+    _range: 200
+    _windup: 150
+    _active: 400
+    _recovery: 100
+    _extraDamage: 0
+    _bindTime: 0
+    _bindPresses: 0
+    _chargeSpeed: 0
+    _wallStun: 0
+    _minRange: 0
+    _projectile: 0
+    _lob: 0
+    _retreatDistance: 200
+    _cooldown: 3000
   _hitStun: 300
   _critHitStun: 500
   _deathFireTime: 0

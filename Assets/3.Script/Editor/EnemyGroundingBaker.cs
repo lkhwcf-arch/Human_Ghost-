@@ -40,13 +40,29 @@ namespace HumanGhost.EditorTools
                     {
                         var entry = contacts.GetArrayElementAtIndex(row++);
                         entry.FindPropertyRelative("_sprite").objectReferenceValue = sprite;
-                        entry.FindPropertyRelative("_bottom").floatValue = Bottom(sprite, pixels);
+                        entry.FindPropertyRelative("_bottom").floatValue = name == "BossGameplay" ? BossFeetBottom(sprite, pixels) : Bottom(sprite, pixels);
                     }
                     data.ApplyModifiedPropertiesWithoutUndo();
                     PrefabUtility.SaveAsPrefabAsset(root, path);
                 }
                 finally { PrefabUtility.UnloadPrefabContents(root); }
             }
+        }
+        // 쇄문아비 1페이즈는 앞으로 짚은 팔(손톱)·몽둥이가 몸통보다 아래로 내려옵니다. 가장 아래 픽셀 대신
+        // 몸통 중앙 열(가로 50~70%)의 가장 아래를 발 기준으로 씁니다. 공격으로 몸이 뜬 칸은 최저점보다 13px 넘게 올리지 않습니다.
+        private const float _bossFeetLeft = .5f, _bossFeetRight = .7f;
+        private const int _bossFeetMaxLiftPixels = 13;
+        private static float BossFeetBottom(Sprite sprite, Dictionary<Texture2D, Color32[]> pixels)
+        {
+            float lowest = Bottom(sprite, pixels);
+            Color32[] data = pixels[sprite.texture];
+            Rect rect = sprite.rect; int width = sprite.texture.width;
+            int from = Mathf.FloorToInt(rect.width * _bossFeetLeft), to = Mathf.CeilToInt(rect.width * _bossFeetRight);
+            for (int y = 0; y < (int)rect.height; y++)
+                for (int x = from; x < to; x++)
+                    if (data[((int)rect.y + y) * width + (int)rect.x + x].a > 25)
+                        return Mathf.Min((y - sprite.pivot.y) / sprite.pixelsPerUnit, lowest + _bossFeetMaxLiftPixels / sprite.pixelsPerUnit);
+            return lowest;
         }
         private static float Bottom(Sprite sprite, Dictionary<Texture2D, Color32[]> pixels)
         {
