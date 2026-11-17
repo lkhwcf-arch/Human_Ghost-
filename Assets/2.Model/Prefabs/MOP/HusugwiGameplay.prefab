@@ -566,7 +566,7 @@ MonoBehaviour:
   - _sprite: {fileID: 21300000, guid: 28971ff4424ceff4884c64027fa27829, type: 2}
     _bottom: -1.12
   _monster: {fileID: 2212268001790328552}
-  _playerExecution: {fileID: 7400000, guid: 1ac8e6dbc68db584980028c0845a124b, type: 2}
+  _playerExecution: {fileID: 7400000, guid: a0b7867d86ea6334d9b237c6b7dbcf37, type: 2}
   _projectileSprite: {fileID: 0}
   _executionGround: {fileID: 355008253869052996}
 --- !u!114 &6965768712322212286
