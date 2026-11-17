@@ -922,6 +922,7 @@ MonoBehaviour:
   _boss: {fileID: 818725543056190857}
   _body: {fileID: 3777643855908687980}
   _bodyOffsetX: 0.87
+  _phaseOneGroundOffsetY: -0.12
   _phaseTwo: {fileID: 500923264472456021}
 --- !u!114 &500923264472456021
 MonoBehaviour:

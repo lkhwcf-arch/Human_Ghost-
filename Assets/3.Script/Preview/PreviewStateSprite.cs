@@ -124,13 +124,13 @@ namespace HumanGhost.Gameplay.Preview
             PrepareLookup();
             return _contactBottoms.TryGetValue(sprite, out float bottom) ? bottom : PreviewPresentation.VisibleBottom(sprite);
         }
-        protected bool GroundCurrentFrame(SpriteRenderer ground)
+        protected bool GroundCurrentFrame(SpriteRenderer ground, float verticalOffset = 0f)
         {
             PrepareLookup();
             if (ground == null || _renderer == null || _renderer.sprite == null ||
                 !_contactBottoms.TryGetValue(_renderer.sprite, out float bottom)) return false;
             float visible = _renderer.transform.TransformPoint(new Vector3(0f, bottom, 0f)).y;
-            _contactOffset = ground.bounds.min.y - visible;
+            _contactOffset = ground.bounds.min.y + verticalOffset - visible;
             _renderer.transform.position += Vector3.up * _contactOffset;
             return true;
         }
