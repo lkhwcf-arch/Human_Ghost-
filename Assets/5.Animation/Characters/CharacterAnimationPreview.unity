@@ -295,6 +295,7 @@ MonoBehaviour:
   - Label: "Slump \uB178\uCD9C\xB7\uC0AC\uB9DD"
     Clip: {fileID: 7400000, guid: 8bb4a4c843a76b847bf9600b951ba43b, type: 2}
     _milliseconds: 1500
+  _ground: {fileID: 1669115516}
 --- !u!4 &379979669
 Transform:
   m_ObjectHideFlags: 0
@@ -341,7 +342,7 @@ Transform:
   m_Children:
   - {fileID: 998334938}
   m_Father: {fileID: 871616881}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -248.70265}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -249.34955}
 --- !u!1 &539956324
 GameObject:
   m_ObjectHideFlags: 0
@@ -1053,7 +1054,7 @@ Transform:
   m_Children:
   - {fileID: 1075917616}
   m_Father: {fileID: 1984681768}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -59.931416}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -78.47779}
 --- !u!1 &887166830
 GameObject:
   m_ObjectHideFlags: 0
@@ -1404,7 +1405,7 @@ Transform:
   m_Children:
   - {fileID: 1928367332}
   m_Father: {fileID: 464117710}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 54.83296}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 89.813065}
 --- !u!1 &1005543075
 GameObject:
   m_ObjectHideFlags: 0
@@ -1698,7 +1699,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 876779862}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 112.72497}
 --- !u!1 &1158861945
 GameObject:
   m_ObjectHideFlags: 0
@@ -2404,7 +2405,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 998334938}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 103.86969}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 69.536476}
 --- !u!1 &1974336171
 GameObject:
   m_ObjectHideFlags: 0
@@ -2554,7 +2555,7 @@ Transform:
   m_Children:
   - {fileID: 876779862}
   m_Father: {fileID: 871616881}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -120.06858}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -124.24718}
 --- !u!1001 &2024787626
 PrefabInstance:
   m_ObjectHideFlags: 0

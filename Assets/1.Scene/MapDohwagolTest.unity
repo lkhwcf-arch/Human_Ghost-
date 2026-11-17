@@ -199,7 +199,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 61
+  m_SortingOrder: 64
   m_Sprite: {fileID: 6236005101687474386, guid: 0d0809dfcb8b5c14e9b8e2a2cf330dbb, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -790,7 +790,7 @@ MonoBehaviour:
   _save: {fileID: 7400000, guid: 8b98f4955cee7ad408645c317b727aa1, type: 2}
   _ladderClimb: {fileID: 7400000, guid: 5392c94f525b63e4090fd11907bcc578, type: 2}
   _ladderScale: 1.1
-  _climbStartScale: 1
+  _climbFullSizeRange: {x: 0.75, y: 0.78}
   _hangScale: 1.25
   _hangVerticalOffset: -0.1
   _traversalAnchors:

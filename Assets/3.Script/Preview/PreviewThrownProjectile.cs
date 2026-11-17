@@ -6,7 +6,7 @@ namespace HumanGhost.Gameplay.Preview
     // 짐 투척(C08) 표시입니다. 던진 순간의 목표로 판정 창 동안 포물선을 그립니다. 피해 판정은 몬스터 코어가 맡습니다.
     internal sealed class PreviewThrownProjectile
     {
-        private const long _arcUnits = IntegerPosition.UnitsPerTile * 3 / 2;
+        private long _arcUnits = IntegerPosition.UnitsPerTile * 3 / 2;
         private readonly SpriteRenderer _view;
         private readonly float _worldUnitsPerTile;
         private readonly Vector3 _hitSize;
@@ -24,11 +24,16 @@ namespace HumanGhost.Gameplay.Preview
         }
 
         public bool IsFlying => _view.enabled;
+        // 0~1 비행 진행률입니다.
+        public float Progress => _duration <= 0 ? 0f : _elapsed / (float)_duration;
         public Bounds Bounds => new Bounds(_view.transform.position, _hitSize);
 
-        public void Throw(Vector3 from, Vector3 to, int milliseconds)
+        // arcTiles: 출발·도착 직선 위로 솟는 높이(칸). 보통 던지기 1.5, 높이 던지기는 더 높게 씁니다.
+        public void Throw(Vector3 from, Vector3 to, int milliseconds, int arcTiles100 = 150)
         {
             if (milliseconds <= 0) throw new System.ArgumentOutOfRangeException(nameof(milliseconds));
+            if (arcTiles100 < 0) throw new System.ArgumentOutOfRangeException(nameof(arcTiles100));
+            _arcUnits = IntegerPosition.UnitsPerTile * arcTiles100 / 100;
             _start = FromWorld(from); _end = FromWorld(to); _duration = milliseconds; _elapsed = 0; _clock = default;
             _z = from.z;
             _view.transform.position = from;

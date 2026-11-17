@@ -28,7 +28,8 @@ namespace HumanGhost.Gameplay.Preview
         {
             int elapsed = 0, windup = 0; bool parryable = false;
             var pattern = _monster != null ? _monster.Actor?.CurrentPattern : null;
-            if (pattern != null) { elapsed = _monster.Actor.AttackElapsed; windup = pattern.Attack.Windup; parryable = pattern.IsParryable; }
+            // 물러서기는 공격이 아니므로 번쩍이지 않습니다.
+            if (pattern != null && !pattern.IsRetreat) { elapsed = _monster.Actor.AttackElapsed; windup = pattern.Attack.Windup; parryable = pattern.IsParryable; }
             else if (_boss != null && _boss.Combat != null && _boss.Combat.CurrentPattern != null)
             {
                 var combat = _boss.Combat; elapsed = combat.HitElapsed;

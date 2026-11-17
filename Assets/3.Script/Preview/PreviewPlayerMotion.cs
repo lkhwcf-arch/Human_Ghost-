@@ -37,6 +37,8 @@ namespace HumanGhost.Gameplay.Preview
         public Vector2? ProtectedLedge => _player.Actor.IsTraversalProtected && _hangEdge != null ? (Vector2?)_hangEdge.position : null;
         private readonly System.Collections.Generic.List<LadderClimbArea> _ladders = new System.Collections.Generic.List<LadderClimbArea>();
         private LadderClimbArea _ladder;
+        private const int _ladderStepMilliseconds = 350;
+        private int _ladderStepRemaining;
         private Bounds _lastLadderArea;
         private int _verticalInput, _shownLadderDirection;
         public bool IsOnLadder => !ReferenceEquals(_ladder, null);
@@ -161,7 +163,8 @@ namespace HumanGhost.Gameplay.Preview
                 _peakY = _player.Position.Y;
                 _player.NotifyPresentationCue(_verticalInput > 0 ? "LadderUp" : "LadderDown");
                 _shownLadderDirection = _verticalInput;
-                _playSound?.Invoke("PLAYER_CLIMB");
+                // 사다리 전용 음원이 없어 발소리를 칸 단위로 씁니다. 모서리 매달리기·오르기 소리는 쓰지 않습니다.
+                _ladderStepRemaining = 0;
                 return true;
             }
             return false;
@@ -215,8 +218,16 @@ namespace HumanGhost.Gameplay.Preview
             position.x += _collision.MoveHorizontal(position, _ladder.AxisX - position.x);
             long nextY = checked(_player.Position.Y + step);
             nextY = Math.Max(bottom, Math.Min(top, nextY));
+            // 프레임별 정수 이동량이 0이어도 입력 중에는 이동으로 봅니다(끝에 닿으면 정지).
+            bool moved = _verticalInput > 0 ? _player.Position.Y < top : _verticalInput < 0 && _player.Position.Y > bottom;
             position.y = _player.ToWorld(nextY);
             _player.SetPosition(position);
+            if (moved && (_ladderStepRemaining -= milliseconds) <= 0)
+            {
+                _playSound?.Invoke("PLAYER_WALK");
+                _ladderStepRemaining = _ladderStepMilliseconds;
+            }
+            else if (!moved) _ladderStepRemaining = 0;
             if (_shownLadderDirection != _verticalInput)
             {
                 _shownLadderDirection = _verticalInput;
@@ -234,6 +245,7 @@ namespace HumanGhost.Gameplay.Preview
             if (!_airborne || IsHanging) return false;
             Vector3 position = _player.transform.position;
             if (!_hangEdges.TryFind(position, out Transform edge, out int side, _releasedEdge) || !_player.Actor.TryHang(side, true)) return false;
+            _playSound?.Invoke("PLAYER_HANG");
             _hangEdge = edge; _hangSide = side;
             _motion.StopRoll(); _motion.SetVerticalSpeed();
             _player.SetPosition(_hangEdges.HangPosition(edge, side, position.z));

@@ -22,7 +22,8 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField] private AnimationClip _save = null;
         [SerializeField] private AnimationClip _ladderClimb = null;
         [SerializeField, InspectorName("사다리 표시 배율"), Range(1f, 1.5f)] private float _ladderScale = 1.1f;
-        [SerializeField, Range(0.5f, 1.5f)] private float _climbStartScale = 1f;
+        // 오르기 원화는 앞 14칸(0~1.4초)이 매달리기 원화와 같은 작은 비율, 15칸부터 서기 원화 비율입니다.
+        [SerializeField, InspectorName("오르기 원화 크기 전환 구간 (진행률)")] private Vector2 _climbFullSizeRange = new Vector2(.75f, .78f);
         [SerializeField, Range(1f, 2f)] private float _hangScale = 1.25f;
         [SerializeField, Range(-0.5f, 0f)] private float _hangVerticalOffset = -0.1f;
         private Vector3 _baseScale = Vector3.one;
@@ -158,8 +159,10 @@ namespace HumanGhost.Gameplay.Preview
             bool hanging = actor != null && actor.IsHanging;
             // 원화별 크기를 구분하고 오르기 중 배율은 고정합니다. 높이·손의 이동만 부드럽게 연결합니다.
             float progress = hanging ? Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(_player.ClimbProgress)) : 0f;
-            float scale = hanging && _player.ClimbProgress >= 0f ? _climbStartScale :
-                hanging ? (_onLadder ? _ladderScale : _hangScale) : 1f;
+            // 오르기 앞부분 원화는 매달리기와 같이 작게 그려져 있어 같은 배율을 유지하고, 서기 비율 원화로 바뀌는 칸에서 1로 돌아옵니다.
+            float scale = hanging && _player.ClimbProgress >= 0f
+                ? Mathf.Lerp(_hangScale, 1f, Mathf.InverseLerp(_climbFullSizeRange.x, _climbFullSizeRange.y, _player.ClimbProgress))
+                : hanging ? (_onLadder ? _ladderScale : _hangScale) : 1f;
             if (Renderer != null)
             {
                 Renderer.transform.localScale = _baseScale * scale;
@@ -192,7 +195,7 @@ namespace HumanGhost.Gameplay.Preview
                 if (climbing)
                 {
                     float contact = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((linear - .55f) / .2f));
-                    float localY = _basePosition.y + (_standingBottom - ContactBottom(Renderer.sprite)) * _baseScale.y;
+                    float localY = _basePosition.y + _standingBottom * _baseScale.y - ContactBottom(Renderer.sprite) * Renderer.transform.localScale.y;
                     float groundedY = Renderer.transform.parent.TransformPoint(new Vector3(0f, localY, 0f)).y;
                     position.y = Mathf.Lerp(position.y, groundedY, contact);
                 }

@@ -21,20 +21,32 @@ namespace HumanGhost.Gameplay
         public int MinRange { get; }
         // 투척: 판정 창 시간이 비행 시간입니다. 위치·접촉은 외부 판정자가 공급합니다.
         public bool IsProjectile { get; }
+        // 높이 던지기(옹귀 1117): 던진 순간의 목표 바닥에 판정 창 끝에 떨어집니다. 패링으로 막을 수 없습니다.
+        public bool IsLob { get; }
+        // 뒤로 깡총(옹귀 1117): 판정 창(공중) 동안 목표 반대쪽으로 이 거리(tile_x100)를 이동합니다. 공격 판정 없음.
+        public int RetreatDistance { get; }
+        public bool IsRetreat => RetreatDistance > 0;
+        // 패턴을 시작한 뒤 다시 고를 수 있을 때까지(ms). 0이면 제한 없음.
+        public int Cooldown { get; }
         public bool IsGrab => BindPresses > 0;
         public bool IsCharge => ChargeSpeed > 0;
-        public bool IsParryable => !IsGrab && !IsCharge;
+        public bool IsParryable => !IsGrab && !IsCharge && !IsLob && !IsRetreat;
 
-        public MonsterPattern(StateKey key, int range, AttackSpec attack, int bindTime = 0, int bindPresses = 0, int chargeSpeed = 0, int wallStun = 0, int minRange = 0, bool isProjectile = false)
+        public MonsterPattern(StateKey key, int range, AttackSpec attack, int bindTime = 0, int bindPresses = 0, int chargeSpeed = 0, int wallStun = 0, int minRange = 0, bool isProjectile = false,
+            bool isLob = false, int retreatDistance = 0, int cooldown = 0)
         {
-            if (key != StateKey.Attack1 && key != StateKey.Attack2 && key != StateKey.Skill1) throw new ArgumentOutOfRangeException(nameof(key));
+            if (key != StateKey.Attack1 && key != StateKey.Attack2 && key != StateKey.Attack3 && key != StateKey.Skill1) throw new ArgumentOutOfRangeException(nameof(key));
             if (range < 0 || bindTime < 0 || bindPresses < 0 || chargeSpeed < 0 || wallStun < 0 || (bindTime > 0 && bindPresses == 0) ||
-                (bindPresses > 0 && chargeSpeed > 0) || minRange < 0 || minRange > range || (isProjectile && (bindPresses > 0 || chargeSpeed > 0)))
-                throw new ArgumentOutOfRangeException(nameof(range), "패턴 거리·구속·돌진 설정 범위를 확인하세요.");
+                (bindPresses > 0 && chargeSpeed > 0) || minRange < 0 || minRange > range || (isProjectile && (bindPresses > 0 || chargeSpeed > 0)) ||
+                (isLob && !isProjectile) || retreatDistance < 0 || cooldown < 0 ||
+                (retreatDistance > 0 && (isProjectile || bindPresses > 0 || chargeSpeed > 0)))
+                throw new ArgumentOutOfRangeException(nameof(range), "패턴 거리·구속·돌진·투척·물러서기 설정 범위를 확인하세요.");
+            if (retreatDistance > 0 && attack != null && attack.Active <= 0)
+                throw new ArgumentOutOfRangeException(nameof(attack), "물러서기는 공중 시간(판정 창)이 필요합니다.");
             Key = key; Range = range;
             Attack = attack ?? throw new ArgumentNullException(nameof(attack));
             BindTime = bindTime; BindPresses = bindPresses; ChargeSpeed = chargeSpeed; WallStun = wallStun;
-            MinRange = minRange; IsProjectile = isProjectile;
+            MinRange = minRange; IsProjectile = isProjectile; IsLob = isLob; RetreatDistance = retreatDistance; Cooldown = cooldown;
         }
     }
 }

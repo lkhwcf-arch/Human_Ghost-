@@ -186,7 +186,8 @@ namespace HumanGhost.Gameplay
                 target.CompleteParryContact();
                 return HitOutcome.Parried;
             }
-            HitOutcome outcome = HitRoll.Resolve(_attackWindow, targetId, target.CombatStats.Dodge, Boss.Definition.Crit,
+            // 분노 문 돌진은 땅에 선 대상이 확률 회피로 통과되지 않습니다(구르기 무적·점프 높이로만 피함, 2B4).
+            HitOutcome outcome = HitRoll.Resolve(_attackWindow, targetId, _pattern.IsCharge ? 0 : target.CombatStats.Dodge, Boss.Definition.Crit,
                 IsBlocked || target.IsDead || target.IsInvulnerable, true, random, dodged, critical);
             if (outcome < HitOutcome.Hit) return outcome;
             _groupTargets.Add(targetId);
