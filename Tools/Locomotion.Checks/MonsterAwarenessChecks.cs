@@ -74,7 +74,10 @@ internal static class MonsterAwarenessChecks
         MonsterActor Enemy() => new MonsterActor(definition,
             new[] {new MonsterPattern(StateKey.Attack1, 100, new AttackSpec(100, 100, 100, 0, 0, 0, 0))},
             300, 500, (min, max) => min, keepHealth: false, aggro: rules);
+        // 생성 뒤 첫 관측에서만 플레이어 쪽을 봅니다(704fde84 몬스터 스폰 방향). 이후 인식 전에는 돌지 않습니다.
         var enemy = Enemy(); enemy.Observe(2001, 101, -1, 0, 0, 0);
+        check(enemy.HasAggro && enemy.Facing == -1, "생성 뒤 첫 관측은 플레이어 쪽을 보고 정면 거리로 인식");
+        enemy = Enemy(); enemy.Observe(2001, 600, 1, 0, 0, 0); enemy.Observe(2001, 101, -1, 0, 0, 0);
         check(!enemy.HasAggro && enemy.Facing == 1, "인식 전에 돌아서 후면을 정면으로 바꾸지 않음");
         enemy.Observe(2001, 500, 1, 400, 0, 0);
         check(enemy.CurrentState == StateKey.Idle && enemy.Velocity == 0, "대각선 범위 밖은 대기");
@@ -84,7 +87,8 @@ internal static class MonsterAwarenessChecks
         enemy.Observe(2001, 1500, 1, 0, 600, -1); enemy.Tick(2000);
         check(enemy.IsReturning && enemy.Facing == -1 && enemy.Velocity == -200 && enemy.Health == 96 && enemy.Poise == 24,
             "복귀는 스폰 방향 걷기·HP 보존·체세 회복");
-        enemy.Observe(2001, 1500, 1, 0, 0, 0); check(!enemy.IsReturning && enemy.Velocity == 0, "스폰 위치에서 대기");
+        enemy.Observe(2001, 1500, 1, 0, 0, 0);
+        check(!enemy.IsReturning && enemy.Velocity == 0 && enemy.Facing == 1, "스폰 위치에서 대기·플레이어 쪽을 봄");
         foreach (int elapsed in new[] {0, 100, 199})
         {
             enemy = Enemy(); enemy.Observe(2001, 50, 1, 0, 500, -1); enemy.Tick(elapsed);
