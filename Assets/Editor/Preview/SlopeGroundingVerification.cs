@@ -13,6 +13,7 @@ namespace HumanGhost.EditorTools
 {
     // 비탈길 설계(2026-11-17) 검증: 일반 몬스터의 중앙 발 지지·최대 경사 45°·프레임률 독립을 합성 지형에서 확인합니다.
     // 지형 높이를 식으로 알고 있는 합성 Collider만 사용하고, 열린 씬은 바꾸지 않도록 추가 씬에서 만든 뒤 닫습니다.
+    // 편집 모드·Play 모드 모두 메뉴로 실행할 수 있고, 배치 모드에서는 결과로 종료 코드를 돌려줍니다.
     public static class SlopeGroundingVerification
     {
         private const BindingFlags _flags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
@@ -23,26 +24,42 @@ namespace HumanGhost.EditorTools
         private static readonly int[] _frameRates = { 30, 60, 144 };
         private static readonly string[] _monsters = { "HusugwiGameplay", "JigegwiGameplay", "OnggwiGameplay" };
         private static int _checks;
+        // 몸체(Body) 아래변이 지면보다 낮게 놓인 정도입니다. 현재 프리팹은 그림 보정으로 0.2칸 낮습니다(11/16 30589c84).
+        // 0과 0.2 두 경우를 모두 시험해 이동 판정이 그림 보정에 의존하지 않는지 확인합니다.
+        private static readonly float[] _bodySinks = { 0f, .2f };
+        private static float _sink;
+        // 합성 지형 기준점입니다. 열린 맵(편집·Play 모두 같은 기본 물리 공간)의 콜라이더와 겹치지 않도록 멀리 둡니다.
+        // 실제 맵 좌표 규모에 가깝게 두어 float 관측 오차(이 좌표에서 약 0.00006칸)까지 함께 시험합니다.
+        private static readonly Vector2 _origin = new Vector2(1000f, 1000f);
+        private static readonly long _originX = SpatialRuntime.ToInteger(_origin.x, 1f), _originY = SpatialRuntime.ToInteger(_origin.y, 1f);
 
         [MenuItem("인귀/검사/비탈 접지 검증")]
         public static void Run()
         {
             Scene previous = SceneManager.GetActiveScene();
-            Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+            // 편집 모드와 Play 모드의 장면 생성 API가 다릅니다. Play 중에는 EditorSceneManager.NewScene을 쓸 수 없습니다.
+            Scene scene = Application.isPlaying ? SceneManager.CreateScene("SlopeGroundingVerification")
+                : EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
             bool success = false;
             try
             {
                 SceneManager.SetActiveScene(scene);
                 _checks = 0;
-                foreach (string monster in _monsters)
+                foreach (float sink in _bodySinks)
                 {
-                    Vector2 half = ReadBodyHalfSize(monster);
-                    VerifyRamp(monster, half, .5f, true);
-                    VerifyRamp(monster, half, 1f, true);
-                    VerifyRamp(monster, half, 1.2f, false);
-                    VerifyValley(monster, half);
-                    VerifyLowStep(monster, half);
-                    VerifyWallAndCeiling(monster, half);
+                    _sink = sink;
+                    foreach (string monster in _monsters)
+                    {
+                        Vector2 half = ReadBodyHalfSize(monster);
+                        string name = $"{monster}(Body {sink:F1}칸 낮음)";
+                        VerifyFlat(name, half);
+                        VerifyRamp(name, half, .5f, true);
+                        VerifyRamp(name, half, 1f, true);
+                        VerifyRamp(name, half, 1.2f, false);
+                        VerifyValley(name, half);
+                        VerifyLowStep(name, half);
+                        VerifyWallAndCeiling(name, half);
+                    }
                 }
                 success = true;
                 Debug.Log($"SLOPE_GROUNDING_DONE: 검사 {_checks}개 통과");
@@ -51,7 +68,8 @@ namespace HumanGhost.EditorTools
             finally
             {
                 if (previous.IsValid()) SceneManager.SetActiveScene(previous);
-                EditorSceneManager.CloseScene(scene, true);
+                if (Application.isPlaying) SceneManager.UnloadSceneAsync(scene);
+                else EditorSceneManager.CloseScene(scene, true);
                 if (Application.isBatchMode) EditorApplication.Exit(success ? 0 : 1);
             }
         }
@@ -62,19 +80,36 @@ namespace HumanGhost.EditorTools
             _checks++;
         }
 
-        // 실제 프리팹 Body의 bounds를 몸통 반크기로 씁니다(PreviewMonsterDriver와 같은 원본).
+        // 실제 프리팹 Body의 반크기를 씁니다(PreviewMonsterDriver의 Body bounds와 같은 값: 스프라이트 크기 × 누적 Scale).
+        // Play 중 프리팹을 생성하면 몬스터 런타임 스크립트가 실행되므로 생성하지 않고 에셋에서 계산합니다.
         private static Vector2 ReadBodyHalfSize(string name)
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/2.Model/Prefabs/MOP/" + name + ".prefab");
             if (prefab == null) throw new InvalidOperationException("몬스터 프리팹이 없습니다: " + name);
-            var instance = UnityEngine.Object.Instantiate(prefab);
+            foreach (var renderer in prefab.GetComponentsInChildren<SpriteRenderer>(true))
+            {
+                if (renderer.name != "Body") continue;
+                if (renderer.sprite == null) throw new InvalidOperationException("몬스터 Body 스프라이트가 없습니다: " + name);
+                Vector3 extents = Vector3.Scale(renderer.sprite.bounds.extents, renderer.transform.lossyScale);
+                return new Vector2(Mathf.Abs(extents.x), Mathf.Abs(extents.y));
+            }
+            throw new InvalidOperationException("몬스터 Body가 없습니다: " + name);
+        }
+
+        // 평지만 왕복합니다. 11/17 회귀(평지에서 제자리 걸음) 재발 방지입니다.
+        private static void VerifyFlat(string monster, Vector2 half)
+        {
+            var terrain = new List<GameObject> { Box("Flat", -8f, 0f, 16f) };
             try
             {
-                foreach (var renderer in instance.GetComponentsInChildren<SpriteRenderer>(true))
-                    if (renderer.name == "Body") return renderer.bounds.extents;
-                throw new InvalidOperationException("몬스터 Body가 없습니다: " + name);
+                foreach (int fps in _frameRates)
+                {
+                    Walk(half, -4f, 4f, fps, x => 0f, $"{monster} 평지 {fps}fps", out bool forward);
+                    Walk(half, 4f, -4f, fps, x => 0f, $"{monster} 평지 역방향 {fps}fps", out bool backward);
+                    Check(forward && backward, $"{monster} 평지 {fps}fps: 양방향 이동");
+                }
             }
-            finally { UnityEngine.Object.DestroyImmediate(instance); }
+            finally { Clear(terrain); }
         }
 
         // 평지(y=0) → 기울기 slope 오르막(길이 4) → 고원. 45° 이하는 오르고, 초과는 비탈 앞에서 멈춰야 합니다.
@@ -162,7 +197,8 @@ namespace HumanGhost.EditorTools
                 }
             }
             finally { Clear(terrain); }
-            float ceiling = 1f + half.y * 2f - .2f;
+            // 비탈 높이 1 지점에서 몸통 윗변(Body가 _sink만큼 낮음)보다 0.2칸 낮은 천장입니다.
+            float ceiling = 1f + half.y * 2f - _sink - .2f;
             terrain = new List<GameObject>
             {
                 Box("Flat", -8f, 0f, 8f), Box("Plateau", length, length * .5f, 8f),
@@ -188,29 +224,36 @@ namespace HumanGhost.EditorTools
         {
             Physics2D.SyncTransforms();
             object collision = CreateCollision(half);
-            MethodInfo follow = collision.GetType().GetMethod("TryFollowFootSlope", _flags);
-            MethodInfo move = collision.GetType().GetMethod("MoveHorizontal", _flags);
+            // 드라이버와 같은 정수 API(몸통 중심 X·Y, 정수 이동량)를 씁니다.
+            MethodInfo follow = collision.GetType().GetMethod("TryFollowFootSlope", _flags, null,
+                new[] { typeof(long), typeof(long), typeof(long), typeof(long).MakeByRefType() }, null)
+                ?? throw new MissingMethodException("TryFollowFootSlope(long, long, long, out long)");
+            MethodInfo move = collision.GetType().GetMethod("MoveHorizontal", _flags, null,
+                new[] { typeof(long), typeof(long), typeof(long) }, null)
+                ?? throw new MissingMethodException("MoveHorizontal(long, long, long)");
             long direction = Math.Sign(toX - fromX);
             // 초당 3칸을 정수 ms 프레임으로 나눈 정수 이동량입니다.
             long run = direction * (long)_speed * IntegerPosition.UnitsPerTile / fps;
-            long x = ToUnits(fromX), y = ToUnits(surface(fromX) + half.y), target = ToUnits(toX);
+            // y는 몸통 중심입니다. 프리팹처럼 Body가 지면보다 _sink만큼 낮게 놓인 상태에서 시작합니다.
+            long x = ToUnits(fromX), y = ToUnits(surface(fromX) + half.y - _sink), target = ToUnits(toX);
             reached = false;
             for (int step = 0; step < 100000; step++)
             {
                 if ((target - x) * direction <= 0) { reached = true; break; }
-                var center = new Vector3(ToWorld(x), ToWorld(y), 0f);
-                var args = new object[] { center, run, 0L };
-                if ((bool)follow.Invoke(collision, args)) { x += run; y += (long)args[2]; }
+                // 시험 좌표는 지역 정수 좌표로 두고 물리 조회에 넘길 때만 합성 지형 기준점(정수)을 더합니다.
+                long centerX = x + _originX, centerY = y + _originY;
+                var args = new object[] { centerX, centerY, run, 0L };
+                if ((bool)follow.Invoke(collision, args)) { x += run; y += (long)args[3]; }
                 else
                 {
-                    float allowed = (float)move.Invoke(collision, new object[] { center, ToWorld(run) });
-                    long moved = ToUnits(allowed);
+                    long moved = (long)move.Invoke(collision, new object[] { centerX, centerY, run });
                     if (moved == 0) break;
                     x += moved;
                 }
                 if (checkGap)
                 {
-                    float gap = ToWorld(y) - half.y - surface(ToWorld(x));
+                    // 발 = Body 아래변 + 그림 보정. 이 값이 실제 지면과 같아야 합니다.
+                    float gap = ToWorld(y) - half.y + _sink - surface(ToWorld(x));
                     if (Mathf.Abs(gap) > _gapTolerance)
                         throw new InvalidOperationException($"{label}: x={ToWorld(x):F3}에서 발 간격 {gap:F4}칸");
                 }
@@ -236,7 +279,7 @@ namespace HumanGhost.EditorTools
         private static GameObject Solid(string name, Vector2 center, Vector2 size)
         {
             var target = new GameObject(name, typeof(BoxCollider2D));
-            target.transform.position = center;
+            target.transform.position = center + _origin;
             target.GetComponent<BoxCollider2D>().size = size;
             return target;
         }
@@ -245,6 +288,8 @@ namespace HumanGhost.EditorTools
         private static GameObject Slope(string name, Vector2 from, Vector2 to)
         {
             var target = new GameObject(name, typeof(PolygonCollider2D));
+            // 꼭짓점은 지역 좌표이고 오브젝트를 기준점에 둡니다.
+            target.transform.position = _origin;
             float bottom = Mathf.Min(from.y, to.y) - 4f;
             target.GetComponent<PolygonCollider2D>().points = new[] { from, to, new Vector2(to.x, bottom), new Vector2(from.x, bottom) };
             return target;

@@ -36,6 +36,19 @@ namespace HumanGhost.Gameplay
             distance = IntegerSquaredDistance.Add(IntegerSquaredDistance.Square(x), IntegerSquaredDistance.Square(y));
             return distance.CompareTo(IntegerSquaredDistance.Square((ulong)radius)) <= 0;
         }
+        // 0 이상 정수의 내림 제곱근입니다. 이동 경로 길이 등 거리 계산을 실수 없이 할 때 씁니다.
+        public static long Sqrt(long value)
+        {
+            if (value < 0) throw new ArgumentOutOfRangeException(nameof(value));
+            if (value < 2) return value;
+            long low = 1, high = Math.Min(value, 3037000499L); // 3037000499² ≤ long.MaxValue
+            while (low < high)
+            {
+                long middle = low + (high - low + 1) / 2;
+                if (middle <= value / middle) low = middle; else high = middle - 1;
+            }
+            return low;
+        }
         private static ulong Difference(long left, long right) => left >= right
             ? unchecked((ulong)left - (ulong)right) : unchecked((ulong)right - (ulong)left);
     }

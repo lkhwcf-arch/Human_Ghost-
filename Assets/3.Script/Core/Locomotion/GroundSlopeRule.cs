@@ -12,21 +12,27 @@ namespace HumanGhost.Gameplay
         public const int RatioScale = 10000;
         // 2026-11-17 사용자 확정: 최대 경사 45°(높이/폭 = 1). 캐릭터별 차이가 필요해지면 데이터로 옮깁니다.
         public const int MaxSlopeRatio = 10000;
-        // Unity 물리 관측(float 접촉점)을 정수로 바꿀 때 생기는 오차만 허용합니다(0.00002칸).
-        // float 유효숫자로 월드 좌표 수백 칸에서 생기는 오차보다 크고, 144fps 한 걸음에서도 경사를 0.1° 미만으로만 넓힙니다.
+        // 정수 변환 반올림에 대한 최소 허용입니다(0.00002칸). 좌표 크기에 따라 커지는 float 관측 오차는 이 값에 포함하지 않고
+        // 관측한 물리 어댑터가 observationError로 따로 넘깁니다(그 오차는 좌표 위치를 아는 경계만 계산할 수 있습니다).
         public const long ObservationTolerance = IntegerPosition.UnitsPerTile / 50000;
 
         // 수평 run만큼 이동할 때 허용되는 최대 높이 변화입니다. 이동량에 비례하므로 프레임 분할과 관계없이 같은 경사 한계를 씁니다.
-        public static long MaxRise(long run)
+        public static long MaxRise(long run) => MaxRise(run, 0);
+
+        // observationError: 관측 경계가 알려 준 추가 오차(정수, 0 이상)입니다.
+        public static long MaxRise(long run, long observationError)
         {
             if (run == long.MinValue) throw new ArgumentOutOfRangeException(nameof(run));
-            return checked(Math.Abs(run) * MaxSlopeRatio / RatioScale + ObservationTolerance);
+            if (observationError < 0) throw new ArgumentOutOfRangeException(nameof(observationError));
+            return checked(Math.Abs(run) * MaxSlopeRatio / RatioScale + ObservationTolerance + observationError);
         }
 
-        public static bool CanTraverse(long run, long rise)
+        public static bool CanTraverse(long run, long rise) => CanTraverse(run, rise, 0);
+
+        public static bool CanTraverse(long run, long rise, long observationError)
         {
             if (rise == long.MinValue) throw new ArgumentOutOfRangeException(nameof(rise));
-            return Math.Abs(rise) <= MaxRise(run);
+            return Math.Abs(rise) <= MaxRise(run, observationError);
         }
 
         // 분모 10000 정수로 받은 면 법선(x, y)이 걸을 수 있는 경사인지 봅니다. |x|/y <= 최대 경사.

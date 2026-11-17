@@ -38,9 +38,11 @@ namespace HumanGhost.Gameplay.Adapters
         // 위치를 바꾸지 않고 구간 제한을 적용한 수평 목표 X만 계산합니다(이벤트 없음).
         // 높이까지 정한 뒤 SetPosition으로 한 번에 확정해 구독자가 중간 위치를 관측하지 않게 할 때 씁니다.
         public long ClampHorizontal(long delta, float minX, float maxX, out bool hitEdge)
+            => ClampHorizontal(delta, ToInteger(minX), ToInteger(maxX), out hitEdge);
+        // 정수 구간 버전입니다. 구간을 정수로 가진 소유자는 실수 변환 없이 씁니다.
+        public long ClampHorizontal(long delta, long minimum, long maximum, out bool hitEdge)
         {
             long requested = checked(Position.X + delta);
-            long minimum = ToInteger(minX), maximum = ToInteger(maxX);
             if (minimum > maximum) throw new ArgumentException("이동 구간의 최소값이 최대값보다 큽니다.");
             hitEdge = requested < minimum || requested > maximum;
             return Math.Max(minimum, Math.Min(maximum, requested));

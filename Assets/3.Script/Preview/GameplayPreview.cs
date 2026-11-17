@@ -570,17 +570,20 @@ namespace HumanGhost.Gameplay.Preview
             filter.SetLayerMask(Physics2D.DefaultRaycastLayers);
             for (int i = 0; i < _monsters.Length; i++)
             {
-                SpriteRenderer body = _monsters[i].GetComponentInChildren<SpriteRenderer>(true);
-                float half = body.transform.lossyScale.y * 0.5f;
-                Vector2 feet = (Vector2)_monsters[i].transform.position + Vector2.down * half;
+                MonsterRuntime runtime = _monsters[i];
+                SpriteRenderer body = runtime.GetComponentInChildren<SpriteRenderer>(true);
+                // Unity 경계: 그림 크기만 정수로 바꾸고 이후 발 위치·탐사는 정수 좌표로 진행합니다.
+                long half = Units(body.transform.lossyScale.y) / 2;
+                long halfWidth = Units(body.bounds.extents.x);
+                IntegerPosition position = runtime.Position;
+                long feetX = position.X, feetY = checked(position.Y - half);
                 // 몬스터는 낙하하지 않으므로 배치 높이가 그림에 맞춰 낮춘 바닥보다 조금 높으면 바로 아래 바닥에 붙입니다.
-                float drop = FindFloorDrop(feet, 0.5f, filter, hits);
-                if (drop > 0f) { _monsters[i].SetPosition(_monsters[i].transform.position + Vector3.down * drop); feet.y -= drop; }
-                float halfWidth = body.bounds.extents.x;
-                float min = FindSpanEnd(feet, half, -1, filter, hits, _worldUnitsPerTile) + halfWidth;
-                float max = FindSpanEnd(feet, half, 1, filter, hits, _worldUnitsPerTile) - halfWidth;
+                long drop = FindFloorDrop(feetX, feetY, filter, hits);
+                if (drop > 0) { runtime.SetPosition(new IntegerPosition(position.X, checked(position.Y - drop))); feetY -= drop; }
+                long min = checked(FindSpanEnd(feetX, feetY, half, -1, filter, hits) + halfWidth);
+                long max = checked(FindSpanEnd(feetX, feetY, half, 1, filter, hits) - halfWidth);
                 // 몸체보다 좁은 지형은 최초 배치점을 유지합니다. 정상 지면은 발 전체가 가장자리 안에 남습니다.
-                if (min > max) min = max = feet.x;
+                if (min > max) min = max = feetX;
                 _monsterDrivers[i].UseWalkableSpan(min, max);
             }
             if (_stageId == StageExitRules.VillageStage)
@@ -589,31 +592,38 @@ namespace HumanGhost.Gameplay.Preview
             PreviewTraversalGuide.AddTo(_stage.MapRoot, _markersRoot, _playerBody.sprite, _playerBody.sortingLayerID, 60);
         }
 
-        // [정수화 미적용 이유] 맵 조립 때 한 번 Physics2D.OverlapPoint로 지형을 훑는 관측이라 탐사 좌표는 Unity API가 받는 float입니다.
-        // 결과 구간(월드 좌표)은 이동 때 SpatialRuntime.ClampHorizontal이 정수로 바꿔 적용합니다. 경사 한도만 정수 규칙에서 만듭니다.
-        private static float FindSpanEnd(Vector2 feet, float halfHeight, int direction, ContactFilter2D filter, List<Collider2D> hits,
-            float worldUnitsPerTile)
+        // 몬스터 보행 구간·배치 바닥 탐사는 IntegerPosition 정수 좌표로 진행합니다(1칸 = UnitsPerTile).
+        // [정수화 미적용 이유] Physics2D.OverlapPoint는 float 좌표만 받으므로 각 호출 순간에만 월드 좌표로 바꿉니다.
+        private const long SpanStep = IntegerPosition.UnitsPerTile / 4;
+        private const long SurfaceScanStep = IntegerPosition.UnitsPerTile / 96;
+        private const long FootProbeBelow = IntegerPosition.UnitsPerTile / 10;
+        private const long SurfaceProbeBelow = IntegerPosition.UnitsPerTile / 100;
+        private const long MaxFloorDrop = IntegerPosition.UnitsPerTile / 2;
+        private long Units(float world) => SpatialRuntime.ToInteger(world, _worldUnitsPerTile);
+        private float World(long units) => SpatialRuntime.ToWorld(units, _worldUnitsPerTile);
+        private Collider2D SolidAt(long x, long y, ContactFilter2D filter, List<Collider2D> hits)
+            => SolidAt(new Vector2(World(x), World(y)), filter, hits);
+
+        // 0.25칸 간격으로 훑고, 한 칸에서 따라갈 높이 한도는 이동과 같은 GroundSlopeRule(최대 45°)에서 만듭니다.
+        private long FindSpanEnd(long feetX, long feetY, long halfHeight, int direction, ContactFilter2D filter, List<Collider2D> hits)
         {
-            // 0.25칸 간격으로 훑고, 한 칸에서 따라갈 높이 한도는 이동과 같은 GroundSlopeRule(최대 45°)에서 만듭니다.
-            long stepUnits = IntegerPosition.UnitsPerTile / 4;
-            float step = SpatialRuntime.ToWorld(stepUnits, worldUnitsPerTile);
-            float slopeReach = SpatialRuntime.ToWorld(GroundSlopeRule.MaxRise(stepUnits), worldUnitsPerTile);
-            float x = feet.x, y = feet.y;
-            Collider2D floor = SolidAt(new Vector2(x, y - 0.1f), filter, hits);
+            long reach = GroundSlopeRule.MaxRise(SpanStep);
+            long x = feetX, y = feetY;
+            Collider2D floor = SolidAt(x, y - FootProbeBelow, filter, hits);
             for (int i = 0; i < 800; i++)
             {
-                float next = x + direction * step;
+                long next = checked(x + direction * SpanStep);
                 // 경사 지면은 이동의 경사 추종과 같은 기준(GroundSlope_)으로 표면 높이를 따라갑니다.
-                if (TryFindSurface(next, y, slopeReach, filter, hits, out float surface, out Collider2D nextFloor) &&
+                if (TryFindSurface(next, y, reach, filter, hits, out long surface, out Collider2D nextFloor) &&
                     (PreviewCollision.IsGroundSlope(floor) || PreviewCollision.IsGroundSlope(nextFloor)))
                 {
-                    if (IsSolid(new Vector2(next, surface + halfHeight), filter, hits)) break;
+                    if (SolidAt(next, checked(surface + halfHeight), filter, hits) != null) break;
                     x = next; y = surface; floor = nextFloor;
                     continue;
                 }
                 // 평지: 앞이 막히거나 발밑이 비면 그 앞에서 멈춥니다.
-                if (IsSolid(new Vector2(next, y + halfHeight), filter, hits)) break;
-                Collider2D flat = SolidAt(new Vector2(next, y - 0.1f), filter, hits);
+                if (SolidAt(next, checked(y + halfHeight), filter, hits) != null) break;
+                Collider2D flat = SolidAt(next, y - FootProbeBelow, filter, hits);
                 if (flat == null) break;
                 x = next; floor = flat;
             }
@@ -621,15 +631,14 @@ namespace HumanGhost.Gameplay.Preview
         }
 
         // x 위치에서 기준 높이 ±reach 안의 가장 높은 지면 윗면을 찾습니다. 시작점이 이미 막혀 있으면 가파른 벽으로 봅니다.
-        private static bool TryFindSurface(float x, float y, float reach, ContactFilter2D filter, List<Collider2D> hits,
-            out float surface, out Collider2D floor)
+        private bool TryFindSurface(long x, long y, long reach, ContactFilter2D filter, List<Collider2D> hits,
+            out long surface, out Collider2D floor)
         {
-            const float step = 1f / 96f;
             surface = y; floor = null;
-            if (IsSolid(new Vector2(x, y + reach), filter, hits)) return false;
-            for (float height = y + reach; height >= y - reach; height -= step)
+            if (SolidAt(x, checked(y + reach), filter, hits) != null) return false;
+            for (long height = checked(y + reach); height >= y - reach; height -= SurfaceScanStep)
             {
-                floor = SolidAt(new Vector2(x, height - 0.01f), filter, hits);
+                floor = SolidAt(x, height - SurfaceProbeBelow, filter, hits);
                 if (floor == null) continue;
                 surface = height;
                 return true;
@@ -637,16 +646,13 @@ namespace HumanGhost.Gameplay.Preview
             return false;
         }
 
-        private static float FindFloorDrop(Vector2 feet, float maxDrop, ContactFilter2D filter, List<Collider2D> hits)
+        // 정수 단계로 내려가며 바닥까지의 거리를 찾습니다. 실수 누적 없이 같은 0.5칸·1/96칸 간격을 유지합니다.
+        private long FindFloorDrop(long feetX, long feetY, ContactFilter2D filter, List<Collider2D> hits)
         {
-            const float step = 1f / 96f;
-            for (float drop = 0f; drop <= maxDrop; drop += step)
-                if (IsSolid(new Vector2(feet.x, feet.y - drop - 0.01f), filter, hits)) return drop;
-            return 0f;
+            for (long drop = 0; drop <= MaxFloorDrop; drop += SurfaceScanStep)
+                if (SolidAt(feetX, feetY - drop - SurfaceProbeBelow, filter, hits) != null) return drop;
+            return 0;
         }
-
-        private static bool IsSolid(Vector2 point, ContactFilter2D filter, List<Collider2D> hits)
-            => SolidAt(point, filter, hits) != null;
 
         private static Collider2D SolidAt(Vector2 point, ContactFilter2D filter, List<Collider2D> hits)
         {

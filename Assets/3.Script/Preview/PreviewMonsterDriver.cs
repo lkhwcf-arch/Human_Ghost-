@@ -54,21 +54,26 @@ namespace HumanGhost.Gameplay.Preview
                 "\n    가로 거리 " + IntegerPosition.ToData(Math.Abs(_player.Position.X - _runtime.Position.X)) +
                 " | 발 높이 차이 " + IntegerPosition.ToData(FootHeightOffset()) +
                 " | 정면/후면 " + _runtime.Aggro.FrontRange + "/" + _runtime.Aggro.BackRange +
-                "\n    보행 구간 " + _spanMin.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) + "~" +
-                _spanMax.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+                "\n    보행 구간 " + IntegerPosition.ToData(_spanMin) + "~" + IntegerPosition.ToData(_spanMax) + "(1/100칸)";
         }
 #endif
         // 죽으면 불을 남기는 개체를 평소에도 구분합니다. 전용 그림 공급 뒤 지웁니다.
         private static readonly Color _burningTint = new Color(1f, 0.65f, 0.45f);
         private bool _hasSpan;
-        private float _spanMin, _spanMax;
+        private long _spanMin, _spanMax;
         private Func<Vector2?> _protectedLedge;
         private readonly PreviewFootCollision _collision;
+        // 턱 보호 판정 정수 값입니다(기존 0.2칸 높이 차·1칸 여유).
+        private const long LedgeHeightTolerance = IntegerPosition.UnitsPerTile / 5;
+        private const long LedgeClearance = IntegerPosition.UnitsPerTile;
         public void UseLedgeProtection(Func<Vector2?> protectedLedge) => _protectedLedge = protectedLedge;
 
-        // 조립된 바닥에서 걸을 수 있는 구간입니다. 경사 지면을 포함하며 끝에 닿으면 벽처럼 다룹니다.
-        public void UseWalkableSpan(float min, float max)
-        { _hasSpan = true; _spanMin = min; _spanMax = max; }
+        // 조립된 바닥에서 걸을 수 있는 구간(정수 X)입니다. 경사 지면을 포함하며 끝에 닿으면 벽처럼 다룹니다.
+        public void UseWalkableSpan(long min, long max)
+        {
+            if (min > max) throw new ArgumentException("보행 구간의 최소값이 최대값보다 큽니다.");
+            _hasSpan = true; _spanMin = min; _spanMax = max;
+        }
 
         private bool CanEngageTarget()
         {
@@ -96,11 +101,11 @@ namespace HumanGhost.Gameplay.Preview
 
         // 구간·복귀 제한까지 반영된 실제 수평 이동량(정수)의 비탈 높이 변화를 정수로 돌려줍니다. 평지·낭떠러지는 0입니다.
         // 요청 거리 그대로면 이동 전 조회 결과를 재사용하고, 비탈에서 제한으로 줄었을 때만 다시 조회해 프레임당 조회를 최소로 둡니다.
-        private long SlopeRise(Vector3 center, long moved, long requestedDelta, bool slopeAhead, long slopeRise)
+        private long SlopeRise(long centerX, long centerY, long moved, long requestedDelta, bool slopeAhead, long slopeRise)
         {
             if (moved == 0 || !slopeAhead) return 0;
             if (moved == requestedDelta) return slopeRise;
-            return _collision.TryFollowFootSlope(center, moved, out long rise) ? rise : 0;
+            return _collision.TryFollowFootSlope(centerX, centerY, moved, out long rise) ? rise : 0;
         }
 
         // targetId: 이 몬스터의 장면 내 양수 개체 ID, playerTargetId: 플레이어의 개체 ID(데이터 ID와 별개).
@@ -170,41 +175,47 @@ namespace HumanGhost.Gameplay.Preview
             }
             PlayerActor actor = _player.Actor;
             int milliseconds = _clock.AdvanceFrame(seconds);
-            if (_hasSpan) { minX = _spanMin; maxX = _spanMax; }
-            // 턱을 차지한 플레이어가 안전하게 올라올 한 칸을 확보합니다.
+            IntegerPosition before = _runtime.Position;
+            // [정수화 미적용 이유] minX·maxX는 GameplayPreview가 넘기는 맵 경계(float) 계약입니다. 들어온 즉시 정수로 바꿉니다.
+            long minimum = _hasSpan ? _spanMin : _runtime.ToInteger(minX), maximum = _hasSpan ? _spanMax : _runtime.ToInteger(maxX);
+            // Unity 경계: 몸통(Body) bounds는 읽는 즉시 정수로 바꿉니다. 이후 이동 계산은 모두 정수입니다.
+            Bounds bodyBounds = _body.bounds;
+            long centerX = _runtime.ToInteger(bodyBounds.center.x), centerY = _runtime.ToInteger(bodyBounds.center.y);
+            long bodyBottom = _runtime.ToInteger(bodyBounds.min.y), bodyHalfWidth = _runtime.ToInteger(bodyBounds.extents.x);
+            // 턱을 차지한 플레이어가 안전하게 올라올 한 칸을 확보합니다. 턱 위치(Vector2)는 받는 즉시 정수로 바꿉니다.
             Vector2? ledge = _protectedLedge?.Invoke();
-            // 경사를 따라 높이가 바뀌므로 최초 바닥이 아닌 현재 발 높이와 비교합니다.
-            if (ledge.HasValue && _hasSpan && Mathf.Abs(ledge.Value.y - _body.bounds.min.y) < .2f * _worldUnitsPerTile)
+            if (ledge.HasValue && _hasSpan)
             {
-                float clearance = _worldUnitsPerTile + _body.bounds.extents.x;
-                if (_runtime.transform.position.x >= ledge.Value.x)
-                    minX = Mathf.Max(minX, Mathf.Min(_runtime.transform.position.x, ledge.Value.x + clearance));
-                else maxX = Mathf.Min(maxX, Mathf.Max(_runtime.transform.position.x, ledge.Value.x - clearance));
+                long ledgeX = _runtime.ToInteger(ledge.Value.x), ledgeY = _runtime.ToInteger(ledge.Value.y);
+                // 경사를 따라 높이가 바뀌므로 최초 바닥이 아닌 현재 발 높이와 비교합니다.
+                if (Math.Abs(checked(ledgeY - bodyBottom)) < LedgeHeightTolerance)
+                {
+                    long clearance = checked(LedgeClearance + bodyHalfWidth);
+                    if (before.X >= ledgeX) minimum = Math.Max(minimum, Math.Min(before.X, checked(ledgeX + clearance)));
+                    else maximum = Math.Min(maximum, Math.Max(before.X, checked(ledgeX - clearance)));
+                }
             }
             long delta = _motion.StepHorizontal(_monster.Velocity, milliseconds);
             // 공통 물리 어댑터의 중앙 발 비탈 조회입니다. 이동량·높이 변화는 정수이고 경사 판정은 코어 GroundSlopeRule입니다.
-            IntegerPosition before = _runtime.Position;
-            Vector3 center = _body.bounds.center;
             long requestedDelta = delta;
-            bool slopeAhead = _collision.TryFollowFootSlope(center, delta, out long slopeRise);
+            bool slopeAhead = _collision.TryFollowFootSlope(centerX, centerY, delta, out long slopeRise);
             bool blocked = false;
             if (!slopeAhead)
             {
-                // 평지의 기존 벽 판정입니다. Physics2D 거리(float)를 받으므로 경계에서 정수로 되돌립니다.
-                float requested = _runtime.ToWorld(delta);
-                float allowed = _collision.MoveHorizontal(center, requested);
-                blocked = allowed != requested;
-                if (blocked) delta = _runtime.ToInteger(allowed);
+                // 평지의 기존 벽 판정입니다(정수 API).
+                long allowed = _collision.MoveHorizontal(centerX, centerY, delta);
+                blocked = allowed != delta;
+                delta = allowed;
             }
             if (_monster.IsReturning)
             {
                 long remaining = _spawnX - before.X;
                 if (Math.Sign(delta) == Math.Sign(remaining) && Math.Abs(delta) > Math.Abs(remaining)) delta = remaining;
             }
-            long x = _runtime.ClampHorizontal(delta, minX, maxX, out bool edge);
+            long x = _runtime.ClampHorizontal(delta, minimum, maximum, out bool edge);
             bool wall = edge || blocked;
             // X와 비탈 높이를 모두 정한 뒤 한 번만 확정합니다. SpatialChanged 구독자가 높이가 맞지 않은 중간 위치를 보지 않습니다.
-            _runtime.SetPosition(new IntegerPosition(x, checked(before.Y + SlopeRise(center, x - before.X, requestedDelta, slopeAhead, slopeRise))));
+            _runtime.SetPosition(new IntegerPosition(x, checked(before.Y + SlopeRise(centerX, centerY, x - before.X, requestedDelta, slopeAhead, slopeRise))));
             if (wall) _motion.ResetHorizontal();
             Vector3 position = _runtime.ToWorld(_runtime.Position);
             if (wall) _monster.NotifyWallHit();

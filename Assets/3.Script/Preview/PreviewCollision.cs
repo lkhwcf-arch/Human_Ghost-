@@ -35,9 +35,8 @@ namespace HumanGhost.Gameplay.Preview
         {
             if (!_useColliders || delta == 0f) return delta;
             float direction = Mathf.Sign(delta);
-            // 발밑 이음매에 걸리지 않게 높이를 조금 줄여 조회합니다.
-            var size = new Vector2(_halfSize.x * 2f, _halfSize.y * 2f - Skin * 4f);
-            int count = Physics2D.BoxCast(position, size, 0f, new Vector2(direction, 0f), _filter, _hits, Mathf.Abs(delta) + Skin);
+            GetWallBox(position, out Vector2 boxCenter, out Vector2 size);
+            int count = Physics2D.BoxCast(boxCenter, size, 0f, new Vector2(direction, 0f), _filter, _hits, Mathf.Abs(delta) + Skin);
             float allowed = Mathf.Abs(delta);
             for (int i = 0; i < count; i++)
             {
@@ -48,6 +47,12 @@ namespace HumanGhost.Gameplay.Preview
             return direction * LimitHorizontal(position, direction, allowed);
         }
 
+        // 재정의 지점: 수평 벽 검사 상자입니다. 기본은 몸통에서 발밑 이음매에 걸리지 않게 높이만 조금 줄인 상자입니다.
+        protected virtual void GetWallBox(Vector3 position, out Vector2 center, out Vector2 size)
+        {
+            center = position;
+            size = new Vector2(_halfSize.x * 2f, _halfSize.y * 2f - Skin * 4f);
+        }
         // 재정의 지점: 기본은 모든 벽 접촉을 막습니다.
         protected virtual bool IgnoresWallHit(RaycastHit2D hit) => false;
         // 재정의 지점: 벽 판정 뒤 허용 거리를 추가로 제한합니다. 기본은 그대로 둡니다.
@@ -169,72 +174,119 @@ namespace HumanGhost.Gameplay.Preview
     }
 
     // 중앙 발 지지 비탈 조회입니다(2026-11-17, 일반 몬스터). 비탈 높이를 몸통 폭이 아닌 몸통 중앙의 발로 잽니다.
-    // PreviewCollision의 벽 판정 두 지점을 재정의하고 정수 이동량의 비탈 추종을 더합니다. 형상·필터·버퍼·바닥 조회는 기반을 재사용합니다.
-    // 이동량·높이 변화는 IntegerPosition 정수로 주고받고 경사 판정은 코어 GroundSlopeRule(분모 10000)이 합니다.
-    // [정수화 미적용 이유] 내부의 float는 Physics2D 조회 입력과 접촉점·법선 결과뿐이며, 판정 전에 정수로 바꿉니다.
+    // PreviewCollision의 벽 판정 두 지점을 재정의하고 정수 이동량의 비탈 추종을 더합니다. 필터·버퍼·바닥 조회는 기반을 재사용합니다.
+    // 계산은 모두 IntegerPosition 정수입니다. Unity 값(몸통 중심·크기, 기반 MoveHorizontal의 float 인자)은 들어오는 즉시 정수로 바꾸고
+    // Physics2D Raycast·BoxCast를 호출하는 순간에만 월드 좌표로 바꿉니다. 경사 판정은 코어 GroundSlopeRule(분모 10000)입니다.
+    // [정수화 미적용 이유] Physics2D API의 입력(시작점·방향·거리)과 결과(접촉점·법선·거리)는 float만 지원합니다.
     internal sealed class PreviewFootCollision : PreviewCollision
     {
         // 정수 위치와 Physics2D 월드 좌표 사이 변환 배율입니다(SpatialRuntime과 같은 값).
         private readonly float _worldUnitsPerTile;
+        private readonly long _halfWidth, _halfHeight, _skin;
+        // float 유효숫자는 24비트라 좌표 크기 M의 관측 오차는 약 M × 2^-23입니다. 접촉점·발 높이 두 관측 여유로 8배(M >> 20)를
+        // 정수로 계산해 GroundSlopeRule에 넘깁니다. 맵 좌표 수백 칸·144fps에서도 경사 한계를 약 0.3° 이내로만 넓힙니다.
+        private const int _observationErrorShift = 20;
 
         public PreviewFootCollision(Vector2 halfSize, float worldUnitsPerTile) : base(true, 0f, halfSize)
         {
             if (worldUnitsPerTile <= 0f || float.IsNaN(worldUnitsPerTile) || float.IsInfinity(worldUnitsPerTile))
                 throw new ArgumentOutOfRangeException(nameof(worldUnitsPerTile));
             _worldUnitsPerTile = worldUnitsPerTile;
+            _halfWidth = ToInteger(halfSize.x); _halfHeight = ToInteger(halfSize.y); _skin = ToInteger(Skin);
         }
 
         // Unity 물리 경계 변환입니다. 기존 SpatialRuntime 변환을 재사용합니다.
         private long ToInteger(float world) => SpatialRuntime.ToInteger(world, _worldUnitsPerTile);
         private float ToWorld(long units) => SpatialRuntime.ToWorld(units, _worldUnitsPerTile);
+        private static long ObservationError(long x, long y)
+            => Math.Max(Math.Max(Math.Abs(x), Math.Abs(y)), IntegerPosition.UnitsPerTile) >> _observationErrorShift;
         // Physics2D 법선(float 단위 벡터)을 분모 10000 정수로 바꿔 코어 경사 규칙으로 판정합니다.
         private static bool IsWalkable(Vector2 normal) => GroundSlopeRule.IsWalkableNormal(
             Mathf.RoundToInt(normal.x * GroundSlopeRule.RatioScale), Mathf.RoundToInt(normal.y * GroundSlopeRule.RatioScale));
 
         // 몸통 모서리는 중앙 발보다 먼저 비탈에 닿거나 비탈 속에 들어갑니다. 최대 경사 이내의 비탈 면과
-        // 시작부터 겹친 비탈은 벽이 아니며, 높이는 중앙 발이 닿을 때 TryFollowFootSlope가 맞춥니다.
+        // 시작부터 겹친(거리 0) 비탈은 벽이 아니며, 높이는 중앙 발이 닿을 때 TryFollowFootSlope가 맞춥니다.
         protected override bool IgnoresWallHit(RaycastHit2D hit)
             => IsGroundSlope(hit.collider) && (hit.distance <= 0f || IsWalkable(hit.normal));
 
         // 비탈 추종이 실패한 수평 이동이 중앙 발 아래 더 높은 지면(오르막) 속으로 들어가지 않게 합니다.
+        // 현재·다음 지지면의 높이 차이로 판단합니다(몸통 아래변 기준 아님, 아래 FindSupport 참고). 지지면이 없으면 제한하지 않습니다.
+        // 인자는 기반 MoveHorizontal의 float 계약이므로 들어오는 즉시 정수로 바꿔 비교합니다.
         protected override float LimitHorizontal(Vector3 position, float direction, float allowed)
         {
             if (allowed <= 0f) return allowed;
-            float feet = position.y - HalfSize.y;
-            return FindFootSurface(position.x + direction * allowed, position.y, HalfSize.y + Skin, out float surface, out _) &&
-                ToInteger(surface) - ToInteger(feet) > GroundSlopeRule.ObservationTolerance ? 0f : allowed;
+            long x = ToInteger(position.x), y = ToInteger(position.y);
+            long moved = checked(ToInteger(allowed) * Math.Sign(direction));
+            long error = ObservationError(x, y);
+            if (!FindSupport(x, y, error, out long current, out _)) return allowed;
+            // 다음 위치의 탐사 시작점(몸통 중심)이 이미 지면 속이면 높은 장애물이므로 막습니다. 지면이 없으면(낭떠러지) 기존 구간 정책에 맡깁니다.
+            if (!FindSupport(checked(x + moved), y, error, out long next, out _, out bool startInside)) return startInside ? 0f : allowed;
+            return checked(next - current) > GroundSlopeRule.ObservationTolerance + error ? 0f : allowed;
         }
 
-        // center는 몸통 중심(Unity 경계 관측), run은 수평 정수 이동량이며 성공하면 발 높이 변화 rise를 정수로 돌려줍니다.
+        // 수평 벽 검사 상자의 아래쪽을 실제 지지면보다 낮게 내리지 않습니다.
+        // 이유: 그림 보정으로 Body가 지면 아래까지 내려가면(30589c84) 상자가 지면 속 비탈 다각형의 수직 옆면에 닿아
+        // 비탈 시작점에서 벽으로 막히고 방향을 바꾸며 떨렸습니다(11/17). 지지면이 없으면(공중) 기반 몸통 상자를 씁니다.
+        protected override void GetWallBox(Vector3 position, out Vector2 center, out Vector2 size)
+        {
+            long x = ToInteger(position.x), y = ToInteger(position.y);
+            if (!FindSupport(x, y, ObservationError(x, y), out long support, out _)) { base.GetWallBox(position, out center, out size); return; }
+            long bottom = checked(Math.Max(y - _halfHeight, support) + _skin * 2), top = checked(y + _halfHeight - _skin * 2);
+            if (top - bottom <= _skin) { base.GetWallBox(position, out center, out size); return; }
+            // Physics2D BoxCast 호출 경계입니다. 정수로 정한 상자를 월드 좌표로만 바꿉니다.
+            center = new Vector2(ToWorld(x), ToWorld(checked(bottom + (top - bottom) / 2)));
+            size = new Vector2(ToWorld(_halfWidth * 2), ToWorld(top - bottom));
+        }
+
+        // 정수 수평 이동 판정입니다. 이동 소유자는 이 함수로 정수만 주고받습니다.
+        // [정수화 미적용 이유] 기반 MoveHorizontal은 플레이어(보류)와 공유하는 float Physics2D 계약이라 여기서만 변환합니다.
+        public long MoveHorizontal(long centerX, long centerY, long run)
+        {
+            if (run == 0) return 0;
+            float allowed = MoveHorizontal(new Vector3(ToWorld(centerX), ToWorld(centerY), 0f), ToWorld(run));
+            return checked(ToInteger(Mathf.Abs(allowed)) * Math.Sign(run));
+        }
+
+        // 몸통 중심 아래의 실제 지지면을 찾습니다. 발 기준을 몸통(Body) 아래변으로 두지 않습니다.
+        // 이유: 프리팹은 그림을 지면에 붙이려고 Body를 지면보다 낮게 둘 수 있습니다(11/16 30589c84, 허수귀 0.2칸).
+        // 이동 판정이 그림 보정 값에 의존하지 않도록 관측한 지지면끼리의 높이 차이만 씁니다.
+        private bool FindSupport(long x, long y, long error, out long surface, out Collider2D floor)
+            => FindSupport(x, y, error, out surface, out floor, out _);
+
+        private bool FindSupport(long x, long y, long error, out long surface, out Collider2D floor, out bool startInside)
+            => FindFootSurface(x, y, checked(_halfHeight + _skin + GroundSlopeRule.ObservationTolerance + error), out surface, out floor, out startInside);
+
+        // (x, y)는 몸통 중심의 정수 좌표, run은 수평 정수 이동량이며 성공하면 발 높이 변화 rise를 정수로 돌려줍니다.
         // 위치 확정은 호출한 이동 소유자가 합니다.
-        // 1) 현재·다음 발 중앙 지면을 관측하고 2) 높이 변화를 정수로 바꿔 GroundSlopeRule로 판정하며
+        // 1) 현재·다음 발 중앙 지면을 관측하고 2) 높이 변화를 GroundSlopeRule로 판정하며
         // 3) 비탈이 몸통 폭 안에서 차지할 수 있는 높이만큼 아래를 올린 상자로 벽·천장 경로를 검사합니다.
-        public bool TryFollowFootSlope(Vector3 center, long run, out long rise)
+        public bool TryFollowFootSlope(long x, long y, long run, out long rise)
         {
             rise = 0;
             if (!UsesColliders || run == 0) return false;
-            Vector2 half = HalfSize;
-            float feet = center.y - half.y;
-            float probe = ToWorld(GroundSlopeRule.ObservationTolerance) + Skin;
-            if (!FindFootSurface(center.x, feet + probe, probe * 2f, out _, out Collider2D currentFloor)) return false;
-            // 조회 범위는 정수 규칙의 최대 높이 변화에서 만듭니다. 이동량에 비례하므로 프레임률과 무관합니다.
-            float window = ToWorld(GroundSlopeRule.MaxRise(run));
-            float delta = ToWorld(run);
-            if (!FindFootSurface(center.x + delta, feet + window, window * 2f, out float surface, out Collider2D nextFloor) ||
+            long error = ObservationError(x, y);
+            long probe = checked(GroundSlopeRule.ObservationTolerance + error + _skin);
+            // 현재 발 = 몸통 중심 아래의 실제 지지면입니다(Body 그림 보정과 무관, FindSupport 참고).
+            if (!FindSupport(x, y, error, out long current, out Collider2D currentFloor)) return false;
+            // 조회 범위는 정수 규칙의 최대 높이 변화(관측 오차 포함)입니다. 이동량에 비례하므로 프레임률과 무관합니다.
+            long window = GroundSlopeRule.MaxRise(run, error);
+            if (!FindFootSurface(checked(x + run), checked(current + window), checked(window * 2), out long surface, out Collider2D nextFloor) ||
                 nextFloor.usedByEffector || (!IsGroundSlope(currentFloor) && !IsGroundSlope(nextFloor))) return false;
-            long observed = checked(ToInteger(surface) - ToInteger(feet));
-            if (!GroundSlopeRule.CanTraverse(run, observed)) return false;
+            long observed = checked(surface - current);
+            if (!GroundSlopeRule.CanTraverse(run, observed, error)) return false;
 
-            // 몸통 반폭 × 최대 경사: 몸통 폭 안에서 비탈이 차지할 수 있는 최대 높이입니다. 이 띠 위만 벽·천장으로 검사합니다.
-            float band = half.x * GroundSlopeRule.MaxSlopeRatio / GroundSlopeRule.RatioScale + probe;
-            float bodyHeight = half.y * 2f - band;
-            if (bodyHeight > Skin * 2f)
+            // 몸통 반폭 × 최대 경사: 몸통 폭 안에서 비탈이 차지할 수 있는 최대 높이입니다. 지지면에서 이 띠 위부터 몸통 윗변까지만
+            // 벽·천장으로 검사합니다(몸통 윗변은 Body 기준, 아래 기준은 실제 지지면).
+            long band = checked(_halfWidth * GroundSlopeRule.MaxSlopeRatio / GroundSlopeRule.RatioScale + probe);
+            long bodyHeight = checked(y + _halfHeight - (current + band));
+            if (bodyHeight > _skin * 2)
             {
-                var size = new Vector2(half.x * 2f, bodyHeight - Skin);
-                var start = new Vector2(center.x, feet + band + bodyHeight * .5f);
-                var move = new Vector2(delta, ToWorld(observed));
+                // 경로 길이는 정수 제곱근으로 구합니다. Physics2D BoxCast 호출 줄에서만 월드 좌표로 바꿉니다(방향은 Unity가 정규화).
+                long length = checked(IntegerDistance.Sqrt(checked(run * run + observed * observed)) + _skin);
                 RaycastHit2D[] hits = Hits;
-                int count = Physics2D.BoxCast(start, size, 0f, move.normalized, Filter, hits, move.magnitude + Skin);
+                int count = Physics2D.BoxCast(new Vector2(ToWorld(x), ToWorld(checked(current + band + bodyHeight / 2))),
+                    new Vector2(ToWorld(_halfWidth * 2), ToWorld(bodyHeight - _skin)), 0f,
+                    new Vector2(ToWorld(run), ToWorld(observed)), Filter, hits, ToWorld(length));
                 for (int i = 0; i < count; i++)
                     if (!hits[i].collider.usedByEffector) return false;
             }
@@ -242,19 +294,25 @@ namespace HumanGhost.Gameplay.Preview
             return true;
         }
 
-        // x 위치의 발 중앙 지면을 위에서 아래로 찾습니다. 시작점이 이미 지면 안이면 최대 경사를 넘는 면으로 보고 실패합니다.
-        private bool FindFootSurface(float x, float top, float distance, out float surface, out Collider2D floor)
+        // 정수 x 위치의 발 중앙 지면을 top에서 아래로 distance만큼 찾습니다. 시작점이 이미 지면 안이면 최대 경사를 넘는 면으로 보고 실패합니다.
+        // Raycast 호출과 결과(접촉점·거리)만 월드 좌표이며 결과는 바로 정수로 바꿉니다.
+        private bool FindFootSurface(long x, long top, long distance, out long surface, out Collider2D floor)
+            => FindFootSurface(x, top, distance, out surface, out floor, out _);
+
+        // startInside: 시작점이 이미 콜라이더 안이었는지입니다(높은 장애물·최대 경사 초과 면).
+        private bool FindFootSurface(long x, long top, long distance, out long surface, out Collider2D floor, out bool startInside)
         {
-            surface = top; floor = null;
+            surface = top; floor = null; startInside = false;
             RaycastHit2D[] hits = Hits;
-            int count = Physics2D.Raycast(new Vector2(x, top), Vector2.down, Filter, hits, distance);
-            float nearest = float.MaxValue;
+            int count = Physics2D.Raycast(new Vector2(ToWorld(x), ToWorld(top)), Vector2.down, Filter, hits, ToWorld(distance));
+            long nearest = long.MaxValue;
             for (int i = 0; i < count; i++)
             {
                 RaycastHit2D hit = hits[i];
-                if (hit.distance <= 0f) return false;
-                if (!IsWalkable(hit.normal) || hit.distance >= nearest) continue;
-                nearest = hit.distance; surface = hit.point.y; floor = hit.collider;
+                if (hit.distance <= 0f) { startInside = true; return false; }
+                long hitDistance = ToInteger(hit.distance);
+                if (!IsWalkable(hit.normal) || hitDistance >= nearest) continue;
+                nearest = hitDistance; surface = ToInteger(hit.point.y); floor = hit.collider;
             }
             return floor != null;
         }
