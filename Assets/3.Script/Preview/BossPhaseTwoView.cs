@@ -100,9 +100,8 @@ namespace HumanGhost.Gameplay.Preview
                         time = Map(combat.HitElapsed, spec, .7f, .82f, clip.length); break;
                     case BossPatternKind.Sweep:
                         clip = _sweep;
-                        // 리그의 두 번째 큰 휩쓸기를 논리상 850~950ms 판정 창으로 옮겨 재생합니다.
-                        time = combat.HitIndex == 0 ? Map(combat.HitElapsed, spec, .5f, .6f, .7f)
-                            : Map(combat.HitElapsed, spec, 1.23f, 1.33f, clip.length, .7f); break;
+                        // 크게 한 번 휩쓸기: 선딜 동안 몸 뒤로 크게 감아 올리고, 판정 창에 클립 .8~.9초(앞으로 내려쓸기)를 맞춥니다.
+                        time = Map(combat.HitElapsed, spec, .8f, .9f, clip.length); break;
                     case BossPatternKind.CrawlCharge:
                         clip = combat.IsWindingUp ? _idle : _walk; time = _loopMilliseconds / 1000f * (combat.IsWindingUp ? 1f : 2f); break;
                     case BossPatternKind.GroundSlam:

@@ -44,7 +44,7 @@ namespace HumanGhost.EditorTools
                 row.FindPropertyRelative("_hand").vector2Value=new Vector2((sum/(float)count+.5f-sprite.pivot.x)/sprite.pixelsPerUnit,(top+1f-sprite.pivot.y)/sprite.pixelsPerUnit);
             }
             // 매달림 원화의 작은 머리·몸통 비율을 보정하고, 올라가기 원화는 원래 배율을 유지합니다.
-            so.FindProperty("_hangScale").floatValue=1.25f;so.FindProperty("_climbStartScale").floatValue=1f;
+            so.FindProperty("_hangScale").floatValue=1.25f;
             so.ApplyModifiedPropertiesWithoutUndo();EditorSceneManager.MarkSceneDirty(view.gameObject.scene);EditorSceneManager.SaveScene(view.gameObject.scene);
         }
 

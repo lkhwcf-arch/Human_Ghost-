@@ -16,6 +16,9 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField, InspectorName("2페이즈 리그")] private GameObject _phaseTwoRig = null;
         [SerializeField, InspectorName("2페이즈 이름표")] private TextMesh _phaseTwoLabel = null;
         [SerializeField] private PhaseTwoStep[] _phaseTwoSteps = Array.Empty<PhaseTwoStep>();
+        [SerializeField, InspectorName("바닥선(게임 판정 바닥과 같은 기준)")] private SpriteRenderer _ground = null;
+        private PreviewBossSprite _gameSprite;
+        private float _phaseTwoOriginOffset;
         private int _oneIndex = -1, _twoIndex = -1;
         private int _oneRemainingMilliseconds, _twoRemainingMilliseconds;
         private long _twoElapsedMilliseconds;
@@ -27,6 +30,28 @@ namespace HumanGhost.Gameplay.Preview
             if (_settings == null || _phaseOne == null || _phaseTwoRig == null || _phaseOneSteps.Length == 0 || _phaseTwoSteps.Length == 0)
                 throw new InvalidOperationException("보스 애니메이션 확인 씬의 참조와 재생 목록을 연결해 주세요.");
             _bind = new RigBindPose(_phaseTwoRig);
+            if (_ground == null) return;
+            // 게임 프리팹의 1페이즈 프레임별 접지값과 2페이즈 리그 높이(판정 상자 바닥 기준)를 그대로 씁니다.
+            _gameSprite = _settings.GetComponent<PreviewBossSprite>();
+            Transform body = _settings.transform.Find("PreviewVisuals/Body"), rig = _settings.transform.Find("PhaseTwoRig");
+            float bodyBottom = body.localPosition.y - body.localScale.y * .5f;
+            _phaseTwoOriginOffset = (rig.localPosition.y - bodyBottom) / rig.localScale.y;
+        }
+
+        private void LateUpdate()
+        {
+            if (_ground == null) return;
+            float line = _ground.bounds.max.y;
+            var sprite = _phaseOne.GetComponent<SpriteRenderer>();
+            if (_gameSprite != null && sprite.sprite != null)
+            {
+                Vector3 position = _phaseOne.transform.position;
+                position.y = line - _gameSprite.GroundContactOf(sprite.sprite) * _phaseOne.transform.lossyScale.y;
+                _phaseOne.transform.position = position;
+            }
+            Vector3 rigPosition = _phaseTwoRig.transform.position;
+            rigPosition.y = line + _phaseTwoOriginOffset * _phaseTwoRig.transform.lossyScale.y;
+            _phaseTwoRig.transform.position = rigPosition;
         }
 
         private void Update()

@@ -71,7 +71,7 @@ namespace HumanGhost.Gameplay.Adapters
             {
                 case StateKey.Roll: PlayAnimationSound("PLAYER_ROLL"); break;
                 case StateKey.Evade: PlayAnimationSound("PLAYER_BACK_EVADE"); break;
-                case StateKey.Hang: PlayAnimationSound("PLAYER_HANG"); break;
+                // 매달리기 소리는 실제 모서리 잡기에서만 냅니다(사다리도 Hang 상태를 쓰므로 상태로 판단하지 않음).
                 case StateKey.Heal: PlayAnimationSound("PLAYER_HEAL"); break;
                 case StateKey.Execute: PlayAnimationSound("PLAYER_EXECUTE_1"); break;
             }
