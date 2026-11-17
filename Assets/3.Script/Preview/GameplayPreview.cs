@@ -124,6 +124,23 @@ namespace HumanGhost.Gameplay.Preview
         }
 
         public bool IsReady => _subscribed;
+        private void OnBossPatternStarted(BossPattern pattern) => _audio?.PlayEffect(BossAttackSound(pattern));
+
+        private static string BossAttackSound(BossPattern pattern)
+        {
+            switch (pattern.Kind)
+            {
+                case BossPatternKind.Legacy:
+                    return pattern.Key == StateKey.Attack1 ? "BOSS_1_ATTACK1" : pattern.Key == StateKey.Attack2 ? "BOSS_1_ATTACK2" : pattern.Key == StateKey.Attack3 ? "BOSS_1_ATTACK3" : null;
+                case BossPatternKind.Pillar:
+                case BossPatternKind.TripleSlam: return "BOSS_2_PILLAR";
+                case BossPatternKind.Sweep: return "BOSS_2_SWEEP";
+                case BossPatternKind.GroundSlam: return "BOSS_2_SLAM";
+                case BossPatternKind.DesperationLeap: return "BOSS_2_LEAP";
+                default: return null;
+            }
+        }
+
         private void OnParrySucceeded(int milliseconds) => _parryFeedback?.Show(milliseconds, _player.transform.position + Vector3.right * _actor.Facing * 0.6f);
         public PlayerRuntime Player => _player;
         public BossRuntime Boss => _boss;
@@ -200,6 +217,7 @@ namespace HumanGhost.Gameplay.Preview
                 _actor = _player.Actor;
                 _actor.ApplyLevel(_progress.Rewards.CurrentLevel);
                 _actor.ParrySucceeded += OnParrySucceeded;
+                if (_boss.Combat != null) _boss.Combat.PatternStarted += OnBossPatternStarted;
                 if (_motion == null) _motion = new PreviewPlayerMotion(_player, _groundY, _useMapCollision, _playerHalfSize, GetMarkers(),
                     _actor.Definition.JumpHeight, _jumpMilliseconds,
                     key => _playerAudio?.PlayAnimationSound(key), _stageId == BossStage ? _stage?.MapRoot : null);
@@ -282,6 +300,7 @@ namespace HumanGhost.Gameplay.Preview
             actions.Add(ClearEditorExecutionDummies);
 #endif
             actions.Add(() => { if (_actor != null) _actor.ParrySucceeded -= OnParrySucceeded; });
+            actions.Add(() => { if (_boss != null && _boss.Combat != null) _boss.Combat.PatternStarted -= OnBossPatternStarted; });
             actions.Add(() => { var audio = _playerAudio; _playerAudio = null; if (audio != null) audio.Disconnect(); });
             foreach (MonsterRuntime monster in _monsters)
                 actions.Add(() => { if (monster != null) monster.GetComponent<MonsterAnimationAudio>()?.Disconnect(); });
@@ -403,7 +422,11 @@ namespace HumanGhost.Gameplay.Preview
 #endif
             if (!_actor.IsAttackActive) return;
             if (_bossActive && _attackWindow.bounds.Intersects(BossHurtBounds()))
-                _feedback?.OnPlayerHit(_actor.TryHitBoss(_bossTargetId, _boss.Actor, _player.HitRandom), null, _boss.transform.position, _actor.Facing);
+            {
+                HitOutcome bossOutcome = _actor.TryHitBoss(_bossTargetId, _boss.Actor, _player.HitRandom);
+                if (bossOutcome == HitOutcome.Hit || bossOutcome == HitOutcome.Critical) _audio?.PlayEffect("BOSS_HIT");
+                _feedback?.OnPlayerHit(bossOutcome, null, _boss.transform.position, _actor.Facing);
+            }
             foreach (PreviewMonsterDriver monster in _monsterDrivers)
             {
                 HitOutcome outcome = monster.CheckPlayerHit();

@@ -501,6 +501,51 @@ MonoBehaviour:
   - _key: SFX_PARRY
     _clip: {fileID: 8300000, guid: 6660350fde5e66444a470c4d92c55088, type: 3}
     _soundId: 0
+  - _key: BOSS_1_ATTACK1
+    _clip: {fileID: 8300000, guid: 0708c0d6bdabe4045b21b52ef5283821, type: 3}
+    _soundId: 0
+  - _key: BOSS_1_ATTACK2
+    _clip: {fileID: 8300000, guid: 5138a383036931c469714c08a5e1abbb, type: 3}
+    _soundId: 0
+  - _key: BOSS_1_ATTACK3
+    _clip: {fileID: 8300000, guid: e1fc9409ecc03074db1115e0b7127331, type: 3}
+    _soundId: 0
+  - _key: BOSS_2_PILLAR
+    _clip: {fileID: 8300000, guid: 5779b03400a18794094fcc0ee22784c8, type: 3}
+    _soundId: 0
+  - _key: BOSS_2_SWEEP
+    _clip: {fileID: 8300000, guid: 93a3e34217019324b814ef52573c7ac5, type: 3}
+    _soundId: 0
+  - _key: BOSS_2_SLAM
+    _clip: {fileID: 8300000, guid: 5bfce5d27902c7d45b052de4c6691763, type: 3}
+    _soundId: 0
+  - _key: BOSS_2_LEAP
+    _clip: {fileID: 8300000, guid: e34c1aa4354db5449949cef3f3c47063, type: 3}
+    _soundId: 0
+  - _key: BOSS_HIT
+    _clip: {fileID: 8300000, guid: 462e5bcc54e2bd245bc2399862c089a8, type: 3}
+    _soundId: 0
+  - _key: BOSS_HIT
+    _clip: {fileID: 8300000, guid: c93942cd12726124297765e368771559, type: 3}
+    _soundId: 0
+  - _key: BOSS_HIT
+    _clip: {fileID: 8300000, guid: abf46b320a25b7241aa0aa3008556bbf, type: 3}
+    _soundId: 0
+  - _key: BOSS_HIT
+    _clip: {fileID: 8300000, guid: 935e33a7d155baa4f9291897f6a59de1, type: 3}
+    _soundId: 0
+  - _key: BOSS_2_WALK
+    _clip: {fileID: 8300000, guid: f0c5319894628354c919cca5b0bf45f2, type: 3}
+    _soundId: 0
+  - _key: BOSS_2_WALK
+    _clip: {fileID: 8300000, guid: 08d2e9e4733219c4496f0eb979da2f75, type: 3}
+    _soundId: 0
+  - _key: BOSS_2_WALK
+    _clip: {fileID: 8300000, guid: 48092fb2c800eb742869d07fbcac1a35, type: 3}
+    _soundId: 0
+  - _key: BOSS_2_WALK
+    _clip: {fileID: 8300000, guid: 336ebcdaea38ab34a9b0b77edb9b4157, type: 3}
+    _soundId: 0
   _musicA: {fileID: 748258672732590955}
   _musicB: {fileID: 1232308879320497956}
   _effects: {fileID: 1532842353738971575}

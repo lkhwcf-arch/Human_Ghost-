@@ -33,6 +33,7 @@ namespace HumanGhost.Gameplay.Preview
         private void ConnectBossPhaseData()
         {
             _boss.GetComponent<BossPhaseTwoView>()?.ConnectCamera(_followCamera);
+            _boss.GetComponent<BossPhaseTwoView>()?.ConnectWalkStep(() => _audio?.PlayEffect("BOSS_2_WALK"));
             _boss.GetComponent<BossPhaseTwoView>()?.ConnectWarningOrigin(() => _bossDriver != null ? _bossDriver.WarningOriginX : _boss.transform.position.x);
             _bossPhaseDialogue = _catalog.GetTable<Dialogue>().All.Single(row => row.TriggerType == "BOSS_STATE_ENTER" && row.TriggerTargetID == 4002);
             string file = System.IO.Path.GetFileNameWithoutExtension(_bossPhaseDialogue.LineFile);
