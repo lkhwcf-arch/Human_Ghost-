@@ -15,6 +15,8 @@ namespace HumanGhost.Gameplay.Preview
         // 1페이즈·일반몹 스프라이트(10fps)와 같은 프레임감으로 리그 포즈를 끊어 보여 줍니다. 판정 시간은 바꾸지 않습니다.
         [SerializeField, InspectorName("리그 표시 프레임 (fps)"), Min(1)] private int _framesPerSecond = 10;
         [SerializeField, InspectorName("대기·걷기 재생 비율 (분모 10000)"), Range(3000, 10000)] private int _loopRate = 8000;
+        // 걷기 클립에서 손이 바닥을 짚는 시간(ms). 표시 프레임이 이 시간을 넘는 순간 발소리를 냅니다.
+        [SerializeField, InspectorName("걷기 손 짚는 시간 (ms, 클립 기준)")] private int[] _walkSteps = { 0, 600 };
         public int FramesPerSecond => _framesPerSecond;
         public int LoopRate => _loopRate;
         public static float Frame(float time, int framesPerSecond) => Mathf.Floor(time * framesPerSecond) / framesPerSecond;
@@ -26,6 +28,9 @@ namespace HumanGhost.Gameplay.Preview
         private PreviewFollowCamera _camera;
         private System.Func<float> _warningOrigin;
         public void ConnectWarningOrigin(System.Func<float> origin) => _warningOrigin = origin;
+        private System.Action _walkStep;
+        private int _walkFrame = -1;
+        public void ConnectWalkStep(System.Action step) => _walkStep = step;
         private long _idleMilliseconds;
         private int _slumpMilliseconds;
         private int _elapsedMilliseconds;
@@ -46,6 +51,18 @@ namespace HumanGhost.Gameplay.Preview
             _parts = _rig.GetComponentsInChildren<SpriteRenderer>(true);
             _bind = new RigBindPose(_rig);
             _lastX = transform.position.x;
+        }
+        // 걷기 표시 프레임이 손 짚는 프레임에 들어서면 한 번 알립니다(루프 되감김 포함). 걷기 시작 첫 프레임은 울리지 않습니다.
+        private void UpdateWalkStep(int frame)
+        {
+            if (frame == _walkFrame) return;
+            int previous = _walkFrame; _walkFrame = frame;
+            if (previous < 0 || frame < 0 || _walkSteps == null) return;
+            foreach (int step in _walkSteps)
+            {
+                int at = step * _framesPerSecond / 1000;
+                if (frame > previous ? at > previous && at <= frame : at > previous || at <= frame) { _walkStep?.Invoke(); return; }
+            }
         }
         public void Show(bool value) { if (_rig.activeSelf != value) _rig.SetActive(value); }
         // 리그가 보일 때 SpriteSkin으로 변형된 부품들의 가장 높은 월드 y입니다. 숨김이면 음의 무한대입니다.
@@ -79,7 +96,7 @@ namespace HumanGhost.Gameplay.Preview
             _properties.SetFloat("_AuraStrength", actor.IsDead ? 0f : .18f);
             _hitFlashMilliseconds = System.Math.Max(0, _hitFlashMilliseconds - _elapsedMilliseconds);
             // 1페이즈도 범위가 있는 패턴은 같은 바닥 예고를 씁니다(2B3).
-            if (!_rig.activeSelf) { _dust.enabled = false; DrawWarning(combat); return; }
+            if (!_rig.activeSelf) { _dust.enabled = false; _walkFrame = -1; DrawWarning(combat); return; }
             _idleMilliseconds = checked(_idleMilliseconds + _elapsedMilliseconds);
             _loopMilliseconds = checked(_loopMilliseconds + _loopClock.AdvanceFrame(Time.deltaTime * _loopRate / 10000d));
             bool moving = Mathf.Abs(transform.position.x - _lastX) > .00001f; _lastX = transform.position.x;
@@ -122,7 +139,9 @@ namespace HumanGhost.Gameplay.Preview
             }
             else { _slumpMilliseconds = 0; _impactPattern = null; _impactHit = -1; }
             _bind.Restore();
-            clip.SampleAnimation(_rig, Frame(clip.isLooping ? Mathf.Repeat(time, clip.length) : Mathf.Min(time, clip.length), _framesPerSecond));
+            float sample = Frame(clip.isLooping ? Mathf.Repeat(time, clip.length) : Mathf.Min(time, clip.length), _framesPerSecond);
+            UpdateWalkStep(clip == _walk ? Mathf.RoundToInt(sample * _framesPerSecond) : -1);
+            clip.SampleAnimation(_rig, sample);
             var position = _rigPosition;
             if (combat.IsAirborne)
             {
