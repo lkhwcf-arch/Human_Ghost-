@@ -786,6 +786,8 @@ MonoBehaviour:
   _airAttack: {fileID: 7400000, guid: 48d243d972470124a82dfcc472b4a601, type: 2}
   _parry: {fileID: 7400000, guid: 3a8633a9a5282854384acdc1cc4b323f, type: 2}
   _walk: {fileID: 7400000, guid: 3334a1f7516430b42bf8cda4683e3c2e, type: 2}
+  _runSteps: 2c010000bc020000
+  _walkSteps: f40100004c040000
   _climb: {fileID: 7400000, guid: 6d2bf8909bcce0d4781c45984a4d084e, type: 2}
   _save: {fileID: 7400000, guid: 8b98f4955cee7ad408645c317b727aa1, type: 2}
   _ladderClimb: {fileID: 7400000, guid: 5392c94f525b63e4090fd11907bcc578, type: 2}
@@ -1035,6 +1037,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Preview.PreviewParallax
   _camera: {fileID: 99334892}
+  _defaultLayers:
+  - _path: Background/Sky
+    _layerName: SKY
+  - _path: Background/Mountains
+    _layerName: FAR
+  - _path: Object/Foreground*
+    _layerName: FRONT
 --- !u!1001 &112427744
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2610,12 +2619,16 @@ MonoBehaviour:
   _hitImpactPrefab: {fileID: 2581699890305169595, guid: 36b209955ab68c640b2ababab310ae67, type: 3}
   _jigegwiHitImpactPrefab: {fileID: 2581699890305169595, guid: 29bae68bc82c4663a68adbd3e11ff3a7, type: 3}
   _rollDustPrefab: {fileID: 2581699890305169595, guid: 1bfb3ac347b040fba5c4b0e44a1e2df1, type: 3}
+  _verifyWalkableSpans: 0
   _cutscenes: {fileID: 0}
   _cutscenePrefab: {fileID: 1006, guid: d354d58fb3ac4cf29f2720b5b2038207, type: 3}
   _endingTextIds: 90760000
   _endingDelayMs: 2000
   _endingNoticeMs: 3000
   _npcNameFont: {fileID: 12800000, guid: 7c5cc61f706fd4c479b99c9c7d7a4d37, type: 3}
+  _npcNameGapUnits: 30
+  _npcNameScaleRatio: 20000
+  _npcPromptGapUnits: 10
   _manualSavePrefab: {fileID: 90020, guid: c9dc5f691d6f4673b88d6a19b085f970, type: 3}
   _shrinePrefab: {fileID: 900010, guid: 186c9274c99d22b488420c7b2c1cb015, type: 3}
   _shrineModalBinding: {fileID: 880009001}

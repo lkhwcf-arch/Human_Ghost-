@@ -183,13 +183,27 @@ namespace HumanGhost.Gameplay.Preview
         private Vector3 GetGoal()
         {
             if (_fixed) return new Vector3(_fixedPosition.x, _fixedPosition.y, transform.position.z) + (Vector3)TestPositionOffset;
-            float halfWidth = _camera.orthographicSize * _camera.aspect;
-            float focusX = _target.position.x + (_player != null && _player.Actor != null ? _player.Actor.Facing * _lookAhead : 0f);
-            float x = _maxX - _minX <= halfWidth * 2f ? (_minX + _maxX) * 0.5f : Mathf.Clamp(focusX, _minX + halfWidth, _maxX - halfWidth);
+            int facing = _player != null && _player.Actor != null ? _player.Actor.Facing : 0;
             // 기본 구도에 더하는 테스트 이동량입니다. 맵 가장자리에서도 구도를 직접 비교할 수 있습니다.
+            return Compose(_target.position.x, _groundHeight, facing) + new Vector3(0f, _lookOffset, 0f) + (Vector3)TestPositionOffset;
+        }
+
+        // 대상이 이 위치에 서서 facing 쪽을 볼 때의 기본 구도입니다(위아래 보기·흔들림·시험 보정 제외). 배경 시차 기준점처럼 도착 방향과 무관한 기준에 씁니다.
+        public Vector3 GoalFor(Vector3 target, int facing)
+        {
+            if (_camera == null) _camera = GetComponent<Camera>();
+            if (_fixed) return new Vector3(_fixedPosition.x, _fixedPosition.y, transform.position.z);
+            return Compose(target.x, target.y, facing);
+        }
+
+        private Vector3 Compose(float targetX, float groundHeight, int facing)
+        {
+            float halfWidth = _camera.orthographicSize * _camera.aspect;
+            float focusX = targetX + facing * _lookAhead;
+            float x = _maxX - _minX <= halfWidth * 2f ? (_minX + _maxX) * 0.5f : Mathf.Clamp(focusX, _minX + halfWidth, _maxX - halfWidth);
             float scale = _player != null ? _player.ToWorld(IntegerPosition.UnitsPerTile) : 1f;
-            float y = Mathf.Max(_minY, _groundHeight + _heightOffset + _groundHeightBiasUnits / 100f * scale) + _lookOffset;
-            return new Vector3(x, y, transform.position.z) + (Vector3)TestPositionOffset;
+            float y = Mathf.Max(_minY, groundHeight + _heightOffset + _groundHeightBiasUnits / 100f * scale);
+            return new Vector3(x, y, transform.position.z);
         }
     }
 }

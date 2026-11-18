@@ -35,6 +35,8 @@ namespace HumanGhost.Gameplay.Preview
         private const int _lobLandingMilliseconds = 100;
         // 높이 던지기 착지점(막손 아래 바닥)을 찾는 최대 아래 거리(tile_x100)입니다.
         private const int _lobFloorSearchUnits = 3000;
+        // 높이 던지기 착지 판정 범위(tile_x100): 기억한 자리 좌우 50(가로 1칸), 바닥에서 위로 100(1칸).
+        private const int _lobHitHalfWidthUnits = 50, _lobHitHeightUnits = 100;
         private readonly Sprite _projectileSprite;
         private readonly MonsterThrowRigView _throwRig;
         private PreviewGroundFireView _fire;
@@ -365,8 +367,14 @@ namespace HumanGhost.Gameplay.Preview
             return renderer;
         }
 
-        // 기존 접촉 판정의 Unity 경계 변환입니다. 인식 관측은 위의 정수 좌표를 사용합니다.
-        private int Distance(float offset) => Mathf.RoundToInt(Mathf.Abs(offset) / _worldUnitsPerTile * 100f);
+        // 착지 자리(물리 관측 Vector3)와 플레이어 그림 Bounds(Unity 관측)를 비교 순간에만 정수로 바꿔 판정합니다.
+        private bool LobLandingHits(Bounds target)
+        {
+            long x = SpatialRuntime.ToInteger(_lobTarget.x, _worldUnitsPerTile), y = SpatialRuntime.ToInteger(_lobTarget.y, _worldUnitsPerTile);
+            long half = IntegerPosition.FromData(_lobHitHalfWidthUnits), height = IntegerPosition.FromData(_lobHitHeightUnits);
+            return SpatialRuntime.ToInteger(target.max.x, _worldUnitsPerTile) >= x - half && SpatialRuntime.ToInteger(target.min.x, _worldUnitsPerTile) <= x + half &&
+                SpatialRuntime.ToInteger(target.min.y, _worldUnitsPerTile) <= y + height && SpatialRuntime.ToInteger(target.max.y, _worldUnitsPerTile) >= y;
+        }
 
         // 임시 판정: 근접·잡기는 높이가 겹치고 앞쪽 거리 안, 돌진은 사각형 겹침. 회피/치명은 확률 경로를 씁니다.
         private void CheckMonsterHit()
@@ -374,20 +382,19 @@ namespace HumanGhost.Gameplay.Preview
             PlayerActor actor = _player.Actor;
             if (!_runtime.isActiveAndEnabled || !_monster.IsAttackActive || !CanEngageTarget()) return;
             MonsterPattern pattern = _monster.CurrentPattern;
-            float offset = _player.transform.position.x - _runtime.transform.position.x;
+            // 가로 거리·방향은 정수 좌표로 판정합니다. 높이 겹침·사각형 교차는 그림 Bounds(Unity 관측) 기존 계약입니다.
+            long offset = checked(_player.Position.X - _runtime.Position.X);
             Bounds own = _body.bounds, target = _playerBody.bounds;
             bool sameHeight = target.min.y <= own.max.y && target.max.y >= own.min.y;
-            bool inFront = offset * _monster.Facing >= 0f;
-            // 높이 던지기는 떨어지는 마지막 순간, 기억한 자리 가로 1칸에만 맞습니다.
-            float half = .5f * _worldUnitsPerTile;
+            bool inFront = offset * _monster.Facing >= 0;
+            // 높이 던지기는 떨어지는 마지막 순간(남은 시간 비율을 ms 교차곱으로 비교), 기억한 자리 가로 1칸에만 맞습니다.
             bool touching = pattern.IsRetreat ? false :
                 pattern.IsLob ? _projectile != null && _projectile.IsFlying &&
-                    _projectile.Progress >= 1f - _lobLandingMilliseconds / (float)pattern.Attack.Active &&
-                    target.max.x >= _lobTarget.x - half && target.min.x <= _lobTarget.x + half &&
-                    target.min.y <= _lobTarget.y + _worldUnitsPerTile && target.max.y >= _lobTarget.y :
+                    (long)_projectile.ElapsedMilliseconds * pattern.Attack.Active >= (long)(pattern.Attack.Active - _lobLandingMilliseconds) * _projectile.DurationMilliseconds &&
+                    LobLandingHits(target) :
                 pattern.IsProjectile ? _projectile != null && _projectile.IsFlying && _projectile.Bounds.Intersects(target) :
-                pattern.IsCharge ? own.Intersects(target) : sameHeight && inFront && Distance(offset) <= pattern.Range;
-            int direction = System.Math.Sign(_runtime.transform.position.x - _player.transform.position.x);
+                pattern.IsCharge ? own.Intersects(target) : sameHeight && inFront && IntegerPosition.ToData(System.Math.Abs(offset)) <= pattern.Range;
+            int direction = -System.Math.Sign(offset);
             if (!touching) return;
             HitOutcome outcome = _monster.TryHitPlayer(_playerTargetId, actor, _runtime.HitRandom, direction);
             if (outcome == HitOutcome.Dodged) PlayerDodged?.Invoke();

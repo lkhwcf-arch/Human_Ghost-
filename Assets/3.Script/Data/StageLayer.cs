@@ -10,7 +10,8 @@ namespace HumanGhost.Data.Definitions
         public string ImageKey { get; }
         public int Parallax { get; }
         public int SortOrder { get; }
-        public StageLayer(int id, int stageID, int layerIndex, string layerName, string imageKey, int parallax, int sortOrder)
+        public int? ParallaxY { get; }
+        public StageLayer(int id, int stageID, int layerIndex, string layerName, string imageKey, int parallax, int sortOrder, int? parallaxY = null)
         {
             ID = id;
             StageID = stageID;
@@ -19,6 +20,7 @@ namespace HumanGhost.Data.Definitions
             ImageKey = imageKey;
             Parallax = parallax;
             SortOrder = sortOrder;
+            ParallaxY = parallaxY;
         }
     }
 }

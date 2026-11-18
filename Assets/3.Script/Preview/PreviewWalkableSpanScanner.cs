@@ -47,6 +47,15 @@ namespace HumanGhost.Gameplay.Preview
             return 0;
         }
 
+        // 반대로 배치 높이가 지면 안에 묻히면(발판 충돌체 윗면을 그림에 맞춰 올린 경우 등) 0.5칸 안에서 윗면 바로 위까지 올릴 거리를 돌려줍니다. 없으면 0입니다.
+        public long FindFloorRise(long feetX, long feetY)
+        {
+            if (SolidAt(feetX, checked(feetY + _surfaceProbeBelow)) == null) return 0;
+            for (long rise = _surfaceScanStep; rise <= _maxFloorDrop; rise += _surfaceScanStep)
+                if (SolidAt(feetX, checked(feetY + rise)) == null) return rise;
+            return 0;
+        }
+
         // 발 중심 기준 보행 구간입니다. 몸 절반 폭만큼 안쪽으로 줄이고, 몸체보다 좁은 지형은 최초 배치점을 유지합니다.
         // useShortcut=false는 편집기 비교용 기존 경로입니다.
         public void FindSpan(long feetX, long feetY, long halfHeight, long halfWidth, bool useShortcut, out long min, out long max)

@@ -68,8 +68,8 @@ namespace HumanGhost.Gameplay.Preview.Editor
             EditorGUILayout.LabelField("플레이어 공격 판정", EditorStyles.boldLabel);
             if (preview == null) { EditorGUILayout.HelpBox("게임 확인 장면이 없습니다.", MessageType.None); return; }
             EditorGUILayout.LabelField("길이는 플레이어 쪽 끝을 고정하고 앞으로만 늘어납니다. 높이는 위아래로 같이 늘어납니다.", EditorStyles.wordWrappedLabel);
-            float length = EditorGUILayout.Slider("길이 배율", GameplayPreview.AttackLengthScale, GameplayPreview.MinAttackScale, GameplayPreview.MaxAttackScale);
-            float height = EditorGUILayout.Slider("높이 배율", GameplayPreview.AttackHeightScale, GameplayPreview.MinAttackScale, GameplayPreview.MaxAttackScale);
+            float length = EditorGUILayout.Slider("길이 배율", GameplayPreview.AttackLengthScale, GameplayPreview.MinAttackRate / 10000f, GameplayPreview.MaxAttackRate / 10000f);
+            float height = EditorGUILayout.Slider("높이 배율", GameplayPreview.AttackHeightScale, GameplayPreview.MinAttackRate / 10000f, GameplayPreview.MaxAttackRate / 10000f);
             if (!Mathf.Approximately(length, GameplayPreview.AttackLengthScale) || !Mathf.Approximately(height, GameplayPreview.AttackHeightScale))
                 GameplayPreview.SetTestAttackScale(length, height);
             if (GUILayout.Button("1로 되돌리기")) GameplayPreview.SetTestAttackScale(1f, 1f);

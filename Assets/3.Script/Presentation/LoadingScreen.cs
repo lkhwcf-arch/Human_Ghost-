@@ -16,6 +16,8 @@ namespace HumanGhost.Gameplay.Presentation
         private const int _minimumMs = 2000;
         private const int _stampMs = 150;
         private const int _appearMs = 300;
+        // 새 씬 준비가 끝난 뒤 화면을 걷기 전 기다리는 시간(ms)입니다. 맵·발판 충돌체와 오브젝트가 물리 단계에 모두 올라온 뒤 보이게 합니다(모든 맵 공통).
+        private const int _settleMs = 400;
         private const int _oneLineHeight = 96;
         private const int _twoLineHeight = 141;
         private static int _previousTipId;
@@ -173,6 +175,13 @@ namespace HumanGhost.Gameplay.Presentation
                     _phase = 4;
                 }
                 if (_phase == 4)
+                {
+                    if (_elapsed < _settleMs) return;
+                    Physics2D.SyncTransforms();
+                    _elapsed = 0;
+                    _phase = 5;
+                }
+                if (_phase == 5)
                 {
                     _group.alpha = 1f - Mathf.Clamp01(_elapsed / (float)_appearMs);
                     if (_elapsed >= _appearMs) { _begun = false; Destroy(gameObject); }

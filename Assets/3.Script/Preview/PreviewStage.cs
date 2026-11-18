@@ -12,8 +12,8 @@ namespace HumanGhost.Gameplay.Preview
     internal sealed class PreviewStage : IDisposable
     {
         private const string _markersName = "Markers";
-        // [정수화 미적용 이유] 맵 프리팹 기준 지면선 높이(Transform 배치)입니다. 스폰 직후 캐릭터 좌표는 정수로 관리합니다.
-        private const float _groundLine = 2f;
+        // 맵 프리팹 기준 지면선 높이(tile_x100)입니다. 스폰 높이와 정수로 더한 뒤 Transform에 넣는 순간만 월드로 바꿉니다.
+        private const int _groundLineUnits = 200;
         private GameObject _root;
         private readonly GameProgressState _progress;
         public Transform MapRoot { get; }
@@ -123,7 +123,7 @@ namespace HumanGhost.Gameplay.Preview
                 }
                 placed[placement.PlacementID] = placement;
                 _placementOrigins.Add(placement.PlacementID, new Vector3(platform.transform.position.x,
-                    StageLayoutRules.UsesGroundLine(placement.Prefab) ? MapRoot.position.y + _groundLine : platform.transform.position.y,
+                    StageLayoutRules.UsesGroundLine(placement.Prefab) ? MapRoot.position.y + _groundLineUnits / 100f : platform.transform.position.y,
                     platform.transform.position.z));
             }
             IReadOnlyDataTable<Monster> table = data.GetTable<Monster>();
@@ -150,9 +150,12 @@ namespace HumanGhost.Gameplay.Preview
             MonsterRuntime monster = UnityEngine.Object.Instantiate(prefab, _root.transform);
             monster.name = $"{prefab.name}_{spawn.PlacementId}_{spawn.Sequence}";
             // 발판을 옮기면 몬스터도 따라가도록 플랫폼 앵커에서 잽니다. 바닥선은 맵 y=2입니다.
-            float baseY = StageLayoutRules.UsesGroundLine(placement.Prefab) ? MapRoot.position.y + _groundLine : anchor.position.y;
+            // 데이터 거리(tile_x100)는 정수로 더하고, 기준점(Transform)·몸 절반 높이(그림 크기)와 합치는 순간만 월드로 바꿉니다.
+            bool groundLine = StageLayoutRules.UsesGroundLine(placement.Prefab);
+            int heightUnits = checked(spawn.Height + (groundLine ? _groundLineUnits : 0));
+            float baseY = groundLine ? MapRoot.position.y : anchor.position.y;
             float halfHeight = monster.GetComponentInChildren<SpriteRenderer>(true).transform.lossyScale.y * 0.5f;
-            monster.transform.position = new Vector3(anchor.position.x + spawn.X / 100f, baseY + spawn.Height / 100f + halfHeight, MapRoot.position.z);
+            monster.transform.position = new Vector3(anchor.position.x + spawn.X / 100f, baseY + heightUnits / 100f + halfHeight, MapRoot.position.z);
             monster.gameObject.SetActive(false);
             // 발동 전 몬스터도 목록에 있어 출구 조건의 '스폰 예정'으로 셉니다(K07).
             if (spawn.Trigger is int trigger) _ambushes.Add(new KeyValuePair<int, MonsterRuntime>(trigger, monster));

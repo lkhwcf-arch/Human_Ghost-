@@ -26,6 +26,8 @@ namespace HumanGhost.Gameplay.Preview
         }
 
         public bool IsFlying => _view.enabled;
+        public int ElapsedMilliseconds => _elapsed;
+        public int DurationMilliseconds => _duration;
         // 0~1 비행 진행률입니다.
         // [정수화 미적용 이유] 정수 ms 경과에서 계산한 0~1 표시 진행률입니다(그림자 크기 보간).
         public float Progress => _duration <= 0 ? 0f : _elapsed / (float)_duration;

@@ -10,43 +10,28 @@ namespace HumanGhost.Gameplay.Preview
     {
         private const int _normalStop = 50, _criticalStop = 80, _criticalSlow = 200, _executeStop = 150, _bossHitStop = 50;
         private const int _criticalSlowRate = 5000, _flashMilliseconds = 50;
-        private MillisecondClock _scaledClock, _unscaledClock;
+        private MillisecondClock _unscaledClock;
         private struct Flash { public SpriteRenderer Target; public Color Color; public int Remaining; }
         private readonly List<Flash> _flashes = new List<Flash>();
         private readonly GameSpeedController _speed;
         private readonly PreviewFollowCamera _camera;
         private readonly GameAudio _audio;
-        private readonly TextMesh _textPrefab;
-        private string _dodgeText;
         private readonly SpriteClipEffect _hitPrefab;
         private readonly List<(SpriteClipEffect Effect, Stack<SpriteClipEffect> Pool)> _impacts = new();
         private readonly Dictionary<SpriteClipEffect, Stack<SpriteClipEffect>> _impactPools = new();
         private const int _maxRetainedImpacts = 16;
-        private class FloatingText
-        {
-            public GameObject Root { get; set; }
-            public TextMesh Label { get; set; }
-            public int Remaining { get; set; }
-        }
-        private readonly List<FloatingText> _texts = new List<FloatingText>();
-        private readonly Stack<FloatingText> _textPool = new Stack<FloatingText>();
-        // 동시 표시는 제한하지 않고 대기 중인 표시만 최대 16개까지 보관합니다.
-        private const int _maxRetainedTexts = 16;
 
-        public PreviewCombatFeedback(GameSpeedController speed, PreviewFollowCamera camera, GameAudio audio, TextMesh textPrefab, string dodgeText, SpriteClipEffect hitPrefab = null)
+        public PreviewCombatFeedback(GameSpeedController speed, PreviewFollowCamera camera, GameAudio audio, SpriteClipEffect hitPrefab = null)
         {
-            _speed = speed; _camera = camera; _audio = audio; _textPrefab = textPrefab; _dodgeText = dodgeText; _hitPrefab = hitPrefab;
+            _speed = speed; _camera = camera; _audio = audio; _hitPrefab = hitPrefab;
         }
 
-        public void SetDodgeText(string text) => _dodgeText = text;
-
-        // 플레이어가 적을 때린 결과입니다. 회피는 히트스톱이 없습니다.
+        // 플레이어가 적을 때린 결과입니다. 회피는 히트스톱·글자 표시 없이 빗나감 소리만 냅니다.
         public void OnPlayerHit(HitOutcome outcome, SpriteRenderer target, Vector3 position, int direction = 1, SpriteClipEffect impactPrefab = null)
         {
             switch (outcome)
             {
                 case HitOutcome.Dodged:
-                    ShowText(_dodgeText, position);
                     _audio?.PlayEffect("SFX_MISS");
                     break;
                 case HitOutcome.Hit:
@@ -80,10 +65,9 @@ namespace HumanGhost.Gameplay.Preview
         }
 
         // 다른 표시가 색을 정한 뒤 마지막에 덮습니다.
-        public void Step(float unscaledSeconds, float seconds)
+        public void Step(float unscaledSeconds)
         {
             int realMilliseconds = _unscaledClock.AdvanceFrame(unscaledSeconds);
-            int milliseconds = _scaledClock.AdvanceFrame(seconds);
             for (int i = _impacts.Count - 1; i >= 0; i--)
             {
                 var (impact, pool) = _impacts[i];
@@ -99,17 +83,6 @@ namespace HumanGhost.Gameplay.Preview
                 if (flash.Target != null) flash.Target.color = flash.Color;
                 flash.Remaining -= realMilliseconds;
                 if (flash.Remaining <= 0) _flashes.RemoveAt(i); else _flashes[i] = flash;
-            }
-            for (int i = _texts.Count - 1; i >= 0; i--)
-            {
-                FloatingText text = _texts[i];
-                text.Remaining -= milliseconds;
-                if (text.Remaining > 0) continue;
-                _texts.RemoveAt(i);
-                text.Root.SetActive(false);
-                text.Label.text = "";
-                if (_textPool.Count < _maxRetainedTexts) _textPool.Push(text);
-                else Object.Destroy(text.Root);
             }
         }
 
@@ -159,34 +132,13 @@ namespace HumanGhost.Gameplay.Preview
             if (target != null) _flashes.Add(new Flash { Target = target, Color = color, Remaining = _flashMilliseconds });
         }
 
-        private void ShowText(string text, Vector3 position)
-        {
-            if (_textPrefab == null) return;
-            FloatingText item;
-            if (_textPool.Count > 0) item = _textPool.Pop();
-            else
-            {
-                var root = new GameObject("CombatFeedbackText");
-                root.SetActive(false);
-                item = new FloatingText { Root = root, Label = Object.Instantiate(_textPrefab, root.transform) };
-                item.Label.transform.localPosition = Vector3.zero;
-                item.Label.transform.localRotation = Quaternion.identity;
-            }
-            item.Root.transform.position = position + Vector3.up * 1.5f;
-            item.Label.text = text;
-            item.Remaining = 600;
-            _texts.Add(item);
-            item.Root.SetActive(true);
-        }
         public void Dispose()
         {
             foreach (var (impact, _) in _impacts) if (impact != null) Object.Destroy(impact.gameObject);
             foreach (var pool in _impactPools.Values)
                 foreach (SpriteClipEffect impact in pool) if (impact != null) Object.Destroy(impact.gameObject);
             _impacts.Clear(); _impactPools.Clear();
-            foreach (FloatingText text in _texts) if (text.Root != null) Object.Destroy(text.Root);
-            foreach (FloatingText text in _textPool) if (text.Root != null) Object.Destroy(text.Root);
-            _texts.Clear(); _textPool.Clear(); _flashes.Clear();
+            _flashes.Clear();
         }
     }
 }

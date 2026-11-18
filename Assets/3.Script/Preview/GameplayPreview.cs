@@ -290,6 +290,7 @@ namespace HumanGhost.Gameplay.Preview
                 _boss.gameObject.SetActive(_bossActive);
                 ConnectFields(catalog);
                 _stage?.Activate();
+                SettleArrival();
                 ApplyWalkableSpans();
                 ConnectSaves();
                 _stageNamePending = _textbox != null;
@@ -392,8 +393,8 @@ namespace HumanGhost.Gameplay.Preview
         }
 
         // 테스트 전용 공격 판정 배율입니다(길이·높이, 기본 1, Play마다 1). 플레이어 쪽 끝은 고정하고 길이는 앞으로만 늘립니다.
-        // [정수화 미적용 이유] 공격 판정창 스프라이트의 Transform 배율입니다. Inspector 공급값은 분모 10000 정수이고, 판정은 Unity Bounds 교차(기존 계약)로 합니다.
-        public const float MinAttackScale = 0.25f, MaxAttackScale = 3f;
+        // 배율 한계(분모 10000): 0.25배~3배.
+        public const int MinAttackRate = 2500, MaxAttackRate = 30000;
         private static int _attackLengthRate = 10000, _attackHeightRate = 10000;
         // [정수화 미적용 이유] 공격 판정창 스프라이트의 Transform 배율·가장자리 표시값입니다. Inspector 공급값은 분모 10000 정수이고, 판정은 Unity Bounds 교차(기존 계약)로 합니다.
         public static float AttackLengthScale => _attackLengthRate / 10000f;
@@ -411,8 +412,9 @@ namespace HumanGhost.Gameplay.Preview
         {
             if (float.IsNaN(length) || float.IsInfinity(length) || float.IsNaN(height) || float.IsInfinity(height))
                 throw new ArgumentOutOfRangeException(nameof(length), "시험 공격 배율은 유한한 값이어야 합니다.");
-            _attackLengthRate = Mathf.RoundToInt(Mathf.Clamp(length, MinAttackScale, MaxAttackScale) * 10000f);
-            _attackHeightRate = Mathf.RoundToInt(Mathf.Clamp(height, MinAttackScale, MaxAttackScale) * 10000f);
+            // 편집기 슬라이더(실수) 입력을 받는 순간 분모 10000 정수로 바꾼 뒤 정수로 제한합니다.
+            _attackLengthRate = Mathf.RoundToInt(Mathf.Clamp(length * 10000f, MinAttackRate, MaxAttackRate));
+            _attackHeightRate = Mathf.RoundToInt(Mathf.Clamp(height * 10000f, MinAttackRate, MaxAttackRate));
         }
 
         // 월드 기준 현재 판정 크기입니다(테스트 창 표시용).
@@ -625,7 +627,8 @@ namespace HumanGhost.Gameplay.Preview
                 IntegerPosition position = runtime.Position;
                 long feetX = position.X, feetY = checked(position.Y - half);
                 long drop = scanner.FindFloorDrop(feetX, feetY);
-                if (drop > 0) { runtime.SetPosition(new IntegerPosition(position.X, checked(position.Y - drop))); feetY -= drop; }
+                if (drop == 0) drop = -scanner.FindFloorRise(feetX, feetY);
+                if (drop != 0) { runtime.SetPosition(new IntegerPosition(position.X, checked(position.Y - drop))); feetY -= drop; }
                 scanner.FindSpan(feetX, feetY, half, halfWidth, true, out long min, out long max);
 #if UNITY_EDITOR
                 if (_verifyWalkableSpans) VerifyWalkableSpan(scanner, runtime.name, feetX, feetY, half, halfWidth, min, max);
@@ -638,7 +641,6 @@ namespace HumanGhost.Gameplay.Preview
             if (_stageId == StageExitRules.VillageStage)
             StartMapControlsView.AddTo(_stage.MapRoot, _markersRoot, _feedbackTextPrefab, _catalog, _player);
             WorldGuideLabels.AddTo(_stage.MapRoot, _feedbackTextPrefab, _catalog, _content.GetStage(_stageId).WorldTexts);
-            PreviewTraversalGuide.AddTo(_stage.MapRoot, _markersRoot, _playerBody.sprite, _playerBody.sortingLayerID, 60);
         }
 
 #if UNITY_EDITOR
@@ -832,7 +834,7 @@ namespace HumanGhost.Gameplay.Preview
             _combat = new CombatPresence(_combatHoldMilliseconds);
             _lastHealth = _actor.Health;
             _feedback?.Dispose();
-            _feedback = new PreviewCombatFeedback(_speed, _followCamera, _audio, _feedbackTextPrefab, LanguageTextSource.SelectUi(catalog, 51605), _hitImpactPrefab);
+            _feedback = new PreviewCombatFeedback(_speed, _followCamera, _audio, _hitImpactPrefab);
             _parryFeedback?.Dispose();
             _parryFeedback = new PreviewParryFeedback(_speed, _followCamera, _audio, _parryImpactPrefab);
             if (_bossDriver != null)
@@ -859,7 +861,7 @@ namespace HumanGhost.Gameplay.Preview
                 _actor.StaminaRefused += _hud.FlashStamina;
             }
             _actor.HealthChanged += OnGameLayerHealthChanged;
-            if (_parallax != null && _stage != null) _parallax.Connect(catalog, _stageId, _stage.MapRoot);
+            if (_parallax != null && _stage != null) _parallax.Connect(catalog, _stageId, _stage.MapRoot, _worldUnitsPerTile, FindParallaxCameraOrigin(catalog));
             if (_pause != null) _pause.Connect(catalog, _speed, _audio, settings, CanPause, SetGameInputLocked, ReturnToTitle, OnSettingsChanged);
         }
 
@@ -925,7 +927,6 @@ namespace HumanGhost.Gameplay.Preview
             if (_catalog != null)
             {
                 var text = new LanguageTextSource(_catalog);
-                _feedback?.SetDodgeText(text.ReadUi(51605));
                 if (_hud != null)
                 {
                     _hud.SetBossName(text.Read(30006));
@@ -956,7 +957,7 @@ namespace HumanGhost.Gameplay.Preview
             StepStageClear();
             StepSavePoint();
             _gates?.Step(_actor, _attackWindow.bounds, _playerBody.bounds, ShowGateHint);
-            _feedback?.Step(Time.unscaledDeltaTime, Time.deltaTime);
+            _feedback?.Step(Time.unscaledDeltaTime);
         }
 
         private void ShowGateHint() { if (_textbox != null) _textbox.ShowObjective("결박이 길을 막고 있다. Z(결박 가르기)로 베어 내자"); }
@@ -986,6 +987,44 @@ namespace HumanGhost.Gameplay.Preview
             _player.SetPosition(new Vector3(point.x, point.y + _playerHalfSize.y, _player.transform.position.z));
             if (anchor != "Respawn_Seonangdang") _progress.SetStageEntrance(anchor);
             _progress.TakeArrival();
+        }
+
+        // 배경 시차 기준 카메라 위치: 정방향으로 처음 들어오는 자리(앞 스테이지 출구의 도착 앵커, 없으면 PlayerStart)에 섰을 때의 구도입니다.
+        // 도착 지점(되돌아온 문·오른쪽 끝)과 무관하게 배경 배치가 같도록 합니다. 기준 표식이 없으면 연결 순간 카메라를 씁니다.
+        private Vector3? FindParallaxCameraOrigin(IReadOnlyDataCatalog catalog)
+        {
+            if (_followCamera == null || _markersRoot == null) return null;
+            int[] previous = catalog.GetTable<Stage>().All.Where(stage => stage.NextStage == _stageId).Select(stage => stage.ID).ToArray();
+            string[] arrivals = catalog.GetTable<StageExit>().All
+                .Where(row => row.ContentEnabled && row.TargetStageID == _stageId && Array.IndexOf(previous, row.StageID) >= 0)
+                .Select(row => row.ArrivalAnchorName).Distinct().ToArray();
+            Transform marker = _markersRoot.Find(arrivals.Length == 1 && !string.IsNullOrWhiteSpace(arrivals[0]) ? arrivals[0] : "PlayerStart");
+            if (marker == null) return null;
+            return _followCamera.GoalFor(marker.position + Vector3.up * _playerHalfSize.y, 1);
+        }
+
+        // 도착 표식이 발판 판정 윗면보다 조금 낮으면(발판 판정 윗면을 그림에 맞춰 올린 경우) 발이 판정 안에 묻혀 통과 발판으로 떨어집니다.
+        // 스테이지(발판 충돌체)를 켠 직후 발 위 0.5칸 안에 판정 윗면이 있으면 그 윗면에 발을 맞춥니다.
+        private const int _arrivalFloorSearchUnits = 50;
+        private void SettleArrival()
+        {
+            if (_stage == null || _player == null) return;
+            Vector3 position = _player.transform.position;
+            float feet = position.y - _playerHalfSize.y;
+            float floor = FindArrivalFloor(new Vector3(position.x, feet, position.z));
+            if (floor > feet) _player.SetPosition(new Vector3(position.x, floor + _playerHalfSize.y, position.z));
+        }
+        private float FindArrivalFloor(Vector3 point)
+        {
+            Physics2D.SyncTransforms();
+            float reach = SpatialRuntime.ToWorld(IntegerPosition.FromData(_arrivalFloorSearchUnits), _worldUnitsPerTile);
+            float feet = point.y;
+            foreach (RaycastHit2D hit in Physics2D.RaycastAll(new Vector2(point.x, point.y + reach), Vector2.down, reach))
+            {
+                if (hit.collider.isTrigger || hit.fraction <= 0f || hit.collider.GetComponentInParent<PlayerRuntime>() != null || hit.collider.GetComponentInParent<MonsterRuntime>() != null) continue;
+                if (hit.point.y > feet) feet = hit.point.y;
+            }
+            return feet;
         }
 
         private string GetUniqueArrivalAnchor(int stageId)

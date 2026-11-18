@@ -14,6 +14,8 @@ namespace HumanGhost.Gameplay.Preview
         private MillisecondClock _fieldClock;
         // 필드 오브젝트 접촉 영역의 임시 두께(tile_x100)입니다. 데이터에 높이 컬럼이 생기면 그 값으로 바꿉니다.
         private const int _fieldContactHeightUnits = 20;
+        // 빙판 그림을 바닥 판정선보다 내려 그리는 깊이(tile_x100)입니다. 지면 그림 윗면이 판정선보다 약 0.05칸 낮아 그대로 두면 떠 보입니다. 표시만 바꾸고 접촉 영역은 그대로입니다.
+        private const int _fieldIceSinkUnits = 10;
 
         private void ConnectFields(IReadOnlyDataCatalog data)
         {
@@ -64,14 +66,15 @@ namespace HumanGhost.Gameplay.Preview
                 // 표시의 바닥만 맞춥니다. FieldObjectArea.Bounds는 변경하지 않습니다.
                 if (area.Kind == FieldKind.Ice)
                 {
+                    float iceBottom = area.Bounds.min.y - SpatialRuntime.ToWorld(IntegerPosition.FromData(_fieldIceSinkUnits), _worldUnitsPerTile);
                     AddFieldSprite(view.transform, "Middle", _content.FieldIceMiddle, area.Bounds.min.x,
-                        area.Bounds.min.y, area.Bounds.size.x, sortingOrder, true);
+                        iceBottom, area.Bounds.size.x, sortingOrder, true);
                     Sprite left = _content.FieldIceLeft, right = _content.FieldIceRight;
                     if (left == null || right == null) throw new InvalidOperationException("빙판 양끝 그림을 연결하세요.");
                     float leftWidth = Mathf.Min(left.bounds.size.x, area.Bounds.size.x);
                     float rightWidth = Mathf.Min(right.bounds.size.x, area.Bounds.size.x);
-                    AddFieldSprite(view.transform, "Left", left, area.Bounds.min.x, area.Bounds.min.y, leftWidth, sortingOrder + 1, false);
-                    AddFieldSprite(view.transform, "Right", right, area.Bounds.max.x - rightWidth, area.Bounds.min.y, rightWidth, sortingOrder + 1, false);
+                    AddFieldSprite(view.transform, "Left", left, area.Bounds.min.x, iceBottom, leftWidth, sortingOrder + 1, false);
+                    AddFieldSprite(view.transform, "Right", right, area.Bounds.max.x - rightWidth, iceBottom, rightWidth, sortingOrder + 1, false);
                 }
                 else AddFieldSprite(view.transform, "Debris", _content.FieldFire, area.Bounds.min.x,
                     area.Bounds.min.y, area.Bounds.size.x, sortingOrder, false);
