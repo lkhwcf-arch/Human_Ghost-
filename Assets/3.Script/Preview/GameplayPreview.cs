@@ -23,6 +23,7 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField, InspectorName("플레이어 사각형")] private SpriteRenderer _playerBody = null;
         [SerializeField, InspectorName("보스 사각형")] private SpriteRenderer _bossBody = null;
         [SerializeField, InspectorName("임시 공격 범위")] private SpriteRenderer _attackWindow = null;
+        // [정수화 미적용 이유] 정수 좌표(IntegerPosition)와 Unity 월드 좌표를 오가는 변환 계수(Inspector 타일당 화면 거리)입니다. 좌표 상태는 정수입니다.
         [Header("임시 표시 설정 (운영 수치 아님)")]
         [SerializeField, InspectorName("타일당 화면 거리"), Min(0.01f)] private float _worldUnitsPerTile = 1f;
         [SerializeField, InspectorName("임시 점프 시간 (ms)"), Min(1)] private int _jumpMilliseconds = 800;
@@ -56,10 +57,12 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField, InspectorName("Stage ID (리소스 목록이 없을 때)")] private int _stageId = 8001;
         [Header("JSON 스테이지 조립 (없으면 씬 배치 사용)")]
         [SerializeField, InspectorName("스테이지 리소스 목록")] private StageContentSet _content = null;
+        // [정수화 미적용 이유] 맵 프리팹을 놓는 Transform 기준 위치입니다. 배치 후 캐릭터 좌표는 정수로 관리합니다.
         [SerializeField, InspectorName("맵 기준 위치")] private Vector3 _mapOrigin = new Vector3(-10f, -2.2f, 0f);
         [SerializeField, InspectorName("타이틀 씬")] private string _titleScene = "Title";
         [Header("맵 이동 (맵이 없는 장면은 끔)")]
         [SerializeField, InspectorName("맵 충돌 사용")] private bool _useMapCollision = false;
+        // [정수화 미적용 이유] 플레이어 충돌 상자 절반 크기입니다. 플레이어 충돌 상자·이동은 float Physics2D 계약(비탈 보류, 2026-11-17)을 유지하므로 이 경계에서 실수로 둡니다.
         [SerializeField, InspectorName("플레이어 충돌 절반 크기")] private Vector2 _playerHalfSize = new Vector2(0.3f, 0.65f);
         [SerializeField, InspectorName("맵 표식 묶음 (모서리·낙하 구역)")] private Transform _hangEdgeRoot = null;
         [SerializeField, InspectorName("몹·보스 이동 왼쪽 한계 (tile_x100)")] private int _combatMinUnits = -900;
@@ -71,6 +74,7 @@ namespace HumanGhost.Gameplay.Preview
         private const int _firstMonsterTargetId = 3;
         private PlayerLocomotionInput _input;
         private PlayerActor _actor;
+        // [정수화 미적용 이유] 맵 충돌을 쓰지 않는 장면의 평지 높이입니다(PreviewCollision float 계약). 플레이어 충돌 상자·이동은 float Physics2D 계약(비탈 보류, 2026-11-17)을 유지하므로 이 경계에서 실수로 둡니다.
         private float _groundY;
         private PreviewPlayerMotion _motion;
         private bool _subscribed;
@@ -101,6 +105,10 @@ namespace HumanGhost.Gameplay.Preview
         private int _lastHealth;
         private bool _bossHitThisFrame;
         private const int _combatHoldMilliseconds = 3000;
+        // 맵 좌우 벽 두께(tile_x100)입니다. 보스 이동 한계와 카메라 추적 범위가 같은 기준으로 벽 안쪽 면을 씁니다.
+        private const int _mapWallThicknessUnits = 100;
+        // 카메라 최저 높이를 맵 기준점 위로 올리는 보정(tile_x100)입니다. 카메라 표시에만 씁니다.
+        private const int _cameraMinHeightUnits = 400;
         private PreviewPlayerSprite _playerSprite;
         private SpatialRuntime _executingRuntime;
         private int _executionRemainingMilliseconds;
@@ -130,8 +138,7 @@ namespace HumanGhost.Gameplay.Preview
         private void StartStageAmbience()
         {
             if (_audio == null) return;
-            string ambience = _content.GetStage(_stageId)?.AmbienceKey;
-            _audio.PlayAmbience(string.IsNullOrEmpty(ambience) ? null : ambience);
+            _audio.PlayAmbience(_catalog.GetTable<Stage>().Get(_stageId).AmbienceSoundID);
             string anchor = _arrivalAnchor;
             if (!string.IsNullOrEmpty(anchor) && _catalog.GetTable<StageExit>().All.Any(row => row.TargetStageID == _stageId && row.ArrivalAnchorName == anchor &&
                 (row.StageID == StageExitRules.LedgerStage || row.TargetStageID == StageExitRules.LedgerStage)))
@@ -385,13 +392,16 @@ namespace HumanGhost.Gameplay.Preview
         }
 
         // 테스트 전용 공격 판정 배율입니다(길이·높이, 기본 1, Play마다 1). 플레이어 쪽 끝은 고정하고 길이는 앞으로만 늘립니다.
+        // [정수화 미적용 이유] 공격 판정창 스프라이트의 Transform 배율입니다. Inspector 공급값은 분모 10000 정수이고, 판정은 Unity Bounds 교차(기존 계약)로 합니다.
         public const float MinAttackScale = 0.25f, MaxAttackScale = 3f;
         private static int _attackLengthRate = 10000, _attackHeightRate = 10000;
+        // [정수화 미적용 이유] 공격 판정창 스프라이트의 Transform 배율·가장자리 표시값입니다. Inspector 공급값은 분모 10000 정수이고, 판정은 Unity Bounds 교차(기존 계약)로 합니다.
         public static float AttackLengthScale => _attackLengthRate / 10000f;
         public static float AttackHeightScale => _attackHeightRate / 10000f;
         private Vector3 _attackBaseScale;
         private bool _attackBaseKnown;
         // 기존 기준: 중심 0.95, 기본 길이의 절반만큼 플레이어 쪽 끝.
+        // [정수화 미적용 이유] 공격 판정창 스프라이트의 Transform 배율·가장자리 표시값입니다. Inspector 공급값은 분모 10000 정수이고, 판정은 Unity Bounds 교차(기존 계약)로 합니다.
         private float AttackNearEdge => 0.95f - _attackBaseScale.x * 0.5f;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -406,6 +416,7 @@ namespace HumanGhost.Gameplay.Preview
         }
 
         // 월드 기준 현재 판정 크기입니다(테스트 창 표시용).
+        // [정수화 미적용 이유] 공격 판정창 스프라이트의 월드 크기(Bounds 표시·판정 경계)입니다.
         public Vector2 AttackWindowWorldSize => _attackWindow != null && _attackWindow.sprite != null
             ? Vector2.Scale(_attackWindow.sprite.bounds.size, _attackWindow.transform.lossyScale) : Vector2.zero;
 
@@ -549,7 +560,7 @@ namespace HumanGhost.Gameplay.Preview
         // 데이터 출구로 이동합니다. 이동이 실제로 시작된 경우에만 경로 선택을 기록합니다.
         private void TravelExit(StageExit route)
         {
-            if (route.ExitAction == FinishDemoExit) { FinishDemo(); return; }
+            if (route.ExitAction == _finishDemoExit) { FinishDemo(); return; }
             bool wasLeaving = _leaving;
             GoToStage(route.TargetStageID, route.ArrivalAnchorName);
             if (!wasLeaving && _leaving) RecordRouteChoice(route);
@@ -599,108 +610,69 @@ namespace HumanGhost.Gameplay.Preview
         }
 
 
-        // 각 몬스터가 선 바닥의 끊기지 않은 구간을 찾습니다.
+        // 각 몬스터가 선 바닥의 끊기지 않은 구간을 찾습니다. 탐사 규칙은 PreviewWalkableSpanScanner가 소유하고 여기서는 결과만 연결합니다(S05).
         private void ApplyWalkableSpans()
         {
             if (_stage == null) return;
-            // 몬스터마다 수백 번 검사하므로 결과 목록 하나를 준비 범위 안에서 재사용합니다.
-            var hits = new List<Collider2D>();
-            var filter = new ContactFilter2D { useTriggers = Physics2D.queriesHitTriggers };
-            filter.SetLayerMask(Physics2D.DefaultRaycastLayers);
+            var scanner = new PreviewWalkableSpanScanner(_worldUnitsPerTile);
             for (int i = 0; i < _monsters.Length; i++)
             {
                 MonsterRuntime runtime = _monsters[i];
                 SpriteRenderer body = runtime.GetComponentInChildren<SpriteRenderer>(true);
                 // Unity 경계: 그림 크기만 정수로 바꾸고 이후 발 위치·탐사는 정수 좌표로 진행합니다.
-                long half = Units(body.transform.lossyScale.y) / 2;
-                long halfWidth = Units(body.bounds.extents.x);
+                long half = SpatialRuntime.ToInteger(body.transform.lossyScale.y, _worldUnitsPerTile) / 2;
+                long halfWidth = SpatialRuntime.ToInteger(body.bounds.extents.x, _worldUnitsPerTile);
                 IntegerPosition position = runtime.Position;
                 long feetX = position.X, feetY = checked(position.Y - half);
-                // 몬스터는 낙하하지 않으므로 배치 높이가 그림에 맞춰 낮춘 바닥보다 조금 높으면 바로 아래 바닥에 붙입니다.
-                long drop = FindFloorDrop(feetX, feetY, filter, hits);
+                long drop = scanner.FindFloorDrop(feetX, feetY);
                 if (drop > 0) { runtime.SetPosition(new IntegerPosition(position.X, checked(position.Y - drop))); feetY -= drop; }
-                long min = checked(FindSpanEnd(feetX, feetY, half, -1, filter, hits) + halfWidth);
-                long max = checked(FindSpanEnd(feetX, feetY, half, 1, filter, hits) - halfWidth);
-                // 몸체보다 좁은 지형은 최초 배치점을 유지합니다. 정상 지면은 발 전체가 가장자리 안에 남습니다.
-                if (min > max) min = max = feetX;
+                scanner.FindSpan(feetX, feetY, half, halfWidth, true, out long min, out long max);
+#if UNITY_EDITOR
+                if (_verifyWalkableSpans) VerifyWalkableSpan(scanner, runtime.name, feetX, feetY, half, halfWidth, min, max);
+#endif
                 _monsterDrivers[i].UseWalkableSpan(min, max);
             }
+#if UNITY_EDITOR
+            if (_verifyWalkableSpans) ReportWalkableSpanVerification();
+#endif
             if (_stageId == StageExitRules.VillageStage)
             StartMapControlsView.AddTo(_stage.MapRoot, _markersRoot, _feedbackTextPrefab, _catalog, _player);
             WorldGuideLabels.AddTo(_stage.MapRoot, _feedbackTextPrefab, _catalog, _content.GetStage(_stageId).WorldTexts);
             PreviewTraversalGuide.AddTo(_stage.MapRoot, _markersRoot, _playerBody.sprite, _playerBody.sortingLayerID, 60);
         }
 
-        // 몬스터 보행 구간·배치 바닥 탐사는 IntegerPosition 정수 좌표로 진행합니다(1칸 = UnitsPerTile).
-        // [정수화 미적용 이유] Physics2D.OverlapPoint는 float 좌표만 받으므로 각 호출 순간에만 월드 좌표로 바꿉니다.
-        private const long SpanStep = IntegerPosition.UnitsPerTile / 4;
-        private const long SurfaceScanStep = IntegerPosition.UnitsPerTile / 96;
-        private const long FootProbeBelow = IntegerPosition.UnitsPerTile / 10;
-        private const long SurfaceProbeBelow = IntegerPosition.UnitsPerTile / 100;
-        private const long MaxFloorDrop = IntegerPosition.UnitsPerTile / 2;
-        private long Units(float world) => SpatialRuntime.ToInteger(world, _worldUnitsPerTile);
-        private float World(long units) => SpatialRuntime.ToWorld(units, _worldUnitsPerTile);
-        private Collider2D SolidAt(long x, long y, ContactFilter2D filter, List<Collider2D> hits)
-            => SolidAt(new Vector2(World(x), World(y)), filter, hits);
+#if UNITY_EDITOR
+        // 편집기 비교 모드: 지름길과 기존 경로의 구간 결과·물리 조회 수·시간을 같은 지형에서 대조합니다. 출시 빌드에는 포함되지 않습니다.
+        [SerializeField, InspectorName("보행 구간 지름길 비교 (편집기)")] private bool _verifyWalkableSpans = false;
+        private long _verifyFastQueries, _verifyLegacyQueries, _verifyFastTicks, _verifyLegacyTicks;
+        private int _verifyMonsters, _verifyMismatches;
 
-        // 0.25칸 간격으로 훑고, 한 칸에서 따라갈 높이 한도는 이동과 같은 GroundSlopeRule(최대 45°)에서 만듭니다.
-        private long FindSpanEnd(long feetX, long feetY, long halfHeight, int direction, ContactFilter2D filter, List<Collider2D> hits)
+        private void VerifyWalkableSpan(PreviewWalkableSpanScanner scanner, string monster, long feetX, long feetY, long half, long halfWidth,
+            long min, long max)
         {
-            long reach = GroundSlopeRule.MaxRise(SpanStep);
-            long x = feetX, y = feetY;
-            Collider2D floor = SolidAt(x, y - FootProbeBelow, filter, hits);
-            for (int i = 0; i < 800; i++)
-            {
-                long next = checked(x + direction * SpanStep);
-                // 경사 지면은 이동의 경사 추종과 같은 기준(GroundSlope_)으로 표면 높이를 따라갑니다.
-                if (TryFindSurface(next, y, reach, filter, hits, out long surface, out Collider2D nextFloor) &&
-                    (PreviewCollision.IsGroundSlope(floor) || PreviewCollision.IsGroundSlope(nextFloor)))
-                {
-                    if (SolidAt(next, checked(surface + halfHeight), filter, hits) != null) break;
-                    x = next; y = surface; floor = nextFloor;
-                    continue;
-                }
-                // 평지: 앞이 막히거나 발밑이 비면 그 앞에서 멈춥니다.
-                if (SolidAt(next, checked(y + halfHeight), filter, hits) != null) break;
-                Collider2D flat = SolidAt(next, y - FootProbeBelow, filter, hits);
-                if (flat == null) break;
-                x = next; floor = flat;
-            }
-            return x;
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            long start = scanner.QueryCount;
+            scanner.FindSpan(feetX, feetY, half, halfWidth, true, out long fastMin, out long fastMax);
+            _verifyFastTicks += watch.ElapsedTicks; _verifyFastQueries += scanner.QueryCount - start;
+            watch.Restart(); start = scanner.QueryCount;
+            scanner.FindSpan(feetX, feetY, half, halfWidth, false, out long legacyMin, out long legacyMax);
+            _verifyLegacyTicks += watch.ElapsedTicks; _verifyLegacyQueries += scanner.QueryCount - start;
+            _verifyMonsters++;
+            if (fastMin == legacyMin && fastMax == legacyMax && fastMin == min && fastMax == max) return;
+            _verifyMismatches++;
+            Debug.LogError($"보행 구간 지름길 결과가 기존과 다릅니다: {monster} 지름길 {fastMin}~{fastMax}, 기존 {legacyMin}~{legacyMax}", this);
         }
 
-        // x 위치에서 기준 높이 ±reach 안의 가장 높은 지면 윗면을 찾습니다. 시작점이 이미 막혀 있으면 가파른 벽으로 봅니다.
-        private bool TryFindSurface(long x, long y, long reach, ContactFilter2D filter, List<Collider2D> hits,
-            out long surface, out Collider2D floor)
+        private void ReportWalkableSpanVerification()
         {
-            surface = y; floor = null;
-            if (SolidAt(x, checked(y + reach), filter, hits) != null) return false;
-            for (long height = checked(y + reach); height >= y - reach; height -= SurfaceScanStep)
-            {
-                floor = SolidAt(x, height - SurfaceProbeBelow, filter, hits);
-                if (floor == null) continue;
-                surface = height;
-                return true;
-            }
-            return false;
+            double frequency = System.Diagnostics.Stopwatch.Frequency / 1000.0;
+            Debug.Log($"보행 구간 비교(스테이지 {_stageId}): 몬스터 {_verifyMonsters}, 불일치 {_verifyMismatches}, " +
+                $"물리 조회 지름길 {_verifyFastQueries} / 기존 {_verifyLegacyQueries}, " +
+                $"시간 지름길 {_verifyFastTicks / frequency:F2}ms / 기존 {_verifyLegacyTicks / frequency:F2}ms", this);
+            _verifyFastQueries = _verifyLegacyQueries = _verifyFastTicks = _verifyLegacyTicks = 0;
+            _verifyMonsters = _verifyMismatches = 0;
         }
-
-        // 정수 단계로 내려가며 바닥까지의 거리를 찾습니다. 실수 누적 없이 같은 0.5칸·1/96칸 간격을 유지합니다.
-        private long FindFloorDrop(long feetX, long feetY, ContactFilter2D filter, List<Collider2D> hits)
-        {
-            for (long drop = 0; drop <= MaxFloorDrop; drop += SurfaceScanStep)
-                if (SolidAt(feetX, feetY - drop - SurfaceProbeBelow, filter, hits) != null) return drop;
-            return 0;
-        }
-
-        private static Collider2D SolidAt(Vector2 point, ContactFilter2D filter, List<Collider2D> hits)
-        {
-            hits.Clear();
-            Physics2D.OverlapPoint(point, filter, hits);
-            foreach (Collider2D hit in hits)
-                if (!hit.isTrigger && hit.GetComponentInParent<MonsterRuntime>() == null && hit.GetComponentInParent<PlayerRuntime>() == null) return hit;
-            return null;
-        }
+#endif
 
         // 맵 표식에 상호작용·관문·출구를 붙입니다. 표식 이름은 맵 프리팹 기준입니다.
         private void ConnectStageObjects(IReadOnlyDataCatalog catalog)
@@ -739,7 +711,11 @@ namespace HumanGhost.Gameplay.Preview
             if (_followCamera != null)
             {
                 // 2026-11-11 사용자 확정: 보스방도 필드와 같은 확대 추적 구도를 씁니다(기존 L09_1 고정 구도 대체).
-                _followCamera.SetArea(_stage.Area.min.x + 1f, _stage.Area.max.x - 1f, _stage.MapRoot.position.y + 4f, _stage.CameraSize);
+                // Unity 경계: 정수 보정값은 카메라에 넘기는 순간에만 월드 거리로 바꿉니다.
+                float wallThicknessWorld = SpatialRuntime.ToWorld(IntegerPosition.FromData(_mapWallThicknessUnits), _worldUnitsPerTile);
+                float cameraMinHeightWorld = SpatialRuntime.ToWorld(IntegerPosition.FromData(_cameraMinHeightUnits), _worldUnitsPerTile);
+                _followCamera.SetArea(_stage.Area.min.x + wallThicknessWorld, _stage.Area.max.x - wallThicknessWorld,
+                    _stage.MapRoot.position.y + cameraMinHeightWorld, _stage.CameraSize);
                 _followCamera.LookEnabled = _stageId != StageExitRules.LedgerStage;
             }
         }
@@ -760,8 +736,8 @@ namespace HumanGhost.Gameplay.Preview
         }
 
         // 시연 마무리 출구는 엔딩 영상을 본 뒤에만 열립니다. 그 전에는 출구의 BlockedTextID 안내를 씁니다.
-        private const string FinishDemoExit = "FinishDemo";
-        private bool CanUseExit(StageExit route) => route.ExitAction == FinishDemoExit ? CanFinishDemo()
+        private const string _finishDemoExit = "FinishDemo";
+        private bool CanUseExit(StageExit route) => route.ExitAction == _finishDemoExit ? CanFinishDemo()
             : new ContentAccess(_progress.Progress.IsCleared).Evaluate(_catalog.GetTable<Stage>().Get(route.TargetStageID)) == ContentAccessResult.Allowed;
 
         // 잡몹을 다 잡은 맵을 기록합니다. 맵 1은 명부, 보스방은 보스 처치가 기준이라 제외합니다.
@@ -827,17 +803,17 @@ namespace HumanGhost.Gameplay.Preview
             if (target == null) return false;
             var victimSprite = runtime is MonsterRuntime ? runtime.GetComponentInChildren<PreviewMonsterSprite>(true) : null;
             _playerSprite?.SetExecutionAnimation(victimSprite?.PlayerExecution);
-            float duration = _playerSprite != null ? _playerSprite.ExecutionDuration : 0f;
-            if (duration <= 0f) throw new InvalidOperationException("플레이어 해체 애니메이션을 연결해 주세요.");
+            int duration = _playerSprite != null ? _playerSprite.ExecutionMilliseconds : 0;
+            if (duration <= 0) throw new InvalidOperationException("플레이어 해체 애니메이션을 연결해 주세요.");
             if (runtime is MonsterRuntime)
             {
-                float victimDuration = victimSprite?.ExecutionDuration ?? 0f;
-                if (victimDuration <= 0f) throw new InvalidOperationException("일반몹 해체 애니메이션을 연결해 주세요.");
-                duration = Mathf.Max(duration, victimDuration);
+                int victimDuration = victimSprite?.ExecutionMilliseconds ?? 0;
+                if (victimDuration <= 0) throw new InvalidOperationException("일반몹 해체 애니메이션을 연결해 주세요.");
+                duration = Math.Max(duration, victimDuration);
             }
             if (!_actor.TryExecute(target, true)) return false;
             _executingRuntime = runtime;
-            _executionRemainingMilliseconds = MillisecondClock.ToMilliseconds(duration);
+            _executionRemainingMilliseconds = duration;
             _feedback?.OnExecute();
             return true;
         }
@@ -965,7 +941,8 @@ namespace HumanGhost.Gameplay.Preview
         {
             if (_combat == null) return;
             bool engaged = _bossDriver != null && _bossDriver.IsEngaged;
-            foreach (PreviewMonsterDriver monster in _monsterDrivers) engaged |= monster.IsEngaged;
+            // IsEngaged는 부작용 없는 조회 속성이므로 하나라도 참이면 나머지를 볼 필요가 없습니다.
+            for (int i = 0; !engaged && i < _monsterDrivers.Length; i++) engaged = _monsterDrivers[i].IsEngaged;
             if (engaged) _combat.Engage();
             _combat.Tick(_realElapsedMilliseconds);
             if (!_bossActive) _audio?.PlayMusic(_combat.InCombat ? _battleMusic : _normalMusic);
@@ -975,7 +952,7 @@ namespace HumanGhost.Gameplay.Preview
                 _hud.SetVisible(!PreviewScreenFade.IsActive);
             }
             _exit?.Step();
-            _stage?.StepAmbushes(_player.transform.position.x);
+            _stage?.StepAmbushes(_player);
             StepStageClear();
             StepSavePoint();
             _gates?.Step(_actor, _attackWindow.bounds, _playerBody.bounds, ShowGateHint);
@@ -1079,10 +1056,11 @@ namespace HumanGhost.Gameplay.Preview
             foreach (PreviewMonsterDriver monster in _monsterDrivers)
                 if (monster.NeedsStep) monster.Step(Time.deltaTime, combatMin, combatMax);
             // 보스는 고정 한계 대신 실제 맵 범위에서 막습니다. 고정 한계는 맵1 기준이라 보스방 돌진이 벽을 지나쳤습니다.
-            // 보스방 좌우 벽 두께 1(카메라 범위와 같은 기준)을 빼 벽 안쪽 면에서 멈추고 벽 충돌을 알립니다.
-            // Unity 경계: 맵 범위(월드)는 넘기는 순간 정수로 바꿉니다(S11).
-            _bossDriver?.Step(Time.deltaTime, _stage != null ? SpatialRuntime.ToInteger(_stage.Area.min.x + 1f, _worldUnitsPerTile) : combatMin,
-                _stage != null ? SpatialRuntime.ToInteger(_stage.Area.max.x - 1f, _worldUnitsPerTile) : combatMax);
+            // 보스방 좌우 벽 두께(카메라 범위와 같은 _mapWallThicknessUnits)를 빼 벽 안쪽 면에서 멈추고 벽 충돌을 알립니다.
+            // Unity 경계: 맵 범위(월드)만 정수로 바꾸고 벽 두께는 정수끼리 계산합니다(S11).
+            long wallThickness = IntegerPosition.FromData(_mapWallThicknessUnits);
+            _bossDriver?.Step(Time.deltaTime, _stage != null ? SpatialRuntime.ToInteger(_stage.Area.min.x, _worldUnitsPerTile) + wallThickness : combatMin,
+                _stage != null ? SpatialRuntime.ToInteger(_stage.Area.max.x, _worldUnitsPerTile) - wallThickness : combatMax);
             StepFields();
             CheckPlayerHits();
             FlushMonsterRewards();
@@ -1118,7 +1096,7 @@ namespace HumanGhost.Gameplay.Preview
             _presentation.RefreshPlayer(_actor, _playerLabel, _playerBody, _playerColor);
             if (!_bossActive) return;
             _presentation.RefreshBoss(_boss.Actor, _bossLabel, _bossBody, _bossColor);
-            if (_boss.Combat != null && _boss.Combat.IsAttacking) _bossBody.color = new Color(1f, 0.2f, 0.2f);
+            if (_boss.Combat != null && _boss.Combat.IsAttacking) PreviewPresentation.SetColor(_bossBody, new Color(1f, 0.2f, 0.2f));
         }
 
         // 상태 식별자와 동작은 유지하고 화면 표시만 번역합니다.

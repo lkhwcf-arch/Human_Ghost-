@@ -65,7 +65,7 @@ namespace HumanGhost.Gameplay.Preview
             if (_shrineScreen != null) _shrineScreen.Hide();
             Cursor.visible = _shrineCursorWasVisible;
             _shrineRising = true;
-            _shrineRiseRemainingMilliseconds = _playerSprite != null ? MillisecondClock.ToMilliseconds(_playerSprite.BeginSaveRise()) : 0;
+            _shrineRiseRemainingMilliseconds = _playerSprite != null ? _playerSprite.BeginSaveRise() : 0;
             SetGameInputLocked(true);
             _shrineClosedFrame = Time.frameCount;
         }

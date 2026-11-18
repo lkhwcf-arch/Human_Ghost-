@@ -6,6 +6,7 @@ namespace HumanGhost.Gameplay.Preview
     internal sealed class RigBindPose
     {
         private readonly Transform[] _bones;
+        // [정수화 미적용 이유] 리그 Transform 기본 자세(위치·크기)를 복원하는 표시값입니다.
         private readonly Vector3[] _positions, _scales;
         private readonly Quaternion[] _rotations;
         private readonly SpriteRenderer[] _renderers;

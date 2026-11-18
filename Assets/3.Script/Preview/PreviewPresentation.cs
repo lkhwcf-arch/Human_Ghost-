@@ -40,9 +40,12 @@ namespace HumanGhost.Gameplay.Preview
                     (actor.HasSkill ? "\n결박 가르기 " + (actor.SkillCooldownSeconds > 0 ? actor.SkillCooldownSeconds + "초" : "가능") : "") +
                     (actor.HasHerbs ? "\n약초 " + actor.HerbCount : ""));
             }
-            body.color = actor.IsDead ? Color.gray : actor.IsInvulnerable ?
-                new Color(0.95f, 0.77f, 0.2f) : actor.IsAttackActive ? new Color(1f, 0.55f, 0.2f) : color;
+            SetColor(body, actor.IsDead ? Color.gray : actor.IsInvulnerable ?
+                new Color(0.95f, 0.77f, 0.2f) : actor.IsAttackActive ? new Color(1f, 0.55f, 0.2f) : color);
         }
+
+        // 매 프레임 같은 색을 다시 넣지 않도록 값이 바뀔 때만 대입합니다. 결과 색은 같습니다.
+        internal static void SetColor(SpriteRenderer body, Color color) { if (body.color != color) body.color = color; }
 
         public void RefreshBoss(BossPoise actor, TextMesh label, SpriteRenderer body, Color color)
         {
@@ -61,8 +64,8 @@ namespace HumanGhost.Gameplay.Preview
                 SetText(label, "보스 " + actor.Definition.ID + " · 페이즈 " + (actor.Phase.Phase + 1) + "\n" + GetStateLabel(actor.CurrentState) +
                     "\n체력 " + actor.Health + "\n체세 " + actor.Poise);
             }
-            body.color = actor.IsDead ? Color.gray : actor.IsExposed ?
-                new Color(0.75f, 0.35f, 0.95f) : actor.IsInvulnerable ? Color.yellow : color;
+            SetColor(body, actor.IsDead ? Color.gray : actor.IsExposed ?
+                new Color(0.75f, 0.35f, 0.95f) : actor.IsInvulnerable ? Color.yellow : color);
         }
 
         public static string GetStateLabel(StateKey state)

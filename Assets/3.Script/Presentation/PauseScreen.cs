@@ -92,7 +92,7 @@ namespace HumanGhost.Gameplay.Presentation
                 Ui(51305) + (wasd ? "  WASD" : "  " + Ui(51315)) + " / " + Ui(51316) + "\n" +
                 Ui(51306) + (wasd ? "  K" : "  C") + " / A\n" +
                 Ui(51307) + (wasd ? "  J" : "  X") + " / X\n" +
-                Ui(51308) + (wasd ? "  L" : "  Space") + " / B\n" +
+                Ui(51308) + (wasd ? "  L" : "  " + Ui(51320)) + " / B\n" +
                 Ui(51309) + "  F / " + Ui(51317) + "\n" + Ui(51310) + (wasd ? "  I" : "  Q") + " / LB\n" +
                 Ui(51311) + (wasd ? "  U" : "  Z") + " / Y\n" +
                 Ui(51312) + (wasd ? "  S+K" : "  ↓+C") + " / ↓+A\n" + Ui(51313) + "  Esc / Start" + "\n\n" + _text.Read(30366, LanguageSettings.Current);

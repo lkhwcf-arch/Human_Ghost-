@@ -16,6 +16,7 @@ namespace HumanGhost.Gameplay.Preview
 
         private MonsterActor _actor;
         // 뒤로 깡총(옹귀 1117) 표시: 준비=웅크림, 판정 창=공중 포물선, 후딜=착지 찌그러짐. 위치 판정은 코어 이동만 씁니다.
+        // [정수화 미적용 이유] 깡총·처형 연출의 Transform 높이·크기 표시값입니다.
         [SerializeField, InspectorName("깡총 높이 (월드)"), Min(0f)] private float _hopHeight = 1f;
         private Vector3 _hopBaseScale;
         private float _hopOffset;
@@ -96,14 +97,14 @@ namespace HumanGhost.Gameplay.Preview
             Renderer.transform.position += Vector3.up * _hopOffset;
         }
 
-        protected override float Duration(StateKey state)
+        protected override int DurationMilliseconds(StateKey state)
         {
             var pattern = _monster.Actor.CurrentPattern;
-            if (pattern != null && pattern.Key == state) return pattern.Attack.TotalTime / 1000f;
-            if (state == StateKey.Stun) return _monster.Actor.StunDuration / 1000f;
-            if (state == StateKey.Hit) return _monster.Patterns.HitStun / 1000f;
-            if (state == StateKey.CritHit) return _monster.Patterns.CritHitStun / 1000f;
-            return 0f;
+            if (pattern != null && pattern.Key == state) return pattern.Attack.TotalTime;
+            if (state == StateKey.Stun) return _monster.Actor.StunDuration;
+            if (state == StateKey.Hit) return _monster.Patterns.HitStun;
+            if (state == StateKey.CritHit) return _monster.Patterns.CritHitStun;
+            return 0;
         }
 
         protected override bool TryGetAnimationTime(StateKey state, AnimationClip animation, out float time)

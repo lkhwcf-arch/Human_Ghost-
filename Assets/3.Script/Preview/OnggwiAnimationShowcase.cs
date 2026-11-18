@@ -14,6 +14,7 @@ namespace HumanGhost.Gameplay.Preview
         private MillisecondClock _clock;
         private RigBindPose _bind;
         private int _elapsed;
+        // [정수화 미적용 이유] 편집기 확인 장면의 Transform 크기 표시값입니다.
         private Vector3 _scale = Vector3.one;
         private void Awake()
         {
@@ -27,6 +28,7 @@ namespace HumanGhost.Gameplay.Preview
             else _elapsed=_sampleMilliseconds;
             _bind.Restore();
             // 다른 옹귀 스프라이트 애니와 같은 프레임 간격(클립 frameRate, 10fps)으로 끊어 샘플합니다.
+            // [정수화 미적용 이유] AnimationClip.SampleAnimation은 클립 안 시각을 초(float)로만 받습니다. 경과는 정수 ms로 누적하고 넘기는 순간에만 초로 바꿉니다.
             float time=Mathf.Min(Mathf.Floor(_elapsed/1000f*_throw.frameRate)/_throw.frameRate,_throw.length);
             _throw.SampleAnimation(gameObject,time);
             transform.localScale=new Vector3(_scale.x*(_faceRight?-1:1),_scale.y,_scale.z);

@@ -50,17 +50,22 @@ namespace HumanGhost.Gameplay.Preview
         private sealed class GroundContact
         {
             [SerializeField] private Sprite _sprite = null;
+            // [정수화 미적용 이유] 원화 발 위치 맞춤용 Transform·스프라이트 표시 보정값입니다.
             [SerializeField] private float _bottom = 0f;
             public Sprite Sprite => _sprite;
+            // [정수화 미적용 이유] 원화 발 위치 맞춤용 Transform·스프라이트 표시 보정값입니다.
             public float Bottom => _bottom;
         }
         // Baked alpha silhouettes: no texture reads or scene searches during gameplay.
         [SerializeField] private GroundContact[] _groundContacts = Array.Empty<GroundContact>();
+        // [정수화 미적용 이유] 스프라이트 실루엣의 로컬 바닥 높이 캐시(표시 정렬)입니다. 판정에 쓰지 않습니다.
         private readonly Dictionary<Sprite, float> _contactBottoms = new Dictionary<Sprite, float>();
+        // [정수화 미적용 이유] 원화 발 위치 맞춤용 Transform·스프라이트 표시 보정값입니다.
         private float _contactOffset;
         private AnimationClip _animation;
         private long _elapsedMilliseconds;
         private MillisecondClock _animationClock;
+        // [정수화 미적용 이유] 원화 발 위치 맞춤용 Transform·스프라이트 표시 보정값입니다.
         private float _feetY;
         private StateKey _state;
         private bool _hasState;
@@ -81,16 +86,20 @@ namespace HumanGhost.Gameplay.Preview
                 if (entry != null && entry.Sprite != null && !_framesByState.ContainsKey(entry.State)) _framesByState.Add(entry.State, entry.Sprite);
             _lookupReady = true;
         }
-        public float ExecutionDuration => SelectAnimation(StateKey.Execute)?.length ?? 0f;
+        // 해체 클립 길이(정수 ms)입니다. AnimationClip.length(초)는 여기서 한 번만 정수 ms로 바꿉니다.
+        public int ExecutionMilliseconds => MillisecondClock.ToMilliseconds(SelectAnimation(StateKey.Execute)?.length ?? 0f);
         protected AnimationClip CurrentAnimation => _animation;
+        // [정수화 미적용 이유] AnimationClip 샘플링 시각(초)입니다. 정수 ms 경과에서 계산하며 누적하지 않습니다.
         protected float AnimationTime { get; private set; }
         protected void RestartAnimation() => _hasState = false;
         protected SpriteRenderer Renderer => _renderer;
         protected Sprite Fallback => _fallback;
         protected abstract bool TryGetState(out StateKey state);
         protected virtual bool AlignFeet => true;
+        // [정수화 미적용 이유] Unity 프레임 초를 넘기는 경계이며 MillisecondClock.AdvanceSigned로 정수 ms로 바꿔 누적합니다.
         protected virtual float AnimationDelta => Time.deltaTime;
-        protected virtual float Duration(StateKey state) => 0f;
+        // 상태 그림을 맞출 규칙 지속 시간(정수 ms)입니다. 0이면 클립 자체 길이로 재생합니다.
+        protected virtual int DurationMilliseconds(StateKey state) => 0;
         protected virtual bool TryGetAnimationTime(StateKey state, AnimationClip animation, out float time) { time = 0f; return false; }
         protected bool TryMapAttackTime(StateKey state, AnimationClip animation, int hitIndex, AttackSpec attack, int elapsed, bool holding, out float time)
         {
@@ -163,9 +172,11 @@ namespace HumanGhost.Gameplay.Preview
                 float time;
                 if (!TryGetAnimationTime(state, _animation, out time))
                 {
-                    float duration = Duration(state);
-                    time = duration > 0f ? _elapsedMilliseconds / 1000f / duration * _animation.length : _elapsedMilliseconds / 1000f;
-                    time = _animation.isLooping && duration <= 0f ? Mathf.Repeat(time, _animation.length) : Mathf.Min(time, _animation.length);
+                    int duration = DurationMilliseconds(state);
+                    // [정수화 미적용 이유] AnimationClip.SampleAnimation은 클립 안 시각을 초(float)로만 받습니다.
+                    // 경과·지속 시간은 정수 ms로 유지하고 넘기는 순간에만 초로 바꿉니다. 판정·상태에 쓰지 않습니다.
+                    time = duration > 0 ? (float)((double)_elapsedMilliseconds / duration * _animation.length) : _elapsedMilliseconds / 1000f;
+                    time = _animation.isLooping && duration <= 0 ? Mathf.Repeat(time, _animation.length) : Mathf.Min(time, _animation.length);
                 }
                 AnimationTime = time;
                 _animation.SampleAnimation(_renderer.gameObject, time);

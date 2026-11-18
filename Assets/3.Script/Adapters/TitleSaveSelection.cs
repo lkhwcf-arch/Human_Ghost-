@@ -79,7 +79,7 @@ namespace HumanGhost.Gameplay.Adapters
             {
                 if (!IsCurrent(generation)) return;
                 _screen.ShowStatus(LoadFailure);
-                Debug.LogError($"타이틀 저장 기록 조회에 실패했습니다.\n{error.Message}", this);
+                Debug.LogException(new InvalidOperationException("타이틀 저장 기록 조회에 실패했습니다.", error), this);
             }
             finally { if (IsCurrent(generation)) { _busy = false; _screen.SetBusy(false); } }
         }
@@ -101,7 +101,7 @@ namespace HumanGhost.Gameplay.Adapters
             {
                 if (this == null) return;
                 _screen.ShowStatus(LoadFailure);
-                Debug.LogError($"타이틀 저장 기록 실행에 실패했습니다.\n{error.Message}", this);
+                Debug.LogException(new InvalidOperationException("타이틀 저장 기록 실행에 실패했습니다.", error), this);
             }
             finally { if (this != null) { _busy = false; if (IsOpen) _screen.SetBusy(false); } }
         }

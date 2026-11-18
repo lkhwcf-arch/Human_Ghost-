@@ -9,6 +9,7 @@ namespace HumanGhost.Gameplay.Preview
         private MonsterRuntime _monster;
         private SpriteRenderer _body, _healthBack, _healthFill, _poiseBack, _poiseFill;
         private Transform _root;
+        // [정수화 미적용 이유] 체세 막대 Transform 폭 표시값입니다.
         private float _width;
         public void Connect(MonsterRuntime monster, SpriteRenderer body, Sprite rectangle)
         {

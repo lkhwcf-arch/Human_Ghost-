@@ -8,6 +8,7 @@ namespace HumanGhost.Gameplay.Adapters
     {
         private InteractionRegistry _registry;
         public abstract bool CanInteract { get; }
+        // [정수화 미적용 이유] IInteractable 계약의 Transform 월드 위치입니다. 판정은 정수 좌표로 합니다.
         public Vector2 Position => transform.position;
         public abstract int PromptTextId { get; }
         public event Action Changed;

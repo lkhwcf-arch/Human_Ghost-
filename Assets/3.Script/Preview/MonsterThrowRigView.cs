@@ -14,6 +14,7 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField] private Transform _hand = null;
         [SerializeField] private AnimationClip _throw = null;
         [SerializeField, InspectorName("높이 던지기 클립 (선택)")] private AnimationClip _throwHigh = null;
+        // [정수화 미적용 이유] 원화 리그의 발 위치·크기 표시 보정값입니다.
         [SerializeField] private float _sourceFeet = 0f;
         private Vector3 _scale;
         private RigBindPose _bind;
@@ -29,6 +30,7 @@ namespace HumanGhost.Gameplay.Preview
             _heldRenderer = _heldStone.GetComponent<SpriteRenderer>();
             _handOverlay = _rig.transform.Find("HandOverlay")?.GetComponent<SpriteRenderer>();
         }
+        // [정수화 미적용 이유] 던지는 손의 Transform 위치입니다. 투사체는 받는 즉시 정수 좌표로 바꿉니다.
         public Vector3 ProjectilePosition { get { Sample(); return _hand.position; } }
         private void LateUpdate()
         {
@@ -43,6 +45,7 @@ namespace HumanGhost.Gameplay.Preview
             if (pattern == null || !pattern.IsProjectile) return;
             Show(true); _bind.Restore();
             AnimationClip clip = pattern.IsLob && _throwHigh != null ? _throwHigh : _throw;
+            // [정수화 미적용 이유] 정수 ms 공격 경과에서 고른 프레임 번호를 SampleAnimation이 받는 클립 시각(초)으로 바꿉니다.
             float time = (float)AttackAnimationTiming.FrameAt(pattern.Attack, actor.AttackElapsed, 0, 5, 12, 17) / clip.frameRate;
             clip.SampleAnimation(_rig, time);
             _rig.transform.localScale = new Vector3(_scale.x * (actor.Facing > 0 ? -1f : 1f), _scale.y, _scale.z);

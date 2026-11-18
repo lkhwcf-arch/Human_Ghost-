@@ -20,6 +20,7 @@ namespace HumanGhost.Gameplay.Preview
         private bool _open;
         private string _report = "";
         private string _selected = "";
+        // [정수화 미적용 이유] IMGUI 스크롤 위치(GUI API)입니다.
         private Vector2 _scroll;
         private readonly List<TextAsset> _jsonFiles = new List<TextAsset>();
 

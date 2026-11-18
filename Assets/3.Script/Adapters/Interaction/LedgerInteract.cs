@@ -9,7 +9,7 @@ namespace HumanGhost.Gameplay.Adapters
     public class LedgerInteract : InteractableBehaviour
     {
         // UI_Lang 연결 키입니다. 실제 문구는 Language 표에서 고릅니다.
-        private const int RepeatNoticeUiId = 52005, UnlockNoticeUiId = 52006;
+        private const int _repeatNoticeUiId = 52005, _unlockNoticeUiId = 52006;
         private LedgerInvestigation _investigation;
         private DialogueRunner _dialogues;
         private SubscriptionScope _dialogueScope;
@@ -46,7 +46,7 @@ namespace HumanGhost.Gameplay.Adapters
             if (_investigation.IsWaiting) return;
             if (_investigation.IsInvestigated)
             {
-                context.Textbox.ShowNotice(LanguageTextSource.SelectUi(context.Data, RepeatNoticeUiId));
+                context.Textbox.ShowNotice(LanguageTextSource.SelectUi(context.Data, _repeatNoticeUiId));
                 return;
             }
             // 다른 대화 재생 중 등 시작 거절은 진행을 바꾸지 않고 조사 가능 상태로 둡니다.
@@ -72,7 +72,7 @@ namespace HumanGhost.Gameplay.Adapters
                     skill => context.Player.EnableSkill(skill, new ContentAccess(context.Progress.IsCleared)));
                 if (outcome == LedgerOutcome.Unlocked)
                 {
-                    context.Textbox.ShowNotice(LanguageTextSource.SelectUi(context.Data, UnlockNoticeUiId));
+                    context.Textbox.ShowNotice(LanguageTextSource.SelectUi(context.Data, _unlockNoticeUiId));
                     SkillUnlocked?.Invoke();
                 }
             }

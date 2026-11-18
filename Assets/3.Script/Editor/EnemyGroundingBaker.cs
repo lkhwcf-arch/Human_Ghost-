@@ -50,6 +50,7 @@ namespace HumanGhost.EditorTools
         }
         // 쇄문아비 1페이즈는 앞으로 짚은 팔(손톱)·몽둥이가 몸통보다 아래로 내려옵니다. 가장 아래 픽셀 대신
         // 몸통 중앙 열(가로 50~70%)의 가장 아래를 발 기준으로 씁니다. 공격으로 몸이 뜬 칸은 최저점보다 13px 넘게 올리지 않습니다.
+        // [정수화 미적용 이유] 편집기 도구가 스프라이트 폭 비율로 발 위치를 굽는 값입니다. 실행 중 규칙에 쓰지 않습니다.
         private const float _bossFeetLeft = .5f, _bossFeetRight = .7f;
         private const int _bossFeetMaxLiftPixels = 13;
         private static float BossFeetBottom(Sprite sprite, Dictionary<Texture2D, Color32[]> pixels)

@@ -37,6 +37,7 @@ namespace HumanGhost.Gameplay.Presentation
         private MillisecondClock _clock;
         private static LoadingScreen _active;
         public static bool IsActive => _active != null;
+        // [정수화 미적용 이유] 안내 상자 RectTransform anchoredPosition 표시값입니다.
         private Vector2 _boxPosition;
 
         // covered=true는 앞 화면(예: 새 게임 인트로)이 사라지는 프레임에 바로 덮어 아래 화면이 비치지 않게 합니다.

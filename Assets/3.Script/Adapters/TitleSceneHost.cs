@@ -101,7 +101,7 @@ namespace HumanGhost.Gameplay.Adapters
                 {
                     Release();
                     if (_screen != null) _screen.ShowStatus("타이틀 준비에 실패했습니다. 콘솔을 확인해 주세요.");
-                    Debug.LogError($"타이틀 준비에 실패했습니다.\n{error.Message}", this);
+                    Debug.LogException(new InvalidOperationException("타이틀 준비에 실패했습니다.", error), this);
                 }
             }
         }

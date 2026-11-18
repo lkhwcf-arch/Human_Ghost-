@@ -9,11 +9,13 @@ namespace HumanGhost.Gameplay.Preview
     public sealed class PreviewFollowCamera : MonoBehaviour
     {
         [SerializeField, InspectorName("따라갈 대상")] private Transform _target = null;
+        // [정수화 미적용 이유] 카메라가 따라가는 맵 범위·높이 보정(Transform 표시)입니다. 게임 판정에 쓰지 않습니다.
         [SerializeField, InspectorName("맵 왼쪽 끝")] private float _minX = 0f;
         [SerializeField, InspectorName("맵 오른쪽 끝")] private float _maxX = 80f;
         [SerializeField, InspectorName("카메라 최저 높이")] private float _minY = 0f;
         [SerializeField, InspectorName("대상 기준 카메라 높이")] private float _heightOffset = 2f;
         [SerializeField, InspectorName("따라가기 시간 (ms)"), Min(0)] private int _smoothMilliseconds = 120;
+        // [정수화 미적용 이유] 카메라 Transform·orthographicSize 계산의 표시 상태·보정값입니다. 입력 유지·흔들림 시간은 정수 ms입니다.
         [SerializeField, InspectorName("바라보는 쪽 여백"), Min(0f)] private float _lookAhead = 0.8f;
         [SerializeField, InspectorName("착지 높이 구도 보정 (tile_x100)")] private int _groundHeightBiasUnits = -200;
         [SerializeField, InspectorName("위아래 보기 대기 (ms)"), Min(0)] private int _lookDelayMilliseconds = 250;
@@ -21,6 +23,7 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField, InspectorName("아래 보기 거리 (tile_x100)"), Min(0)] private int _lookDownDistanceUnits = 600;
         private PlayerRuntime _player;
         private PlayerLocomotionInput _input;
+        // [정수화 미적용 이유] 카메라 Transform·orthographicSize 계산의 표시 상태입니다. 입력 유지·흔들림 시간은 정수 ms입니다.
         private float _groundHeight, _lookOffset;
         private int _lookHeldMilliseconds;
         private MillisecondClock _lookClock, _shakeClock;
@@ -28,12 +31,15 @@ namespace HumanGhost.Gameplay.Preview
         private int _lookBlendRemainingMilliseconds;
         private bool _hasGroundHeight;
         private Camera _camera;
+        // [정수화 미적용 이유] 카메라 Transform·orthographicSize 계산의 표시 상태·보정값입니다. 입력 유지·흔들림 시간은 정수 ms입니다.
         private Vector2 _velocity;
         private int _shakeRemainingMilliseconds;
         private int _shakeDurationMilliseconds;
+        // [정수화 미적용 이유] 카메라 Transform·orthographicSize 계산의 표시 상태·보정값입니다. 입력 유지·흔들림 시간은 정수 ms입니다.
         private float _shakeStrength;
         private Vector3 _shakeOffset;
         private bool _fixed;
+        // [정수화 미적용 이유] 카메라 Transform·orthographicSize 계산의 표시 상태·보정값입니다. 입력 유지·흔들림 시간은 정수 ms입니다.
         private Vector2 _fixedPosition;
         private float _baseSize;
         public bool ShakeEnabled { get; set; } = true;
@@ -41,6 +47,7 @@ namespace HumanGhost.Gameplay.Preview
         public bool LookEnabled { get; set; } = true;
 
         // 테스트 전용 확대 배율입니다. 1보다 크면 더 확대합니다(화면 크기 = 스테이지 값 / 배율). 스테이지를 옮겨도 유지하고 Play마다 1로 돌아갑니다.
+        // [정수화 미적용 이유] 개발 시험용 카메라 배율·위치 보정(표시)입니다.
         public const float MinTestZoom = 0.5f, MaxTestZoom = 2f;
         public static float TestZoomScale { get; private set; } = 1f;
         public static Vector2 TestPositionOffset { get; private set; } = Vector2.zero;

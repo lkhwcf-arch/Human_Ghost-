@@ -113,7 +113,7 @@ namespace HumanGhost.Gameplay.Adapters
             catch (Exception error)
             {
                 Close();
-                Debug.LogError($"수동 저장 화면을 열지 못했습니다.\n{error.Message}", this);
+                Debug.LogException(new InvalidOperationException("수동 저장 화면을 열지 못했습니다.", error), this);
             }
         }
 
@@ -149,7 +149,7 @@ namespace HumanGhost.Gameplay.Adapters
             {
                 if (!IsCurrent(generation)) return;
                 _screen.ShowStatus("저장 요청 처리 중 오류가 발생했습니다. 콘솔을 확인해 주세요.");
-                Debug.LogError($"수동 저장 요청 처리에 실패했습니다.\n{error.Message}", this);
+                Debug.LogException(new InvalidOperationException("수동 저장 요청 처리에 실패했습니다.", error), this);
             }
             finally { if (IsCurrent(generation)) { _saving = false; _screen.SetBusy(_modalBlocked); } }
         }

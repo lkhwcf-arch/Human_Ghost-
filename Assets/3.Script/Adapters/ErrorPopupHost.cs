@@ -214,10 +214,13 @@ namespace HumanGhost.Gameplay.Adapters
             _copyFeedback = StartCoroutine(ShowCopied());
         }
 
+        // 복사 완료 안내를 보여 주는 시간입니다. 정수 ms로 정하고 Unity 대기 API를 부르는 순간에만 초로 바꿉니다(S06).
+        private const int _copiedNoticeMilliseconds = 1500;
+
         private IEnumerator ShowCopied()
         {
             _screen.ShowStatus(_copiedText);
-            yield return new WaitForSecondsRealtime(1500 / 1000f);
+            yield return new WaitForSecondsRealtime(_copiedNoticeMilliseconds / 1000f);
             if (_screen != null) _screen.ShowStatus("");
             _copyFeedback = null;
         }

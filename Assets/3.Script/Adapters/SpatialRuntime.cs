@@ -8,6 +8,7 @@ namespace HumanGhost.Gameplay.Adapters
     {
         private IntegerPosition _position;
         private bool _hasPosition;
+        // [정수화 미적용 이유] 정수 좌표(IntegerPosition)와 Unity 월드 좌표를 오가는 변환 계수(Inspector 타일당 화면 거리)입니다. 좌표 상태는 정수입니다.
         private float _worldUnitsPerTile = 1f;
         public event Action SpatialChanged;
         public event Action<bool> AvailabilityChanged;

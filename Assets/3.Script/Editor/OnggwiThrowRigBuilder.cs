@@ -22,6 +22,7 @@ namespace HumanGhost.EditorTools
         private const string _folder = "Assets/5.Animation/Characters/Onggwi/Throw";
         private static readonly string[] _names = { "Root", "Body", "UpperArm", "Forearm", "Hand" };
         private static readonly int[] _parents = { -1, 0, 1, 2, 3 };
+        // [정수화 미적용 이유] 편집기 리그 생성 도구의 원화 픽셀 좌표입니다(Sprite·Mesh API 입력). 실행 중 규칙에 쓰지 않습니다.
         private static readonly Vector2[] _pixels = { new Vector2(128,128), new Vector2(128,128), new Vector2(135,111), new Vector2(175,96), new Vector2(154,36) };
         [MenuItem("인귀/애니메이션/옹귀 투척 리그 최초 생성")]
         public static void Build()
@@ -165,6 +166,7 @@ namespace HumanGhost.EditorTools
         }
 
         // 실제 팔 윤곽입니다. 몸통과 팔의 경계 정점을 복제해 팔을 움직일 때 항아리가 늘어나지 않습니다.
+        // [정수화 미적용 이유] 편집기 리그 생성 도구의 원화 픽셀 좌표입니다(Sprite·Mesh API 입력). 실행 중 규칙에 쓰지 않습니다.
         private static readonly Vector2[] _armOutline = {
             new Vector2(129,121), new Vector2(181,105), new Vector2(189,98), new Vector2(186,83),
             new Vector2(169,43), new Vector2(182,43), new Vector2(182,0), new Vector2(110,0),
@@ -182,6 +184,7 @@ namespace HumanGhost.EditorTools
             return inside;
         }
         public const string HandOverlayName = "HandOverlay";
+        // [정수화 미적용 이유] 편집기 리그 생성 도구의 원화 픽셀 좌표입니다(Sprite·Mesh API 입력). 실행 중 규칙에 쓰지 않습니다.
         private static readonly Vector2 _palmPixel = new Vector2(148,8);
         // handOnly: 팔(위팔~손가락) 삼각형만 담은 덮개 메시. 같은 뼈·가중치를 써서 본체와 정확히 겹칩니다.
         private static Sprite MakeSprite(Sprite source, Transform[] bones, Transform root, bool handOnly = false)

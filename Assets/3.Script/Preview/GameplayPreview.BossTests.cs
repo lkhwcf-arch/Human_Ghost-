@@ -15,7 +15,9 @@ namespace HumanGhost.Gameplay.Preview
         private bool _bossTestOpen, _bossTestCursor;
         private string _bossTestStatus = "";
         private string _feedbackQaReport = "";
+        // [정수화 미적용 이유] IMGUI(GUI.Window) 창 위치·크기입니다. 에디터 시험 화면 표시용입니다.
         private Rect _bossTestRect = new Rect(20, 40, 560, 620);
+        // [정수화 미적용 이유] IMGUI 스크롤 위치(GUI API)입니다.
         private Vector2 _bossTestScroll;
         private GUIStyle _bossTestWindowStyle, _bossTestButtonStyle, _bossTestLabelStyle, _bossTestToggleStyle;
         private bool CanUseBossTest => _subscribed && !_modalBlocked && !_saveLocked && !_leaving && !LoadingScreen.IsActive

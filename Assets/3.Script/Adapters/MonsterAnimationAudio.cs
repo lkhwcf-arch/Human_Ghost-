@@ -16,6 +16,7 @@ namespace HumanGhost.Gameplay.Adapters
         private Action<string> _play;
         private int _health;
         private bool _deathPlayed;
+        // [정수화 미적용 이유] Transform X 변화로 걷기 소리 재생 여부만 판단하는 소리 표시 관측값입니다. 이동 상태는 SpatialRuntime 정수 좌표입니다.
         private float _lastX;
         private int _stepRemainingMilliseconds;
         private MillisecondClock _stepClock;

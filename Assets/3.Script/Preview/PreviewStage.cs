@@ -12,6 +12,7 @@ namespace HumanGhost.Gameplay.Preview
     internal sealed class PreviewStage : IDisposable
     {
         private const string _markersName = "Markers";
+        // [정수화 미적용 이유] 맵 프리팹 기준 지면선 높이(Transform 배치)입니다. 스폰 직후 캐릭터 좌표는 정수로 관리합니다.
         private const float _groundLine = 2f;
         private GameObject _root;
         private readonly GameProgressState _progress;
@@ -19,16 +20,19 @@ namespace HumanGhost.Gameplay.Preview
         public Transform Markers { get; }
         public Transform Interactables { get; }
         private readonly List<MonsterRuntime> _monsters = new List<MonsterRuntime>();
+        // [정수화 미적용 이유] 배치한 플랫폼의 월드 Transform 기준점입니다. 필드 오브젝트 표시·영역을 만들 때 원점으로만 씁니다.
         private readonly Dictionary<int, Vector3> _placementOrigins = new Dictionary<int, Vector3>();
         public Vector3 GetPlacementOrigin(int placementID) => _placementOrigins.TryGetValue(placementID, out var origin)
             ? origin : throw new InvalidOperationException("필드 효과의 플랫폼 배치를 찾을 수 없습니다: " + placementID);
         private readonly Dictionary<MonsterRuntime, MonsterSpawnId> _monsterIds = new Dictionary<MonsterRuntime, MonsterSpawnId>();
         public IReadOnlyList<MonsterRuntime> Monsters => _monsters;
         public IReadOnlyDictionary<MonsterRuntime, MonsterSpawnId> MonsterIds => _monsterIds;
+        // [정수화 미적용 이유] 맵 Collider2D에서 관측한 월드 범위입니다. 이동·카메라 경계로 넘길 때 소유자가 정수로 바꿉니다.
         public Bounds Area { get; private set; }
+        // [정수화 미적용 이유] Camera.orthographicSize에 넣는 카메라 표시 크기입니다.
         public float CameraSize { get; }
-        // 매복 몬스터는 초기화한 뒤 발동 시점까지 비활성 상태로 유지합니다.
-        private readonly List<KeyValuePair<float, MonsterRuntime>> _ambushes = new List<KeyValuePair<float, MonsterRuntime>>();
+        // 매복 몬스터는 초기화한 뒤 발동 시점까지 비활성 상태로 유지합니다. 키는 맵 기준점에서 잰 발동 X(tile_x100, 데이터 Trigger)입니다.
+        private readonly List<KeyValuePair<int, MonsterRuntime>> _ambushes = new List<KeyValuePair<int, MonsterRuntime>>();
 
         public PreviewStage(StageContentSet content, int stageId, IReadOnlyDataCatalog data, Vector3 origin, GameProgressState progress)
         {
@@ -151,17 +155,20 @@ namespace HumanGhost.Gameplay.Preview
             monster.transform.position = new Vector3(anchor.position.x + spawn.X / 100f, baseY + spawn.Height / 100f + halfHeight, MapRoot.position.z);
             monster.gameObject.SetActive(false);
             // 발동 전 몬스터도 목록에 있어 출구 조건의 '스폰 예정'으로 셉니다(K07).
-            if (spawn.Trigger is int trigger) _ambushes.Add(new KeyValuePair<float, MonsterRuntime>(MapRoot.position.x + trigger / 100f, monster));
+            if (spawn.Trigger is int trigger) _ambushes.Add(new KeyValuePair<int, MonsterRuntime>(trigger, monster));
             else monster.gameObject.SetActive(true);
             _monsters.Add(monster);
             _monsterIds.Add(monster, id);
         }
 
-        public void StepAmbushes(float playerX)
+        // 발동 판정은 정수 좌표로 합니다. 맵 기준점(Transform)만 경계에서 정수로 바꿉니다.
+        public void StepAmbushes(SpatialRuntime player)
         {
+            if (player == null) throw new ArgumentNullException(nameof(player));
+            long playerX = checked(player.Position.X - player.ToInteger(MapRoot.position.x));
             for (int i = _ambushes.Count - 1; i >= 0; i--)
             {
-                if (playerX < _ambushes[i].Key) continue;
+                if (playerX < IntegerPosition.FromData(_ambushes[i].Key)) continue;
                 _ambushes[i].Value.gameObject.SetActive(true);
                 _ambushes.RemoveAt(i);
             }

@@ -80,5 +80,77 @@ internal static class IntegerPolicyChecks
             string serialized = File.ReadAllText(asset);
             check(!Regex.IsMatch(serialized, @"[^\r\n]--- !u!"), "직렬화 문서 경계 보존: " + Path.GetFileName(asset));
         }
+        CheckFloatReasons(root, check);
+    }
+
+    // AGENTS 정수화 기본 원칙(2026-11-18): 프로젝트 코드에서 실수로 남기는 필드·상수·직렬화 값·공개 속성에는
+    // 바로 위에 "[정수화 미적용 이유]" 주석이 있어야 합니다. 연속 선언 묶음은 묶음 위 주석 하나로 인정합니다.
+    // 실수 기반 Unity 값(Bounds·Rect)과 실수를 담는 제네릭(List<float>·Dictionary<K, Vector3>·Func<float> 등) 멤버도 포함합니다(2026-11-18).
+    // 지역 변수·매개변수는 대상이 아니며, 시트 소유 정의 클래스(Data 바로 아래)와 자동 생성 코드(Data/Generated)는 제외합니다.
+    private const string FloatReasonTag = "[정수화 미적용 이유]";
+    private static readonly Regex FloatMember = new Regex(
+        @"^\s*(?:\[[^\]]*\]\s*)*(?:(?:public|private|protected|internal|static|readonly|const|new|override|virtual|abstract)\s+)*" +
+        @"(?:(?:float|double|Vector2|Vector3|Vector4|Bounds|Rect)(?:\?|\[\])?|[\w.]+<[^;=()]*(?:float|double|Vector2|Vector3|Vector4|Bounds|Rect)[^;=()]*>(?:\[\])?)" +
+        @"\s+[A-Za-z_]\w*\s*(?:[=;,{]|=>)", RegexOptions.Compiled);
+    private static readonly Regex TypeDeclaration = new Regex(@"\b(class|struct|interface|record)\s+\w", RegexOptions.Compiled);
+    private static readonly Regex StringLiteral = new Regex(@"@?\$?""(?:\\.|[^""\\])*""|'(?:\\.|[^'\\])'", RegexOptions.Compiled);
+
+    private static void CheckFloatReasons(string root, Action<bool, string> check)
+    {
+        string scripts = Path.Combine(root, "Assets/3.Script");
+        int missing = 0;
+        foreach (string source in Directory.EnumerateFiles(scripts, "*.cs", SearchOption.AllDirectories))
+        {
+            string relative = Path.GetRelativePath(scripts, source).Replace('\\', '/');
+            if (relative.StartsWith("Data/Generated/", StringComparison.Ordinal) ||
+                (relative.StartsWith("Data/", StringComparison.Ordinal) && relative.Count(ch => ch == '/') == 1)) continue;
+            string[] lines = File.ReadAllText(source).Replace("\r\n", "\n").Split('\n');
+            var braces = new System.Collections.Generic.Stack<bool>();
+            bool pendingType = false;
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string code = StripCode(lines[i]);
+                if (code.TrimStart().StartsWith("#", StringComparison.Ordinal)) continue;
+                if (braces.Count > 0 && braces.Peek() && FloatMember.IsMatch(code) && !HasFloatReason(lines, i))
+                {
+                    missing++;
+                    check(false, $"실수 멤버에 [정수화 미적용 이유] 주석이 없습니다: {relative}:{i + 1}");
+                }
+                if (TypeDeclaration.IsMatch(code)) pendingType = true;
+                foreach (char ch in code)
+                {
+                    if (ch == '{') { braces.Push(pendingType); pendingType = false; }
+                    else if (ch == '}' && braces.Count > 0) braces.Pop();
+                }
+                if (pendingType && code.TrimEnd().EndsWith(";", StringComparison.Ordinal)) pendingType = false;
+            }
+        }
+        check(missing == 0, "코어 밖 실수 멤버의 [정수화 미적용 이유] 주석 명시");
+    }
+
+    // 같은 줄 또는 바로 위의 주석·속성·연속 실수 선언 묶음 안에 이유 주석이 있는지 봅니다.
+    private static bool HasFloatReason(string[] lines, int index)
+    {
+        if (lines[index].Contains(FloatReasonTag, StringComparison.Ordinal)) return true;
+        for (int j = index - 1; j >= 0; j--)
+        {
+            string text = lines[j].Trim();
+            if (text.StartsWith("//", StringComparison.Ordinal))
+            {
+                if (text.Contains(FloatReasonTag, StringComparison.Ordinal)) return true;
+                continue;
+            }
+            if ((text.StartsWith("[", StringComparison.Ordinal) && text.EndsWith("]", StringComparison.Ordinal)) ||
+                text.StartsWith("#", StringComparison.Ordinal) || FloatMember.IsMatch(StripCode(lines[j]))) continue;
+            return false;
+        }
+        return false;
+    }
+
+    private static string StripCode(string line)
+    {
+        string code = StringLiteral.Replace(line, "\"\"");
+        int comment = code.IndexOf("//", StringComparison.Ordinal);
+        return comment >= 0 ? code.Substring(0, comment) : code;
     }
 }

@@ -8,9 +8,11 @@ namespace HumanGhost.Gameplay.Preview
     {
         private long _arcUnits = IntegerPosition.UnitsPerTile * 3 / 2;
         private readonly SpriteRenderer _view;
+        // [정수화 미적용 이유] 정수 좌표(IntegerPosition)와 Unity 월드 좌표를 오가는 변환 계수(Inspector 타일당 화면 거리)입니다. 좌표 상태는 정수입니다.
         private readonly float _worldUnitsPerTile;
         private readonly Vector3 _hitSize;
         private IntegerPosition _start;
+        // [정수화 미적용 이유] Transform z(그리기 순서) 표시값입니다.
         private float _z;
         private IntegerPosition _end;
         private int _elapsed;
@@ -25,6 +27,7 @@ namespace HumanGhost.Gameplay.Preview
 
         public bool IsFlying => _view.enabled;
         // 0~1 비행 진행률입니다.
+        // [정수화 미적용 이유] 정수 ms 경과에서 계산한 0~1 표시 진행률입니다(그림자 크기 보간).
         public float Progress => _duration <= 0 ? 0f : _elapsed / (float)_duration;
         public Bounds Bounds => new Bounds(_view.transform.position, _hitSize);
 

@@ -27,8 +27,10 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField] private AnimationClip _climb = null;
         [SerializeField] private AnimationClip _save = null;
         [SerializeField] private AnimationClip _ladderClimb = null;
+        // [정수화 미적용 이유] 플레이어 원화 Transform 크기·위치·손 기준점 표시 보정값입니다. 판정에 쓰지 않습니다.
         [SerializeField, InspectorName("사다리 표시 배율"), Range(1f, 1.5f)] private float _ladderScale = 1.1f;
         // 오르기 원화는 앞 14칸(0~1.4초)이 매달리기 원화와 같은 작은 비율, 15칸부터 서기 원화 비율입니다.
+        // [정수화 미적용 이유] 플레이어 원화 Transform 크기·위치·손 기준점 표시 보정값입니다. 판정에 쓰지 않습니다.
         [SerializeField, InspectorName("오르기 원화 크기 전환 구간 (진행률)")] private Vector2 _climbFullSizeRange = new Vector2(.75f, .78f);
         [SerializeField, Range(1f, 2f)] private float _hangScale = 1.25f;
         [SerializeField, Range(-0.5f, 0f)] private float _hangVerticalOffset = -0.1f;
@@ -41,14 +43,17 @@ namespace HumanGhost.Gameplay.Preview
         {
             [SerializeField] private Sprite _sprite = null;
             public Sprite Sprite => _sprite;
+            // [정수화 미적용 이유] 플레이어 원화 Transform 크기·위치·손 기준점 표시 보정값입니다. 판정에 쓰지 않습니다.
             [SerializeField] private Vector2 _hand = Vector2.zero;
             public Vector2 Hand => _hand;
         }
         [SerializeField] private TraversalAnchor[] _traversalAnchors = Array.Empty<TraversalAnchor>();
         private bool _wasOnLedge;
         private int _ledgeExitRemaining;
+        // [정수화 미적용 이유] 플레이어 원화 Transform 크기·위치·손 기준점 표시 보정값입니다. 판정에 쓰지 않습니다.
         private Vector3 _ledgeExitOffset;
         private const int _ledgeExitBlendMilliseconds = 120;
+        // [정수화 미적용 이유] 플레이어 원화 Transform 크기·위치·손 기준점 표시 보정값입니다. 판정에 쓰지 않습니다.
         private Vector3 _climbHandAnchor;
         private readonly System.Collections.Generic.Dictionary<Sprite, Vector2> _handAnchors = new System.Collections.Generic.Dictionary<Sprite, Vector2>();
         public void SetLedgeBody(Vector2 halfSize) => _ledgeHalfSize = halfSize;
@@ -61,6 +66,7 @@ namespace HumanGhost.Gameplay.Preview
             foreach (Vector2 vertex in vertices) if (vertex.y >= top - .02f) { x += vertex.x; count++; }
             anchor = new Vector2(count > 0 ? x / count : 0f, top); _handAnchors.Add(sprite, anchor); return anchor;
         }
+        // [정수화 미적용 이유] 플레이어 원화 Transform 크기·위치·손 기준점 표시 보정값입니다. 판정에 쓰지 않습니다.
         private Vector3 LedgeHandPosition => _player.transform.position + new Vector3(_player.Actor.Facing * _ledgeHalfSize.x, _ledgeHalfSize.y, 0f);
         protected override bool AlignFeet => false;
         protected override void Awake()
@@ -88,19 +94,24 @@ namespace HumanGhost.Gameplay.Preview
         }
         private bool _onLadder, _wasInAir;
         private int _ladderDirection;
+        // [정수화 미적용 이유] Unity 프레임 초를 넘기는 경계이며 받는 쪽이 MillisecondClock으로 정수 ms로 바꿉니다.
         protected override float AnimationDelta => _onLadder ? Time.deltaTime * _ladderDirection : base.AnimationDelta;
         private AnimationClip _action;
         private int _actionElapsedMilliseconds;
         private MillisecondClock _actionClock;
         private bool _praying, _saveRising;
-        private float SaveRiseDuration => _save == null ? 0f : Mathf.Min(.6f, _save.length);
-        public float BeginSaveRise()
+        // 저장 뒤 일어서기 그림의 최대 길이(ms)입니다. 클립이 더 짧으면 클립 길이를 씁니다.
+        private const int _saveRiseMaxMilliseconds = 600;
+        private int SaveRiseMilliseconds => _save == null ? 0 : Math.Min(_saveRiseMaxMilliseconds, MillisecondClock.ToMilliseconds(_save.length));
+        // 일어서기 그림 길이(정수 ms)를 돌려줍니다. 조립자가 입력 잠금 시간으로 씁니다.
+        public int BeginSaveRise()
         {
             _praying = false; _saveRising = _save != null; _action = _save; _actionElapsedMilliseconds = 0; _actionClock = default;
             RestartAnimation();
-            return SaveRiseDuration;
+            return SaveRiseMilliseconds;
         }
         // 아래 점프는 도약 준비를 건너뛰고 공중 자세를 유지합니다. 접지 뒤 착지 그림은 별도 클립으로 연결합니다.
+        // [정수화 미적용 이유] Drop 클립의 샘플링 시각(초, AnimationClip API)입니다. 경과 시간은 정수 ms로 누적합니다.
         private const float _dropStartTime = 0.3f, _dropFallTime = 0.6f;
         private const int _dropBlendMilliseconds = 200;
         private int _dropElapsedMilliseconds = -1;
@@ -228,7 +239,7 @@ namespace HumanGhost.Gameplay.Preview
                 }
             }
             _wasOnLedge = onLedge;
-            if (_action != null && !_praying && (_actionElapsedMilliseconds += Math.Min(milliseconds, int.MaxValue - _actionElapsedMilliseconds)) >= MillisecondClock.ToMilliseconds(_saveRising ? SaveRiseDuration : _action.length))
+            if (_action != null && !_praying && (_actionElapsedMilliseconds += Math.Min(milliseconds, int.MaxValue - _actionElapsedMilliseconds)) >= (_saveRising ? SaveRiseMilliseconds : MillisecondClock.ToMilliseconds(_action.length)))
             { _action = null; _saveRising = false; }
             if (_dropElapsedMilliseconds >= 0) _dropElapsedMilliseconds = _player != null && _player.Actor != null && _player.Actor.CurrentState == StateKey.Jump ? _dropElapsedMilliseconds + Math.Min(milliseconds, int.MaxValue - _dropElapsedMilliseconds) : -1;
         }
@@ -257,7 +268,11 @@ namespace HumanGhost.Gameplay.Preview
                 return true;
             }
             if (animation == _save && (_praying || _saveRising))
-            { time = _praying ? SaveRiseDuration : Mathf.Max(0f, SaveRiseDuration - _actionElapsedMilliseconds / 1000f); return true; }
+            {
+                // 표현 경계: 정수 ms 남은 시간을 클립 샘플링 초로 바꿉니다(되감기 재생).
+                time = (_praying ? SaveRiseMilliseconds : Math.Max(0, SaveRiseMilliseconds - _actionElapsedMilliseconds)) / 1000f;
+                return true;
+            }
             var actor = _player.Actor;
             if (actor.IsAttacking || (state == StateKey.Skill1 && actor.CurrentAttack != null))
             {
@@ -272,19 +287,19 @@ namespace HumanGhost.Gameplay.Preview
             }
             time = 0f; return false;
         }
-        protected override float Duration(StateKey state)
+        protected override int DurationMilliseconds(StateKey state)
         {
-            if (_action != null) return 0f;
+            if (_action != null) return 0;
             var actor = _player.Actor;
-            if ((actor.IsAttacking || state == StateKey.Skill1) && actor.CurrentAttack != null) return actor.CurrentAttack.TotalTime / 1000f;
+            if ((actor.IsAttacking || state == StateKey.Skill1) && actor.CurrentAttack != null) return actor.CurrentAttack.TotalTime;
             switch (state)
             {
-                case StateKey.Stun: return actor.DownDuration / 1000f;
-                case StateKey.Hit: return actor.Definition.HitStunTime / 1000f;
-                case StateKey.CritHit: return actor.Definition.CritHitStunTime / 1000f;
-                case StateKey.Roll: return actor.Definition.RollTime / 1000f;
-                case StateKey.Land: return actor.Definition.LandTime / 1000f;
-                default: return 0f;
+                case StateKey.Stun: return actor.DownDuration;
+                case StateKey.Hit: return actor.Definition.HitStunTime;
+                case StateKey.CritHit: return actor.Definition.CritHitStunTime;
+                case StateKey.Roll: return actor.Definition.RollTime;
+                case StateKey.Land: return actor.Definition.LandTime;
+                default: return 0;
             }
         }
 

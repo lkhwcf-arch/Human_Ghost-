@@ -28,6 +28,7 @@ namespace HumanGhost.Gameplay.Presentation
             if (!IsPlaying) return;
             _elapsedMilliseconds += Math.Min(_clock.AdvanceFrame(seconds), _durationMilliseconds - _elapsedMilliseconds);
             if (_elapsedMilliseconds >= _durationMilliseconds) { gameObject.SetActive(false); return; }
+            // [정수화 미적용 이유] AnimationClip.SampleAnimation은 클립 안 시각을 초(float)로만 받습니다. 경과는 정수 ms로 누적하고 넘기는 순간에만 초로 바꿉니다.
             _playingClip.SampleAnimation(_renderer.gameObject, _elapsedMilliseconds / 1000f);
         }
     }

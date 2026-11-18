@@ -25,8 +25,10 @@ namespace HumanGhost.Gameplay.Adapters
         private bool _hasBody, _hasPromptBase;
         private long _promptBaseX, _promptBaseY;
         // 이름표 기준 글자 크기입니다(기존 조정값). 배율은 조립자가 분모 10000 정수로 공급합니다.
-        private const float NameCharacterSize = 0.055f, NameFontCharacterSize = 0.027f;
-        private const int NameFontSize = 96;
+        // [정수화 미적용 이유] Unity TextMesh.characterSize에 그대로 넣는 표시값입니다. 단위가 타일이 아닌 TextMesh 고유 단위이고
+        // 게임 규칙·판정·상태에 쓰지 않으므로 표현 경계의 float로 유지합니다. 간격·배율·배치 계산은 정수입니다(2026-11-18 확인).
+        private const float _nameCharacterSize = 0.055f, _nameFontCharacterSize = 0.027f;
+        private const int _nameFontSize = 96;
         public int NpcId => _npcId;
         public void SetDefinitionId(int id) => _npcId = id;
 
@@ -66,14 +68,15 @@ namespace HumanGhost.Gameplay.Adapters
         {
             if (_nameLabel == null || _definition == null) return;
             // 부모 Scale과 무관하게 같은 월드 크기를 유지하도록 부모의 월드 Scale로 나눕니다.
+            // [정수화 미적용 이유] Transform.lossyScale 관측값으로 글자 크기 표시 보정에만 씁니다.
             float parentScale = Mathf.Max(Mathf.Abs(transform.lossyScale.y), .0001f);
-            float baseSize = nameFont != null ? NameFontCharacterSize : NameCharacterSize;
+            float baseSize = nameFont != null ? _nameFontCharacterSize : _nameCharacterSize;
             float size = baseSize * _layout.NameScaleRatio / NpcNameLayout.RatioScale / parentScale;
             foreach (TextMesh mesh in new[] { _nameLabel, _nameShadow })
             {
                 if (nameFont != null)
                 {
-                    mesh.font = nameFont; mesh.fontSize = NameFontSize;
+                    mesh.font = nameFont; mesh.fontSize = _nameFontSize;
                     mesh.GetComponent<MeshRenderer>().sharedMaterial = nameFont.material;
                 }
                 mesh.characterSize = size;
@@ -218,6 +221,7 @@ namespace HumanGhost.Gameplay.Adapters
         public int NameGapUnits { get; }
         public int NameScaleRatio { get; }
         public int PromptGapUnits { get; }
+        // [정수화 미적용 이유] 정수 좌표(IntegerPosition)와 Unity 월드 좌표를 오가는 변환 계수(Inspector 타일당 화면 거리)입니다. 좌표 상태는 정수입니다.
         public float WorldUnitsPerTile { get; }
         // 조립자 공급이 없는 기존 호출(임시 연결)의 값입니다. 0.3칸·기존 크기·0.1칸.
         public static NpcNameLayout Default => new NpcNameLayout(30, RatioScale, 10, 1f);

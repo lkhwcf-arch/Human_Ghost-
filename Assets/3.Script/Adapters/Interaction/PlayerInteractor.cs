@@ -12,6 +12,7 @@ namespace HumanGhost.Gameplay.Adapters
         [SerializeField, InspectorName("표시 글자 프리팹")] private TextMesh _promptPrefab = null;
         [SerializeField, InspectorName("앞뒤 범위 (tile_x100)"), Min(0)] private int _rangeXUnits = 100;
         [SerializeField, InspectorName("위아래 범위 (tile_x100)"), Min(0)] private int _rangeYUnits = 200;
+        // [정수화 미적용 이유] 상호작용 안내를 대상 위에 띄우는 Transform 표시 높이(타일 기준 월드 거리)입니다. 선택 판정에 쓰지 않습니다.
         [SerializeField, InspectorName("대상 위 표시 높이 (타일)")] private float _promptHeight = 1.5f;
         private InteractionRegistry _registry;
         private SubscriptionScope _scope;
@@ -154,17 +155,19 @@ namespace HumanGhost.Gameplay.Adapters
             }
             Select();
             Vector3 player = _context.Player.transform.position;
+            // 상호작용 키 이름은 공통 키 배치 조회에서 읽습니다. 글자 키라 언어 문구로 바꾸지 않습니다.
+            string interactKey = KeyboardControls.ReadActionKey("Interact");
             if (_canGrab() || _canExecute())
-                ShowPrompt("F", player + Vector3.up * _promptHeight);
+                ShowPrompt(interactKey, "", player + Vector3.up * _promptHeight);
             else if (_selected != null)
             {
                 int id = _selected.PromptTextId;
-                if (_shownPromptId != id) { _shownPromptId = id; int uiId = id switch { 30063 => 51901, 30064 => 51902, 30065 => 51903, 30066 => 51904, 30367 => 51905, _ => 0 };
-                    _shownPrompt = "F " + (uiId == 0 ? _context.Text(id) : LanguageTextSource.SelectUi(_context.Data, uiId)); }
+                // 대상이 고른 Language 문구를 그대로 씁니다. 기존 UI_Lang 51901~51905 매핑은 같은 TextID를 돌아 읽던 중복이라 제거했습니다(S03).
+                if (_shownPromptId != id) { _shownPromptId = id; _shownPrompt = _context.Text(id); }
                 // 안내 위치를 알려 주는 대상(NPC 이름표 위)은 안내 묶음의 아랫변을 그 위치에 맞추고, 나머지(서낭당·문·명부)는 기존 높이를 씁니다.
                 if (_selected is IInteractionPromptAnchor anchor && anchor.TryGetPromptBase(out Vector2 promptBase))
-                    ShowPrompt(_shownPrompt, promptBase, _selected is LedgerInteract, alignBottom: true);
-                else ShowPrompt(_shownPrompt, (Vector3)_selected.Position + Vector3.up * _promptHeight, _selected is LedgerInteract);
+                    ShowPrompt(interactKey, _shownPrompt, promptBase, _selected is LedgerInteract, alignBottom: true);
+                else ShowPrompt(interactKey, _shownPrompt, (Vector3)_selected.Position + Vector3.up * _promptHeight, _selected is LedgerInteract);
             }
             else if (_prompt.gameObject.activeSelf)
                 _prompt.gameObject.SetActive(false);
@@ -175,14 +178,14 @@ namespace HumanGhost.Gameplay.Adapters
         private void OnDisable() => StopBindings();
         private void OnDestroy() => Disconnect();
 
-        private void ShowPrompt(string text, Vector3 position, bool investigation = false, bool alignBottom = false)
+        // key는 키 이름, label은 동작 문구(없으면 빈 문자열)입니다. 키 그림이 있으면 글자에는 동작 문구만 남깁니다.
+        private void ShowPrompt(string key, string label, Vector3 position, bool investigation = false, bool alignBottom = false)
         {
             // 기존 조사 그림에는 E 키가 포함돼 있습니다. F 그림 공급 전에는 공통 글자 안내를 씁니다.
             bool artwork = false;
             if (_investigationArtwork != null) _investigationArtwork.enabled = artwork;
             if (_promptKeyIcon != null) _promptKeyIcon.enabled = !artwork && _promptHasKeyIcon;
-            if (artwork) text = "";
-            else if (_promptHasKeyIcon) text = text == "F" ? "" : text.StartsWith("F ", StringComparison.Ordinal) ? text.Substring(2) : text;
+            string text = artwork ? "" : _promptHasKeyIcon ? label : label.Length == 0 ? key : key + " " + label;
             if (_prompt.text != text) _prompt.text = text;
             if (!_prompt.gameObject.activeSelf) _prompt.gameObject.SetActive(true);
             if (_promptHasKeyIcon && !artwork && _promptTextRenderer != null)
