@@ -250,13 +250,14 @@ namespace HumanGhost.Gameplay.Adapters
 
         // 같은 프레임 근처에 여러 몹이 함께 맞으면 같은 피격음이 겹쳐 크게 들립니다.
         // 같은 소리 묶음(몹 피격음은 종류와 무관하게 한 묶음, 플레이어 소리는 별도)은 짧은 간격 안에 한 번만 재생합니다.
-        private const float _effectMergeSeconds = .06f;
-        private readonly Dictionary<string, float> _lastEffectTimes = new Dictionary<string, float>(StringComparer.Ordinal);
+        private const long _effectMergeMilliseconds = 60;
+        private readonly Dictionary<string, long> _lastEffectTimes = new Dictionary<string, long>(StringComparer.Ordinal);
         private bool ShouldMergeEffect(string key)
         {
             string group = key.EndsWith("_HIT", StringComparison.Ordinal) && !key.StartsWith("PLAYER_", StringComparison.Ordinal) ? "*_HIT" : key;
-            float now = Time.unscaledTime;
-            if (_lastEffectTimes.TryGetValue(group, out float last) && now - last < _effectMergeSeconds) return true;
+            // Unity 경계: 실제 시각(초)은 읽는 즉시 정수 ms로 바꿉니다. 누적하지 않고 두 시각의 차이만 비교합니다.
+            long now = checked((long)Math.Floor(Time.unscaledTimeAsDouble * 1000.0));
+            if (_lastEffectTimes.TryGetValue(group, out long last) && now - last < _effectMergeMilliseconds) return true;
             _lastEffectTimes[group] = now;
             return false;
         }
