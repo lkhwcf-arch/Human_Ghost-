@@ -20,6 +20,17 @@ namespace HumanGhost.Gameplay.Preview
         public int FramesPerSecond => _framesPerSecond;
         public int LoopRate => _loopRate;
         public static float Frame(float time, int framesPerSecond) => Mathf.Floor(time * framesPerSecond) / framesPerSecond;
+        // 표시 프레임이 previous→frame으로 바뀔 때(루프 되감김 포함) 발 닿는 시간(ms) 중 하나의 프레임에 들어섰는지. 걷기 플레이어·보스가 같이 씁니다.
+        public static bool EntersStep(int previous, int frame, int[] stepsMilliseconds, float framesPerSecond)
+        {
+            if (previous < 0 || frame < 0 || frame == previous || stepsMilliseconds == null) return false;
+            foreach (int step in stepsMilliseconds)
+            {
+                int at = Mathf.FloorToInt(step / 1000f * framesPerSecond + .001f);
+                if (frame > previous ? at > previous && at <= frame : at > previous || at <= frame) return true;
+            }
+            return false;
+        }
         private int _flashRemainingMilliseconds;
         private long _loopMilliseconds;
         private MillisecondClock _loopClock;
@@ -43,7 +54,8 @@ namespace HumanGhost.Gameplay.Preview
         private int _health = -1;
         private int _hitFlashMilliseconds;
         private MaterialPropertyBlock _properties;
-        public void ConnectCamera(PreviewFollowCamera camera) => _camera = camera;
+        private Camera _cameraView;
+        public void ConnectCamera(PreviewFollowCamera camera) { _camera = camera; _cameraView = camera != null ? camera.GetComponent<Camera>() : null; }
         private void Awake()
         {
             _properties = new MaterialPropertyBlock();
@@ -52,17 +64,11 @@ namespace HumanGhost.Gameplay.Preview
             _bind = new RigBindPose(_rig);
             _lastX = transform.position.x;
         }
-        // 걷기 표시 프레임이 손 짚는 프레임에 들어서면 한 번 알립니다(루프 되감김 포함). 걷기 시작 첫 프레임은 울리지 않습니다.
+        // 걷기 표시 프레임이 손 짚는 프레임에 들어서면 한 번 알립니다. 걷기 시작 첫 프레임은 울리지 않습니다.
         private void UpdateWalkStep(int frame)
         {
-            if (frame == _walkFrame) return;
             int previous = _walkFrame; _walkFrame = frame;
-            if (previous < 0 || frame < 0 || _walkSteps == null) return;
-            foreach (int step in _walkSteps)
-            {
-                int at = step * _framesPerSecond / 1000;
-                if (frame > previous ? at > previous && at <= frame : at > previous || at <= frame) { _walkStep?.Invoke(); return; }
-            }
+            if (EntersStep(previous, frame, _walkSteps, _framesPerSecond)) _walkStep?.Invoke();
         }
         public void Show(bool value) { if (_rig.activeSelf != value) _rig.SetActive(value); }
         // 리그가 보일 때 SpriteSkin으로 변형된 부품들의 가장 높은 월드 y입니다. 숨김이면 음의 무한대입니다.
@@ -79,10 +85,10 @@ namespace HumanGhost.Gameplay.Preview
             if (_boss.Actor == null) return;
             _elapsedMilliseconds = _scaledClock.AdvanceFrame(Time.deltaTime);
             _flashRemainingMilliseconds = System.Math.Max(0, _flashRemainingMilliseconds - _unscaledClock.AdvanceFrame(Time.unscaledDeltaTime));
-            _flash.enabled = _flashRemainingMilliseconds > 0 && _camera != null;
+            _flash.enabled = _flashRemainingMilliseconds > 0 && _cameraView != null;
             if (_flash.enabled)
             {
-                var camera = _camera.GetComponent<Camera>();
+                var camera = _cameraView;
                 _flash.transform.position = new Vector3(camera.transform.position.x,camera.transform.position.y,transform.position.z-.3f);
                 _flash.transform.localScale = new Vector3(camera.orthographicSize*camera.aspect*2f/transform.lossyScale.x,camera.orthographicSize*2f/transform.lossyScale.y,1);
                 _flash.color = new Color(1,.05f,0,_flashRemainingMilliseconds/180f*.4f);
