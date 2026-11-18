@@ -70,7 +70,7 @@ ID,KO,EN
 30069,플레이해 주셔서 고맙습니다,Thank you for playing
 30101,구르기: 구르는 동안에는 공격을 받지 않는다.,Roll: You cannot be hit while rolling.
 30103,결박 가르기: 요괴를 옭아맨 검은 결박을 끊는 버선칼 기술.,Bind Cleave: A Beoseonkal skill that cuts the black bindings on spirits.
-30104,해체: 체세가 무너진 보스를 발골칼로 해체한다. 백정의 솜씨다.,Carve: Carve apart a poise-broken boss with the Balgolkal.
+30104,해체: 체세가 무너진 적을 발골칼로 해체한다. 백정의 솜씨다.,Carve: Carve apart a poise-broken enemy with the Balgolkal.
 30106,허수귀: 허수아비에 깃든 요괴. 느리지만 무리 지어 온다.,"Heosugwi: A spirit in a scarecrow. Slow, but comes in packs."
 30107,지게귀: 지게를 진 요괴. 짐을 던지는 놈도 있다.,Jigegwi: A spirit bearing an A-frame. Some throw their load.
 30108,쇄문아비: 관문을 지키는 요괴. 사슬로 길을 막는다.,"Swaemunabi: A spirit guarding the Gate, barring the way with chains."
@@ -225,7 +225,7 @@ ID,KO,EN
 30370,{0} 공격,{0} Attack
 30371,{0} 약초,{0} Herb
 30372,{0} 결박 가르기,{0} Bind Cleave
-30373,{0} 처형,{0} Execute
+30373,{0} 해체,{0} Carve
 30374,{0} 패링,{0} Parry
 30375,{0} 서낭당,{0} Shrine
 30376,바위 협곡,Rocky Gorge
