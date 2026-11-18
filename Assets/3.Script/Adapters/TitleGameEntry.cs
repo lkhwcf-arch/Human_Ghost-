@@ -10,6 +10,9 @@ using UnityEngine.InputSystem;
 namespace HumanGhost.Gameplay.Adapters
 {
     // 타이틀 요청을 키 선택·인트로·저장 진입에 연결합니다. 재생·저장 규칙은 기존 모듈을 사용합니다.
+    // 실행 순서: CutsceneHost(기본 0)의 LateUpdate가 인트로 결과를 확정한 같은 프레임에 이 LateUpdate가 소비해야
+    // 컷씬이 사라진 프레임에 로딩 화면이 바로 덮습니다. 순서가 정해지지 않으면 타이틀이 한 프레임 비칠 수 있습니다.
+    [DefaultExecutionOrder(10)]
     public sealed partial class TitleGameEntry : MonoBehaviour, IModalInputTarget
     {
         [SerializeField] private TitleSceneHost _host = null;
@@ -232,7 +235,8 @@ namespace HumanGhost.Gameplay.Adapters
             return record != null && EnterGame(record);
         }
         private bool LoadRecord(SaveRecord record) => EnterGame(record);
-        private bool EnterGame(SaveRecord record)
+        // covered: 새 게임 인트로가 끝난 직후처럼 앞 화면이 막 사라질 때 로딩 화면을 불투명하게 바로 띄웁니다.
+        private bool EnterGame(SaveRecord record, bool covered = false)
         {
             if (_modalBlocked || _introPending || LoadingScreen.IsActive || _records == null || _saveStore == null) return false;
             if (_data == null || _data.Data == null || _loadingPrefab == null) return false;
@@ -246,7 +250,7 @@ namespace HumanGhost.Gameplay.Adapters
                 _data.Data.GetTable<HumanGhost.Data.Definitions.Stage>().Get(record.Snapshot.StageId);
                 foreach (int id in record.Snapshot.OpenedGates) _data.Data.GetTable<HumanGhost.Data.Definitions.GateConfig>().Get(id);
             }
-            Instantiate(_loadingPrefab).Begin(_newGameScene, _data.Data, context.SceneReady);
+            Instantiate(_loadingPrefab).Begin(_newGameScene, _data.Data, context.SceneReady, covered);
             GameSaveContext.Set(context);
             Cursor.visible = false;
             return true;

@@ -39,8 +39,15 @@ namespace HumanGhost.Gameplay.Presentation
         public static bool IsActive => _active != null;
         private Vector2 _boxPosition;
 
-        public void Begin(string sceneName, IReadOnlyDataCatalog data, Task<bool> ready = null)
-        { _ready = ready; BeginInternal(sceneName, data, false); }
+        // covered=true는 앞 화면(예: 새 게임 인트로)이 사라지는 프레임에 바로 덮어 아래 화면이 비치지 않게 합니다.
+        // 나타나기(_appearMs) 단계를 건너뛰고 불투명하게 시작합니다. 기본값은 기존의 서서히 나타나기입니다.
+        public void Begin(string sceneName, IReadOnlyDataCatalog data, Task<bool> ready = null, bool covered = false)
+        {
+            _ready = ready; BeginInternal(sceneName, data, false);
+            if (!covered) return;
+            _group.alpha = 1f;
+            _phase = 1;
+        }
 
         // 타이틀 복귀는 같은 이동 경로를 사용하되 로딩 문구·최소 대기 없이 암전만 표시합니다.
         public void BeginFade(string sceneName) => BeginInternal(sceneName, null, true);

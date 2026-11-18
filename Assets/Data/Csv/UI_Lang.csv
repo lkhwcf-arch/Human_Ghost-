@@ -43,6 +43,9 @@ ID,Key,TextID
 51315,Controls.Key.ArrowKeys,30242
 51316,Controls.Key.LeftStick,30243
 51317,Controls.Key.Up,30245
+51318,Controls.Key.LeftShift,30389
+51319,Controls.Key.RightShift,30390
+51320,Controls.Key.Space,30391
 51401,KeyboardLayout.Title,30239
 51402,KeyboardLayout.Arrows,30240
 51403,KeyboardLayout.Wasd,30241

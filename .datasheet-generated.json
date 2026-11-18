@@ -21,6 +21,7 @@
     "Assets/3.Script/Data/Generated/Enums/EffectOperation.cs",
     "Assets/3.Script/Data/Generated/Enums/EffectPhase.cs",
     "Assets/3.Script/Data/Generated/Enums/FieldKind.cs",
+    "Assets/3.Script/Data/Generated/Enums/SoundCategory.cs",
     "Assets/3.Script/Data/Generated/Enums/StatusEffectKind.cs",
     "Assets/3.Script/Data/Generated/GeneratedDataLoadPlan.cs",
     "Assets/3.Script/Data/HealthDisplayConfig.cs",
