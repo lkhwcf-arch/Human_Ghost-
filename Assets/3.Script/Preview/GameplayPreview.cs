@@ -130,8 +130,7 @@ namespace HumanGhost.Gameplay.Preview
         private void StartStageAmbience()
         {
             if (_audio == null) return;
-            string ambience = _content.GetStage(_stageId)?.AmbienceKey;
-            _audio.PlayAmbience(string.IsNullOrEmpty(ambience) ? null : ambience);
+            _audio.PlayAmbience(_catalog.GetTable<Stage>().Get(_stageId).AmbienceSoundID);
             string anchor = _arrivalAnchor;
             if (!string.IsNullOrEmpty(anchor) && _catalog.GetTable<StageExit>().All.Any(row => row.TargetStageID == _stageId && row.ArrivalAnchorName == anchor &&
                 (row.StageID == StageExitRules.LedgerStage || row.TargetStageID == StageExitRules.LedgerStage)))

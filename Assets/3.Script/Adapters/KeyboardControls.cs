@@ -61,6 +61,20 @@ namespace HumanGhost.Gameplay.Adapters
             return key.ToUpperInvariant();
         }
 
+        // 이름 있는 키(Shift·Space)는 UI_Lang 문구로 바꿔 언어를 따릅니다. 글자 키·기호는 그대로 둡니다.
+        public static string ReadActionKey(string action, Func<int, string> readUi)
+        {
+            if (readUi == null) throw new ArgumentNullException(nameof(readUi));
+            string key = ReadActionKey(action);
+            switch (key)
+            {
+                case "Left Shift": return readUi(51318);
+                case "Right Shift": return readUi(51319);
+                case "SPACE": return readUi(51320);
+                default: return key;
+            }
+        }
+
         public static string[] ReadActionKeys()
         {
             return new[] { ReadActionKey("Move"), ReadActionKey("Jump"), ReadActionKey("DropThrough"),

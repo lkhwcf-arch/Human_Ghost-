@@ -45,9 +45,8 @@ namespace HumanGhost.Gameplay.Preview
             foreach (UI_Lang entry in entries)
             {
                 string action = ReadAction(entry);
-                string key = KeyboardControls.ReadActionKey(action);
-                string.Format(text.Read(entry.TextID, LanguageCode.Korean), key);
-                string.Format(text.Read(entry.TextID, LanguageCode.English), key);
+                string.Format(text.Read(entry.TextID, LanguageCode.Korean), KeyboardControls.ReadActionKey(action, id => text.ReadUi(id, LanguageCode.Korean)));
+                string.Format(text.Read(entry.TextID, LanguageCode.English), KeyboardControls.ReadActionKey(action, id => text.ReadUi(id, LanguageCode.English)));
                 ResolveVideo(action, KeyboardLayout.Arrows);
                 ResolveVideo(action, KeyboardLayout.Wasd);
             }
@@ -172,7 +171,7 @@ namespace HumanGhost.Gameplay.Preview
             for (int i = 0; i < _labels.Length; i++)
             {
                 UI_Lang entry = _entries[i];
-                string key = KeyboardControls.ReadActionKey(ReadAction(entry));
+                string key = KeyboardControls.ReadActionKey(ReadAction(entry), _text.ReadUi);
                 TextMesh label = _labels[i];
                 label.characterSize = .031f;
                 label.text = Wrap(string.Format(_text.Read(entry.TextID), key));

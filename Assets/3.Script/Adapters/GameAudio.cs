@@ -57,8 +57,12 @@ namespace HumanGhost.Gameplay.Adapters
         [SerializeField] private AudioSource _musicA = null;
         [SerializeField] private AudioSource _musicB = null;
         [SerializeField] private AudioSource _effects = null;
-        [SerializeField, InspectorName("환경음(루프)")] private AudioSource _ambience = null;
-        private string _currentAmbience;
+        // 방 환경음은 Sound 표 ID로 TableSoundPlayer가 재생합니다(Category 1 환경음: 배경음 음량·일시정지 50%).
+        private int _ambienceId, _ambienceVoice;
+        // 맵 이동은 씬을 다시 읽어 GameAudio가 새로 생깁니다. 같은 음원 주소면 마지막 재생 위치(샘플)에서 이어 갑니다.
+        private static string _carriedAddress;
+        private static int _carriedSample;
+        private static long _carriedAtMs;
         private readonly Dictionary<string, List<AudioClip>> _lookup = new Dictionary<string, List<AudioClip>>();
         private readonly System.Random _effectRandom = new System.Random();
         private string _currentMusic;
@@ -93,7 +97,6 @@ namespace HumanGhost.Gameplay.Adapters
             if (muted) _cutsceneOwners.Add(owner); else _cutsceneOwners.Remove(owner);
             bool blocked = _cutsceneOwners.Count > 0;
             _musicA.mute = _musicB.mute = _effects.mute = blocked;
-            if (_ambience != null) _ambience.mute = blocked;
             if (_tablePlayer != null) _tablePlayer.SetMuted(blocked);
         }
 
@@ -148,6 +151,9 @@ namespace HumanGhost.Gameplay.Adapters
                 if (!group.Contains(sound.ID)) group.Add(sound.ID);
                 if (!ids.Contains(sound.ID)) ids.Add(sound.ID);
             }
+            // 같은 음원 주소를 쓰는 다른 Sound 행(맵별 환경음 행 등)도 프리팹 클립으로 함께 준비합니다.
+            foreach (Sound sound in sounds.All)
+                if (clips.ContainsKey(sound.Address) && !ids.Contains(sound.ID)) ids.Add(sound.ID);
             string music = _tableMusicId == 0 ? null : _currentMusic;
             if (music != null) _currentMusic = null;
             _tableMusicId = 0; _catalog = data;
@@ -160,6 +166,9 @@ namespace HumanGhost.Gameplay.Adapters
             _tablePlayer.SetPaused(_pauseScale < 1f);
             _tablePlayer.SetMuted(_cutsceneOwners.Count > 0);
             if (music != null) PlayMusic(music);
+            // 재연결은 재생 채널을 비우므로 요청된 환경음을 다시 시작합니다.
+            _ambienceVoice = 0;
+            StartAmbience();
         }
         public Task PrepareAsync(IReadOnlyList<int> soundIds, CancellationToken cancellation = default)
         {
@@ -213,16 +222,42 @@ namespace HumanGhost.Gameplay.Adapters
             next.Play();
         }
 
-        // 배경음과 겹쳐 도는 방 환경음입니다. 빈 키·없는 키는 정지, 같은 키는 이어서 재생합니다.
-        public void PlayAmbience(string key)
+        // 배경음과 겹쳐 도는 환경음(Sound ID, 루프)입니다. 빈 값은 정지, 같은 ID·같은 음원 주소는 끊지 않고 이어서 재생합니다.
+        public void PlayAmbience(int? soundId)
         {
-            if (_ambience == null || key == _currentAmbience) return;
-            _currentAmbience = key;
-            if (string.IsNullOrEmpty(key) || !_lookup.TryGetValue(key, out List<AudioClip> clips)) { _ambience.Stop(); _ambience.clip = null; return; }
-            _ambience.clip = clips[0]; _ambience.loop = true;
-            UpdateVolumes();
-            _ambience.Play();
+            int id = soundId ?? 0;
+            if (id == _ambienceId) return;
+            _ambienceId = id;
+            StartAmbience();
         }
+        private void StartAmbience()
+        {
+            // 표 연결 전 요청은 기억해 두고 ConnectTable에서 시작합니다.
+            if (_tablePlayer == null || _catalog == null) return;
+            IReadOnlyDataTable<Sound> sounds = _catalog.GetTable<Sound>();
+            string address = _ambienceId == 0 ? null : sounds.Get(_ambienceId).Address;
+            if (_ambienceVoice != 0 && address == sounds.Get(_ambienceVoice).Address) return;
+            // 실제로 끈 환경음만 이어 재생 기록을 지웁니다. 새 씬의 표 연결(아직 요청 전)은 기록을 유지합니다.
+            if (_ambienceVoice != 0) { _tablePlayer.Stop(_ambienceVoice); _carriedAddress = null; }
+            _ambienceVoice = 0;
+            if (address == null) return;
+            string carried = _carriedAddress;
+            if (!_tablePlayer.IsPrepared(_ambienceId)) { Debug.LogError($"환경음 Sound {_ambienceId}의 클립이 GameAudio 소리 목록에 없습니다.", this); return; }
+            _tablePlayer.Play(_ambienceId);
+            _ambienceVoice = _ambienceId;
+            if (carried == address) _tablePlayer.Seek(_ambienceId, _carriedSample, Math.Max(0, NowMilliseconds() - _carriedAtMs));
+            CarryAmbience();
+        }
+        private void CarryAmbience()
+        {
+            int sample = _tablePlayer.ReadSample(_ambienceVoice);
+            if (sample < 0) return;
+            _carriedAddress = _catalog.GetTable<Sound>().Get(_ambienceVoice).Address;
+            _carriedSample = sample;
+            _carriedAtMs = NowMilliseconds();
+        }
+        // Unity 경계: 실제 시각(초)은 읽는 즉시 정수 ms로 바꿉니다.
+        private static long NowMilliseconds() => checked((long)Math.Floor(Time.unscaledTimeAsDouble * 1000.0));
 
         public void FadeOutMusic(int milliseconds)
         {
@@ -255,8 +290,8 @@ namespace HumanGhost.Gameplay.Adapters
         private bool ShouldMergeEffect(string key)
         {
             string group = key.EndsWith("_HIT", StringComparison.Ordinal) && !key.StartsWith("PLAYER_", StringComparison.Ordinal) ? "*_HIT" : key;
-            // Unity 경계: 실제 시각(초)은 읽는 즉시 정수 ms로 바꿉니다. 누적하지 않고 두 시각의 차이만 비교합니다.
-            long now = checked((long)Math.Floor(Time.unscaledTimeAsDouble * 1000.0));
+            // 누적하지 않고 두 시각의 차이만 비교합니다.
+            long now = NowMilliseconds();
             if (_lastEffectTimes.TryGetValue(group, out long last) && now - last < _effectMergeMilliseconds) return true;
             _lastEffectTimes[group] = now;
             return false;
@@ -276,6 +311,7 @@ namespace HumanGhost.Gameplay.Adapters
 
         private void Update()
         {
+            if (_ambienceVoice != 0 && _tablePlayer != null) CarryAmbience();
             if (!_fadeA.IsRunning && !_fadeB.IsRunning) return;
             int milliseconds = _fadeClock.AdvanceFrame(Time.unscaledDeltaTime);
             _fadeA.Step(_musicA, milliseconds);
@@ -288,7 +324,6 @@ namespace HumanGhost.Gameplay.Adapters
             float volume = _musicVolume * _pauseScale;
             _musicA.volume = volume * _fadeA.Gain;
             _musicB.volume = volume * _fadeB.Gain;
-            if (_ambience != null) _ambience.volume = volume;
         }
     }
 }

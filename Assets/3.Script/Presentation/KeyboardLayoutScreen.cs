@@ -91,7 +91,7 @@ namespace HumanGhost.Gameplay.Presentation
         }
         private string Details(bool wasd) =>
             _text.ReadUi(51306) + (wasd ? " K" : " C") + " · " + _text.ReadUi(51307) + (wasd ? " J" : " X") + " · " +
-            _text.ReadUi(51308) + (wasd ? " L" : " Space") + " · " + _text.ReadUi(51309) + " F · " +
+            _text.ReadUi(51308) + (wasd ? " L" : " " + _text.ReadUi(51320)) + " · " + _text.ReadUi(51309) + " F · " +
             _text.ReadUi(51311) + (wasd ? " U" : " Z") + " · " + _text.ReadUi(51310) + (wasd ? " I" : " Q");
 
         private void Select(KeyboardLayout layout)

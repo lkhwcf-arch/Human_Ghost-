@@ -17,15 +17,12 @@ namespace HumanGhost.Gameplay.Adapters
             [SerializeField, FormerlySerializedAs("Map")] private GameObject _map = null;
             [SerializeField, FormerlySerializedAs("Spawn")] private TextAsset _spawn = null;
             [SerializeField, FormerlySerializedAs("CameraSize"), Min(0.1f)] private float _cameraSize = 5.625f;
-            // 방 환경음(GameAudio 키, 루프). 비우면 무음입니다. 코드의 스테이지 번호 분기 대신 여기서 연결합니다(S02).
-            [SerializeField, InspectorName("환경음 키 (루프)")] private string _ambienceKey = "";
             [SerializeField, FormerlySerializedAs("BackgroundPositions")] private BackgroundPosition[] _backgroundPositions = Array.Empty<BackgroundPosition>();
             [SerializeField, FormerlySerializedAs("WorldTexts")] private WorldTextBinding[] _worldTexts = Array.Empty<WorldTextBinding>();
             public int StageId => _stageId;
             public GameObject Map => _map;
             public TextAsset Spawn => _spawn;
             public float CameraSize => _cameraSize;
-            public string AmbienceKey => _ambienceKey;
             public IReadOnlyList<BackgroundPosition> BackgroundPositions => Array.AsReadOnly(_backgroundPositions);
             public IReadOnlyList<WorldTextBinding> WorldTexts => Array.AsReadOnly(_worldTexts);
         }

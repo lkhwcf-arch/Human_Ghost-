@@ -119,6 +119,23 @@ namespace HumanGhost.Gameplay.Adapters
             foreach (Voice voice in _voices)
                 if (voice.Definition.ID == soundId) { voice.Envelope.Stop(); ApplyVolume(voice); }
         }
+        // 재생 위치(샘플)를 읽고 맞춥니다. 씬을 다시 읽어도 같은 환경음을 이어 재생할 때 씁니다. 재생 중이 아니면 -1입니다.
+        public int ReadSample(int soundId)
+        {
+            foreach (Voice voice in _voices)
+                if (voice.Definition.ID == soundId && voice.Source != null && voice.Source.isPlaying && !voice.Envelope.IsStopping) return voice.Source.timeSamples;
+            return -1;
+        }
+        public void Seek(int soundId, int sample, long elapsedMilliseconds)
+        {
+            if (sample < 0 || elapsedMilliseconds < 0) throw new ArgumentOutOfRangeException(nameof(sample));
+            foreach (Voice voice in _voices)
+            {
+                AudioClip clip = voice.Source != null ? voice.Source.clip : null;
+                if (voice.Definition.ID != soundId || clip == null || clip.samples <= 0) continue;
+                voice.Source.timeSamples = (int)((sample + elapsedMilliseconds * clip.frequency / 1000) % clip.samples);
+            }
+        }
         public void StopAll()
         {
             foreach (Voice voice in _voices) { voice.Envelope.Stop(); ApplyVolume(voice); }
