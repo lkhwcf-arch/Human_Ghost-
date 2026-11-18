@@ -14,7 +14,6 @@ namespace HumanGhost.Gameplay.Adapters
         [SerializeField] private BossPatternSettings _patterns = null;
         private MillisecondClock _clock;
         public int TransitionMilliseconds { get; private set; }
-        public float LandingX { get; set; }
         private System.Random _waitRandom;
         private System.Random _hitRandom;
         public BossPoise Actor { get; private set; }

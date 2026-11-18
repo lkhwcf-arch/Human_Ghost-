@@ -130,25 +130,12 @@ namespace HumanGhost.Gameplay.Preview
         private void StartStageAmbience()
         {
             if (_audio == null) return;
-            _audio.PlayAmbience(StageAmbience(_stageId));
+            string ambience = _content.GetStage(_stageId)?.AmbienceKey;
+            _audio.PlayAmbience(string.IsNullOrEmpty(ambience) ? null : ambience);
             string anchor = _arrivalAnchor;
             if (!string.IsNullOrEmpty(anchor) && _catalog.GetTable<StageExit>().All.Any(row => row.TargetStageID == _stageId && row.ArrivalAnchorName == anchor &&
                 (row.StageID == StageExitRules.LedgerStage || row.TargetStageID == StageExitRules.LedgerStage)))
                 _audio.PlayEffect("SFX_DOOR");
-        }
-
-        private static string StageAmbience(int stageId)
-        {
-            switch (stageId)
-            {
-                // 맵 프리팹 번호 기준: Map_1 도화골, Map_2 산길(2b 옹기·X01 갈림길 포함), Map_3 협곡, 보스방만 5번.
-                case 8001: return "AMB_1";
-                case 8005: return "AMB_2";
-                case 8002: case 8006: case 8007: return "AMB_3";
-                case 8003: return "AMB_4";
-                case 8004: return "AMB_5";
-                default: return null;
-            }
         }
 
         private void OnBossPatternStarted(BossPattern pattern) => _audio?.PlayEffect(BossAttackSound(pattern));
@@ -247,7 +234,7 @@ namespace HumanGhost.Gameplay.Preview
                 if (_boss.Combat != null) _boss.Combat.PatternStarted += OnBossPatternStarted;
                 if (_motion == null) _motion = new PreviewPlayerMotion(_player, _groundY, _useMapCollision, _playerHalfSize, GetMarkers(),
                     _actor.Definition.JumpHeight, _jumpMilliseconds,
-                    key => _playerAudio?.PlayAnimationSound(key), _stageId == BossStage ? _stage?.MapRoot : null);
+                    key => _playerAudio?.PlayAnimationSound(key), _stageId == StageExitRules.BossStage ? _stage?.MapRoot : null);
                 _input.TryDropThrough = _motion.TryDropThrough;
                 _input.SetModalBlocked(_modalBlocked);
                 _input.JumpAccepted += OnJump;
@@ -596,13 +583,14 @@ namespace HumanGhost.Gameplay.Preview
             _stage = new PreviewStage(_content, _stageId, catalog, _mapOrigin, _progress);
             _markersRoot = _stage.Markers;
             _monsters = _stage.Monsters.ToArray();
-            _showBossGauge = _stageId == BossStage;
-            _bossActive = _stageId == BossStage && !_progress.HasDefeatedBoss(BossStage);
+            _showBossGauge = _stageId == StageExitRules.BossStage;
+            _bossActive = _stageId == StageExitRules.BossStage && !_progress.HasDefeatedBoss(StageExitRules.BossStage);
             if (_bossActive)
             {
                 Transform spawn = new SpawnAnchors(_markersRoot).Get("Boss_Spawn");
-                float half = _bossBody.transform.lossyScale.y * 0.5f;
-                _boss.SetPosition(new Vector3(spawn.position.x, spawn.position.y + half, _boss.transform.position.z));
+                // Unity 경계: 앵커 위치·몸 절반 높이는 읽는 즉시 정수로 바꿔 보스 위치를 정합니다.
+                long half = _boss.ToInteger(_bossBody.transform.lossyScale.y * 0.5f);
+                _boss.SetPosition(new IntegerPosition(_boss.ToInteger(spawn.position.x), checked(_boss.ToInteger(spawn.position.y) + half)));
             }
             _boss.gameObject.SetActive(false);
             if (_interactor != null) _interactor.SetTargetRoot(_stage.MapRoot);
@@ -610,7 +598,6 @@ namespace HumanGhost.Gameplay.Preview
             _gates = new PreviewBindGates(_markersRoot, _stageId, catalog, _progress);
         }
 
-        private const int BossStage = 8004;
 
         // 각 몬스터가 선 바닥의 끊기지 않은 구간을 찾습니다.
         private void ApplyWalkableSpans()
@@ -781,9 +768,9 @@ namespace HumanGhost.Gameplay.Preview
         // 처치한 보스는 사망 재시작·재진입 때 다시 나오지 않습니다(K16add).
         private void StepStageClear()
         {
-            if (_bossActive && _boss.Actor.IsDead) _progress.MarkBossDefeated(BossStage);
+            if (_bossActive && _boss.Actor.IsDead) _progress.MarkBossDefeated(StageExitRules.BossStage);
             TryStartEnding();
-            if (_stage != null && _stageId != StageExitRules.VillageStage && _stageId != StageExitRules.LedgerStage && _stageId != BossStage && RemainingMonsters() == 0)
+            if (_stage != null && _stageId != StageExitRules.VillageStage && _stageId != StageExitRules.LedgerStage && _stageId != StageExitRules.BossStage && RemainingMonsters() == 0)
                 _progress.Progress.Clear(_stageId);
         }
 
@@ -927,7 +914,7 @@ namespace HumanGhost.Gameplay.Preview
         {
             var combat = _boss.Combat; var reaction = combat.CurrentReaction;
             if (reaction == null || reaction.KnockbackDistance == 0) return;
-            int direction = combat.CurrentPattern.Kind == BossPatternKind.CrawlCharge ? combat.Facing : Math.Sign(_player.transform.position.x - _boss.transform.position.x);
+            int direction = combat.CurrentPattern.Kind == BossPatternKind.CrawlCharge ? combat.Facing : Math.Sign(checked(_player.Position.X - _boss.Position.X));
             if (direction == 0) direction = combat.Facing;
             _motion.StartKnockback(direction, ResolveFieldKnockbackDistance(_player, reaction.KnockbackDistance), reaction.KnockbackTime);
         }
@@ -1093,8 +1080,9 @@ namespace HumanGhost.Gameplay.Preview
                 if (monster.NeedsStep) monster.Step(Time.deltaTime, combatMin, combatMax);
             // 보스는 고정 한계 대신 실제 맵 범위에서 막습니다. 고정 한계는 맵1 기준이라 보스방 돌진이 벽을 지나쳤습니다.
             // 보스방 좌우 벽 두께 1(카메라 범위와 같은 기준)을 빼 벽 안쪽 면에서 멈추고 벽 충돌을 알립니다.
-            _bossDriver?.Step(Time.deltaTime, _stage != null ? _stage.Area.min.x + 1f : SpatialRuntime.ToWorld(combatMin, _worldUnitsPerTile),
-                _stage != null ? _stage.Area.max.x - 1f : SpatialRuntime.ToWorld(combatMax, _worldUnitsPerTile));
+            // Unity 경계: 맵 범위(월드)는 넘기는 순간 정수로 바꿉니다(S11).
+            _bossDriver?.Step(Time.deltaTime, _stage != null ? SpatialRuntime.ToInteger(_stage.Area.min.x + 1f, _worldUnitsPerTile) : combatMin,
+                _stage != null ? SpatialRuntime.ToInteger(_stage.Area.max.x - 1f, _worldUnitsPerTile) : combatMax);
             StepFields();
             CheckPlayerHits();
             FlushMonsterRewards();

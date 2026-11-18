@@ -42,7 +42,8 @@ namespace HumanGhost.Gameplay.Preview
             public AnimationClip Clip => _clip;
             [SerializeField, InspectorName("타격별 표시 프레임 (0부터, 끝 미포함)")]
             private AttackFrames[] _hitFrames = Array.Empty<AttackFrames>();
-            public AttackFrames[] HitFrames => _hitFrames;
+            // 직렬화 원본 배열을 내보내지 않습니다.
+            public IReadOnlyList<AttackFrames> HitFrames => Array.AsReadOnly(_hitFrames);
         }
         [SerializeField, InspectorName("상태 애니메이션")] private StateAnimation[] _animations = Array.Empty<StateAnimation>();
         [Serializable]

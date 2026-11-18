@@ -13,85 +13,92 @@ MonoBehaviour:
   m_Name: StageContentSet
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Adapters.StageContentSet
   _stages:
-  - StageId: 8001
-    Map: {fileID: 100001, guid: a9d93d3e22fb8b44db67d590d32fdeb6, type: 3}
-    Spawn: {fileID: 4900000, guid: c5c3cb20834dbe44486ebc4c47a1bf54, type: 3}
-    CameraSize: 5
-    BackgroundPositions:
-    - Path: Background/Sky
-      UseLocalX: 1
-      LocalX: 48
-      LocalY: 0
-    - Path: Background/Sky
-      UseLocalX: 0
-      LocalX: 0
-      LocalY: 5.3
-    - Path: "Background/Mountains/\uBA3C\uC0B0"
-      UseLocalX: 0
-      LocalX: 0
-      LocalY: -0.5
-    - Path: Background/Mountains/Fog_Far
-      UseLocalX: 0
-      LocalX: 0
-      LocalY: -1.3
-    WorldTexts: []
-  - StageId: 8002
-    Map: {fileID: 100001, guid: 31e12a1d470681a45963f2f06d08cc23, type: 3}
-    Spawn: {fileID: 4900000, guid: 436d1538fc7da474698595c5e3f2d02c, type: 3}
-    CameraSize: 5
-    BackgroundPositions:
-    - Path: Background/Mountains/Fog_Far
-      UseLocalX: 0
-      LocalX: 0
-      LocalY: 0
-    WorldTexts: []
-  - StageId: 8003
-    Map: {fileID: 100001, guid: 53f22b56fbaa30744a1abbc1cc6ec2e6, type: 3}
-    Spawn: {fileID: 4900000, guid: 4570e4ffc49353947b1b3c51469a4f90, type: 3}
-    CameraSize: 5
-    BackgroundPositions:
-    - Path: Background/Mountains/Fog_Far
-      UseLocalX: 0
-      LocalX: 0
-      LocalY: 0
-    WorldTexts: []
-  - StageId: 8004
-    Map: {fileID: 100001, guid: 0acbb8b3d9a33a445b7ba87a3cd7e6ea, type: 3}
-    Spawn: {fileID: 0}
-    CameraSize: 5
-    BackgroundPositions:
-    - Path: Background/Sky
-      UseLocalX: 0
-      LocalX: 0
-      LocalY: 8.15
-    WorldTexts: []
-  - StageId: 8005
-    Map: {fileID: 6190918105606674834, guid: 0f97cf1b037c0ec4c8044537f62b8ee4, type: 3}
-    Spawn: {fileID: 4900000, guid: bc4feb177f93c1344ad35bfc043ee872, type: 3}
-    CameraSize: 3.6
-    BackgroundPositions: []
-    WorldTexts: []
-  - StageId: 8006
-    Map: {fileID: 1000, guid: d0b031715645554d8e883d5ad2e54965, type: 3}
-    Spawn: {fileID: 4900000, guid: 1915457068f705bc0d798729f1e0206a, type: 3}
-    CameraSize: 5
-    BackgroundPositions: []
-    WorldTexts: []
-  - StageId: 8007
-    Map: {fileID: 1000, guid: 7222e5248c205efe96e73fe13d6c2e9b, type: 3}
-    Spawn: {fileID: 4900000, guid: d5bcb29a1de0e40d6b06cc440615c731, type: 3}
-    CameraSize: 5
-    BackgroundPositions: []
-    WorldTexts:
-    - Anchor: Markers/Route_Up
-      TextIds: a8760000
-      OffsetUnits: {x: 0, y: 150}
-    - Anchor: Markers/Route_Mid
-      TextIds: a9760000ab760000
-      OffsetUnits: {x: 0, y: 150}
-    - Anchor: Markers/Route_Low
-      TextIds: aa760000ab760000
-      OffsetUnits: {x: 0, y: 150}
+  - _stageId: 8001
+    _map: {fileID: 100001, guid: a9d93d3e22fb8b44db67d590d32fdeb6, type: 3}
+    _spawn: {fileID: 4900000, guid: c5c3cb20834dbe44486ebc4c47a1bf54, type: 3}
+    _cameraSize: 5
+    _ambienceKey: AMB_1
+    _backgroundPositions:
+    - _path: Background/Sky
+      _useLocalX: 1
+      _localX: 48
+      _localY: 0
+    - _path: Background/Sky
+      _useLocalX: 0
+      _localX: 0
+      _localY: 5.3
+    - _path: "Background/Mountains/\uBA3C\uC0B0"
+      _useLocalX: 0
+      _localX: 0
+      _localY: -0.5
+    - _path: Background/Mountains/Fog_Far
+      _useLocalX: 0
+      _localX: 0
+      _localY: -1.3
+    _worldTexts: []
+  - _stageId: 8002
+    _map: {fileID: 100001, guid: 31e12a1d470681a45963f2f06d08cc23, type: 3}
+    _spawn: {fileID: 4900000, guid: 436d1538fc7da474698595c5e3f2d02c, type: 3}
+    _cameraSize: 5
+    _ambienceKey: AMB_3
+    _backgroundPositions:
+    - _path: Background/Mountains/Fog_Far
+      _useLocalX: 0
+      _localX: 0
+      _localY: 0
+    _worldTexts: []
+  - _stageId: 8003
+    _map: {fileID: 100001, guid: 53f22b56fbaa30744a1abbc1cc6ec2e6, type: 3}
+    _spawn: {fileID: 4900000, guid: 4570e4ffc49353947b1b3c51469a4f90, type: 3}
+    _cameraSize: 5
+    _ambienceKey: AMB_4
+    _backgroundPositions:
+    - _path: Background/Mountains/Fog_Far
+      _useLocalX: 0
+      _localX: 0
+      _localY: 0
+    _worldTexts: []
+  - _stageId: 8004
+    _map: {fileID: 100001, guid: 0acbb8b3d9a33a445b7ba87a3cd7e6ea, type: 3}
+    _spawn: {fileID: 0}
+    _cameraSize: 5
+    _ambienceKey: AMB_5
+    _backgroundPositions:
+    - _path: Background/Sky
+      _useLocalX: 0
+      _localX: 0
+      _localY: 8.15
+    _worldTexts: []
+  - _stageId: 8005
+    _map: {fileID: 6190918105606674834, guid: 0f97cf1b037c0ec4c8044537f62b8ee4, type: 3}
+    _spawn: {fileID: 4900000, guid: bc4feb177f93c1344ad35bfc043ee872, type: 3}
+    _cameraSize: 3.6
+    _ambienceKey: AMB_2
+    _backgroundPositions: []
+    _worldTexts: []
+  - _stageId: 8006
+    _map: {fileID: 1000, guid: d0b031715645554d8e883d5ad2e54965, type: 3}
+    _spawn: {fileID: 4900000, guid: 1915457068f705bc0d798729f1e0206a, type: 3}
+    _cameraSize: 5
+    _ambienceKey: AMB_3
+    _backgroundPositions: []
+    _worldTexts: []
+  - _stageId: 8007
+    _map: {fileID: 1000, guid: 7222e5248c205efe96e73fe13d6c2e9b, type: 3}
+    _spawn: {fileID: 4900000, guid: d5bcb29a1de0e40d6b06cc440615c731, type: 3}
+    _cameraSize: 5
+    _ambienceKey: AMB_3
+    _backgroundPositions: []
+    _worldTexts:
+    - _anchor: Markers/Route_Up
+      _textIds: a8760000
+      _offsetUnits: {x: 0, y: 150}
+    - _anchor: Markers/Route_Mid
+      _textIds: a9760000ab760000
+      _offsetUnits: {x: 0, y: 150}
+    - _anchor: Markers/Route_Low
+      _textIds: aa760000ab760000
+      _offsetUnits: {x: 0, y: 150}
   _platforms:
   - {fileID: 9109195467246044568, guid: ddc56e26ecb3f4f4daf2d556292e3d67, type: 3}
   - {fileID: 8349585168332058385, guid: f97501e6f2b51314482953fbdb25dd0b, type: 3}
@@ -129,19 +136,19 @@ MonoBehaviour:
   - {fileID: 1000, guid: 7b0e7fe2a1fc5cdfa7e228a11ef8640e, type: 3}
   - {fileID: 1000, guid: 87f4af6891c8575094c10921d3fe42fd, type: 3}
   _monsters:
-  - Code: 3001
-    Prefab: {fileID: 2212268001790328552, guid: 776d91e27d429634096015e81eee0596, type: 3}
-  - Code: 3002
-    Prefab: {fileID: 8711519359393882842, guid: 2c4eccaa2474f0c4d82c9d847982a3a2, type: 3}
-  - Code: 3003
-    Prefab: {fileID: 171237571685844180, guid: 95715fa05a925ef4eaf28dde4461b79c, type: 3}
-  - Code: 3004
-    Prefab: {fileID: 5889506977236311024, guid: e45afd4f04aa73a48b73cbc7debe1e6a, type: 3}
-  - Code: 3005
-    Prefab: {fileID: 1980982738135429473, guid: 084637fe4ca6d5c4a8de9ce1205210b4, type: 3}
+  - _code: 3001
+    _prefab: {fileID: 2212268001790328552, guid: 776d91e27d429634096015e81eee0596, type: 3}
+  - _code: 3002
+    _prefab: {fileID: 8711519359393882842, guid: 2c4eccaa2474f0c4d82c9d847982a3a2, type: 3}
+  - _code: 3003
+    _prefab: {fileID: 171237571685844180, guid: 95715fa05a925ef4eaf28dde4461b79c, type: 3}
+  - _code: 3004
+    _prefab: {fileID: 5889506977236311024, guid: e45afd4f04aa73a48b73cbc7debe1e6a, type: 3}
+  - _code: 3005
+    _prefab: {fileID: 1980982738135429473, guid: 084637fe4ca6d5c4a8de9ce1205210b4, type: 3}
   _npcs:
-  - Key: NPC_Refugee
-    Prefab: {fileID: 5374485242292073022, guid: 10a7dc1277df7dd4c9675ae860cf3d69, type: 3}
+  - _key: NPC_Refugee
+    _prefab: {fileID: 5374485242292073022, guid: 10a7dc1277df7dd4c9675ae860cf3d69, type: 3}
   _fieldFire: {fileID: 21300000, guid: 413cbbedca954613b99d0a4fe4f22794, type: 3}
   _fieldIceLeft: {fileID: 21300000, guid: 56db3bffa9c44ca981632b2f35a9ced7, type: 3}
   _fieldIceMiddle: {fileID: 21300000, guid: ea734d771e574c2481233f2c919c78ed, type: 3}

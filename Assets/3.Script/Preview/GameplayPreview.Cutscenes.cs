@@ -23,7 +23,7 @@ namespace HumanGhost.Gameplay.Preview
         {
             _endingCutsceneId = CutsceneSequenceSource.FindId(_catalog, CutsceneSequenceSource.EndingKey);
             bool viewed = _endingCutsceneId != 0 && Array.IndexOf(_progress.ViewedCutscenes, _endingCutsceneId) >= 0;
-            _ending = _stageId == BossStage ? new DemoEndingFlow(viewed && _progress.HasDefeatedBoss(BossStage)) : null;
+            _ending = _stageId == StageExitRules.BossStage ? new DemoEndingFlow(viewed && _progress.HasDefeatedBoss(StageExitRules.BossStage)) : null;
         }
         private Action _afterCutscene;
         private int _pendingCutsceneId;
@@ -70,7 +70,7 @@ namespace HumanGhost.Gameplay.Preview
         }
         private void TryStartEnding()
         {
-            if (HasPendingDialogue || _ending == null || _ending.Phase != DemoEndingPhase.Waiting || _endingCutsceneId == 0 || !_progress.HasDefeatedBoss(BossStage)
+            if (HasPendingDialogue || _ending == null || _ending.Phase != DemoEndingPhase.Waiting || _endingCutsceneId == 0 || !_progress.HasDefeatedBoss(StageExitRules.BossStage)
                 || _afterCutscene != null || _modalBlocked || _saveLocked || _leaving || _actor.IsDead
                 || (_textbox != null && _textbox.IsOpen)
                 || _actor.CurrentState == HumanGhost.Data.Definitions.StateKey.Execute) return;

@@ -47,7 +47,8 @@ namespace HumanGhost.Gameplay.Preview
         private int _elapsedMilliseconds;
         private int _impactHit = -1;
         private BossPattern _impactPattern;
-        private float _lastX;
+        // 이동 여부(걷기/대기 그림 선택)는 보스 정수 X 변화로 판단합니다. 첫 프레임은 비교 기준이 없어 대기로 봅니다.
+        private long _lastX = long.MinValue;
         private Vector3 _rigPosition, _rigScale;
         private SpriteRenderer[] _parts;
         private RigBindPose _bind;
@@ -62,7 +63,6 @@ namespace HumanGhost.Gameplay.Preview
             _rigPosition = _rig.transform.localPosition; _rigScale = _rig.transform.localScale;
             _parts = _rig.GetComponentsInChildren<SpriteRenderer>(true);
             _bind = new RigBindPose(_rig);
-            _lastX = transform.position.x;
         }
         // 걷기 표시 프레임이 손 짚는 프레임에 들어서면 한 번 알립니다. 걷기 시작 첫 프레임은 울리지 않습니다.
         private void UpdateWalkStep(int frame)
@@ -105,7 +105,8 @@ namespace HumanGhost.Gameplay.Preview
             if (!_rig.activeSelf) { _dust.enabled = false; _walkFrame = -1; DrawWarning(combat); return; }
             _idleMilliseconds = checked(_idleMilliseconds + _elapsedMilliseconds);
             _loopMilliseconds = checked(_loopMilliseconds + _loopClock.AdvanceFrame(Time.deltaTime * _loopRate / 10000d));
-            bool moving = Mathf.Abs(transform.position.x - _lastX) > .00001f; _lastX = transform.position.x;
+            long x = _boss.Position.X;
+            bool moving = _lastX != long.MinValue && x != _lastX; _lastX = x;
             AnimationClip clip = moving ? _walk : _idle;
             float time = _loopMilliseconds / 1000f;
             if (actor.IsDead || actor.IsExposed || actor.CurrentState == HumanGhost.Data.Definitions.StateKey.Execute)
