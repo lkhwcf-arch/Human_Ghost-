@@ -131,7 +131,7 @@ namespace HumanGhost.Gameplay.Preview
         {
             if (_audio == null) return;
             _audio.PlayAmbience(StageAmbience(_stageId));
-            string anchor = _progress.ArrivalAnchor;
+            string anchor = _arrivalAnchor;
             if (!string.IsNullOrEmpty(anchor) && _catalog.GetTable<StageExit>().All.Any(row => row.TargetStageID == _stageId && row.ArrivalAnchorName == anchor &&
                 (row.StageID == StageExitRules.LedgerStage || row.TargetStageID == StageExitRules.LedgerStage)))
                 _audio.PlayEffect("SFX_DOOR");
@@ -997,9 +997,10 @@ namespace HumanGhost.Gameplay.Preview
 
         private void ShowGateHint() { if (_textbox != null) _textbox.ShowObjective("결박이 길을 막고 있다. Z(결박 가르기)로 베어 내자"); }
 
+        private string _arrivalAnchor;
         private void MoveToArrival()
         {
-            string anchor = _progress.ArrivalAnchor;
+            string anchor = _arrivalAnchor = _progress.ArrivalAnchor;
             if (_markersRoot == null)
             {
                 if (!string.IsNullOrEmpty(anchor)) throw new InvalidOperationException("요청한 도착 앵커를 찾을 표식 묶음이 없습니다: " + anchor);
