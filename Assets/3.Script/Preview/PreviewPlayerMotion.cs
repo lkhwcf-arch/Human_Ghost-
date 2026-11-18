@@ -44,6 +44,13 @@ namespace HumanGhost.Gameplay.Preview
         private readonly System.Collections.Generic.List<LadderClimbArea> _ladders = new System.Collections.Generic.List<LadderClimbArea>();
         private LadderClimbArea _ladder;
         private const int _ladderStepMilliseconds = 350;
+        // [정수화 미적용 이유] 사다리 Collider bounds(월드)와 바로 비교하는 허용 거리입니다. 플레이어 float 이동 계약(비탈 보류, 2026-11-17) 안의 값이며 비탈 개선 적용 시 tile_x100 정수로 옮깁니다.
+        // 사다리 잡기: 몸통이 사다리 좌우 끝에서 이만큼 벗어나도 잡습니다.
+        private const float _ladderGrabHorizontalMargin = 0.1f;
+        // 사다리 잡기: 발이 사다리 위·아래 끝에서 이만큼 벗어나도 잡습니다.
+        private const float _ladderGrabVerticalMargin = 0.12f;
+        // 사다리에서 내릴 때 착지할 바닥을 찾는 거리입니다.
+        private const float _ladderExitFloorProbe = 0.12f;
         private int _ladderStepRemaining;
         // [정수화 미적용 이유] 사다리 Collider2D.bounds 관측값입니다. 플레이어 이동 float 계약(비탈 보류, 2026-11-17)에서 사다리 내림 위치 계산에 씁니다.
         private Bounds _lastLadderArea;
@@ -157,7 +164,7 @@ namespace HumanGhost.Gameplay.Preview
             {
                 if (ladder == null || !ladder.isActiveAndEnabled) continue;
                 Bounds area = ladder.Area;
-                if (Mathf.Abs(position.x - area.center.x) > area.extents.x + _halfSize.x + 0.1f || feet < area.min.y - 0.12f || feet > area.max.y + 0.12f ||
+                if (Mathf.Abs(position.x - area.center.x) > area.extents.x + _halfSize.x + _ladderGrabHorizontalMargin || feet < area.min.y - _ladderGrabVerticalMargin || feet > area.max.y + _ladderGrabVerticalMargin ||
                     direction > 0 && feet >= area.max.y || direction < 0 && feet <= area.min.y) continue;
                 bool grounded = _player.Actor.Locomotion.IsGrounded;
                 _player.SetGrounded(false);
@@ -210,7 +217,7 @@ namespace HumanGhost.Gameplay.Preview
             _ladder = null; _verticalInput = _shownLadderDirection = 0;
             Vector3 position = _player.transform.position;
             float gap;
-            bool grounded = _collision.FindFloor(position, 0.12f, out gap);
+            bool grounded = _collision.FindFloor(position, _ladderExitFloorProbe, out gap);
             if (!grounded && atTop)
             {
                 int preferred = _player.Actor.Locomotion.Direction < 0 ? -1 : 1;
@@ -219,7 +226,7 @@ namespace HumanGhost.Gameplay.Preview
                     Vector3 candidate = position;
                     candidate.x = area.center.x + (i == 0 ? preferred : -preferred) * (area.extents.x + _halfSize.x + PreviewCollision.Skin);
                     if (Mathf.Abs(_collision.MoveHorizontal(position, candidate.x - position.x) - (candidate.x - position.x)) > PreviewCollision.Skin ||
-                        !_collision.FindFloor(candidate, 0.12f, out gap)) continue;
+                        !_collision.FindFloor(candidate, _ladderExitFloorProbe, out gap)) continue;
                     position = candidate; grounded = true;
                 }
             }
@@ -383,7 +390,7 @@ namespace HumanGhost.Gameplay.Preview
         {
             if (!_airborne)
             {
-                if (_collision.FindFloor(position, 0.05f, out _)) { _coyoteRemaining = 0; return currentY; }
+                if (_collision.FindFloor(position, PreviewCollision.GroundedProbe, out _)) { _coyoteRemaining = 0; return currentY; }
                 _airborne = true; _motion.SetVerticalSpeed();
                 _coyoteRemaining = _coyoteMilliseconds;
                 _peakY = currentY;

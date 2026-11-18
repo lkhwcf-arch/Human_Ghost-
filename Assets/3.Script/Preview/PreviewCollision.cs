@@ -13,6 +13,15 @@ namespace HumanGhost.Gameplay.Preview
     {
         // [정수화 미적용 이유] Unity Physics2D 어댑터의 조회 여유·평지 높이·충돌 상자 크기입니다(클래스 주석 참고). 플레이어 충돌 상자·이동은 float Physics2D 계약(비탈 보류, 2026-11-17)을 유지하므로 이 경계에서 실수로 둡니다.
         public const float Skin = 0.02f;
+        // [정수화 미적용 이유] Physics2D 조회 거리·법선 판별 기준입니다. 플레이어 float 이동 계약(비탈 보류, 2026-11-17) 안에서 Unity API에 바로 넘기므로 실수로 둡니다. 비탈 개선 적용 시 PreviewFootCollision의 정수 규칙으로 옮깁니다.
+        // 서 있는지 볼 때 발 아래로 찾는 거리(월드)입니다. 플레이어 이동도 같은 값을 씁니다.
+        public const float GroundedProbe = 0.05f;
+        // 아래 점프 시작 때 딛고 선 발판을 찾는 거리(월드)입니다.
+        private const float _dropSupportProbe = 0.08f;
+        // 법선 성분이 이 값 이상이면 바닥·벽·천장 면으로 봅니다(약 60도). 더 비스듬한 면은 무시합니다.
+        private const float _surfaceNormalMin = 0.5f;
+        // 비탈 추종 뒤 수평 이동이 요청 거리와 같은지 볼 때 허용하는 오차(월드)입니다.
+        private const float _slopeMoveTolerance = 0.0001f;
         private readonly bool _useColliders;
         // [정수화 미적용 이유] Unity Physics2D 어댑터의 조회 여유·평지 높이·충돌 상자 크기입니다(클래스 주석 참고). 플레이어 충돌 상자·이동은 float Physics2D 계약(비탈 보류, 2026-11-17)을 유지하므로 이 경계에서 실수로 둡니다.
         private readonly float _flatFloorY;
@@ -44,7 +53,7 @@ namespace HumanGhost.Gameplay.Preview
             for (int i = 0; i < count; i++)
             {
                 RaycastHit2D hit = _hits[i];
-                if (hit.collider.usedByEffector || hit.normal.x * direction > -0.5f || IgnoresWallHit(hit)) continue;
+                if (hit.collider.usedByEffector || hit.normal.x * direction > -_surfaceNormalMin || IgnoresWallHit(hit)) continue;
                 allowed = Mathf.Min(allowed, Mathf.Max(0f, hit.distance - Skin));
             }
             return direction * LimitHorizontal(position, direction, allowed);
@@ -71,7 +80,7 @@ namespace HumanGhost.Gameplay.Preview
             for (int i = 0; i < count; i++)
             {
                 RaycastHit2D hit = _hits[i];
-                if (hit.collider.usedByEffector || hit.normal.y > -0.5f) continue;
+                if (hit.collider.usedByEffector || hit.normal.y > -_surfaceNormalMin) continue;
                 hitCeiling = true;
                 return Mathf.Max(0f, hit.distance - Skin);
             }
@@ -83,13 +92,13 @@ namespace HumanGhost.Gameplay.Preview
         {
             if (!_useColliders) return false;
             var size = new Vector2(_halfSize.x * 2f - Skin * 4f, _halfSize.y * 2f);
-            int count = Physics2D.BoxCast(position, size, 0f, Vector2.down, _filter, _hits, 0.08f);
+            int count = Physics2D.BoxCast(position, size, 0f, Vector2.down, _filter, _hits, _dropSupportProbe);
             Collider2D support = null;
             float nearest = float.MaxValue;
             for (int i = 0; i < count; i++)
             {
                 var hit = _hits[i];
-                if (hit.normal.y < 0.5f || hit.distance >= nearest) continue;
+                if (hit.normal.y < _surfaceNormalMin || hit.distance >= nearest) continue;
                 support = hit.collider;
                 nearest = hit.distance;
             }
@@ -112,7 +121,7 @@ namespace HumanGhost.Gameplay.Preview
         {
             height = position.y;
             if (!_useColliders || delta == 0f ||
-                !FindFloor(position, 0.05f, out _, out Collider2D currentFloor)) return false;
+                !FindFloor(position, GroundedProbe, out _, out Collider2D currentFloor)) return false;
 
             // 단차나 다른 층으로 건너뛰지 않도록 이번 수평 이동 거리만큼의 경사만 따라갑니다.
             float reach = Mathf.Abs(delta) + Skin * 2f;
@@ -125,7 +134,7 @@ namespace HumanGhost.Gameplay.Preview
             float rise = Mathf.Max(0f, nextHeight - position.y);
             if (rise > 0f && MoveUp(position, rise, out _) < rise - Skin) return false;
             position.y += rise;
-            if (Mathf.Abs(MoveHorizontal(position, delta) - delta) > 0.0001f) return false;
+            if (Mathf.Abs(MoveHorizontal(position, delta) - delta) > _slopeMoveTolerance) return false;
 
             height = nextHeight;
             return true;
@@ -158,7 +167,7 @@ namespace HumanGhost.Gameplay.Preview
             for (int i = 0; i < count; i++)
             {
                 RaycastHit2D hit = _hits[i];
-                if (hit.normal.y < 0.5f) continue;
+                if (hit.normal.y < _surfaceNormalMin) continue;
                 // 이음새에서 같은 높이의 다른 조각에 다시 착지하지 않습니다. 아래층·금지 지면은 유지합니다.
                 if (_ignoredPlatform != null && (hit.collider == _ignoredPlatform ||
                     (Mathf.Abs(hit.collider.bounds.max.y - _ignoredPlatform.bounds.max.y) <= Skin && CanDropThrough(hit.collider)))) continue;
