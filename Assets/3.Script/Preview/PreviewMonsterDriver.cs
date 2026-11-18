@@ -66,6 +66,9 @@ namespace HumanGhost.Gameplay.Preview
         // 턱 보호 판정 정수 값입니다(기존 0.2칸 높이 차·1칸 여유).
         private const long LedgeHeightTolerance = IntegerPosition.UnitsPerTile / 5;
         private const long LedgeClearance = IntegerPosition.UnitsPerTile;
+        // 뒤로 깡총 판정 정수 값입니다(기존 벽 허용 오차 0.01·착지 바닥 탐색 여유 0.3칸).
+        private const long _retreatBlockTolerance = IntegerPosition.UnitsPerTile / 100;
+        private const long _retreatFloorProbe = IntegerPosition.UnitsPerTile * 3 / 10;
         public void UseLedgeProtection(Func<Vector2?> protectedLedge) => _protectedLedge = protectedLedge;
 
         // 조립된 바닥에서 걸을 수 있는 구간(정수 X)입니다. 경사 지면을 포함하며 끝에 닿으면 벽처럼 다룹니다.
@@ -253,13 +256,18 @@ namespace HumanGhost.Gameplay.Preview
             int distance = 0;
             foreach (MonsterPattern pattern in _runtime.Actor.Patterns) if (pattern.IsRetreat) distance = Math.Max(distance, pattern.RetreatDistance);
             if (distance == 0) return false;
-            float delta = direction * distance / 100f * _worldUnitsPerTile;
-            Vector3 center = _body.bounds.center;
-            float x = _runtime.transform.position.x + delta;
-            if (_hasSpan && (x < _spanMin || x > _spanMax)) return false;
-            if (Mathf.Abs(_collision.MoveHorizontal(center, delta) - delta) > .01f) return false;
-            // 보행 구간이 없는 곳(직접 배치)은 착지점 아래 바닥을 확인합니다.
-            return _hasSpan || _collision.FindFloor(new Vector3(center.x + delta, center.y, center.z), _body.bounds.extents.y + .3f * _worldUnitsPerTile, out _);
+            // 후퇴 목표·보행 구간·벽 판정은 모두 정수 좌표입니다(구간은 2ee0a130부터 long). Step의 구간 제한과 같은 기준인 Position.X를 씁니다.
+            long delta = checked(direction * IntegerPosition.FromData(distance));
+            long target = checked(_runtime.Position.X + delta);
+            if (_hasSpan && (target < _spanMin || target > _spanMax)) return false;
+            // Unity 경계: 몸통(Body) 중심은 읽는 즉시 정수로 바꿔 정수 충돌 API에 넘깁니다.
+            Bounds bodyBounds = _body.bounds;
+            long centerX = _runtime.ToInteger(bodyBounds.center.x), centerY = _runtime.ToInteger(bodyBounds.center.y);
+            if (Math.Abs(checked(_collision.MoveHorizontal(centerX, centerY, delta) - delta)) > _retreatBlockTolerance) return false;
+            if (_hasSpan) return true;
+            // 보행 구간이 없는 곳(직접 배치)은 착지점 아래 바닥을 확인합니다. Physics2D 조회 순간에만 월드 좌표로 바꿉니다.
+            long probe = checked(_runtime.ToInteger(bodyBounds.extents.y) + _retreatFloorProbe);
+            return _collision.FindFloor(new Vector3(_runtime.ToWorld(checked(centerX + delta)), bodyBounds.center.y, bodyBounds.center.z), _runtime.ToWorld(probe), out _);
         }
 
         // 짐 투척(C08): 판정 창 동안 던진 순간의 플레이어 위치로 포물선을 그립니다.
