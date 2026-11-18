@@ -50,19 +50,19 @@ internal static class ResourceConnectionChecks
             .Split(new[] { "  _monsters:" }, StringSplitOptions.None)[0];
         var platforms = Regex.Matches(platformSection, @"guid: ([a-f0-9]{32})").Cast<Match>()
             .Select(match => Path.GetFileNameWithoutExtension(Asset(match.Groups[1].Value, "플랫폼 목록"))).ToHashSet(StringComparer.Ordinal);
-        var monsterPrefabs = Regex.Matches(config, @"- Code: (\d+)\s+Prefab: \{[^}]*guid: ([a-f0-9]{32})").Cast<Match>()
+        var monsterPrefabs = Regex.Matches(config, @"- _code: (\d+)\s+_prefab: \{[^}]*guid: ([a-f0-9]{32})").Cast<Match>()
             .ToDictionary(match => int.Parse(match.Groups[1].Value), match => Asset(match.Groups[2].Value, "몬스터 프리팹 목록"));
         foreach (int code in monsterPrefabs.Keys) check(monsters.Contains(code), "몬스터 프리팹 코드의 CSV 참조가 없습니다: " + code);
-        var npcPrefabs = Regex.Matches(config, @"- Key: ([^\r\n]+)\r?\n\s+Prefab: \{[^}]*guid: ([a-f0-9]{32})").Cast<Match>()
+        var npcPrefabs = Regex.Matches(config, @"- _key: ([^\r\n]+)\r?\n\s+_prefab: \{[^}]*guid: ([a-f0-9]{32})").Cast<Match>()
             .ToDictionary(match => match.Groups[1].Value.Trim(), match => Asset(match.Groups[2].Value, "NPC 프리팹 목록"));
         foreach (var row in npcRows)
             if (row.Get("ContentEnabled") == "Y")
                 check(npcPrefabs.ContainsKey(row.Get("Prefab")), "NPC 테이블의 프리팹 별칭 연결이 없습니다: " + row.Get("Prefab"));
         var stageMaps = new Dictionary<int, string>();
-        foreach (Match entry in Regex.Matches(config, @"(?ms)^  - StageId: (\d+)\r?\n(.*?)(?=^  - StageId:|^  _platforms:|\z)"))
+        foreach (Match entry in Regex.Matches(config, @"(?ms)^  - _stageId: (\d+)\r?\n(.*?)(?=^  - _stageId:|^  _platforms:|\z)"))
         {
             int stageId = int.Parse(entry.Groups[1].Value);
-            Match mapEntry = Regex.Match(entry.Groups[2].Value, @"Map: \{[^}]*guid: ([a-f0-9]{32})");
+            Match mapEntry = Regex.Match(entry.Groups[2].Value, @"_map: \{[^}]*guid: ([a-f0-9]{32})");
             if (mapEntry.Success)
             {
                 string mapText = File.ReadAllText(Asset(mapEntry.Groups[1].Value, "스테이지 맵"));
@@ -71,7 +71,7 @@ internal static class ResourceConnectionChecks
                     check(npc.Groups[1].Value == "0" || npcRows.Any(row => row.Get("ID") == npc.Groups[1].Value), "고정 NPC의 테이블 참조가 없습니다.");
             }
             check(stages.ContainsKey(stageId), "StageContentSet의 Stage CSV 참조가 없습니다: " + stageId);
-            Match spawn = Regex.Match(entry.Groups[2].Value, @"Spawn: \{[^}]*guid: ([a-f0-9]{32})");
+            Match spawn = Regex.Match(entry.Groups[2].Value, @"_spawn: \{[^}]*guid: ([a-f0-9]{32})");
             // 기존 보스 전용 맵처럼 Spawn을 연결하지 않는 실행 경로는 그대로 구분합니다.
             if (!spawn.Success) continue;
             string path = Asset(spawn.Groups[1].Value, "스테이지 " + stageId + " 스폰");

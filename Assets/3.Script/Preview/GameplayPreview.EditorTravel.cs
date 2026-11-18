@@ -22,7 +22,7 @@ namespace HumanGhost.Gameplay.Preview
         {
             if (!CanEditorTravel) return;
             CloseEditorPause();
-            int targetStage = boss ? BossStage : StageExitRules.LedgerStage;
+            int targetStage = boss ? StageExitRules.BossStage : StageExitRules.LedgerStage;
             GoToStage(targetStage, GetUniqueArrivalAnchor(targetStage));
         }
 

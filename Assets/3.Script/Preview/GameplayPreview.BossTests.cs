@@ -35,9 +35,9 @@ namespace HumanGhost.Gameplay.Preview
             {
                 if (command == BossTestCommand.Travel)
                 {
-                    if (_progress.HasDefeatedBoss(BossStage)) { _bossTestStatus = "이미 처치한 진행입니다. 새 게임으로 시험해 주세요."; return; }
-                    string arrival = GetUniqueArrivalAnchor(BossStage);
-                    CloseBossTests(); GoToStage(BossStage, arrival); return;
+                    if (_progress.HasDefeatedBoss(StageExitRules.BossStage)) { _bossTestStatus = "이미 처치한 진행입니다. 새 게임으로 시험해 주세요."; return; }
+                    string arrival = GetUniqueArrivalAnchor(StageExitRules.BossStage);
+                    CloseBossTests(); GoToStage(StageExitRules.BossStage, arrival); return;
                 }
                 if (!_bossActive || _boss == null || _boss.Actor == null || _boss.Actor.IsDead) return;
                 if ((command == BossTestCommand.Stop || command == BossTestCommand.Pattern) && _bossDriver == null) return;

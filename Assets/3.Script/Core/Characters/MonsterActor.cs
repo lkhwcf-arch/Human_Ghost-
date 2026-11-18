@@ -35,8 +35,10 @@ namespace HumanGhost.Gameplay
         private int _returnDirection;
         private int _height;
         private int[] _cooldowns;
-        // 물러서기 착지점(뒤 RetreatDistance 안)에 벽·낭떠러지·발판 끝이 없는지. 공간 관측은 어댑터가 공급합니다.
-        public bool CanRetreat { get; set; } = true;
+        // 물러서기 착지점(뒤 RetreatDistance 안)에 벽·낭떠러지·발판 끝이 없는지 묻는 공간 관측(인자: 물러설 방향)입니다.
+        // 어댑터가 공급하며, 물러서기 외 조건(쿨타임·층·거리)이 모두 맞을 때만 호출해 매 프레임 물리 조회를 하지 않습니다. 없으면 허용합니다.
+        private Func<int, bool> _retreatSpace;
+        public void UseRetreatSpace(Func<int, bool> retreatSpace) => _retreatSpace = retreatSpace;
         // 같은 층으로 보는 발 높이 차이(tile_x100) 상한입니다. 물러서기 조건에만 씁니다.
         private const int _sameFloorHeight = 50;
 
@@ -382,8 +384,9 @@ namespace HumanGhost.Gameplay
                 for (int i = 0; i < _patterns.Length; i++)
                 {
                     MonsterPattern pattern = _patterns[i];
-                    if (pattern.IsRetreat && _cooldowns[i] == 0 && CanRetreat && _height <= _sameFloorHeight &&
-                        _distance <= pattern.Range && _distance >= pattern.MinRange) { StartPattern(pattern); return; }
+                    if (pattern.IsRetreat && _cooldowns[i] == 0 && _height <= _sameFloorHeight &&
+                        _distance <= pattern.Range && _distance >= pattern.MinRange && (_retreatSpace == null || _retreatSpace(-_direction)))
+                    { StartPattern(pattern); return; }
                 }
                 _candidates.Clear();
                 foreach (MonsterPattern pattern in _patterns)
