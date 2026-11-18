@@ -97,14 +97,14 @@ namespace HumanGhost.Gameplay.Preview
             Renderer.transform.position += Vector3.up * _hopOffset;
         }
 
-        protected override float Duration(StateKey state)
+        protected override int DurationMilliseconds(StateKey state)
         {
             var pattern = _monster.Actor.CurrentPattern;
-            if (pattern != null && pattern.Key == state) return pattern.Attack.TotalTime / 1000f;
-            if (state == StateKey.Stun) return _monster.Actor.StunDuration / 1000f;
-            if (state == StateKey.Hit) return _monster.Patterns.HitStun / 1000f;
-            if (state == StateKey.CritHit) return _monster.Patterns.CritHitStun / 1000f;
-            return 0f;
+            if (pattern != null && pattern.Key == state) return pattern.Attack.TotalTime;
+            if (state == StateKey.Stun) return _monster.Actor.StunDuration;
+            if (state == StateKey.Hit) return _monster.Patterns.HitStun;
+            if (state == StateKey.CritHit) return _monster.Patterns.CritHitStun;
+            return 0;
         }
 
         protected override bool TryGetAnimationTime(StateKey state, AnimationClip animation, out float time)

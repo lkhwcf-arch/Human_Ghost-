@@ -7,6 +7,7 @@ namespace HumanGhost.Gameplay.Preview
     // 구덩이 낙하 구역(L08)입니다. 표식 묶음의 FallZone_이름(BoxCollider2D)과 FallRespawn_이름을 짝짓습니다.
     internal sealed class PreviewFallZones
     {
+        // [정수화 미적용 이유] 낙사 구역 Collider 범위와 복귀 Transform 위치(Unity 관측값)입니다.
         private struct Zone { public Bounds Area; public Vector3 Respawn; }
         private readonly Zone[] _zones;
 

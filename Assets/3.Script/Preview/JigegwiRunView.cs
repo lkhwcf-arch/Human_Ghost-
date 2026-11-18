@@ -56,6 +56,7 @@ namespace HumanGhost.Gameplay.Preview
             Show(true);
             _timeMilliseconds = checked(_timeMilliseconds + _clock.AdvanceFrame(Time.deltaTime * (actor.IsCharging ? _chargeRate : 10000) / 10000d));
             _timeMilliseconds %= System.Math.Max(1, MillisecondClock.ToMilliseconds(_run.length));
+            // [정수화 미적용 이유] AnimationClip.SampleAnimation은 클립 안 시각을 초(float)로만 받습니다. 경과는 정수 ms로 누적하고 넘기는 순간에만 초로 바꿉니다.
             float sampleTime = BossPhaseTwoView.Frame(_timeMilliseconds / 1000f, _framesPerSecond);
             _run.SampleAnimation(_rig, sampleTime);
             _rig.transform.localScale = new Vector3(_baseScale.x * (actor.Facing > 0 ? -1f : 1f), _baseScale.y, _baseScale.z);

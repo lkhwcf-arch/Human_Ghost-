@@ -105,6 +105,10 @@ namespace HumanGhost.Gameplay.Preview
         private int _lastHealth;
         private bool _bossHitThisFrame;
         private const int _combatHoldMilliseconds = 3000;
+        // 맵 좌우 벽 두께(tile_x100)입니다. 보스 이동 한계와 카메라 추적 범위가 같은 기준으로 벽 안쪽 면을 씁니다.
+        private const int _mapWallThicknessUnits = 100;
+        // 카메라 최저 높이를 맵 기준점 위로 올리는 보정(tile_x100)입니다. 카메라 표시에만 씁니다.
+        private const int _cameraMinHeightUnits = 400;
         private PreviewPlayerSprite _playerSprite;
         private SpatialRuntime _executingRuntime;
         private int _executionRemainingMilliseconds;
@@ -707,7 +711,11 @@ namespace HumanGhost.Gameplay.Preview
             if (_followCamera != null)
             {
                 // 2026-11-11 사용자 확정: 보스방도 필드와 같은 확대 추적 구도를 씁니다(기존 L09_1 고정 구도 대체).
-                _followCamera.SetArea(_stage.Area.min.x + 1f, _stage.Area.max.x - 1f, _stage.MapRoot.position.y + 4f, _stage.CameraSize);
+                // Unity 경계: 정수 보정값은 카메라에 넘기는 순간에만 월드 거리로 바꿉니다.
+                float wallThicknessWorld = SpatialRuntime.ToWorld(IntegerPosition.FromData(_mapWallThicknessUnits), _worldUnitsPerTile);
+                float cameraMinHeightWorld = SpatialRuntime.ToWorld(IntegerPosition.FromData(_cameraMinHeightUnits), _worldUnitsPerTile);
+                _followCamera.SetArea(_stage.Area.min.x + wallThicknessWorld, _stage.Area.max.x - wallThicknessWorld,
+                    _stage.MapRoot.position.y + cameraMinHeightWorld, _stage.CameraSize);
                 _followCamera.LookEnabled = _stageId != StageExitRules.LedgerStage;
             }
         }
@@ -795,17 +803,17 @@ namespace HumanGhost.Gameplay.Preview
             if (target == null) return false;
             var victimSprite = runtime is MonsterRuntime ? runtime.GetComponentInChildren<PreviewMonsterSprite>(true) : null;
             _playerSprite?.SetExecutionAnimation(victimSprite?.PlayerExecution);
-            float duration = _playerSprite != null ? _playerSprite.ExecutionDuration : 0f;
-            if (duration <= 0f) throw new InvalidOperationException("플레이어 해체 애니메이션을 연결해 주세요.");
+            int duration = _playerSprite != null ? _playerSprite.ExecutionMilliseconds : 0;
+            if (duration <= 0) throw new InvalidOperationException("플레이어 해체 애니메이션을 연결해 주세요.");
             if (runtime is MonsterRuntime)
             {
-                float victimDuration = victimSprite?.ExecutionDuration ?? 0f;
-                if (victimDuration <= 0f) throw new InvalidOperationException("일반몹 해체 애니메이션을 연결해 주세요.");
-                duration = Mathf.Max(duration, victimDuration);
+                int victimDuration = victimSprite?.ExecutionMilliseconds ?? 0;
+                if (victimDuration <= 0) throw new InvalidOperationException("일반몹 해체 애니메이션을 연결해 주세요.");
+                duration = Math.Max(duration, victimDuration);
             }
             if (!_actor.TryExecute(target, true)) return false;
             _executingRuntime = runtime;
-            _executionRemainingMilliseconds = MillisecondClock.ToMilliseconds(duration);
+            _executionRemainingMilliseconds = duration;
             _feedback?.OnExecute();
             return true;
         }
@@ -944,7 +952,7 @@ namespace HumanGhost.Gameplay.Preview
                 _hud.SetVisible(!PreviewScreenFade.IsActive);
             }
             _exit?.Step();
-            _stage?.StepAmbushes(_player.transform.position.x);
+            _stage?.StepAmbushes(_player);
             StepStageClear();
             StepSavePoint();
             _gates?.Step(_actor, _attackWindow.bounds, _playerBody.bounds, ShowGateHint);
@@ -1048,10 +1056,11 @@ namespace HumanGhost.Gameplay.Preview
             foreach (PreviewMonsterDriver monster in _monsterDrivers)
                 if (monster.NeedsStep) monster.Step(Time.deltaTime, combatMin, combatMax);
             // 보스는 고정 한계 대신 실제 맵 범위에서 막습니다. 고정 한계는 맵1 기준이라 보스방 돌진이 벽을 지나쳤습니다.
-            // 보스방 좌우 벽 두께 1(카메라 범위와 같은 기준)을 빼 벽 안쪽 면에서 멈추고 벽 충돌을 알립니다.
-            // Unity 경계: 맵 범위(월드)는 넘기는 순간 정수로 바꿉니다(S11).
-            _bossDriver?.Step(Time.deltaTime, _stage != null ? SpatialRuntime.ToInteger(_stage.Area.min.x + 1f, _worldUnitsPerTile) : combatMin,
-                _stage != null ? SpatialRuntime.ToInteger(_stage.Area.max.x - 1f, _worldUnitsPerTile) : combatMax);
+            // 보스방 좌우 벽 두께(카메라 범위와 같은 _mapWallThicknessUnits)를 빼 벽 안쪽 면에서 멈추고 벽 충돌을 알립니다.
+            // Unity 경계: 맵 범위(월드)만 정수로 바꾸고 벽 두께는 정수끼리 계산합니다(S11).
+            long wallThickness = IntegerPosition.FromData(_mapWallThicknessUnits);
+            _bossDriver?.Step(Time.deltaTime, _stage != null ? SpatialRuntime.ToInteger(_stage.Area.min.x, _worldUnitsPerTile) + wallThickness : combatMin,
+                _stage != null ? SpatialRuntime.ToInteger(_stage.Area.max.x, _worldUnitsPerTile) - wallThickness : combatMax);
             StepFields();
             CheckPlayerHits();
             FlushMonsterRewards();

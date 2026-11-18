@@ -19,6 +19,7 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField, InspectorName("걷기 손 짚는 시간 (ms, 클립 기준)")] private int[] _walkSteps = { 0, 600 };
         public int FramesPerSecond => _framesPerSecond;
         public int LoopRate => _loopRate;
+        // [정수화 미적용 이유] SampleAnimation에 넘길 클립 시각(초)을 프레임 간격으로 끊는 표현 계산입니다. 입력은 정수 ms에서 바꾼 값입니다.
         public static float Frame(float time, int framesPerSecond) => Mathf.Floor(time * framesPerSecond) / framesPerSecond;
         // 표시 프레임이 previous→frame으로 바뀔 때(루프 되감김 포함) 발 닿는 시간(ms) 중 하나의 프레임에 들어섰는지. 걷기 플레이어·보스가 같이 씁니다.
         public static bool EntersStep(int previous, int frame, int[] stepsMilliseconds, float framesPerSecond)
@@ -37,6 +38,7 @@ namespace HumanGhost.Gameplay.Preview
         private MillisecondClock _scaledClock, _unscaledClock;
         public void FlashTransition() => _flashRemainingMilliseconds = 180;
         private PreviewFollowCamera _camera;
+        // [정수화 미적용 이유] 경고 범위 그림의 중심 월드 X(Transform 표시)입니다. 판정에 쓰지 않습니다.
         private System.Func<float> _warningOrigin;
         public void ConnectWarningOrigin(System.Func<float> origin) => _warningOrigin = origin;
         private System.Action _walkStep;
@@ -109,6 +111,8 @@ namespace HumanGhost.Gameplay.Preview
             long x = _boss.Position.X;
             bool moving = _lastX != long.MinValue && x != _lastX; _lastX = x;
             AnimationClip clip = moving ? _walk : _idle;
+            // [정수화 미적용 이유] AnimationClip.SampleAnimation은 클립 안 시각을 초(float)로만 받습니다. 경과는 정수 ms로 누적하고 넘기는 순간에만 초로 바꿉니다.
+            // 아래 상태별 time도 모두 정수 ms 경과(_loop·_slump·HitElapsed·PatternElapsed)에서 같은 방식으로 바꿉니다.
             float time = _loopMilliseconds / 1000f;
             if (actor.IsDead || actor.IsExposed || actor.CurrentState == HumanGhost.Data.Definitions.StateKey.Execute)
             { clip = _slump; _slumpMilliseconds = System.Math.Min(MillisecondClock.ToMilliseconds(clip.length), _slumpMilliseconds + _elapsedMilliseconds); time = _slumpMilliseconds / 1000f; }

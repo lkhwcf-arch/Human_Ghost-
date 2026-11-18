@@ -11,6 +11,7 @@ namespace HumanGhost.Gameplay.Adapters
         private readonly bool _acceptsMonsters;
         private readonly IReadOnlyList<EffectDefinition> _effects;
         public int ID { get; }
+        // [정수화 미적용 이유] 필드 오브젝트 접촉 영역(Unity Bounds)입니다. 배치 데이터(tile_x100)를 월드로 바꿔 만들며, 대상 Collider bounds와 같은 좌표계로 겹침을 봅니다. 필드 판정 정수화 시 정수 범위로 바꿉니다.
         public Bounds Bounds { get; }
         public FieldKind Kind { get; }
         public FieldObjectArea(int id, Bounds bounds, FieldObject definition)

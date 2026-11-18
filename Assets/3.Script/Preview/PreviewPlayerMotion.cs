@@ -45,6 +45,7 @@ namespace HumanGhost.Gameplay.Preview
         private LadderClimbArea _ladder;
         private const int _ladderStepMilliseconds = 350;
         private int _ladderStepRemaining;
+        // [정수화 미적용 이유] 사다리 Collider2D.bounds 관측값입니다. 플레이어 이동 float 계약(비탈 보류, 2026-11-17)에서 사다리 내림 위치 계산에 씁니다.
         private Bounds _lastLadderArea;
         private int _verticalInput, _shownLadderDirection;
         public bool IsOnLadder => !ReferenceEquals(_ladder, null);

@@ -63,6 +63,7 @@ namespace HumanGhost.Gameplay.Preview
             {
                 _oneIndex = (_oneIndex + 1) % _phaseOneSteps.Length;
                 PhaseOneStep step = _phaseOneSteps[_oneIndex];
+                // Animator.Play의 세 번째 인자는 초가 아니라 정규화 시각(0=클립 시작, 1=끝, float)입니다. 단계 길이는 정수 ms로 따로 셉니다.
                 _phaseOne.Play(step.State, 0, 0f);
                 _oneRemainingMilliseconds = step.Milliseconds;
                 if (_phaseOneLabel != null) _phaseOneLabel.text = "쇄문아비 1페이즈\n" + step.State;
@@ -78,6 +79,7 @@ namespace HumanGhost.Gameplay.Preview
             AnimationClip clip = _phaseTwoSteps[_twoIndex].Clip;
             // 게임과 같이 대기·걷기만 재생 배율을 적용합니다. 공격 클립은 실제 게임에서 판정 시간에 맞춰 늘거나 줄어듭니다.
             _twoElapsedMilliseconds = checked(_twoElapsedMilliseconds + _sampleClock.AdvanceFrame(Time.deltaTime * (clip.isLooping ? _settings.LoopRate : 10000) / 10000d));
+            // [정수화 미적용 이유] AnimationClip.SampleAnimation은 클립 안 시각을 초(float)로만 받습니다. 경과는 정수 ms로 누적하고 넘기는 순간에만 초로 바꿉니다.
             float time = clip.isLooping ? Mathf.Repeat(_twoElapsedMilliseconds / 1000f, clip.length) : Mathf.Min(_twoElapsedMilliseconds / 1000f, clip.length);
             _bind.Restore();
             clip.SampleAnimation(_phaseTwoRig, BossPhaseTwoView.Frame(time, _settings.FramesPerSecond));

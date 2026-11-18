@@ -16,6 +16,7 @@ namespace HumanGhost.Gameplay.Preview
         private Mesh _mesh;
         private Material _material;
         private MeshRenderer _renderer;
+        // [정수화 미적용 이유] Unity Mesh 정점 버퍼(표시)입니다. 판정에 쓰지 않습니다.
         private readonly List<Vector3> _vertices = new List<Vector3>(1536);
         private readonly List<Color> _colors = new List<Color>(1536);
         private readonly List<int> _triangles = new List<int>(4608);

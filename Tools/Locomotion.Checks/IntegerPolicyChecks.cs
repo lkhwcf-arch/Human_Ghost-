@@ -85,11 +85,13 @@ internal static class IntegerPolicyChecks
 
     // AGENTS 정수화 기본 원칙(2026-11-18): 프로젝트 코드에서 실수로 남기는 필드·상수·직렬화 값·공개 속성에는
     // 바로 위에 "[정수화 미적용 이유]" 주석이 있어야 합니다. 연속 선언 묶음은 묶음 위 주석 하나로 인정합니다.
+    // 실수 기반 Unity 값(Bounds·Rect)과 실수를 담는 제네릭(List<float>·Dictionary<K, Vector3>·Func<float> 등) 멤버도 포함합니다(2026-11-18).
     // 지역 변수·매개변수는 대상이 아니며, 시트 소유 정의 클래스(Data 바로 아래)와 자동 생성 코드(Data/Generated)는 제외합니다.
     private const string FloatReasonTag = "[정수화 미적용 이유]";
     private static readonly Regex FloatMember = new Regex(
         @"^\s*(?:\[[^\]]*\]\s*)*(?:(?:public|private|protected|internal|static|readonly|const|new|override|virtual|abstract)\s+)*" +
-        @"(?:float|double|Vector2|Vector3|Vector4)(?:\?|\[\])?\s+[A-Za-z_]\w*\s*(?:[=;,{]|=>)", RegexOptions.Compiled);
+        @"(?:(?:float|double|Vector2|Vector3|Vector4|Bounds|Rect)(?:\?|\[\])?|[\w.]+<[^;=()]*(?:float|double|Vector2|Vector3|Vector4|Bounds|Rect)[^;=()]*>(?:\[\])?)" +
+        @"\s+[A-Za-z_]\w*\s*(?:[=;,{]|=>)", RegexOptions.Compiled);
     private static readonly Regex TypeDeclaration = new Regex(@"\b(class|struct|interface|record)\s+\w", RegexOptions.Compiled);
     private static readonly Regex StringLiteral = new Regex(@"@?\$?""(?:\\.|[^""\\])*""|'(?:\\.|[^'\\])'", RegexOptions.Compiled);
 

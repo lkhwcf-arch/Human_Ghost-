@@ -9,10 +9,13 @@ namespace HumanGhost.Gameplay.Preview
     // 결박 관문(L08·C07): 표식 BindGate_*에 막는 충돌을 만들고, 결박 가르기 판정이 닿으면 열립니다. 다른 공격으로는 열리지 않습니다.
     internal sealed class PreviewBindGates : System.IDisposable
     {
+        // [정수화 미적용 이유] Bounds는 관문 Collider2D.bounds 관측값(Unity 물리 경계)입니다.
         private sealed class Gate { public int Id; public GameObject Blocker; public SpriteRenderer View; public Bounds Bounds; }
         // 표시는 3타일이지만 점프(3타일)로 넘지 못하게 충돌은 위로 길게 둡니다.
         // [정수화 미적용 이유] 결박 관문 차단 Collider의 Transform 높이 배율(물리 경계)입니다.
         private const float _blockerHeightScale = 10f;
+        // 관문 안내를 띄우는 접근 판정의 좌우 합계 여유(tile_x100)입니다.
+        private const int _touchMarginUnits = 100;
         private readonly List<Gate> _gates = new List<Gate>();
         private bool _touching;
         private Sprite _sprite;
@@ -76,7 +79,8 @@ namespace HumanGhost.Gameplay.Preview
         // 관문에 처음 닿을 때 한 번 안내하고, 결박 가르기 판정이 닿은 관문을 엽니다.
         public void Step(PlayerActor actor, Bounds attack, Bounds player, System.Action onTouch)
         {
-            Bounds near = new Bounds(player.center, player.size + new Vector3(1f, 0f, 10f));
+            // 좌우 여유(tile_x100)만큼 넓혀 안내 접근을 봅니다. Bounds(Unity)에 넣는 순간에만 월드로 바꿉니다. 이 파일의 관문 크기와 같이 1타일 = 월드 1입니다.
+            Bounds near = new Bounds(player.center, player.size + new Vector3(_touchMarginUnits / 100f, 0f, 10f));
             bool touching = false;
             foreach (Gate gate in _gates)
                 touching |= near.Intersects(new Bounds(gate.View.bounds.center, gate.View.bounds.size + Vector3.forward * 10f));

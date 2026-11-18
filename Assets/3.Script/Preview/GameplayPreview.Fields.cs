@@ -12,6 +12,8 @@ namespace HumanGhost.Gameplay.Preview
         private FieldObjectController _fields;
         private GameObject _fieldRoot;
         private MillisecondClock _fieldClock;
+        // 필드 오브젝트 접촉 영역의 임시 두께(tile_x100)입니다. 데이터에 높이 컬럼이 생기면 그 값으로 바꿉니다.
+        private const int _fieldContactHeightUnits = 20;
 
         private void ConnectFields(IReadOnlyDataCatalog data)
         {
@@ -24,8 +26,8 @@ namespace HumanGhost.Gameplay.Preview
                 if (!definition.ContentEnabled) continue;
                 Vector3 origin = _stage.GetPlacementOrigin(placement.PlacementID);
                 float width = placement.Width / 100f * _worldUnitsPerTile;
-                // 높이는 임시 접촉·표시 두께입니다. 데이터의 Y는 플랫폼 바닥선입니다.
-                float height = 0.2f * _worldUnitsPerTile;
+                // 높이는 임시 접촉·표시 두께입니다. 데이터의 Y는 플랫폼 바닥선입니다. 정수 tile_x100을 Bounds에 넣는 순간에만 월드로 바꿉니다.
+                float height = SpatialRuntime.ToWorld(IntegerPosition.FromData(_fieldContactHeightUnits), _worldUnitsPerTile);
                 Vector3 center = origin + new Vector3(placement.X / 100f * _worldUnitsPerTile + width / 2f,
                     placement.Y / 100f * _worldUnitsPerTile + height / 2f, 0f);
                 areas.Add(new FieldObjectArea(placement.ID, new Bounds(center, new Vector3(width, height, 1f)), definition));

@@ -33,6 +33,8 @@ namespace HumanGhost.Gameplay.Preview
         private static UnityEngine.Sprite _shadowSprite;
         private const int _lobArc100 = 600;
         private const int _lobLandingMilliseconds = 100;
+        // 높이 던지기 착지점(막손 아래 바닥)을 찾는 최대 아래 거리(tile_x100)입니다.
+        private const int _lobFloorSearchUnits = 3000;
         private readonly Sprite _projectileSprite;
         private readonly MonsterThrowRigView _throwRig;
         private PreviewGroundFireView _fire;
@@ -64,6 +66,7 @@ namespace HumanGhost.Gameplay.Preview
         private static readonly Color _burningTint = new Color(1f, 0.65f, 0.45f);
         private bool _hasSpan;
         private long _spanMin, _spanMax;
+        // [정수화 미적용 이유] 플레이어 이동 계약(비탈 보류, float)이 돌려주는 턱 월드 위치입니다. 받는 즉시 정수 좌표로 바꿔 판정합니다.
         private Func<Vector2?> _protectedLedge;
         private readonly PreviewFootCollision _collision;
         // 턱 보호 판정 정수 값입니다(기존 0.2칸 높이 차·1칸 여유).
@@ -301,7 +304,7 @@ namespace HumanGhost.Gameplay.Preview
             // 높이 던지기: 던진 순간 막손이 서 있던 자리의 바닥(땅·발판 윗면)을 기억하고 그 자리에 그림자를 둡니다.
             Vector3 feet = new Vector3(_player.transform.position.x, _playerBody.bounds.min.y, _player.transform.position.z);
             Vector3 probe = new Vector3(feet.x, _playerBody.bounds.center.y, feet.z);
-            _lobTarget = _collision.FindFloor(probe, 30f * _worldUnitsPerTile, out float gap)
+            _lobTarget = _collision.FindFloor(probe, SpatialRuntime.ToWorld(IntegerPosition.FromData(_lobFloorSearchUnits), _worldUnitsPerTile), out float gap)
                 ? new Vector3(feet.x, probe.y - gap - _body.bounds.extents.y, feet.z) : feet;
             if (_lobShadow == null)
             {

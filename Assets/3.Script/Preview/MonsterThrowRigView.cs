@@ -45,6 +45,7 @@ namespace HumanGhost.Gameplay.Preview
             if (pattern == null || !pattern.IsProjectile) return;
             Show(true); _bind.Restore();
             AnimationClip clip = pattern.IsLob && _throwHigh != null ? _throwHigh : _throw;
+            // [정수화 미적용 이유] 정수 ms 공격 경과에서 고른 프레임 번호를 SampleAnimation이 받는 클립 시각(초)으로 바꿉니다.
             float time = (float)AttackAnimationTiming.FrameAt(pattern.Attack, actor.AttackElapsed, 0, 5, 12, 17) / clip.frameRate;
             clip.SampleAnimation(_rig, time);
             _rig.transform.localScale = new Vector3(_scale.x * (actor.Facing > 0 ? -1f : 1f), _scale.y, _scale.z);

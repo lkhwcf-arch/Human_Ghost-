@@ -17,6 +17,7 @@ namespace HumanGhost.Gameplay.Adapters
         private long _generation;
         public EffectTarget Target { get; private set; }
         public bool IsMonster { get; }
+        // [정수화 미적용 이유] Unity Collider2D.bounds 관측값입니다. 필드 오브젝트 접촉 겹침 판정의 입력이며, 필드 판정 정수화 시 정수 범위로 바꿉니다.
         public Bounds Bounds => _body != null ? _body.bounds : default;
 
         public FieldEffectTargetBinding(PlayerRuntime runtime, SpriteRenderer body, Action<FieldEffectTargetBinding> changed)
