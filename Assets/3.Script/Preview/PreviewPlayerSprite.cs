@@ -310,16 +310,10 @@ namespace HumanGhost.Gameplay.Preview
             AnimationClip clip = CurrentAnimation;
             bool stepping = actor != null && actor.CurrentState == StateKey.Walk && actor.Locomotion.IsGrounded && _action == null && !actor.IsParrying && clip != null;
             if (!stepping || clip != _stepClip) { _stepClip = stepping ? clip : null; _stepFrame = -1; if (!stepping) return; }
-            int frame = Mathf.FloorToInt(AnimationTime * clip.frameRate + .001f);
-            if (frame == _stepFrame) return;
+            int frame = Mathf.FloorToInt(AnimationTime * clip.frameRate);
             int previous = _stepFrame; _stepFrame = frame;
-            if (previous < 0) return;
             bool run = clip != _walk;
-            foreach (int step in run ? _runSteps : _walkSteps)
-            {
-                int at = Mathf.FloorToInt(step / 1000f * clip.frameRate + .001f);
-                if (frame > previous ? at > previous && at <= frame : at > previous || at <= frame) { Footstep?.Invoke(run); return; }
-            }
+            if (BossPhaseTwoView.EntersStep(previous, frame, run ? _runSteps : _walkSteps, clip.frameRate)) Footstep?.Invoke(run);
         }
 
         protected override void UpdateFacing()

@@ -30,11 +30,13 @@ namespace HumanGhost.Gameplay.Preview
             if (phase == 0) _audio.PlayMusic("BGM_BOSS_PHASE1", _bossMusicFadeInMilliseconds);
             if (phase == 1) _audio.PlayMusic("BGM_BOSS_PHASE2", _bossMusicFadeInMilliseconds);
         }
+        private BossPhaseTwoView _bossView;
         private void ConnectBossPhaseData()
         {
-            _boss.GetComponent<BossPhaseTwoView>()?.ConnectCamera(_followCamera);
-            _boss.GetComponent<BossPhaseTwoView>()?.ConnectWalkStep(() => _audio?.PlayEffect("BOSS_2_WALK"));
-            _boss.GetComponent<BossPhaseTwoView>()?.ConnectWarningOrigin(() => _bossDriver != null ? _bossDriver.WarningOriginX : _boss.transform.position.x);
+            _bossView = _boss.GetComponent<BossPhaseTwoView>();
+            _bossView?.ConnectCamera(_followCamera);
+            _bossView?.ConnectWalkStep(() => _audio?.PlayEffect("BOSS_2_WALK"));
+            _bossView?.ConnectWarningOrigin(() => _bossDriver != null ? _bossDriver.WarningOriginX : _boss.transform.position.x);
             _bossPhaseDialogue = _catalog.GetTable<Dialogue>().All.Single(row => row.TriggerType == "BOSS_STATE_ENTER" && row.TriggerTargetID == 4002);
             string file = System.IO.Path.GetFileNameWithoutExtension(_bossPhaseDialogue.LineFile);
             var asset = _data.Assets.JsonFiles.Single(row => row != null && row.name == file);
@@ -55,7 +57,7 @@ namespace HumanGhost.Gameplay.Preview
                 _bossPhaseRunning = true; _bossPhaseElapsedMilliseconds = 0; _bossPhaseLine = 0;
                 _actor.SetCutsceneDamageBlocked(true); SetGameInputLocked(true);
                 _followCamera?.Shake(.35f,250);
-                _boss.GetComponent<BossPhaseTwoView>()?.FlashTransition();
+                _bossView?.FlashTransition();
             }
             if (_modalBlocked || _saveLocked || _leaving || LoadingScreen.IsActive) return true;
             _bossPhaseElapsedMilliseconds += Math.Min(_gameElapsedMilliseconds, 700 - _bossPhaseElapsedMilliseconds);
@@ -73,7 +75,7 @@ namespace HumanGhost.Gameplay.Preview
             _progress.MarkDialogueViewed(_bossPhaseDialogue.ID);
             DisconnectBossPhase();
             _boss.Actor.CompletePhaseTransition();
-            _boss.GetComponent<BossPhaseTwoView>()?.FlashTransition();
+            _bossView?.FlashTransition();
             return false;
         }
         private void DisconnectBossPhase()

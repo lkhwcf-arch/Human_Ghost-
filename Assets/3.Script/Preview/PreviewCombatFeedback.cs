@@ -70,12 +70,6 @@ namespace HumanGhost.Gameplay.Preview
             _speed?.State.HitStop(_executeStop);
             _camera?.Shake(0.25f, 250);
         }
-        public void OnParry(int hitStop)
-        {
-            _speed?.State.HitStop(hitStop);
-            _camera?.Shake(0.08f, 100);
-            _audio?.PlayEffect("SFX_PARRY");
-        }
 
         public void OnPlayerDamaged(bool byBoss, bool knockedDown = false, SpriteRenderer target = null)
         {
