@@ -17,3 +17,8 @@ ID,EnumName,Key,Value,SheetKey
 16,EffectPhase,Applied,1,APPLIED
 17,EffectPhase,Ended,2,ENDED
 18,StatusEffectKind,Knockback,0,Knockback
+19,SoundCategory,Ambience,1,AMBIENCE
+20,SoundCategory,Player,2,PLAYER
+21,SoundCategory,Monster,3,MONSTER
+22,SoundCategory,Boss,4,BOSS
+23,SoundCategory,Common,5,COMMON

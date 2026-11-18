@@ -97,7 +97,8 @@ namespace HumanGhost.Gameplay.Adapters
             _introPending = false;
             try
             {
-                if (!reason.AllowsProgress() || !EnterGame(null)) QueueMenuReturn();
+                // 인트로 뒤에는 타이틀을 다시 보이지 않고 로딩 화면이 인게임 진입 직전까지 덮습니다.
+                if (!reason.AllowsProgress() || !EnterGame(null, covered: true)) QueueMenuReturn();
                 else GameSaveContext.Current.Progress.MarkCutsceneViewed(_introCutsceneId);
             }
             catch (Exception error) { QueueMenuReturn(); _host.ReportError(error, "인트로 종료 후 새 게임 진입"); }

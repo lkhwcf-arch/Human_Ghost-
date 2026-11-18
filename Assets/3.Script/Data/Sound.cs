@@ -10,7 +10,8 @@ namespace HumanGhost.Data.Definitions
         public bool Loop { get; }
         public int FadeInMs { get; }
         public int FadeOutMs { get; }
-        public Sound(int id, string address, int category, int volume, bool loop, int fadeInMs, int fadeOutMs)
+        public int? RefIndex { get; }
+        public Sound(int id, string address, int category, int volume, bool loop, int fadeInMs, int fadeOutMs, int? refIndex = null)
         {
             ID = id;
             Address = address;
@@ -19,6 +20,7 @@ namespace HumanGhost.Data.Definitions
             Loop = loop;
             FadeInMs = fadeInMs;
             FadeOutMs = fadeOutMs;
+            RefIndex = refIndex;
         }
     }
 }

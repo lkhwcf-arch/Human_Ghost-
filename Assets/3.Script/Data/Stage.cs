@@ -1,4 +1,4 @@
-// 자동 생성 파일입니다. 원본 시트를 수정한 뒤 다시 배포하세요.
+// 최초 생성 데이터 정의입니다. 기존 파일은 자동 갱신하지 않으므로 시트 구조 변경 시 함께 수정하세요.
 namespace HumanGhost.Data.Definitions
 {
     public sealed class Stage
@@ -15,7 +15,8 @@ namespace HumanGhost.Data.Definitions
         public int UnlockConditionType { get; }
         public int UnlockTargetID { get; }
         public int UnlockRequiredValue { get; }
-        public Stage(int id, int textID, int order, int? nextStage, string bGM_Normal, string bGM_Battle, string spawnFile, bool active, bool contentEnabled, int unlockConditionType, int unlockTargetID, int unlockRequiredValue)
+        public int? AmbienceSoundID { get; }
+        public Stage(int id, int textID, int order, int? nextStage, string bGM_Normal, string bGM_Battle, string spawnFile, bool active, bool contentEnabled, int unlockConditionType, int unlockTargetID, int unlockRequiredValue, int? ambienceSoundID = null)
         {
             ID = id;
             TextID = textID;
@@ -29,6 +30,7 @@ namespace HumanGhost.Data.Definitions
             UnlockConditionType = unlockConditionType;
             UnlockTargetID = unlockTargetID;
             UnlockRequiredValue = unlockRequiredValue;
+            AmbienceSoundID = ambienceSoundID;
         }
     }
 }
