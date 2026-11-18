@@ -29,9 +29,11 @@ namespace HumanGhost.Gameplay.Adapters
         public Vector3 ToWorld(IntegerPosition position) => new Vector3(ToWorld(position.X), ToWorld(position.Y), transform.position.z);
         public void SetPosition(Vector3 position) => SetPosition(FromWorld(position), position.z);
         public void SetPosition(IntegerPosition position) => SetPosition(position, transform.position.z);
-        public bool MoveHorizontal(long delta, float minX, float maxX)
+        public bool MoveHorizontal(long delta, float minX, float maxX) => MoveHorizontal(delta, ToInteger(minX), ToInteger(maxX));
+        // 정수 구간 버전입니다. 구간을 정수로 가진 소유자는 실수 변환 없이 씁니다.
+        public bool MoveHorizontal(long delta, long minimum, long maximum)
         {
-            long x = ClampHorizontal(delta, minX, maxX, out bool hitEdge);
+            long x = ClampHorizontal(delta, minimum, maximum, out bool hitEdge);
             SetPosition(new IntegerPosition(x, Position.Y));
             return hitEdge;
         }

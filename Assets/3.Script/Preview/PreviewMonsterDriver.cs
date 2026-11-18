@@ -69,6 +69,7 @@ namespace HumanGhost.Gameplay.Preview
         // 뒤로 깡총 판정 정수 값입니다(기존 벽 허용 오차 0.01·착지 바닥 탐색 여유 0.3칸).
         private const long _retreatBlockTolerance = IntegerPosition.UnitsPerTile / 100;
         private const long _retreatFloorProbe = IntegerPosition.UnitsPerTile * 3 / 10;
+        private readonly int _retreatDistance;
         public void UseLedgeProtection(Func<Vector2?> protectedLedge) => _protectedLedge = protectedLedge;
 
         // 조립된 바닥에서 걸을 수 있는 구간(정수 X)입니다. 경사 지면을 포함하며 끝에 닿으면 벽처럼 다룹니다.
@@ -92,7 +93,6 @@ namespace HumanGhost.Gameplay.Preview
             IntegerPosition target = _player.Position, own = _runtime.Position;
             long offset = target.X - own.X;
             long height = FootHeightOffset();
-            _monster.CanRetreat = CanRetreatFrom(-Math.Sign(offset));
             _monster.Observe(_playerTargetId, IntegerPosition.ToData(Math.Abs(offset)), Math.Sign(offset),
                 IntegerPosition.ToData(Math.Abs(height)),
                 IntegerPosition.ToData(Math.Abs(own.X - _spawnX)), Math.Sign(_spawnX - own.X), true, Math.Sign(height));
@@ -138,6 +138,13 @@ namespace HumanGhost.Gameplay.Preview
             Action<bool> attackChanged = _scope.Guard<bool>(OnAttackWindowChanged);
             _scope.Add(() => _monster.AttackWindowChanged -= attackChanged);
             _monster.AttackWindowChanged += attackChanged;
+            // 뒤로 깡총 거리는 개체의 패턴 목록(생성 후 불변)에서 한 번만 구합니다. 공간 조회는 코어가 물러서기를 고르는 순간에만 부릅니다.
+            foreach (MonsterPattern pattern in _monster.Patterns) if (pattern.IsRetreat) _retreatDistance = Math.Max(_retreatDistance, pattern.RetreatDistance);
+            if (_retreatDistance > 0)
+            {
+                _scope.Add(() => _monster.UseRetreatSpace(null));
+                _monster.UseRetreatSpace(CanRetreatFrom);
+            }
         }
 
         public void Dispose()
@@ -252,10 +259,8 @@ namespace HumanGhost.Gameplay.Preview
         // 뒤로 깡총(옹귀 1117): 물러설 쪽 RetreatDistance 안에 벽·보행 구간 끝·바닥 없음이 있으면 뛰지 않습니다.
         private bool CanRetreatFrom(int direction)
         {
-            if (direction == 0) return false;
-            int distance = 0;
-            foreach (MonsterPattern pattern in _runtime.Actor.Patterns) if (pattern.IsRetreat) distance = Math.Max(distance, pattern.RetreatDistance);
-            if (distance == 0) return false;
+            if (direction == 0 || _retreatDistance == 0 || _scope.IsDisposed) return false;
+            int distance = _retreatDistance;
             // 후퇴 목표·보행 구간·벽 판정은 모두 정수 좌표입니다(구간은 2ee0a130부터 long). Step의 구간 제한과 같은 기준인 Position.X를 씁니다.
             long delta = checked(direction * IntegerPosition.FromData(distance));
             long target = checked(_runtime.Position.X + delta);
