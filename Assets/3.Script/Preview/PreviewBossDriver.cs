@@ -53,6 +53,7 @@ namespace HumanGhost.Gameplay.Preview
         // 시험창에서 자동 선택·추적만 제어합니다. 선택한 패턴의 실행은 유지합니다.
         public bool AutomaticPatterns { get; set; } = true;
 #else
+        // 개발 빌드의 공개 시험 속성과 같은 이름을 써야 공통 코드가 그대로 컴파일되므로 private 상수 명명 규칙의 예외입니다.
         private const bool AutomaticPatterns = true;
 #endif
 

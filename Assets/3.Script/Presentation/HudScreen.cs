@@ -9,6 +9,7 @@ namespace HumanGhost.Gameplay.Presentation
     [DefaultExecutionOrder(1100)]
     public class HudScreen : MonoBehaviour
     {
+        // [정수화 미적용 이유] CanvasGroup.alpha에 넣는 표시값입니다.
         private const float _dimAlpha = 1f;
         private const int _fadeMilliseconds = 300;
         private const int _damageFlashMilliseconds = 250;
@@ -39,12 +40,14 @@ namespace HumanGhost.Gameplay.Presentation
         private string Ui(int id, string fallback) => _text == null ? fallback : _text.ReadUi(id);
         private BossPoise _boss;
         private int _bossMaxPoise;
+        // [정수화 미적용 이유] 보스 체력바 잔상 보간용 0~1 표시 비율입니다. 체력은 정수이고 이 값은 Image 폭에만 씁니다.
         private float _bossGhost = 1f;
         private int _bossGhostHoldMilliseconds;
         private int _staminaFlashMilliseconds;
         private int _damageFlashMillisecondsRemaining;
         private bool _bright;
         private SubscriptionScope _scope;
+        // [정수화 미적용 이유] 보스 체력바 잔상 보간용 0~1 표시 비율입니다. 체력은 정수이고 이 값은 Image 폭에만 씁니다.
         private float _bossHealth;
         private int _shownHerbs = -1, _shownCooldown = -1;
         private bool? _shownSkill;

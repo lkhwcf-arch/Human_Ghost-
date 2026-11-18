@@ -13,6 +13,7 @@ namespace HumanGhost.Gameplay.Preview
         private readonly List<Transform> _targets = new List<Transform>();
         private readonly List<float> _rates = new List<float>();
         private readonly List<Vector3> _bases = new List<Vector3>();
+        // [정수화 미적용 이유] 배경 시차 이동의 카메라 Transform 기준 위치(표시)입니다.
         private Vector3 _cameraBase;
         private bool _ready;
 

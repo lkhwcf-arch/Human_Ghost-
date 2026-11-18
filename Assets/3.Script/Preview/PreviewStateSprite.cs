@@ -50,17 +50,21 @@ namespace HumanGhost.Gameplay.Preview
         private sealed class GroundContact
         {
             [SerializeField] private Sprite _sprite = null;
+            // [정수화 미적용 이유] 원화 발 위치 맞춤용 Transform·스프라이트 표시 보정값입니다.
             [SerializeField] private float _bottom = 0f;
             public Sprite Sprite => _sprite;
+            // [정수화 미적용 이유] 원화 발 위치 맞춤용 Transform·스프라이트 표시 보정값입니다.
             public float Bottom => _bottom;
         }
         // Baked alpha silhouettes: no texture reads or scene searches during gameplay.
         [SerializeField] private GroundContact[] _groundContacts = Array.Empty<GroundContact>();
         private readonly Dictionary<Sprite, float> _contactBottoms = new Dictionary<Sprite, float>();
+        // [정수화 미적용 이유] 원화 발 위치 맞춤용 Transform·스프라이트 표시 보정값입니다.
         private float _contactOffset;
         private AnimationClip _animation;
         private long _elapsedMilliseconds;
         private MillisecondClock _animationClock;
+        // [정수화 미적용 이유] 원화 발 위치 맞춤용 Transform·스프라이트 표시 보정값입니다.
         private float _feetY;
         private StateKey _state;
         private bool _hasState;
@@ -81,14 +85,17 @@ namespace HumanGhost.Gameplay.Preview
                 if (entry != null && entry.Sprite != null && !_framesByState.ContainsKey(entry.State)) _framesByState.Add(entry.State, entry.Sprite);
             _lookupReady = true;
         }
+        // [정수화 미적용 이유] AnimationClip.length(초)입니다. 받는 쪽이 정수 ms로 바꿉니다.
         public float ExecutionDuration => SelectAnimation(StateKey.Execute)?.length ?? 0f;
         protected AnimationClip CurrentAnimation => _animation;
+        // [정수화 미적용 이유] AnimationClip 샘플링 시각(초)입니다. 정수 ms 경과에서 계산하며 누적하지 않습니다.
         protected float AnimationTime { get; private set; }
         protected void RestartAnimation() => _hasState = false;
         protected SpriteRenderer Renderer => _renderer;
         protected Sprite Fallback => _fallback;
         protected abstract bool TryGetState(out StateKey state);
         protected virtual bool AlignFeet => true;
+        // [정수화 미적용 이유] Unity 프레임 초를 넘기는 경계이며 MillisecondClock.AdvanceSigned로 정수 ms로 바꿔 누적합니다.
         protected virtual float AnimationDelta => Time.deltaTime;
         protected virtual float Duration(StateKey state) => 0f;
         protected virtual bool TryGetAnimationTime(StateKey state, AnimationClip animation, out float time) { time = 0f; return false; }

@@ -11,8 +11,10 @@ namespace HumanGhost.Gameplay.Preview
     // 기본 동작은 플레이어(비탈 개선 보류)가 쓰며, 일반 몬스터는 아래 PreviewFootCollision이 벽 판정 두 지점을 재정의합니다.
     internal class PreviewCollision
     {
+        // [정수화 미적용 이유] Unity Physics2D 어댑터의 조회 여유·평지 높이·충돌 상자 크기입니다(클래스 주석 참고). 플레이어 충돌 상자·이동은 float Physics2D 계약(비탈 보류, 2026-11-17)을 유지하므로 이 경계에서 실수로 둡니다.
         public const float Skin = 0.02f;
         private readonly bool _useColliders;
+        // [정수화 미적용 이유] Unity Physics2D 어댑터의 조회 여유·평지 높이·충돌 상자 크기입니다(클래스 주석 참고). 플레이어 충돌 상자·이동은 float Physics2D 계약(비탈 보류, 2026-11-17)을 유지하므로 이 경계에서 실수로 둡니다.
         private readonly float _flatFloorY;
         private readonly Vector2 _halfSize;
         private readonly Transform _dropThroughRoot;
@@ -20,6 +22,7 @@ namespace HumanGhost.Gameplay.Preview
         private ContactFilter2D _filter;
         // 파생 조회가 같은 형상·필터·버퍼를 재사용합니다(조회마다 할당하지 않음).
         protected bool UsesColliders => _useColliders;
+        // [정수화 미적용 이유] Unity Physics2D 어댑터의 조회 여유·평지 높이·충돌 상자 크기입니다(클래스 주석 참고). 플레이어 충돌 상자·이동은 float Physics2D 계약(비탈 보류, 2026-11-17)을 유지하므로 이 경계에서 실수로 둡니다.
         protected Vector2 HalfSize => _halfSize;
         protected ContactFilter2D Filter => _filter;
         protected RaycastHit2D[] Hits => _hits;
@@ -181,6 +184,7 @@ namespace HumanGhost.Gameplay.Preview
     internal sealed class PreviewFootCollision : PreviewCollision
     {
         // 정수 위치와 Physics2D 월드 좌표 사이 변환 배율입니다(SpatialRuntime과 같은 값).
+        // [정수화 미적용 이유] 정수 좌표(IntegerPosition)와 Unity 월드 좌표를 오가는 변환 계수(Inspector 타일당 화면 거리)입니다. 좌표 상태는 정수입니다.
         private readonly float _worldUnitsPerTile;
         private readonly long _halfWidth, _halfHeight, _skin;
         // float 유효숫자는 24비트라 좌표 크기 M의 관측 오차는 약 M × 2^-23입니다. 접촉점·발 높이 두 관측 여유로 8배(M >> 20)를

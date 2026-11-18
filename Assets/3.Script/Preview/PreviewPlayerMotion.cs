@@ -17,6 +17,7 @@ namespace HumanGhost.Gameplay.Preview
         private readonly PreviewCollision _collision;
         private readonly PreviewHangEdges _hangEdges;
         private readonly PreviewFallZones _fallZones;
+        // [정수화 미적용 이유] 플레이어 충돌 상자 절반 크기입니다. 플레이어 충돌 상자·이동은 float Physics2D 계약(비탈 보류, 2026-11-17)을 유지하므로 이 경계에서 실수로 둡니다.
         private readonly Vector2 _halfSize;
         private readonly IntegerMotion _motion = new IntegerMotion();
         private readonly IntegerMotion _knockback = new IntegerMotion();
@@ -38,6 +39,7 @@ namespace HumanGhost.Gameplay.Preview
         private const int _climbRiseStartRate = 1500, _climbRiseLengthRate = 6500;
         private const int _climbAdvanceStartRate = 4500, _climbAdvanceLengthRate = 5000;
         public bool IsClimbingLedge => _climbElapsed >= 0;
+        // [정수화 미적용 이유] 보호 중인 턱 표식의 Transform 위치입니다. 받는 쪽(PreviewMonsterDriver)이 즉시 정수로 바꿉니다.
         public Vector2? ProtectedLedge => _player.Actor.IsTraversalProtected && _hangEdge != null ? (Vector2?)_hangEdge.position : null;
         private readonly System.Collections.Generic.List<LadderClimbArea> _ladders = new System.Collections.Generic.List<LadderClimbArea>();
         private LadderClimbArea _ladder;
@@ -56,7 +58,7 @@ namespace HumanGhost.Gameplay.Preview
             _halfSize = halfSize;
             _playSound = playSound;
             _collision = new PreviewCollision(useColliders, groundY, halfSize, dropThroughRoot);
-            _hangEdges = new PreviewHangEdges(markers, halfSize);
+            _hangEdges = new PreviewHangEdges(markers, halfSize, player);
             _fallZones = new PreviewFallZones(markers);
             foreach (Transform marker in markers ?? Array.Empty<Transform>())
             {

@@ -17,8 +17,10 @@ namespace HumanGhost.Gameplay.Presentation
         private bool _busy;
         private bool _cancelEnabled = true;
         private bool _noticeMode;
+        // [정수화 미적용 이유] UI RectTransform 배치·크기를 복원하는 표시값입니다.
         private Vector2 _normalAcceptPosition;
         private int _normalMessageFont, _normalAcceptFont;
+        // [정수화 미적용 이유] UI RectTransform 배치·크기를 복원하는 표시값입니다.
         private Vector3 _normalPanelScale;
         private EventSystem _selectionEvents;
         protected override Button PrimaryButton => _accept;

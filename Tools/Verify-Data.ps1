@@ -50,34 +50,68 @@ try {
         $includeTests = $env:DefineConstants -match 'UNITY_EDITOR|DEVELOPMENT_BUILD'
         $testTypes = @('ManualSaveHost', 'DemoResetHost', 'TitleSaveSelection', 'SaveSlotScreen', 'DataLoadViewer')
         $testMethods = @('StepBossTests', 'CaptureFeedbackQa', 'CloseBossTests', 'DrawAggroTests', 'ClearAggroTests', 'RunAggroTest')
-        $stream = [IO.File]::OpenRead((Join-Path $compileRoot 'bin/Debug/net10.0/Assembly-CSharp.dll'))
-        $pe = $null
-        try {
-            $pe = [System.Reflection.PortableExecutable.PEReader]::new($stream)
-            $metadata = [System.Reflection.Metadata.PEReaderExtensions]::GetMetadataReader($pe)
-            $typeNames = [Collections.Generic.HashSet[string]]::new()
-            $methodNames = [Collections.Generic.HashSet[string]]::new()
-            foreach ($handle in $metadata.TypeDefinitions) {
-                $definition = $metadata.GetTypeDefinition($handle)
-                [void]$typeNames.Add($metadata.GetString($definition.Name))
-                if ($metadata.GetString($definition.Name) -eq 'GameplayPreview') {
-                    foreach ($method in $definition.GetMethods()) {
-                        [void]$methodNames.Add($metadata.GetString($metadata.GetMethodDefinition($method).Name))
+        $assemblyPath = Join-Path $compileRoot 'bin/Debug/net10.0/Assembly-CSharp.dll'
+        $typeNames = [Collections.Generic.HashSet[string]]::new()
+        $methodNames = [Collections.Generic.HashSet[string]]::new()
+        if ($null -ne ('System.Reflection.PortableExecutable.PEReader' -as [type])) {
+            # PowerShell 7(.NET)은 메타데이터 읽기 형식을 기본 제공합니다.
+            $stream = [IO.File]::OpenRead($assemblyPath)
+            $pe = $null
+            try {
+                $pe = [System.Reflection.PortableExecutable.PEReader]::new($stream)
+                $metadata = [System.Reflection.Metadata.PEReaderExtensions]::GetMetadataReader($pe)
+                foreach ($handle in $metadata.TypeDefinitions) {
+                    $definition = $metadata.GetTypeDefinition($handle)
+                    [void]$typeNames.Add($metadata.GetString($definition.Name))
+                    if ($metadata.GetString($definition.Name) -eq 'GameplayPreview') {
+                        foreach ($method in $definition.GetMethods()) {
+                            [void]$methodNames.Add($metadata.GetString($metadata.GetMethodDefinition($method).Name))
+                        }
                     }
                 }
             }
-            foreach ($name in $testTypes) {
-                if ($typeNames.Contains($name) -ne $includeTests) { throw "테스트 기능의 빌드 포함 조건이 잘못됐습니다: $name" }
+            finally {
+                if ($null -ne $pe) { $pe.Dispose() }
+                $stream.Dispose()
             }
-            foreach ($name in $testMethods) {
-                if ($methodNames.Contains($name) -ne $includeTests) { throw "개발 시험 메서드의 빌드 포함 조건이 잘못됐습니다: $name" }
+        }
+        else {
+            # Windows PowerShell 5.1(.NET Framework)에는 System.Reflection.Metadata가 없어 같은 검사를 dotnet 보조 프로그램으로 읽습니다.
+            $readerRoot = Join-Path $workRoot 'MetadataReader'
+            New-Item -ItemType Directory -Path $readerRoot -Force | Out-Null
+            [IO.File]::WriteAllText((Join-Path $readerRoot 'MetadataReader.csproj'), '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><Nullable>disable</Nullable></PropertyGroup></Project>')
+            [IO.File]::WriteAllText((Join-Path $readerRoot 'Program.cs'), @'
+using System;
+using System.IO;
+using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
+using var stream = File.OpenRead(args[0]);
+using var pe = new PEReader(stream);
+MetadataReader metadata = pe.GetMetadataReader();
+foreach (TypeDefinitionHandle handle in metadata.TypeDefinitions)
+{
+    TypeDefinition definition = metadata.GetTypeDefinition(handle);
+    string name = metadata.GetString(definition.Name);
+    Console.WriteLine("T:" + name);
+    if (name != "GameplayPreview") continue;
+    foreach (MethodDefinitionHandle method in definition.GetMethods())
+        Console.WriteLine("M:" + metadata.GetString(metadata.GetMethodDefinition(method).Name));
+}
+'@)
+            $lines = dotnet run --project (Join-Path $readerRoot 'MetadataReader.csproj') --verbosity quiet -- $assemblyPath
+            if ($LASTEXITCODE -ne 0) { throw 'DLL 메타데이터 읽기 보조 프로그램 실행에 실패했습니다.' }
+            foreach ($line in $lines) {
+                if ($line.StartsWith('T:')) { [void]$typeNames.Add($line.Substring(2)) }
+                elseif ($line.StartsWith('M:')) { [void]$methodNames.Add($line.Substring(2)) }
             }
-            Write-Host "DLL 테스트 기능 포함 검사 통과: 포함=$includeTests (타입 $($testTypes.Count)개·시험 메서드 $($testMethods.Count)개)"
         }
-        finally {
-            if ($null -ne $pe) { $pe.Dispose() }
-            $stream.Dispose()
+        foreach ($name in $testTypes) {
+            if ($typeNames.Contains($name) -ne $includeTests) { throw "테스트 기능의 빌드 포함 조건이 잘못됐습니다: $name" }
         }
+        foreach ($name in $testMethods) {
+            if ($methodNames.Contains($name) -ne $includeTests) { throw "개발 시험 메서드의 빌드 포함 조건이 잘못됐습니다: $name" }
+        }
+        Write-Host "DLL 테스트 기능 포함 검사 통과: 포함=$includeTests (타입 $($testTypes.Count)개·시험 메서드 $($testMethods.Count)개)"
         Write-Host '엔진 모듈을 참조한 코드 컴파일을 통과했습니다. 실제 플레이·빌드 확인은 별도로 필요합니다.'
     }
     $exitCode = 0

@@ -12,6 +12,7 @@ namespace HumanGhost.Gameplay.Preview
     internal sealed class PreviewStage : IDisposable
     {
         private const string _markersName = "Markers";
+        // [정수화 미적용 이유] 맵 프리팹 기준 지면선 높이(Transform 배치)입니다. 스폰 직후 캐릭터 좌표는 정수로 관리합니다.
         private const float _groundLine = 2f;
         private GameObject _root;
         private readonly GameProgressState _progress;
@@ -26,6 +27,7 @@ namespace HumanGhost.Gameplay.Preview
         public IReadOnlyList<MonsterRuntime> Monsters => _monsters;
         public IReadOnlyDictionary<MonsterRuntime, MonsterSpawnId> MonsterIds => _monsterIds;
         public Bounds Area { get; private set; }
+        // [정수화 미적용 이유] Camera.orthographicSize에 넣는 카메라 표시 크기입니다.
         public float CameraSize { get; }
         // 매복 몬스터는 초기화한 뒤 발동 시점까지 비활성 상태로 유지합니다.
         private readonly List<KeyValuePair<float, MonsterRuntime>> _ambushes = new List<KeyValuePair<float, MonsterRuntime>>();

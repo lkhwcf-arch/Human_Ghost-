@@ -224,6 +224,9 @@ namespace HumanGhost.Gameplay.Presentation
         private void Execute(Action command)
         {
             if (!IsOpen || _blocked || _commanding || Time.frameCount == _openedFrame) return;
+            // Hide()가 _closed·_failed를 비우므로 실패 보고 대상을 먼저 잡아 둡니다.
+            // 닫힘 콜백에서 난 예외가 보고 없이 사라지거나 닫힘 콜백이 두 번 불리지 않게 합니다(S14).
+            Action<Exception> failed = _failed;
             try
             {
                 _commanding = true;
@@ -231,7 +234,12 @@ namespace HumanGhost.Gameplay.Presentation
                 if (_menu.Closed) { Action closed = _closed; Hide(); closed?.Invoke(); }
                 else { Render(); _scope?.Invalidate(); }
             }
-            catch (Exception error) { Fail(error); }
+            catch (Exception error)
+            {
+                if (IsOpen) Fail(error);
+                else if (failed != null) failed(error);
+                else throw;
+            }
             finally { _commanding = false; }
         }
         private void RefreshSafely() { try { Render(); } catch (Exception error) { Fail(error); } }

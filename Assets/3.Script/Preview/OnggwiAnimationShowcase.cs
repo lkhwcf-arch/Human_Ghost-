@@ -14,6 +14,7 @@ namespace HumanGhost.Gameplay.Preview
         private MillisecondClock _clock;
         private RigBindPose _bind;
         private int _elapsed;
+        // [정수화 미적용 이유] 편집기 확인 장면의 Transform 크기 표시값입니다.
         private Vector3 _scale = Vector3.one;
         private void Awake()
         {

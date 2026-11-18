@@ -12,7 +12,7 @@ namespace HumanGhost.Gameplay
         public const string TriggerType = "LEDGER_INVESTIGATE";
         public const string SkillUnlockType = "ROOM_LEDGER";
         // ContentAccess의 "Stage 클리어" 조건 번호입니다.
-        private const int StageClearedCondition = 1;
+        private const int _stageClearedCondition = 1;
 
         public int StageId { get; }
         public int DialogueId { get; }
@@ -34,7 +34,7 @@ namespace HumanGhost.Gameplay
                 throw new InvalidOperationException($"명부 해금 Skill은 Stage마다 하나여야 합니다. Skill UnlockType={SkillUnlockType}, UnlockTargetID={stageId}, 찾은 행 {unlocks.Length}개");
             Skill skill = unlocks[0];
             // 조사 완료(Stage 클리어) 직후 해금 조건이 충족돼야 진행과 스킬이 어긋나지 않습니다.
-            if (skill.UnlockConditionType != StageClearedCondition || skill.UnlockRequiredValue > 1)
+            if (skill.UnlockConditionType != _stageClearedCondition || skill.UnlockRequiredValue > 1)
                 throw new InvalidOperationException($"명부 해금 Skill {skill.ID}의 조건은 Stage {stageId} 클리어여야 합니다.");
             return new LedgerInvestigationDefinition(stageId, talks[0].ID, skill);
         }

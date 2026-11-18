@@ -11,6 +11,7 @@ namespace HumanGhost.Gameplay.Preview
     {
         private sealed class Gate { public int Id; public GameObject Blocker; public SpriteRenderer View; public Bounds Bounds; }
         // 표시는 3타일이지만 점프(3타일)로 넘지 못하게 충돌은 위로 길게 둡니다.
+        // [정수화 미적용 이유] 결박 관문 차단 Collider의 Transform 높이 배율(물리 경계)입니다.
         private const float _blockerHeightScale = 10f;
         private readonly List<Gate> _gates = new List<Gate>();
         private bool _touching;

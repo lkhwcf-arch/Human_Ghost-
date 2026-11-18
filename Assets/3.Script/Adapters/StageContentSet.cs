@@ -16,12 +16,14 @@ namespace HumanGhost.Gameplay.Adapters
             [SerializeField, FormerlySerializedAs("StageId")] private int _stageId = 0;
             [SerializeField, FormerlySerializedAs("Map")] private GameObject _map = null;
             [SerializeField, FormerlySerializedAs("Spawn")] private TextAsset _spawn = null;
+            // [정수화 미적용 이유] Camera.orthographicSize에 넣는 카메라 표시 크기입니다. 규칙·판정에 쓰지 않습니다.
             [SerializeField, FormerlySerializedAs("CameraSize"), Min(0.1f)] private float _cameraSize = 5.625f;
             [SerializeField, FormerlySerializedAs("BackgroundPositions")] private BackgroundPosition[] _backgroundPositions = Array.Empty<BackgroundPosition>();
             [SerializeField, FormerlySerializedAs("WorldTexts")] private WorldTextBinding[] _worldTexts = Array.Empty<WorldTextBinding>();
             public int StageId => _stageId;
             public GameObject Map => _map;
             public TextAsset Spawn => _spawn;
+            // [정수화 미적용 이유] Camera.orthographicSize에 넣는 카메라 표시 크기입니다. 규칙·판정에 쓰지 않습니다.
             public float CameraSize => _cameraSize;
             public IReadOnlyList<BackgroundPosition> BackgroundPositions => Array.AsReadOnly(_backgroundPositions);
             public IReadOnlyList<WorldTextBinding> WorldTexts => Array.AsReadOnly(_worldTexts);
@@ -42,12 +44,15 @@ namespace HumanGhost.Gameplay.Adapters
         [Serializable]
         public sealed class BackgroundPosition
         {
-            [SerializeField, FormerlySerializedAs("Path")] private string _path;
-            [SerializeField, FormerlySerializedAs("UseLocalX")] private bool _useLocalX;
-            [SerializeField, FormerlySerializedAs("LocalX")] private float _localX;
-            [SerializeField, FormerlySerializedAs("LocalY")] private float _localY;
+            // Inspector 직렬화로만 채웁니다. 명시 기본값은 미할당 경고(CS0649)를 막습니다.
+            [SerializeField, FormerlySerializedAs("Path")] private string _path = "";
+            [SerializeField, FormerlySerializedAs("UseLocalX")] private bool _useLocalX = false;
+            // [정수화 미적용 이유] 배경 레이어 Transform localPosition 표시값입니다(위 BackgroundPosition 주석 참고).
+            [SerializeField, FormerlySerializedAs("LocalX")] private float _localX = 0f;
+            [SerializeField, FormerlySerializedAs("LocalY")] private float _localY = 0f;
             public string Path => _path;
             public bool UseLocalX => _useLocalX;
+            // [정수화 미적용 이유] 배경 레이어 Transform localPosition 표시값입니다(위 BackgroundPosition 주석 참고).
             public float LocalX => _localX;
             public float LocalY => _localY;
         }

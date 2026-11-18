@@ -49,6 +49,7 @@ namespace HumanGhost.Gameplay.Preview
         private BossPattern _impactPattern;
         // 이동 여부(걷기/대기 그림 선택)는 보스 정수 X 변화로 판단합니다. 첫 프레임은 비교 기준이 없어 대기로 봅니다.
         private long _lastX = long.MinValue;
+        // [정수화 미적용 이유] 리그 Transform 위치·크기를 복원하는 표시값입니다.
         private Vector3 _rigPosition, _rigScale;
         private SpriteRenderer[] _parts;
         private RigBindPose _bind;

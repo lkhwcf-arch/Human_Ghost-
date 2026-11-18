@@ -18,6 +18,7 @@ namespace HumanGhost.Gameplay.Preview
         private readonly Color _color;
         private readonly int _targetId;
         private readonly int _playerTargetId;
+        // [정수화 미적용 이유] 정수 좌표(IntegerPosition)와 Unity 월드 좌표를 오가는 변환 계수(Inspector 타일당 화면 거리)입니다. 좌표 상태는 정수입니다.
         private readonly float _worldUnitsPerTile;
         private readonly long _spawnX;
         private readonly IntegerMotion _motion = new IntegerMotion();
@@ -26,6 +27,7 @@ namespace HumanGhost.Gameplay.Preview
         private MillisecondClock _clock;
         private PreviewThrownProjectile _projectile;
         // 높이 던지기(옹귀 1117): 던진 순간 기억한 바닥 자리와 그림자입니다.
+        // [정수화 미적용 이유] 높이 던지기 착지 표시 위치(그림자·투사체 경로 입력)입니다. 투사체는 받는 즉시 정수로 바꿉니다.
         private Vector3 _lobTarget;
         private SpriteRenderer _lobShadow;
         private static UnityEngine.Sprite _shadowSprite;
@@ -40,6 +42,7 @@ namespace HumanGhost.Gameplay.Preview
             (!_monster.IsDead || !_deathShown || !_fireChecked || (_fire != null && _fire.IsActive) ||
             (_sprite != null && _sprite.color != Color.gray) || (_body != null && _body.color != Color.gray));
         public SpriteRenderer Sprite => _sprite != null ? _sprite : _body;
+        // [정수화 미적용 이유] 표시·외부 연결용 Transform 위치입니다. 이동 상태는 SpatialRuntime 정수 좌표입니다.
         public Vector3 Position => _runtime.transform.position;
         public int MonsterId => _runtime.MonsterId;
         public bool IsEngaged { get; private set; }
@@ -64,8 +67,8 @@ namespace HumanGhost.Gameplay.Preview
         private Func<Vector2?> _protectedLedge;
         private readonly PreviewFootCollision _collision;
         // 턱 보호 판정 정수 값입니다(기존 0.2칸 높이 차·1칸 여유).
-        private const long LedgeHeightTolerance = IntegerPosition.UnitsPerTile / 5;
-        private const long LedgeClearance = IntegerPosition.UnitsPerTile;
+        private const long _ledgeHeightTolerance = IntegerPosition.UnitsPerTile / 5;
+        private const long _ledgeClearance = IntegerPosition.UnitsPerTile;
         // 뒤로 깡총 판정 정수 값입니다(기존 벽 허용 오차 0.01·착지 바닥 탐색 여유 0.3칸).
         private const long _retreatBlockTolerance = IntegerPosition.UnitsPerTile / 100;
         private const long _retreatFloorProbe = IntegerPosition.UnitsPerTile * 3 / 10;
@@ -198,9 +201,9 @@ namespace HumanGhost.Gameplay.Preview
             {
                 long ledgeX = _runtime.ToInteger(ledge.Value.x), ledgeY = _runtime.ToInteger(ledge.Value.y);
                 // 경사를 따라 높이가 바뀌므로 최초 바닥이 아닌 현재 발 높이와 비교합니다.
-                if (Math.Abs(checked(ledgeY - bodyBottom)) < LedgeHeightTolerance)
+                if (Math.Abs(checked(ledgeY - bodyBottom)) < _ledgeHeightTolerance)
                 {
-                    long clearance = checked(LedgeClearance + bodyHalfWidth);
+                    long clearance = checked(_ledgeClearance + bodyHalfWidth);
                     if (before.X >= ledgeX) minimum = Math.Max(minimum, Math.Min(before.X, checked(ledgeX + clearance)));
                     else maximum = Math.Min(maximum, Math.Max(before.X, checked(ledgeX - clearance)));
                 }

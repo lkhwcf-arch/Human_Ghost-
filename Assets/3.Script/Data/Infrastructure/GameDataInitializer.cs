@@ -28,7 +28,7 @@ namespace HumanGhost.Data.Infrastructure
             catch (OperationCanceledException) { }
             catch (Exception error)
             {
-                Debug.LogError($"데이터 초기화에 실패했습니다.\n{error.Message}", this);
+                Debug.LogException(new InvalidOperationException("데이터 초기화에 실패했습니다.", error), this);
             }
         }
 

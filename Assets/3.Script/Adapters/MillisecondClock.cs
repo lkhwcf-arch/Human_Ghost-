@@ -5,6 +5,7 @@ namespace HumanGhost.Gameplay
     // 프레임 초를 정수 ms로 바꾸고 나머지는 런타임별로 보존합니다.
     internal struct MillisecondClock
     {
+        // [정수화 미적용 이유] 외부 프레임 초를 정수 ms로 바꿀 때 소수 ms 나머지를 보존하는 경계 구현입니다(정수 단위 감사 설계 2절). 게임 시간은 정수 ms만 밖으로 냅니다.
         private double _remainder;
 
         // 클립 길이 등 외부 API의 단일 초 값을 정수 ms로 변환합니다. 프레임 누적에는 Advance를 사용합니다.

@@ -9,6 +9,7 @@ namespace HumanGhost.Gameplay.Preview
     {
         [SerializeField, InspectorName("보스 런타임")] private BossRuntime _boss = null;
         [SerializeField, InspectorName("판정 사각형 (색 따라감)")] private SpriteRenderer _body = null;
+        // [정수화 미적용 이유] 보스 원화를 몸통에 맞추는 Transform 표시 보정값입니다. 판정에 쓰지 않습니다.
         [SerializeField, InspectorName("몸통 기준 가로 보정 (타일)")] private float _bodyOffsetX = 0.87f;
         [SerializeField, InspectorName("1페이즈 접지 높이 보정 (월드 단위)")] private float _phaseOneGroundOffsetY = 0f;
         [SerializeField] private BossPhaseTwoView _phaseTwo = null;

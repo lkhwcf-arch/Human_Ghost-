@@ -220,7 +220,7 @@ namespace HumanGhost.Gameplay.Adapters
             {
                 if (this == null || !isActiveAndEnabled || generation != _saveGeneration) return;
                 // 조회 실패를 저장 없음으로 바꾸지 않습니다. 호스트는 대기 안내를 유지합니다.
-                Debug.LogError($"타이틀 저장 조회에 실패했습니다.\n{error.Message}", this);
+                Debug.LogException(new InvalidOperationException("타이틀 저장 조회에 실패했습니다.", error), this);
             }
         }
 

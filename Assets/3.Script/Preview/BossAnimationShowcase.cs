@@ -18,6 +18,7 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField] private PhaseTwoStep[] _phaseTwoSteps = Array.Empty<PhaseTwoStep>();
         [SerializeField, InspectorName("바닥선(게임 판정 바닥과 같은 기준)")] private SpriteRenderer _ground = null;
         private PreviewBossSprite _gameSprite;
+        // [정수화 미적용 이유] 편집기 확인 장면의 리그 Transform 배치 보정값입니다.
         private float _phaseTwoOriginOffset;
         private int _oneIndex = -1, _twoIndex = -1;
         private int _oneRemainingMilliseconds, _twoRemainingMilliseconds;

@@ -16,6 +16,7 @@ namespace HumanGhost.Gameplay.Preview
         private string _bossTestStatus = "";
         private string _feedbackQaReport = "";
         private Rect _bossTestRect = new Rect(20, 40, 560, 620);
+        // [정수화 미적용 이유] IMGUI 스크롤 위치(GUI API)입니다.
         private Vector2 _bossTestScroll;
         private GUIStyle _bossTestWindowStyle, _bossTestButtonStyle, _bossTestLabelStyle, _bossTestToggleStyle;
         private bool CanUseBossTest => _subscribed && !_modalBlocked && !_saveLocked && !_leaving && !LoadingScreen.IsActive

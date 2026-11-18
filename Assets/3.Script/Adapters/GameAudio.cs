@@ -28,8 +28,10 @@ namespace HumanGhost.Gameplay.Adapters
 
         private struct MusicFade
         {
+            // [정수화 미적용 이유] AudioSource.volume에 곱하는 0~1 페이드 이득입니다. 페이드 시간은 정수 ms로 진행하고 이득만 오디오 경계의 실수로 둡니다.
             private float _start, _target;
             private int _elapsed, _duration;
+            // [정수화 미적용 이유] AudioSource.volume에 곱하는 0~1 페이드 이득입니다(오디오 출력 경계).
             public float Gain { get; private set; }
             public bool IsRunning => _elapsed < _duration;
             public bool IsFadingOut => IsRunning && _target == 0f;
@@ -86,6 +88,7 @@ namespace HumanGhost.Gameplay.Adapters
         }
         private bool _usingA = true;
         private int _fadeInMilliseconds = _crossfadeMilliseconds;
+        // [정수화 미적용 이유] AudioSource.volume에 넣는 음량 배율입니다. 설정은 정수 퍼센트로 저장하고 출력 직전에만 0~1로 바꿉니다.
         private float _musicVolume = 0.8f;
         private float _pauseScale = 1f;
         private GameSettings _settings = new GameSettings();

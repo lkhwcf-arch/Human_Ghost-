@@ -19,9 +19,11 @@ namespace HumanGhost.Gameplay.Preview
         // 영상 끝 도달 횟수로 셉니다. 실수 시간을 누적하지 않습니다.
         private const int _playCount = 3;
         // 판넬 간격(6) 안의 안내 폭(5.5) 안에 플레이어가 들어오면 지나가는 것으로 봅니다.
+        // [정수화 미적용 이유] 시작 안내 패널·영상의 Transform 배치 크기(표시)입니다.
         private const float _panelHalfWidth = 2.75f;
         private const float _videoWidth = 4f, _videoHeight = 2.25f, _videoFrame = .1f;
         // 문구 윗변과 영상 아랫변 사이의 여백입니다.
+        // [정수화 미적용 이유] 시작 안내 패널·영상의 Transform 배치 크기(표시)입니다.
         private const float _videoGap = .1f;
         private UI_Lang[] _entries;
         private TextMesh[] _labels;

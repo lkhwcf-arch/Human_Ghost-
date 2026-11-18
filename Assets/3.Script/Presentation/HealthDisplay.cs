@@ -10,6 +10,7 @@ namespace HumanGhost.Gameplay.Presentation
         [SerializeField, InspectorName("체력 막대 영역")] private RectTransform _fill = null;
         [SerializeField, InspectorName("피해 잔상 영역 (선택)")] private RectTransform _ghost = null;
         private HealthDisplayBinding _binding;
+        // [정수화 미적용 이유] 체력바 잔상 보간용 0~1 표시 비율입니다. 체력은 정수이고 이 값은 Image 폭에만 씁니다.
         private float _ghostRatio = 1f;
         private float _targetRatio = 1f;
         private int _ghostHoldMilliseconds;

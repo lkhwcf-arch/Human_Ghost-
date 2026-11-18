@@ -14,6 +14,7 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField] private Transform _hand = null;
         [SerializeField] private AnimationClip _throw = null;
         [SerializeField, InspectorName("높이 던지기 클립 (선택)")] private AnimationClip _throwHigh = null;
+        // [정수화 미적용 이유] 원화 리그의 발 위치·크기 표시 보정값입니다.
         [SerializeField] private float _sourceFeet = 0f;
         private Vector3 _scale;
         private RigBindPose _bind;
@@ -29,6 +30,7 @@ namespace HumanGhost.Gameplay.Preview
             _heldRenderer = _heldStone.GetComponent<SpriteRenderer>();
             _handOverlay = _rig.transform.Find("HandOverlay")?.GetComponent<SpriteRenderer>();
         }
+        // [정수화 미적용 이유] 던지는 손의 Transform 위치입니다. 투사체는 받는 즉시 정수 좌표로 바꿉니다.
         public Vector3 ProjectilePosition { get { Sample(); return _hand.position; } }
         private void LateUpdate()
         {

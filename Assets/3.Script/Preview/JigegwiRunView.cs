@@ -14,11 +14,13 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField] private GameObject _rig = null;
         [SerializeField] private SpriteRenderer _skin = null;
         [SerializeField] private AnimationClip _run = null;
+        // [정수화 미적용 이유] 원화 리그의 발 위치·크기 표시 보정과 이동 감지용 Transform 관측값입니다. 이동 상태는 정수 좌표입니다.
         [SerializeField] private float _sourceFeet = 0f;
         [SerializeField] private AnimationCurve _groundOffset = new AnimationCurve();
         // 기존 지게귀 스프라이트(10fps)와 같은 프레임감으로 끊어 보여 줍니다. 이동·판정 속도는 바꾸지 않습니다.
         [SerializeField, InspectorName("리그 표시 프레임 (fps)"), Min(1)] private int _framesPerSecond = 10;
         [SerializeField, InspectorName("돌진 재생 비율 (분모 10000)"), Min(10000)] private int _chargeRate = 14000;
+        // [정수화 미적용 이유] 원화 리그의 발 위치·크기 표시 보정과 이동 감지용 Transform 관측값입니다. 이동 상태는 정수 좌표입니다.
         private Vector3 _baseScale;
         private float _lastX;
         private long _timeMilliseconds;

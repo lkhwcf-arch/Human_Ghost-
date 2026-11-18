@@ -98,7 +98,12 @@ namespace HumanGhost.Telemetry
                         _dataVersion, _utcMs(), _elapsedMs(), fields, _anonymousId));
                     notify = _pending.Count >= _batchSize || rule.Category == "errors" || name == "player_death";
                 }
-                if (notify) BatchReady?.Invoke();
+                // 기록은 이미 큐에 들어갔습니다. 배치 알림 소비자의 실패는 따로 남기고 기록 결과는 성공으로 돌려줍니다(S14).
+                if (notify)
+                {
+                    try { BatchReady?.Invoke(); }
+                    catch (Exception error) { LastFailure = "배치 전송 알림 실패: " + error.Message; }
+                }
                 return true;
             }
             catch (Exception error) { LastFailure = "기록 준비 실패: " + error.Message; return false; }

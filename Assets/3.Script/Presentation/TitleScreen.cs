@@ -151,7 +151,7 @@ namespace HumanGhost.Gameplay.Presentation
             catch (Exception error)
             {
                 Disconnect();
-                Debug.LogError($"타이틀 화면 표시에 실패했습니다.\n{error.Message}", this);
+                Debug.LogException(new InvalidOperationException("타이틀 화면 표시에 실패했습니다.", error), this);
                 enabled = false;
             }
         }
