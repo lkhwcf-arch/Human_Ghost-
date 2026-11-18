@@ -10,7 +10,9 @@
     { "SpeakerTextID": 30006, "TextID": 30302 },
     { "SpeakerTextID": 30006, "TextID": 30303 },
     { "SpeakerTextID": 30006, "TextID": 30304 },
+    { "SpeakerTextID": 30006, "TextID": 30392 },
     { "SpeakerTextID": 30001, "TextID": 30305 },
-    { "SpeakerTextID": 30001, "TextID": 30306 }
+    { "SpeakerTextID": 30001, "TextID": 30306 },
+    { "SpeakerTextID": 30006, "TextID": 30393 }
   ]
 }
