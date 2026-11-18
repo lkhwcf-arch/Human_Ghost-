@@ -32,7 +32,11 @@ namespace HumanGhost.Gameplay.Preview
         private int _hangSide;
         private const int _ledgeClimbMilliseconds = 1000;
         private int _climbElapsed = -1;
-        private Vector3 _climbFrom, _climbTo;
+        private IntegerPosition _climbFrom, _climbTo;
+        // 턱 오르기 보간 구간입니다(분모 10000의 진행률). 위로 끌어올리기 15~80%, 앞으로 넘어가기 45~95%(기존 0.15+0.65·0.45+0.5).
+        private const int _rateScale = 10000;
+        private const int _climbRiseStartRate = 1500, _climbRiseLengthRate = 6500;
+        private const int _climbAdvanceStartRate = 4500, _climbAdvanceLengthRate = 5000;
         public bool IsClimbingLedge => _climbElapsed >= 0;
         public Vector2? ProtectedLedge => _player.Actor.IsTraversalProtected && _hangEdge != null ? (Vector2?)_hangEdge.position : null;
         private readonly System.Collections.Generic.List<LadderClimbArea> _ladders = new System.Collections.Generic.List<LadderClimbArea>();
@@ -171,10 +175,28 @@ namespace HumanGhost.Gameplay.Preview
         }
 
         public void StopClimbing() { CancelLedgeClimb(); LeaveLadder(false); }
+
+        // 보간 내부 정밀도(백만분율)입니다. 진행률을 1/10000로 자르면 위치 오차가 0.003칸까지 생겨 더 촘촘히 계산합니다.
+        private const long _phaseScale = 1000000;
+
+        // 경과 ms 중 [start, start+length] 구간(분모 10000의 비율)의 진행을 0~1,000,000으로 고정해 돌려줍니다.
+        private static long PhaseRate(int elapsedMilliseconds, int startRate, int lengthRate)
+        {
+            long offset = (long)elapsedMilliseconds * _rateScale - (long)startRate * _ledgeClimbMilliseconds;
+            return Math.Max(0L, Math.Min(_phaseScale, offset * _phaseScale / ((long)lengthRate * _ledgeClimbMilliseconds)));
+        }
+
+        // Mathf.SmoothStep(from, to, t)의 정수 판입니다. t = rate/1,000,000일 때 from + (to-from)·t²(3-2t)이며 끝점은 정확히 from·to입니다.
+        private static long SmoothStep(long from, long to, long rate)
+        {
+            long eased = rate * rate / _phaseScale * (3L * _phaseScale - 2L * rate) / _phaseScale;
+            return checked(from + (to - from) * eased / _phaseScale);
+        }
+
         private void CancelLedgeClimb()
         {
             if (!IsClimbingLedge) return;
-            _climbElapsed = -1; _player.SetClimbProgress(-1f);
+            _climbElapsed = -1; _player.SetClimbProgress(-1);
             _player.NotifyPresentationCue("ClimbExit");
         }
         private void LeaveLadder(bool atTop)
@@ -255,9 +277,10 @@ namespace HumanGhost.Gameplay.Preview
         private void Climb()
         {
             if (IsClimbingLedge || !IsHanging || !_player.Actor.IsHanging) return;
-            _climbFrom = _player.transform.position;
-            _climbTo = _hangEdges.ClimbPosition(_hangEdge, _hangSide, _climbFrom.z);
-            _climbElapsed = 0; _player.SetClimbProgress(0f);
+            _climbFrom = _player.Position;
+            // Unity 경계: 턱 표식(Transform)에서 구한 도착 위치는 읽는 즉시 정수로 바꿉니다.
+            _climbTo = _player.FromWorld(_hangEdges.ClimbPosition(_hangEdge, _hangSide, _player.transform.position.z));
+            _climbElapsed = 0; _player.SetClimbProgress(0);
             _motion.StopRoll(); _motion.SetVerticalSpeed();
             _player.NotifyPresentationCue("Climb");
             _playSound?.Invoke("PLAYER_CLIMB");
@@ -289,12 +312,11 @@ namespace HumanGhost.Gameplay.Preview
                 else
                 {
                     _climbElapsed += Math.Min(milliseconds, _ledgeClimbMilliseconds - _climbElapsed);
-                    float progress = (float)_climbElapsed / _ledgeClimbMilliseconds;
-                    Vector3 climbPosition = _climbFrom;
-                    // 위로 끌어올리기와 앞으로 넘어가기를 겹치고 양 끝을 감속해 꺾임 없이 이어지게 합니다.
-                    climbPosition.y = Mathf.SmoothStep(_climbFrom.y, _climbTo.y, Mathf.Clamp01((progress - .15f) / .65f));
-                    climbPosition.x = Mathf.SmoothStep(_climbFrom.x, _climbTo.x, Mathf.Clamp01((progress - .45f) / .5f));
-                    _player.SetPosition(climbPosition); _player.SetClimbProgress(progress);
+                    int progress = (int)((long)_climbElapsed * _rateScale / _ledgeClimbMilliseconds);
+                    // 위로 끌어올리기와 앞으로 넘어가기를 겹치고 양 끝을 감속해 꺾임 없이 이어지게 합니다(정수 SmoothStep).
+                    long climbY = SmoothStep(_climbFrom.Y, _climbTo.Y, PhaseRate(_climbElapsed, _climbRiseStartRate, _climbRiseLengthRate));
+                    long climbX = SmoothStep(_climbFrom.X, _climbTo.X, PhaseRate(_climbElapsed, _climbAdvanceStartRate, _climbAdvanceLengthRate));
+                    _player.SetPosition(new IntegerPosition(climbX, climbY)); _player.SetClimbProgress(progress);
                     if (_climbElapsed == _ledgeClimbMilliseconds)
                     {
                         CancelLedgeClimb(); _hangEdge = null;

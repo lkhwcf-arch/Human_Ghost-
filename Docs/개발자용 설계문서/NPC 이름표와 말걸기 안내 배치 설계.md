@@ -71,7 +71,7 @@ flowchart TD
 | 상속·재사용 | `InteractableBehaviour` 상속 유지, 기존 대화 실행·언어 조회·갱신 예약·`SubscriptionScope` 재사용 | 안내 계약은 사용자 선택으로 새 인터페이스(기반 클래스 변경 없이 선택적 구현) |
 | 데이터 관리 | 이름·대화는 기존 데이터 | 간격·배율은 사용자 선택으로 조립자 Inspector(시트 열 없음). 그림자 어긋남(0.03칸)은 장식이라 고정값 |
 | 독립성 | 서낭당·문·명부 배치 불변, 상호작용 거리(`Position`) 불변 | — |
-| 수명·이벤트 | 재연결 시 이전 구독·대화 정리 후 적용. 구독 해제·대화 취소·등록 해제가 하나 실패해도 나머지 수행. 표시 오류는 `ErrorPopupHost.WriteError`로 기록 | **미준수 후보(개선 검토 S01):** `ConnectDialogueEvents`의 같은 try/catch 안에서 `NotifyChanged()`까지 실행합니다. 이 통지는 `InteractionRegistry`를 거쳐 `PlayerInteractor`로 동기 전달되므로, 소비자 예외도 표시 오류로 기록되고 흐름이 계속됩니다. 이름표 갱신이 실패하면 통지도 건너뜁니다. 수정은 [개선 검토](개선%20검토/코드%20구조와%20반복·재귀%20개선%20검토.md#2-설계원칙과-구조-개선)의 확인 후 진행 |
+| 수명·이벤트 | 재연결 시 이전 구독·대화 정리 후 적용. 구독 해제·대화 취소·등록 해제가 하나 실패해도 나머지 수행. 표시 오류는 `ErrorPopupHost.WriteError`로 기록 | **2026-11-18 수정(개선 검토 S01):** `ConnectDialogueEvents`에서 try/catch는 `RefreshNameText()`만 감쌉니다. 이름표 표시 실패는 `ErrorPopupHost.WriteError`로 기록하고, `NotifyChanged()`는 표시 성공 여부와 무관하게 그 밖에서 실행합니다. 소비자(`InteractionRegistry` → `PlayerInteractor`) 예외는 삼키지 않고 언어 변경·사용 가능 통지의 호출 흐름으로 전달합니다. 컴파일·코어 검사 통과, Play 미확인. 장부 상호작용의 같은 구조(S10)도 함께 수정 |
 
 ### 2.5 검증 상태
 

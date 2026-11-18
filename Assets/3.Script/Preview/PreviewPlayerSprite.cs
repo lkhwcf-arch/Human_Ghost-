@@ -164,10 +164,12 @@ namespace HumanGhost.Gameplay.Preview
             _wasInAir = inAir;
             bool hanging = actor != null && actor.IsHanging;
             // 원화별 크기를 구분하고 오르기 중 배율은 고정합니다. 높이·손의 이동만 부드럽게 연결합니다.
-            float progress = hanging ? Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(_player.ClimbProgress)) : 0f;
+            // 표현 경계: 정수 진행률(분모 10000)을 화면 보간용 0~1 실수로 바꿉니다. -1(미사용)은 0으로 고정됩니다.
+            float climbProgress = _player.ClimbProgress / 10000f;
+            float progress = hanging ? Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(climbProgress)) : 0f;
             // 오르기 앞부분 원화는 매달리기와 같이 작게 그려져 있어 같은 배율을 유지하고, 서기 비율 원화로 바뀌는 칸에서 1로 돌아옵니다.
-            float scale = hanging && _player.ClimbProgress >= 0f
-                ? Mathf.Lerp(_hangScale, 1f, Mathf.InverseLerp(_climbFullSizeRange.x, _climbFullSizeRange.y, _player.ClimbProgress))
+            float scale = hanging && _player.ClimbProgress >= 0
+                ? Mathf.Lerp(_hangScale, 1f, Mathf.InverseLerp(_climbFullSizeRange.x, _climbFullSizeRange.y, climbProgress))
                 : hanging ? (_onLadder ? _ladderScale : _hangScale) : 1f;
             if (Renderer != null)
             {
@@ -193,8 +195,8 @@ namespace HumanGhost.Gameplay.Preview
             {
                 Vector2 hand = HandAnchor(Renderer.sprite);
                 Vector3 handWorld = Renderer.transform.TransformPoint(new Vector3(Renderer.flipX ? -hand.x : hand.x, hand.y, 0f));
-                bool climbing = _player.ClimbProgress >= 0f;
-                float linear = climbing ? Mathf.Clamp01(_player.ClimbProgress) : 0f;
+                bool climbing = _player.ClimbProgress >= 0;
+                float linear = climbing ? Mathf.Clamp01(_player.ClimbProgress / 10000f) : 0f;
                 float grip = climbing ? 1f - Mathf.SmoothStep(0f, 1f, linear / .5f) : 1f;
                 Vector3 correction = (climbing ? _climbHandAnchor : LedgeHandPosition) - handWorld;
                 Vector3 position = Renderer.transform.position;
@@ -236,7 +238,7 @@ namespace HumanGhost.Gameplay.Preview
             if (state == StateKey.Stun && _player.KnockdownAnimation != null) return _player.KnockdownAnimation;
             if (state == StateKey.Execute && _executionAnimation != null) return _executionAnimation;
             if (_player.Actor.IsParrying) return _parry;
-            if (state == StateKey.Hang && _player.ClimbProgress >= 0f && _climb != null) return _climb;
+            if (state == StateKey.Hang && _player.ClimbProgress >= 0 && _climb != null) return _climb;
             if (_onLadder && state == StateKey.Hang && _ladderClimb != null) return _ladderClimb;
             if (_action != null)
             {
@@ -248,9 +250,10 @@ namespace HumanGhost.Gameplay.Preview
         }
         protected override bool TryGetAnimationTime(StateKey state, AnimationClip animation, out float time)
         {
-            if (state == StateKey.Hang && _player.ClimbProgress >= 0f && animation == _climb)
+            if (state == StateKey.Hang && _player.ClimbProgress >= 0 && animation == _climb)
             {
-                time = _player.ClimbProgress * animation.length;
+                // 표현 경계: 정수 진행률(분모 10000)을 클립 샘플링 초로 바꿉니다.
+                time = _player.ClimbProgress / 10000f * animation.length;
                 return true;
             }
             if (animation == _save && (_praying || _saveRising))

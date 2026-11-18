@@ -85,10 +85,10 @@ namespace HumanGhost.Gameplay.Adapters
             _dialogueScope = new SubscriptionScope();
             DialogueRunner runner = _dialogues;
             // 사용 가능 통지는 표시 갱신에만 씁니다. 완료 판정은 StepResult의 요청 결과로 합니다.
+            // 자기 표시 작업이 없는 단순 전달이므로 소비자 예외를 삼키지 않고 호출 흐름으로 전달합니다.
             Action changed = _dialogueScope.Guard(() =>
             {
-                try { if (this != null && isActiveAndEnabled) NotifyChanged(); }
-                catch (Exception error) { Debug.LogException(error, this); }
+                if (this != null && isActiveAndEnabled) NotifyChanged();
             });
             _dialogueScope.Add(() => runner.AvailabilityChanged -= changed); runner.AvailabilityChanged += changed;
         }

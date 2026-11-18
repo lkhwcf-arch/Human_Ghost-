@@ -26,6 +26,8 @@ namespace HumanGhost.Gameplay.Adapters
             public Vector2Int OffsetUnits = new Vector2Int(0, 150);
         }
 
+        // [정수화 미적용 이유] 배경 그림 레이어(하늘·먼산·안개)의 Transform localPosition 표시값입니다.
+        // 단위는 타일이 아니라 부모 기준 로컬 단위이고 게임 규칙·판정·상태에 쓰지 않으므로 표현 경계의 float로 유지합니다(2026-11-18 사용자 결정).
         [Serializable]
         public sealed class BackgroundPosition
         {

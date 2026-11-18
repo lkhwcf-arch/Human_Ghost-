@@ -148,7 +148,8 @@ namespace HumanGhost.Gameplay.Preview
                 () => { if (_lobShadow != null) UnityEngine.Object.Destroy(_lobShadow.gameObject); });
         }
 
-        public void Step(float seconds, float minX, float maxX)
+        // minimumX·maximumX는 보행 구간이 없을 때 쓰는 정수 이동 한계입니다(GameplayPreview의 tile_x100 Inspector 값).
+        public void Step(float seconds, long minimumX, long maximumX)
         {
             if (!NeedsStep) return;
             if (_deathShown)
@@ -179,8 +180,7 @@ namespace HumanGhost.Gameplay.Preview
             PlayerActor actor = _player.Actor;
             int milliseconds = _clock.AdvanceFrame(seconds);
             IntegerPosition before = _runtime.Position;
-            // [정수화 미적용 이유] minX·maxX는 GameplayPreview가 넘기는 맵 경계(float) 계약입니다. 들어온 즉시 정수로 바꿉니다.
-            long minimum = _hasSpan ? _spanMin : _runtime.ToInteger(minX), maximum = _hasSpan ? _spanMax : _runtime.ToInteger(maxX);
+            long minimum = _hasSpan ? _spanMin : minimumX, maximum = _hasSpan ? _spanMax : maximumX;
             // Unity 경계: 몸통(Body) bounds는 읽는 즉시 정수로 바꿉니다. 이후 이동 계산은 모두 정수입니다.
             Bounds bodyBounds = _body.bounds;
             long centerX = _runtime.ToInteger(bodyBounds.center.x), centerY = _runtime.ToInteger(bodyBounds.center.y);

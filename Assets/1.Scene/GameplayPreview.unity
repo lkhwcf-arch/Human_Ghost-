@@ -1632,7 +1632,7 @@ MonoBehaviour:
   _attackWindow: {fileID: 1507635950}
   _worldUnitsPerTile: 1
   _jumpMilliseconds: 800
-  _stageHalfWidth: 8
+  _stageHalfWidthUnits: 800
   _executionRangeUnits: 175
   _startWithFullStamina: 1
   _initialStamina: 0
@@ -1667,8 +1667,8 @@ MonoBehaviour:
   _useMapCollision: 0
   _playerHalfSize: {x: 0.3, y: 0.65}
   _hangEdgeRoot: {fileID: 0}
-  _combatMinX: -9
-  _combatMaxX: 9
+  _combatMinUnits: -900
+  _combatMaxUnits: 900
   _manualSavePrefab: {fileID: 0}
 --- !u!4 &1213176966
 Transform:

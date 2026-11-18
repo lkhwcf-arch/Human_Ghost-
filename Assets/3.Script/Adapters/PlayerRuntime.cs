@@ -16,11 +16,11 @@ namespace HumanGhost.Gameplay.Adapters
         private MillisecondClock _clock;
         private System.Random _hitRandom;
         public PlayerActor Actor { get; private set; }
-        // 화면 전용 진행률입니다. 게임 이동 좌표와 분리하며 미사용 값은 -1입니다.
-        public float ClimbProgress { get; private set; } = -1f;
-        public void SetClimbProgress(float progress)
+        // 턱 오르기 진행률(분모 10000, 0~10000)입니다. 게임 이동 좌표와 분리하며 미사용 값은 -1입니다.
+        public int ClimbProgress { get; private set; } = -1;
+        public void SetClimbProgress(int progress)
         {
-            if (float.IsNaN(progress) || float.IsInfinity(progress) || progress < -1f || progress > 1f)
+            if (progress < -1 || progress > 10000)
                 throw new ArgumentOutOfRangeException(nameof(progress));
             ClimbProgress = progress;
         }
@@ -97,7 +97,7 @@ namespace HumanGhost.Gameplay.Adapters
                 () => { if (Actor?.BoundBy != null) Actor.ReleaseBind(Actor.BoundBy); },
                 () => Actor?.ReleaseChain(),
                 () => Actor?.CancelCombatAction(),
-                () => ClimbProgress = -1f);
+                () => ClimbProgress = -1);
         }
         private void OnDestroy()
         {

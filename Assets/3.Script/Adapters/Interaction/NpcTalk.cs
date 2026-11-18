@@ -156,14 +156,13 @@ namespace HumanGhost.Gameplay.Adapters
             DialogueRunner runner = _dialogues;
             System.Action changed = _dialogueScope.Guard(() =>
             {
-                // 표시 소비자: 자기 이름표만 갱신하고 오류는 표시 경계에서 기록합니다. 코어 명령을 호출하지 않습니다.
-                try
-                {
-                    if (this == null || !isActiveAndEnabled) return;
-                    RefreshNameText();
-                    NotifyChanged();
-                }
+                if (this == null || !isActiveAndEnabled) return;
+                // 표시 경계: 자기 이름표 갱신의 Unity 표시 오류만 여기서 기록합니다. 코어 명령을 호출하지 않습니다.
+                try { RefreshNameText(); }
                 catch (System.Exception error) { ErrorPopupHost.WriteError(error, this); }
+                // 사용 가능·언어 변경은 이름표 표시 성공 여부와 무관하게 상호작용 소비자에게 알립니다.
+                // 게임플레이 통지이므로 소비자 예외를 삼키지 않고 호출 흐름으로 전달합니다.
+                NotifyChanged();
             });
             _dialogueScope.Add(() => LanguageSettings.Changed -= changed); LanguageSettings.Changed += changed;
             _dialogueScope.Add(() => runner.AvailabilityChanged -= changed); runner.AvailabilityChanged += changed;

@@ -1747,7 +1747,7 @@ MonoBehaviour:
   _attackWindow: {fileID: 1507635950}
   _worldUnitsPerTile: 1
   _jumpMilliseconds: 800
-  _stageHalfWidth: 8
+  _stageHalfWidthUnits: 800
   _executionRangeUnits: 175
   _startWithFullStamina: 1
   _initialStamina: 0

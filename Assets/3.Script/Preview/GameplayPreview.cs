@@ -26,7 +26,7 @@ namespace HumanGhost.Gameplay.Preview
         [Header("임시 표시 설정 (운영 수치 아님)")]
         [SerializeField, InspectorName("타일당 화면 거리"), Min(0.01f)] private float _worldUnitsPerTile = 1f;
         [SerializeField, InspectorName("임시 점프 시간 (ms)"), Min(1)] private int _jumpMilliseconds = 800;
-        [SerializeField, InspectorName("화면 이동 한계 (좌우)"), Min(1f)] private float _stageHalfWidth = 9f;
+        [SerializeField, InspectorName("화면 이동 한계 (좌우, tile_x100)"), Min(100)] private int _stageHalfWidthUnits = 900;
         [SerializeField, InspectorName("임시 해체 거리 (tile_x100)"), Min(0)] private int _executionRangeUnits = 175;
         [SerializeField, InspectorName("시작 시 스태미나 최대로")] private bool _startWithFullStamina = true;
         [SerializeField, InspectorName("시작 스태미나"), Min(0)] private int _initialStamina = 0;
@@ -62,8 +62,8 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField, InspectorName("맵 충돌 사용")] private bool _useMapCollision = false;
         [SerializeField, InspectorName("플레이어 충돌 절반 크기")] private Vector2 _playerHalfSize = new Vector2(0.3f, 0.65f);
         [SerializeField, InspectorName("맵 표식 묶음 (모서리·낙하 구역)")] private Transform _hangEdgeRoot = null;
-        [SerializeField, InspectorName("몹·보스 이동 왼쪽 한계")] private float _combatMinX = -9f;
-        [SerializeField, InspectorName("몹·보스 이동 오른쪽 한계")] private float _combatMaxX = 9f;
+        [SerializeField, InspectorName("몹·보스 이동 왼쪽 한계 (tile_x100)")] private int _combatMinUnits = -900;
+        [SerializeField, InspectorName("몹·보스 이동 오른쪽 한계 (tile_x100)")] private int _combatMaxUnits = 900;
         private PreviewBossDriver _bossDriver;
         // 장면 내 양수 개체 ID(데이터 ID와 별개). 일반몹은 _firstMonsterTargetId부터 순번. 운영 스폰은 스폰 담당이 할당합니다.
         private const int _playerTargetId = 1;
@@ -1074,11 +1074,16 @@ namespace HumanGhost.Gameplay.Preview
             StepExecution(_gameElapsedMilliseconds);
             // 암전 중 입력은 받지 않습니다(O09).
             if (_input.enabled == PreviewScreenFade.IsActive) _input.enabled = !PreviewScreenFade.IsActive;
-            float combatMin = _useMapCollision ? _combatMinX : -_stageHalfWidth;
-            float combatMax = _useMapCollision ? _combatMaxX : _stageHalfWidth;
+            // 몹 이동 한계는 Inspector tile_x100 정수에서 바로 정수 좌표로 바꿉니다.
+            long stageHalfWidth = IntegerPosition.FromData(_stageHalfWidthUnits);
+            long combatMin = _useMapCollision ? IntegerPosition.FromData(_combatMinUnits) : -stageHalfWidth;
+            long combatMax = _useMapCollision ? IntegerPosition.FromData(_combatMaxUnits) : stageHalfWidth;
+            // [정수화 미적용 이유] 플레이어 이동(2026-11-17 비탈 보류)과 보스 구동(S11 보스 담당 이관)은 기존 float 경계 계약을 유지합니다.
+            // 정수 한계는 이 두 호출에 넘기는 순간에만 월드 좌표로 바꿉니다. 맵 범위(Area)는 Collider 관측값입니다.
+            float stageHalfWidthWorld = SpatialRuntime.ToWorld(stageHalfWidth, _worldUnitsPerTile);
             // 출구가 잠겨 있어도 맵 밖으로 나가 떨어지지 않게 맵 끝에서 막습니다.
-            float moveMin = _stage != null ? _stage.Area.min.x + _playerHalfSize.x : _useMapCollision ? float.NegativeInfinity : -_stageHalfWidth;
-            float moveMax = _stage != null ? _stage.Area.max.x - _playerHalfSize.x : _useMapCollision ? float.PositiveInfinity : _stageHalfWidth;
+            float moveMin = _stage != null ? _stage.Area.min.x + _playerHalfSize.x : _useMapCollision ? float.NegativeInfinity : -stageHalfWidthWorld;
+            float moveMax = _stage != null ? _stage.Area.max.x - _playerHalfSize.x : _useMapCollision ? float.PositiveInfinity : stageHalfWidthWorld;
             _motion.SetVerticalInput(_input.VerticalDirection);
             _motion.Move(Time.deltaTime, moveMin, moveMax);
             _attackWindow.enabled = _actor.IsAttackActive;
@@ -1087,7 +1092,8 @@ namespace HumanGhost.Gameplay.Preview
                 if (monster.NeedsStep) monster.Step(Time.deltaTime, combatMin, combatMax);
             // 보스는 고정 한계 대신 실제 맵 범위에서 막습니다. 고정 한계는 맵1 기준이라 보스방 돌진이 벽을 지나쳤습니다.
             // 보스방 좌우 벽 두께 1(카메라 범위와 같은 기준)을 빼 벽 안쪽 면에서 멈추고 벽 충돌을 알립니다.
-            _bossDriver?.Step(Time.deltaTime, _stage != null ? _stage.Area.min.x + 1f : combatMin, _stage != null ? _stage.Area.max.x - 1f : combatMax);
+            _bossDriver?.Step(Time.deltaTime, _stage != null ? _stage.Area.min.x + 1f : SpatialRuntime.ToWorld(combatMin, _worldUnitsPerTile),
+                _stage != null ? _stage.Area.max.x - 1f : SpatialRuntime.ToWorld(combatMax, _worldUnitsPerTile));
             StepFields();
             CheckPlayerHits();
             FlushMonsterRewards();
