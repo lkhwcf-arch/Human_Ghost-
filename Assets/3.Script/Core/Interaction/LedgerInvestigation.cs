@@ -11,8 +11,6 @@ namespace HumanGhost.Gameplay
     {
         public const string TriggerType = "LEDGER_INVESTIGATE";
         public const string SkillUnlockType = "ROOM_LEDGER";
-        // ContentAccess의 "Stage 클리어" 조건 번호입니다.
-        private const int _stageClearedCondition = 1;
 
         public int StageId { get; }
         public int DialogueId { get; }
@@ -33,9 +31,13 @@ namespace HumanGhost.Gameplay
             if (unlocks.Length != 1)
                 throw new InvalidOperationException($"명부 해금 Skill은 Stage마다 하나여야 합니다. Skill UnlockType={SkillUnlockType}, UnlockTargetID={stageId}, 찾은 행 {unlocks.Length}개");
             Skill skill = unlocks[0];
-            // 조사 완료(Stage 클리어) 직후 해금 조건이 충족돼야 진행과 스킬이 어긋나지 않습니다.
-            if (skill.UnlockConditionType != _stageClearedCondition || skill.UnlockRequiredValue > 1)
-                throw new InvalidOperationException($"명부 해금 Skill {skill.ID}의 조건은 Stage {stageId} 클리어여야 합니다.");
+            // 조사 전에는 잠겨 있고 조사 완료(Stage 클리어) 직후 풀려야 진행과 스킬이 어긋나지 않습니다.
+            // 조건 번호를 복제하지 않고 해금 판정 소유자(ContentAccess)에게 두 시점을 묻습니다(조건 규칙 감사 3.15).
+            // 기획 중지(ContentEnabled=N)는 조사만 기록하고 해금하지 않는 정상 경우입니다(LedgerOutcome.Investigated).
+            ContentAccessResult before = new ContentAccess(_ => false).Evaluate(skill);
+            ContentAccessResult after = new ContentAccess(id => id == stageId).Evaluate(skill);
+            if (before != ContentAccessResult.DisabledByPlanner && (before != ContentAccessResult.UnlockRequired || after != ContentAccessResult.Allowed))
+                throw new InvalidOperationException($"명부 해금 Skill {skill.ID}은 Stage {stageId} 클리어 전에는 잠기고 클리어 직후 풀려야 합니다(조사 전 {before}, 조사 후 {after}).");
             return new LedgerInvestigationDefinition(stageId, talks[0].ID, skill);
         }
     }

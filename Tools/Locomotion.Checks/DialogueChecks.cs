@@ -63,8 +63,8 @@ internal static class DialogueChecks
     {
         const int stage = 8005;
         Dialogue Row(int id, string trigger, int target) => new Dialogue(id, trigger, target, "ONCE", true, 0, id + ".json");
-        Skill Unlock(int id, string type, int target, int condition = 1)
-            => new Skill(id, 1, 1, 1, 1, 1, 1, type, "CUT_BIND", true, condition, target, 1);
+        Skill Unlock(int id, string type, int target, int condition = 1, int required = 1, bool enabled = true)
+            => new Skill(id, 1, 1, 1, 1, 1, 1, type, "CUT_BIND", enabled, condition, target, required);
         var dialogues = new[] { Row(24001, "TALK", 0), Row(24005, LedgerInvestigationDefinition.TriggerType, stage) };
         var skills = new[] { Unlock(7000, "NONE", 0, 0), Unlock(7001, LedgerInvestigationDefinition.SkillUnlockType, stage) };
         var definition = LedgerInvestigationDefinition.Resolve(stage, dialogues, skills);
@@ -74,6 +74,10 @@ internal static class DialogueChecks
         check(Fails(() => LedgerInvestigationDefinition.Resolve(stage, new[] { dialogues[1], Row(24006, LedgerInvestigationDefinition.TriggerType, stage) }, skills)), "명부 대화 중복을 허용하지 않음");
         check(Fails(() => LedgerInvestigationDefinition.Resolve(stage, dialogues, new[] { skills[0] })), "해금 Skill 누락을 허용하지 않음");
         check(Fails(() => LedgerInvestigationDefinition.Resolve(stage, dialogues, new[] { Unlock(7001, LedgerInvestigationDefinition.SkillUnlockType, stage, 0) })), "클리어 조건이 아닌 해금 Skill을 허용하지 않음");
+        // 해금 판정은 ContentAccess에 조사 전·후 두 시점으로 묻습니다(조건 규칙 감사 3.15).
+        check(Fails(() => LedgerInvestigationDefinition.Resolve(stage, dialogues, new[] { Unlock(7001, LedgerInvestigationDefinition.SkillUnlockType, stage, required: 0) })), "조사 전부터 풀린 해금 Skill(필요 값 0)을 허용하지 않음");
+        check(Fails(() => LedgerInvestigationDefinition.Resolve(stage, dialogues, new[] { Unlock(7001, LedgerInvestigationDefinition.SkillUnlockType, stage, required: 2) })), "클리어해도 풀리지 않는 해금 Skill을 허용하지 않음");
+        check(LedgerInvestigationDefinition.Resolve(stage, dialogues, new[] { Unlock(7001, LedgerInvestigationDefinition.SkillUnlockType, stage, enabled: false) }).Skill.ID == 7001, "기획 중지 Skill은 조사만 기록하는 정상 연결");
 
         var progress = new StageProgress();
         var investigation = new LedgerInvestigation(definition, progress);
