@@ -35,7 +35,8 @@ internal static class UiPrefabChecks
         string shrineRoot = RootRect(shrine);
         check(shrineRoot.Contains("m_LocalScale: {x: 1, y: 1, z: 1}") && shrineRoot.Contains("m_AnchorMax: {x: 1, y: 1}"));
         check(shrine.Contains("HumanGhost.Gameplay.Presentation.ShrineScreen") && shrine.Contains("_pipOn:") && shrine.Contains("_pipOff:"));
-        Match noticeGuid = Regex.Match(Read("Assets/2.Model/Prefabs/UI/ConfirmationPopupScreen.prefab.meta"), @"(?m)^guid: ([a-f0-9]{32})\r?$");
+        // 서낭당 안내는 전용 확인 팝업을 씁니다(f8ea9230, 11/19 ConfirmationPopupScreen에서 교체).
+        Match noticeGuid = Regex.Match(Read("Assets/2.Model/Prefabs/UI/ShrineConfirmPopup.prefab.meta"), @"(?m)^guid: ([a-f0-9]{32})\r?$");
         check(noticeGuid.Success && shrine.Contains("_noticePrefab: {fileID: 205, guid: " + noticeGuid.Groups[1].Value + ", type: 3}"));
         string map = Read("Assets/1.Scene/MapDohwagolTest.unity");
         check(cutsceneGuid.Success && map.Contains("_cutscenePrefab: {fileID: 1006, guid: " + cutsceneGuid.Groups[1].Value + ", type: 3}"));
