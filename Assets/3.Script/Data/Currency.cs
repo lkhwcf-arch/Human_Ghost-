@@ -8,13 +8,18 @@ namespace HumanGhost.Data.Definitions
         public int Category { get; }
         public int DeathLossRate { get; }
         public bool ContentEnabled { get; }
-        public Currency(int id, int textID, int deathLossRate, bool contentEnabled, int category = 0)
+        // 처음 얻었을 때 한 번 띄울 안내 문구와 그 안내의 그림 키(SOUL·COIN, 11/19 추가)입니다.
+        public int? FirstNoticeTextID { get; }
+        public string NoticeIcon { get; }
+        public Currency(int id, int textID, int deathLossRate, bool contentEnabled, int category = 0, int? firstNoticeTextID = null, string noticeIcon = "")
         {
             ID = id;
             TextID = textID;
             Category = category;
             DeathLossRate = deathLossRate;
             ContentEnabled = contentEnabled;
+            FirstNoticeTextID = firstNoticeTextID;
+            NoticeIcon = noticeIcon ?? "";
         }
     }
 }

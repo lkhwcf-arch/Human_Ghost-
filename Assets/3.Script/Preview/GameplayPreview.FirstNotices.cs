@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HumanGhost.Data.Definitions;
 using HumanGhost.Gameplay.Adapters;
 using UnityEngine;
 
@@ -19,9 +20,18 @@ namespace HumanGhost.Gameplay.Preview
         }
         private void QueueAvailableFirstNotices()
         {
-            if (_progress.Rewards.Wallet.GetBalance(MonsterRewards.CoinCurrencyId) > 0) QueueFirstNotice(30364);
-            if (_progress.Rewards.Wallet.GetBalance(MonsterRewards.SoulCurrencyId) > 0) QueueFirstNotice(30365);
+            // 재화별 첫 안내 문구는 Currency.FirstNoticeTextID가 정합니다(11/19 데이터 이전).
+            foreach (Currency currency in _catalog.GetTable<Currency>().All)
+                if (_progress.Rewards.Wallet.GetBalance(currency.ID) > 0) QueueFirstNotice(CurrencyFirstNotice(currency));
             if (_actor.HasSkill) QueueFirstNotice(30366);
+        }
+        private static int CurrencyFirstNotice(Currency currency) => currency.ContentEnabled ? currency.FirstNoticeTextID ?? 0 : 0;
+        // 이 안내 문구를 첫 안내로 쓰는 재화의 그림 키(Currency.NoticeIcon)입니다. 없으면 빈 문자열(그림 없는 목표 안내 띠)입니다.
+        private string FirstNoticeIcon(int textId)
+        {
+            foreach (Currency currency in _catalog.GetTable<Currency>().All)
+                if (CurrencyFirstNotice(currency) == textId) return currency.NoticeIcon;
+            return "";
         }
         private void StepFirstNotices()
         {
@@ -51,8 +61,12 @@ namespace HumanGhost.Gameplay.Preview
             _showingFirstNotice = next;
             try
             {
-                if (!_textbox.TryShowObjective(new LanguageTextSource(_catalog).Read(next, LanguageSettings.Current),
-                    scope.Guard<bool>(completed => _firstNoticeCompleted = completed)))
+                string text = new LanguageTextSource(_catalog).Read(next, LanguageSettings.Current);
+                Action<bool> closed = scope.Guard<bool>(completed => _firstNoticeCompleted = completed);
+                // 재화 첫 안내처럼 데이터가 그림을 정한 안내는 보상 안내로, 나머지는 목표 안내 띠로 보여 줍니다.
+                string icon = FirstNoticeIcon(next);
+                bool shown = icon.Length > 0 ? _textbox.TryShowReward(text, icon, closed) : _textbox.TryShowObjective(text, closed);
+                if (!shown)
                 { _showingFirstNotice = 0; _firstNotices.Enqueue(next); }
             }
             catch

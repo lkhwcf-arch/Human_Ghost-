@@ -18,6 +18,20 @@ namespace HumanGhost.Gameplay.Presentation
         [SerializeField] private GameObject _nextHint = null;
         [SerializeField] private GameObject _objective = null;
         [SerializeField] private Text _objectiveText = null;
+        // 첫 혼·엽전 안내(먹 띠 + 그림 + 좌우 선). 목표 안내와 같은 표시 시간·닫힘 통지를 씁니다. 비우면 목표 안내 띠로 대신합니다.
+        [SerializeField, InspectorName("보상 첫 안내")] private GameObject _reward = null;
+        [SerializeField] private Text _rewardText = null;
+        [SerializeField] private Image _rewardIcon = null;
+        // 그림 키(Currency.NoticeIcon 값, 예: SOUL·COIN) → 그림입니다. 키 목록은 시트 AllowedValues와 맞춥니다.
+        [Serializable]
+        private sealed class RewardIcon
+        {
+            [SerializeField] private string _key = "";
+            [SerializeField] private Sprite _sprite = null;
+            public string Key => _key;
+            public Sprite Sprite => _sprite;
+        }
+        [SerializeField, InspectorName("보상 안내 그림")] private RewardIcon[] _rewardIcons = Array.Empty<RewardIcon>();
         [SerializeField] private GameObject _notice = null;
         [SerializeField] private Text _noticeText = null;
         [SerializeField] private StageNameBanner _stageName = null;
@@ -27,7 +41,7 @@ namespace HumanGhost.Gameplay.Presentation
         private int _objectiveRemainingMilliseconds, _noticeRemainingMilliseconds;
         private Action<bool> _objectiveClosed;
         public bool IsNoticeOpen => _notice != null && _notice.activeSelf;
-        public bool IsObjectiveOpen => _objective != null && _objective.activeSelf;
+        public bool IsObjectiveOpen => (_objective != null && _objective.activeSelf) || (_reward != null && _reward.activeSelf);
         private MillisecondClock _noticeClock;
         private MillisecondClock _clock;
         private string _shownLine;
@@ -60,6 +74,7 @@ namespace HumanGhost.Gameplay.Presentation
         private void Awake()
         {
             _box.SetActive(false); _objective.SetActive(false); _notice.SetActive(false);
+            if (_reward != null) _reward.SetActive(false);
         }
 
         public void Open(string speaker, IReadOnlyList<string> lines, Action closed)
@@ -199,9 +214,23 @@ namespace HumanGhost.Gameplay.Presentation
             if (IsObjectiveOpen) return false;
             ShowObjective(text); _objectiveClosed = closed; return true;
         }
+        public bool TryShowReward(string text, string iconKey, Action<bool> closed)
+        {
+            Sprite sprite = null;
+            foreach (RewardIcon icon in _rewardIcons)
+                if (icon != null && icon.Key == iconKey) { sprite = icon.Sprite; break; }
+            if (sprite == null) Debug.LogError("보상 안내 그림 키가 화면에 연결되지 않았습니다: " + iconKey, this);
+            if (_reward == null || _rewardText == null || _rewardIcon == null || sprite == null) return TryShowObjective(text, closed);
+            if (IsObjectiveOpen) return false;
+            _rewardText.text = text; _rewardIcon.sprite = sprite;
+            _reward.SetActive(true);
+            _objectiveRemainingMilliseconds = _objectiveMilliseconds; _objectiveClosed = closed;
+            return true;
+        }
         public void CancelObjective()
         {
             if (_objective != null) _objective.SetActive(false);
+            if (_reward != null) _reward.SetActive(false);
             Action<bool> closed = _objectiveClosed; _objectiveClosed = null; closed?.Invoke(false);
         }
         public void ShowObjective(string text)
@@ -223,9 +252,10 @@ namespace HumanGhost.Gameplay.Presentation
         {
             int noticeElapsed = _noticeClock.AdvanceFrame(Time.unscaledDeltaTime);
             if (IsBlackoutOpen && (_blackoutRemainingMilliseconds -= noticeElapsed) <= 0) CloseBlackout();
-            if (_objective.activeSelf && (_objectiveRemainingMilliseconds -= noticeElapsed) <= 0)
+            if (IsObjectiveOpen && (_objectiveRemainingMilliseconds -= noticeElapsed) <= 0)
             {
                 _objective.SetActive(false);
+                if (_reward != null) _reward.SetActive(false);
                 Action<bool> closed = _objectiveClosed; _objectiveClosed = null; closed?.Invoke(true);
             }
             if (_notice.activeSelf && (_noticeRemainingMilliseconds -= noticeElapsed) <= 0) _notice.SetActive(false);

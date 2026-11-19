@@ -572,7 +572,7 @@ MonoBehaviour:
     _soundId: 0
   - _key: SFX_DOOR
     _clip: {fileID: 8300000, guid: 231cde0ce36f791429cb1c8bd170a2a5, type: 3}
-    _soundId: 0
+    _soundId: 3066
   - _key: TITLE_AMBIANCE
     _clip: {fileID: 8300000, guid: dfd4aeb4b1d2ef24bb3ff384eb1c6753, type: 3}
     _soundId: 3079

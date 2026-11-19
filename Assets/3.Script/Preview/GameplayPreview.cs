@@ -134,20 +134,21 @@ namespace HumanGhost.Gameplay.Preview
         public bool IsReady => _subscribed;
         private void OnFootstep(bool run) => _audio?.PlayEffect(run ? "PLAYER_RUN" : "PLAYER_WALK");
 
-        // 방 환경음(루프)입니다. 장부방 문소리는 떠나는 쪽에서 문을 쓸 때 냅니다(PlayDoorSound).
+        // 방 환경음(루프)입니다. 출구 효과음은 떠나는 쪽에서 출구를 쓸 때 냅니다(PlayExitSound).
         private void StartStageAmbience()
         {
             if (_audio == null) return;
             _audio.PlayAmbience(_catalog.GetTable<Stage>().Get(_stageId).AmbienceSoundID);
         }
 
-        // 11/19 피드백: 장부방 문소리는 도착 후가 아니라 문을 쓰는 순간(밖에서 들어갈 때·안에서 나갈 때) 냅니다.
-        // 로딩 화면 최소 표시(2초) 뒤에 씬이 바뀌므로 소리(약 1.5초)는 끊기지 않습니다.
-        private void PlayDoorSound(StageExit route)
+        // 출구를 쓰는 순간(떠나는 쪽) StageExit.SoundID를 냅니다(11/19, 장부방 문소리 등). 어떤 출구가 소리를 내는지는 데이터가 정합니다.
+        // 로딩 화면 최소 표시(2초) 뒤에 씬이 바뀌므로 짧은 효과음은 끊기지 않습니다.
+        private void PlayExitSound(StageExit route)
         {
-            if (route.TriggerType == "Interact" && (route.StageID == StageExitRules.LedgerStage || route.TargetStageID == StageExitRules.LedgerStage))
-                _audio?.PlayEffect("SFX_DOOR");
+            if (route.SoundID.HasValue && _audio != null) _audio.Play(route.SoundID.Value);
         }
+        // StageExit.EnterAction 값 중 걸어 들어가기 연출입니다(배포 검사 AllowedValues와 같음).
+        private const string _walkInEnterAction = "WALK_IN";
 
         private void OnBossPatternStarted(BossPattern pattern) => _audio?.PlayEffect(BossAttackSound(pattern));
 
@@ -567,15 +568,15 @@ namespace HumanGhost.Gameplay.Preview
         private void TravelExit(StageExit route)
         {
             if (route.ExitAction == _finishDemoExit) { FinishDemo(); return; }
-            // 장부방 문(상호작용)으로 들어갈 때만 입장 그림을 끝까지 보여 준 뒤 이동합니다. 그동안 입력을 잠급니다.
-            if (_walkInRoute == null && route.TargetStageID == StageExitRules.LedgerStage && route.TriggerType == "Interact" && _playerSprite != null)
+            // 출구 데이터가 걸어 들어가기(EnterAction WALK_IN)를 정한 경우만 입장 그림을 끝까지 보여 준 뒤 이동합니다. 그동안 입력을 잠급니다.
+            if (_walkInRoute == null && route.EnterAction == _walkInEnterAction && _playerSprite != null)
             {
                 int duration = _playerSprite.BeginWalkIn();
-                if (duration > 0) { _walkInRoute = route; _walkInRemainingMilliseconds = duration; SetGameInputLocked(true); RefreshInteractPrompt(); PlayDoorSound(route); return; }
+                if (duration > 0) { _walkInRoute = route; _walkInRemainingMilliseconds = duration; SetGameInputLocked(true); RefreshInteractPrompt(); PlayExitSound(route); return; }
             }
             bool wasLeaving = _leaving;
             TravelExitNow(route);
-            if (!wasLeaving && _leaving) PlayDoorSound(route);
+            if (!wasLeaving && _leaving) PlayExitSound(route);
         }
 
         private StageExit _walkInRoute;

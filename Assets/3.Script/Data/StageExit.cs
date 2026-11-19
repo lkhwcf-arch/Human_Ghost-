@@ -16,7 +16,10 @@ namespace HumanGhost.Data.Definitions
         public bool ContentEnabled { get; }
         public int RouteID { get; }
         public string ExitAction { get; }
-        public StageExit(int id, int stageID, string triggerType, string anchorName, int targetStageID, string arrivalAnchorName, int rangeX, int rangeY, int promptTextID, int blockedTextID, bool contentEnabled, int routeID, string exitAction)
+        // 출구를 쓸 때의 연출(비면 바로 이동, WALK_IN = 걸어 들어가기)과 떠나는 순간의 효과음 Sound ID(11/19 추가)입니다.
+        public string EnterAction { get; }
+        public int? SoundID { get; }
+        public StageExit(int id, int stageID, string triggerType, string anchorName, int targetStageID, string arrivalAnchorName, int rangeX, int rangeY, int promptTextID, int blockedTextID, bool contentEnabled, int routeID, string exitAction, string enterAction = "", int? soundID = null)
         {
             ID = id;
             StageID = stageID;
@@ -31,6 +34,8 @@ namespace HumanGhost.Data.Definitions
             ContentEnabled = contentEnabled;
             RouteID = routeID;
             ExitAction = exitAction;
+            EnterAction = enterAction ?? "";
+            SoundID = soundID;
         }
     }
 }

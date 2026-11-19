@@ -49,8 +49,7 @@ namespace HumanGhost.Gameplay.Preview
             scope.Add(() => upgrades.EffectsChanged -= effectsChanged); upgrades.EffectsChanged += effectsChanged;
             Action<int, int> currency = (id, balance) =>
             {
-                if (!scope.IsDisposed && balance > 0) QueueFirstNotice(id == MonsterRewards.CoinCurrencyId ? 30364 :
-                    id == MonsterRewards.SoulCurrencyId ? 30365 : 0);
+                if (!scope.IsDisposed && balance > 0) QueueFirstNotice(CurrencyFirstNotice(_catalog.GetTable<Currency>().Get(id)));
             };
             scope.Add(() => rewards.Wallet.Changed -= currency); rewards.Wallet.Changed += currency;
             Action skillChanged = scope.Guard(() => { if (_actor.HasSkill) QueueFirstNotice(30366); });
