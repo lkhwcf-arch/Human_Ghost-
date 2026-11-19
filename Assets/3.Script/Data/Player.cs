@@ -21,7 +21,10 @@ namespace HumanGhost.Data.Definitions
         public bool HangAuto { get; }
         public int InputBuffer { get; }
         public int StartWeapon { get; }
-        public Player(UnitStat common, int id, int unitID, int staminaMax, int staminaRegen, int staminaRegenDelay, int rollDistance, int rollTime, int rollIFrame, int rollStamina, int jumpHeight, int hitStunTime, int hitIFrame, int critHitStunTime, int landFallHeight, int landTime, bool hangAuto, int inputBuffer, int startWeapon)
+        // 발판에서 떨어진 직후 점프 허용 시간, 착지 직전 점프 입력 기억 시간(ms, 11/19 코드 상수에서 이전)입니다.
+        public int CoyoteTime { get; }
+        public int JumpBufferTime { get; }
+        public Player(UnitStat common, int id, int unitID, int staminaMax, int staminaRegen, int staminaRegenDelay, int rollDistance, int rollTime, int rollIFrame, int rollStamina, int jumpHeight, int hitStunTime, int hitIFrame, int critHitStunTime, int landFallHeight, int landTime, bool hangAuto, int inputBuffer, int startWeapon, int coyoteTime, int jumpBufferTime)
             : base(common.HP, common.ATK, common.DEF, common.Dodge, common.Crit, common.CritDamage, common.Poise, common.MoveSpeed, common.ArmorPen)
         {
             ID = id;
@@ -42,6 +45,8 @@ namespace HumanGhost.Data.Definitions
             HangAuto = hangAuto;
             InputBuffer = inputBuffer;
             StartWeapon = startWeapon;
+            CoyoteTime = coyoteTime;
+            JumpBufferTime = jumpBufferTime;
         }
     }
 }

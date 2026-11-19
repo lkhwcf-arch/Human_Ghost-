@@ -8,8 +8,6 @@ namespace HumanGhost.Gameplay.Preview
     // 확인 장면 전용 이동 조정입니다. 조회·모서리·낙하 구역은 각 모듈에 맡기며 운영 물리를 결정하지 않습니다.
     internal sealed class PreviewPlayerMotion
     {
-        private const int _coyoteMilliseconds = 100;
-        private const int _jumpBufferMilliseconds = 100;
         // K04 R6·K16add R9·L01 R13: 낙사는 HP와 무관한 즉사입니다.
         private const int _fallDamage = int.MaxValue;
         private readonly PlayerRuntime _player;
@@ -145,7 +143,7 @@ namespace HumanGhost.Gameplay.Preview
                 return;
             }
             if (IsHanging) Climb();
-            else if (_airborne) _jumpBufferRemaining = _jumpBufferMilliseconds;
+            else if (_airborne) _jumpBufferRemaining = _player.Actor.Definition.JumpBufferTime;
         }
 
         public void OnVerticalPressed(int direction)
@@ -392,7 +390,7 @@ namespace HumanGhost.Gameplay.Preview
             {
                 if (_collision.FindFloor(position, PreviewCollision.GroundedProbe, out _)) { _coyoteRemaining = 0; return currentY; }
                 _airborne = true; _motion.SetVerticalSpeed();
-                _coyoteRemaining = _coyoteMilliseconds;
+                _coyoteRemaining = _player.Actor.Definition.CoyoteTime;
                 _peakY = currentY;
             }
             if (_coyoteRemaining > 0)

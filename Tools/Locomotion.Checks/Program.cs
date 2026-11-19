@@ -248,7 +248,7 @@ internal static class Program
             p.CritDamage, p.Poise, p.MoveSpeed, p.ArmorPen);
         return new Player(common, p.ID, p.UnitID, max, regen, delay, p.RollDistance, p.RollTime, p.RollIFrame,
             roll, p.JumpHeight, p.HitStunTime, p.HitIFrame, p.CritHitStunTime, p.LandFallHeight, p.LandTime,
-            p.HangAuto, p.InputBuffer, p.StartWeapon);
+            p.HangAuto, p.InputBuffer, p.StartWeapon, p.CoyoteTime, p.JumpBufferTime);
     }
 
 }
