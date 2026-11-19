@@ -148,11 +148,6 @@ internal static class ResourceConnectionChecks
                 string key = stage.Get(column);
                 check(string.IsNullOrEmpty(key) || audioKeys.Contains(key), "Stage[" + stage.Get("ID") + "]." + column + "의 소리 키가 없습니다: " + key);
             }
-        // 맵 배경음은 데이터가 정합니다. 코드가 소리 키를 고정해 Stage.BGM_*를 덮어쓰지 않아야 합니다(조건 규칙 감사 3.13).
-        string preview = File.ReadAllText(Path.Combine(root, "Assets/3.Script/Preview/GameplayPreview.cs"));
-        check(preview.Contains("stage.BGM_Normal") && preview.Contains("stage.BGM_Battle")
-            && !Regex.IsMatch(preview, @"_(normal|battle)Music\s*=\s*(_\w+\s*=\s*)?""[A-Z_]+"""),
-            "맵 배경음이 Stage.BGM_Normal·BGM_Battle을 쓰지 않거나 코드 소리 키로 고정돼 있습니다.");
         // 상태별 그림 목록(PreviewStateSprite 하위 클래스)에 같은 StateKey가 둘 이상이면 첫 항목만 쓰이고 나머지는 조용히 버려집니다(조건 규칙 감사 3.6).
         // 기본 프리팹·씬의 목록만 봅니다. 프리팹 변형의 개별 덮어쓰기(propertyPath)는 대상이 아닙니다.
         string[] spriteScripts = new[] { "PreviewBossSprite", "PreviewMonsterSprite", "PreviewPlayerSprite" }

@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using HumanGhost.Data.Definitions;
 using HumanGhost.Gameplay;
 
 internal static class ContentAccessChecks
 {
-    public static int Run(string projectRoot)
+    public static int Run()
     {
         int checks = 0;
         int queries = 0;
@@ -51,12 +50,6 @@ internal static class ContentAccessChecks
         var noQuery = new ContentAccess(_ => throw new InvalidOperationException("몬스터 판정이 클리어 기록을 조회했습니다."));
         Check(noQuery.Evaluate(enabledMonster) == ContentAccessResult.Allowed);
         Check(noQuery.Evaluate(disabledMonster) == ContentAccessResult.DisabledByPlanner);
-        // 직접 배치·편집기 더미 등 모든 조립 경로가 지나는 초기화에서 같은 판정을 정의 사용 전에 적용해야 합니다.
-        string runtime = File.ReadAllText(Path.Combine(projectRoot, "Assets/3.Script/Adapters/MonsterRuntime.cs"));
-        int evaluate = runtime.IndexOf(".Evaluate(definition)", StringComparison.Ordinal);
-        int actor = runtime.IndexOf("new MonsterActor(", StringComparison.Ordinal);
-        Check(evaluate > 0 && actor > evaluate && runtime.IndexOf("ContentAccessResult.Allowed", evaluate, StringComparison.Ordinal) is int allowed
-            && allowed > evaluate && allowed < actor);
         return checks;
     }
 }

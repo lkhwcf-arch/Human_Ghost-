@@ -37,8 +37,6 @@ namespace HumanGhost.Gameplay.Preview
                 return _runtime.ToWorld(x);
             }
         }
-        // 도약 이동 구간(ms)입니다. 착지 이 시간 전부터 착지 순간까지 수평으로 옮깁니다. 코어 공중 판정과 같은 값을 쓰도록 BossCombat이 소유합니다(조건 규칙 감사 3.14).
-        private const int _leapTravelMilliseconds = BossCombat.LeapTravelMilliseconds;
         // 플레이어가 보스 발보다 이만큼 높으면(1.5칸) 발판 위 대기 시간을 셉니다.
         private const long _platformHeight = IntegerPosition.UnitsPerTile * 3 / 2;
         private MillisecondClock _clock;
@@ -127,9 +125,11 @@ namespace HumanGhost.Gameplay.Preview
             if (AutomaticPatterns && !phaseTwo && noticed && !combat.IsAttacking && !combat.IsWaiting) SelectPattern(distance);
             if (combat.IsAirborne)
             {
-                int start = combat.HitIndex == 0 ? combat.CurrentPattern.Hits[0].Windup - _leapTravelMilliseconds : 0;
-                long elapsed = Math.Max(0, Math.Min(_leapTravelMilliseconds, combat.HitElapsed - start));
-                long x = checked(_leapStartX + (_landingX - _leapStartX) * elapsed / _leapTravelMilliseconds);
+                // 착지 BossCombat.LeapTravelMilliseconds 전부터 착지 순간까지 수평으로 옮깁니다(코어 공중 판정과 같은 값).
+                const int travel = BossCombat.LeapTravelMilliseconds;
+                int start = combat.HitIndex == 0 ? combat.CurrentPattern.Hits[0].Windup - travel : 0;
+                long elapsed = Math.Max(0, Math.Min(travel, combat.HitElapsed - start));
+                long x = checked(_leapStartX + (_landingX - _leapStartX) * elapsed / travel);
                 _runtime.SetPosition(new IntegerPosition(x, _runtime.Position.Y));
             }
             CheckHit();
