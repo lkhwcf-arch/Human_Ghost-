@@ -90,12 +90,8 @@ namespace HumanGhost.Gameplay.Adapters
             UnityEngine.Object context = null, string state = "")
         {
             var text = new LanguageTextSource(_data);
-            int featureUiId = featureTextId switch { 30331 => 52105, 30332 => 52106, 30333 => 52107, 30334 => 52108,
-                30335 => 52109, 30336 => 52110, 30341 => 52111, 30342 => 52112, 30343 => 52113,
-                30344 => 52114, 30345 => 52115, 30346 => 52116, 30347 => 52117, _ => 0 };
-            string message = messageTextId == 30330 ? text.ReadUi(52104) : text.Read(messageTextId);
-            string feature = featureUiId == 0 ? text.Read(featureTextId) : text.ReadUi(featureUiId);
-            string notice = string.Format(message, feature);
+            // UI_Lang 키(52104~52117)는 같은 Language ID를 가리키므로 Language ID로 바로 읽습니다(조건 규칙 감사 3.11).
+            string notice = string.Format(text.Read(messageTextId), text.Read(featureTextId));
             return ReportCore(error, null, context, state, notice);
         }
 

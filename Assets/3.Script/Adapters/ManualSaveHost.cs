@@ -117,8 +117,7 @@ namespace HumanGhost.Gameplay.Adapters
             }
         }
 
-        private void ShowSlots(string status) => _screen.Show((_titleTextId == 30207 ? _text.ReadUi(51801) : _text.Read(_titleTextId)),
-            _flow.GetSlots(true), (_emptyTextId == 30208 ? _text.ReadUi(51802) : _text.Read(_emptyTextId)), status);
+        private void ShowSlots(string status) => _screen.Show(_text.Read(_titleTextId), _flow.GetSlots(true), _text.Read(_emptyTextId), status);
 
         private void Select(int index)
         {
@@ -143,7 +142,7 @@ namespace HumanGhost.Gameplay.Adapters
             {
                 bool saved = await flow.SaveManualAsync(slot, overwriteConfirmed);
                 if (!IsCurrent(generation)) return;
-                ShowSlots(saved ? (_successTextId == 30024 ? _text.ReadUi(51803) : _text.Read(_successTextId)) : _text.ReadUi(51804));
+                ShowSlots(saved ? _text.Read(_successTextId) : _text.ReadUi(51804));
             }
             catch (Exception error)
             {

@@ -153,5 +153,29 @@ internal static class ResourceConnectionChecks
         check(preview.Contains("stage.BGM_Normal") && preview.Contains("stage.BGM_Battle")
             && !Regex.IsMatch(preview, @"_(normal|battle)Music\s*=\s*(_\w+\s*=\s*)?""[A-Z_]+"""),
             "맵 배경음이 Stage.BGM_Normal·BGM_Battle을 쓰지 않거나 코드 소리 키로 고정돼 있습니다.");
+        // 상태별 그림 목록(PreviewStateSprite 하위 클래스)에 같은 StateKey가 둘 이상이면 첫 항목만 쓰이고 나머지는 조용히 버려집니다(조건 규칙 감사 3.6).
+        // 기본 프리팹·씬의 목록만 봅니다. 프리팹 변형의 개별 덮어쓰기(propertyPath)는 대상이 아닙니다.
+        string[] spriteScripts = new[] { "PreviewBossSprite", "PreviewMonsterSprite", "PreviewPlayerSprite" }
+            .Select(name => Regex.Match(File.ReadAllText(Path.Combine(root, "Assets/3.Script/Preview/" + name + ".cs.meta")), @"(?m)^guid: ([a-f0-9]{32})").Groups[1].Value)
+            .ToArray();
+        check(spriteScripts.All(guid => guid.Length == 32), "상태 그림 스크립트 meta의 guid를 읽지 못했습니다.");
+        foreach (string file in Directory.EnumerateFiles(Path.Combine(root, "Assets"), "*.prefab", SearchOption.AllDirectories)
+            .Concat(Directory.EnumerateFiles(Path.Combine(root, "Assets"), "*.unity", SearchOption.AllDirectories)))
+        {
+            string yaml = File.ReadAllText(file);
+            if (!spriteScripts.Any(guid => yaml.Contains("guid: " + guid))) continue;
+            foreach (Match block in Regex.Matches(yaml, @"(?ms)^--- !u!114 &\d+\r?\n.*?(?=^--- |\z)"))
+            {
+                if (!spriteScripts.Any(guid => block.Value.Contains("m_Script: {fileID: 11500000, guid: " + guid))) continue;
+                foreach (string list in new[] { "_frames", "_animations" })
+                {
+                    Match section = Regex.Match(block.Value, @"(?ms)^  " + list + @":\r?\n(.*?)(?=^  [^\s-]|\z)");
+                    if (!section.Success) continue;
+                    string duplicate = Regex.Matches(section.Groups[1].Value, @"(?m)^  - _state: (-?\d+)").Cast<Match>()
+                        .GroupBy(match => match.Groups[1].Value).Where(group => group.Count() > 1).Select(group => group.Key).FirstOrDefault();
+                    check(duplicate == null, "상태 그림 목록에 같은 StateKey가 여러 번 있습니다: " + Path.GetFileName(file) + " " + list + " " + duplicate);
+                }
+            }
+        }
     }
 }

@@ -134,8 +134,7 @@ namespace HumanGhost.Gameplay.Presentation
             if (_noticeOpen) return;
             PrepareNotice();
             _purchaseConfirmation = false;
-            _notice.SetNotice(_insufficientTextId == 30225 ? Ui(51719) : Text(_insufficientTextId),
-                _dismissTextId == 30052 ? Ui(51508) : Text(_dismissTextId));
+            _notice.SetNotice(Text(_insufficientTextId), Text(_dismissTextId));
             OpenNotice(1);
         }
         private void PrepareNotice()

@@ -258,8 +258,6 @@ MonoBehaviour:
     _sprite: {fileID: 3509493785695971862, guid: d7530d77809c8104783c2b14332690f0, type: 3}
   - _state: 10010
     _sprite: {fileID: 1767358696113329294, guid: 843c996032b493b4bb9df25aca8f48c6, type: 3}
-  - _state: 10010
-    _sprite: {fileID: -1893156959280369655, guid: be0d4de6fbca9d24d9d1bde4c0547025, type: 3}
   - _state: 10009
     _sprite: {fileID: -7795064702741753446, guid: cefebf7d22bdc3249880358d357fa18b, type: 3}
   _animations:
