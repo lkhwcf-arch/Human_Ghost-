@@ -9,11 +9,12 @@ namespace HumanGhost.Gameplay
         private int _sinceCharge = 2, _regulars;
         private bool _first = true, _desperation, _nextLeap;
         public BossPhaseTwoSelector(BossCombat combat) { _combat = combat ?? throw new ArgumentNullException(nameof(combat)); }
-        public bool DesperationPending => !_first && !_desperation && (long)_combat.Boss.Health * 4 <= _combat.Boss.Definition.HP;
+        // 체력 기준은 BossCombat.IsDesperate 한 곳이 소유합니다. 선택과 시작 허용이 어긋나지 않게 합니다(조건 규칙 감사 3.14).
+        public bool DesperationPending => !_first && !_desperation && _combat.IsDesperate;
         public int Choose(int distance, int platformMilliseconds)
         {
             if (distance < 0 || platformMilliseconds < 0) throw new ArgumentOutOfRangeException(nameof(distance));
-            bool low = (long)_combat.Boss.Health * 4 <= _combat.Boss.Definition.HP;
+            bool low = _combat.IsDesperate;
             BossPatternKind kind;
             if (_first) kind = BossPatternKind.CrawlCharge;
             else if (low && !_desperation) kind = BossPatternKind.DesperationLeap;

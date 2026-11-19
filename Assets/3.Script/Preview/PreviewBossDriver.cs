@@ -37,8 +37,8 @@ namespace HumanGhost.Gameplay.Preview
                 return _runtime.ToWorld(x);
             }
         }
-        // 도약 이동 구간(ms)입니다. 착지 0.9초 전부터 착지 순간까지 수평으로 옮깁니다.
-        private const int _leapTravelMilliseconds = 900;
+        // 도약 이동 구간(ms)입니다. 착지 이 시간 전부터 착지 순간까지 수평으로 옮깁니다. 코어 공중 판정과 같은 값을 쓰도록 BossCombat이 소유합니다(조건 규칙 감사 3.14).
+        private const int _leapTravelMilliseconds = BossCombat.LeapTravelMilliseconds;
         // 플레이어가 보스 발보다 이만큼 높으면(1.5칸) 발판 위 대기 시간을 셉니다.
         private const long _platformHeight = IntegerPosition.UnitsPerTile * 3 / 2;
         private MillisecondClock _clock;

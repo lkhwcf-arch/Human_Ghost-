@@ -64,6 +64,12 @@ internal static class BossPhaseTwoChecks
         boss.ReceiveHit(375,0);check(all[select.Choose(100,0)].Kind==BossPatternKind.DesperationLeap,"HP25 문턱 발악 즉시 우선");
         select.Started(leap);select.Started(pillar);select.Started(triple);select.Started(sweep);
         check(all[select.Choose(100,0)].Kind==BossPatternKind.GroundSlam,"발악 후 다른3패턴 뒤 광역과 교대");
+        // 체력 25% 경계: 선택기와 시작 허용이 BossCombat.IsDesperate 한 판정을 씁니다(조건 규칙 감사 3.14).
+        boss=Boss(true);combat=Combat(boss);select=new BossPhaseTwoSelector(combat);select.Started(charge);boss.ReceiveHit(374,0);
+        check(!combat.IsDesperate&&!select.DesperationPending&&all[select.Choose(100,0)].Kind!=BossPatternKind.DesperationLeap&&!combat.TryStart(2),"HP25 경계 바로 위: 선택 안 함·시작 거부 일치");
+        boss.ReceiveHit(1,0);
+        check(combat.IsDesperate&&select.DesperationPending&&all[select.Choose(100,0)].Kind==BossPatternKind.DesperationLeap&&combat.TryStart(2),"HP25 경계: 선택과 시작 허용 일치");
+        check(BossCombat.LeapTravelMilliseconds==900,"도약 체공 단일 원본 값 보존(900ms)");
         int healed=0;target=Player();target.ConfigureHerbs(5,100,3);target.HerbRecovered+=()=>healed++;target.ReceiveHit(10,false);target.Tick(1000);
         check(target.TryUseHerb(),"회복 섭취 시작");target.Tick(99);check(healed==0,"섭취 완료 전 VFX 알림 없음");target.Tick(1);check(healed==1,"회복 완료 알림 1회");
         target.Tick(1000);target.TryUseHerb();target.ReceiveHit(1,false);target.Tick(1000);check(healed==1,"피격으로 취소한 섭취는 VFX 알림 없음");
