@@ -1100,7 +1100,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 2affe28c99062364c93492cc8a47de3a, type: 3}
+  m_Sprite: {fileID: 21300000, guid: a2be4efc98faa054ba1fb4412c36758f, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -1238,9 +1238,9 @@ MonoBehaviour:
   _rewardIcon: {fileID: 3511574796613835434}
   _rewardIcons:
   - _key: SOUL
-    _sprite: {fileID: 21300000, guid: 2affe28c99062364c93492cc8a47de3a, type: 3}
+    _sprite: {fileID: 21300000, guid: a2be4efc98faa054ba1fb4412c36758f, type: 3}
   - _key: COIN
-    _sprite: {fileID: 21300000, guid: 76c9989b9c5847d4295f4cb183142ad4, type: 3}
+    _sprite: {fileID: 21300000, guid: e64823d76a4201049a91534a06ddc1ac, type: 3}
   - _key: CUT_BIND
     _sprite: {fileID: -190018354, guid: 41fc1b6e4a075bc4090db22bdb059aee, type: 3}
   _notice: {fileID: 1377059040630887796}
