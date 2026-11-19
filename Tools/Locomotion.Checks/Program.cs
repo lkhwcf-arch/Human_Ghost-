@@ -41,7 +41,7 @@ internal static class Program
             ExecutionRewardChecks.Run(definition, Check);
             _checks += HealthDisplayChecks.Run(definition);
             _checks += NotificationChecks.Run(definition);
-            _checks += ContentAccessChecks.Run();
+            _checks += ContentAccessChecks.Run(args[0]);
             TitleMenuChecks.Run(Check);
             MovementPatternChecks.Run(definition, Check);
             GameLayerChecks.Run(Check);

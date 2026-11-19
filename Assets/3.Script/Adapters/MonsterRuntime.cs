@@ -34,6 +34,12 @@ namespace HumanGhost.Gameplay.Adapters
             if (IsInitialized) throw new InvalidOperationException("이미 초기화된 일반 몬스터입니다.");
             if (_patterns == null) throw new InvalidOperationException("일반몹 패턴 설정을 연결하세요.");
             Monster definition = catalog.GetTable<Monster>().Get(_monsterId);
+            // 기획자가 끈 몬스터(ContentEnabled=N)는 스폰 경로와 관계없이 실행하지 않습니다. 판정은 공용 ContentAccess가 소유합니다(조건 규칙 감사 3.4).
+            // 몬스터에는 해금 조건이 없어 클리어 기록을 조회하지 않습니다. 조건이 생겨 조회가 일어나면 진행 상태를 주입하도록 바로 드러냅니다.
+            ContentAccessResult access = new ContentAccess(_ => throw new InvalidOperationException("몬스터 사용 판정에 클리어 기록 조회가 필요해졌습니다. 진행 상태를 주입하세요."))
+                .Evaluate(definition);
+            if (access != ContentAccessResult.Allowed)
+                throw new InvalidOperationException($"몬스터 {definition.ID}는 사용할 수 없는 콘텐츠입니다({access}). 데이터의 ContentEnabled를 확인하거나 배치에서 제외하세요.");
             // 같은 프레임에 생성돼도 개체마다 다른 난수열을 쓰도록 인스턴스 ID를 섞습니다.
             _random = new System.Random(Environment.TickCount ^ GetInstanceID());
             _hitRandom = new System.Random(Environment.TickCount ^ ~GetInstanceID());
