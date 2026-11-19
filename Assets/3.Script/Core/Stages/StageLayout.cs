@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HumanGhost.Data.Definitions;
 
 namespace HumanGhost.Gameplay
 {
@@ -88,11 +89,40 @@ namespace HumanGhost.Gameplay
         }
     }
 
-    // 출구 통과와 전멸 기록은 별개입니다. 목적지 잠금은 ContentAccess가 Stage.Unlock* 데이터로 판단합니다.
-    // 마을 출구의 명부 조사 조건도 데이터(8002 Unlock 1·8005·1)가 소유하므로 코드 사본(CanLeave)을 두지 않습니다(11/19, 조건 규칙 감사 3.10).
-    // 아래 맵 역할 상수는 Stage 역할 컬럼이 생기면 대체합니다(조건 규칙 감사 3.8).
-    public static class StageExitRules
+    // 맵 역할(Stage.Role) 해석입니다. 맵 ID를 코드에 두지 않고 데이터의 역할 값으로 찾습니다(11/19, 조건 규칙 감사 3.8).
+    // 출구 통과·목적지 잠금은 ContentAccess가 Stage.Unlock* 데이터로 판단하며 이 클래스와 별개입니다.
+    public sealed class StageRoles
     {
-        public const int VillageStage = 8001, LedgerStage = 8005, BossStage = 8004;
+        private readonly Dictionary<int, string> _roles = new Dictionary<int, string>();
+        // 새 게임 시작·보스방 사망 복귀 마을(VILLAGE, 하나)과 장부방(LEDGER, 하나)입니다.
+        public int VillageStage { get; }
+        public int LedgerStage { get; }
+        // 장부 조사 뒤 초반 사망 시 보내는 맵입니다(마을의 NextStage).
+        public int? StageAfterLedger { get; }
+        // 편집기 이동·보스 시험용 첫 보스방(BOSS)입니다. 규칙 판정은 IsBoss를 씁니다.
+        public int FirstBossStage { get; }
+
+        public StageRoles(IEnumerable<Stage> stages)
+        {
+            if (stages == null) throw new ArgumentNullException(nameof(stages));
+            Stage village = null;
+            foreach (Stage stage in stages)
+            {
+                _roles.Add(stage.ID, stage.Role);
+                if (stage.Role == "VILLAGE") village = village == null ? stage : throw new InvalidOperationException("VILLAGE 역할 맵은 하나여야 합니다.");
+                if (stage.Role == "LEDGER") LedgerStage = LedgerStage == 0 ? stage.ID : throw new InvalidOperationException("LEDGER 역할 맵은 하나여야 합니다.");
+                if (stage.Role == "BOSS" && (FirstBossStage == 0 || stage.ID < FirstBossStage)) FirstBossStage = stage.ID;
+            }
+            if (village == null || LedgerStage == 0 || FirstBossStage == 0)
+                throw new InvalidOperationException("Stage.Role에 VILLAGE·LEDGER·BOSS 맵이 필요합니다.");
+            VillageStage = village.ID;
+            StageAfterLedger = village.NextStage;
+        }
+
+        public bool IsVillage(int stageId) => Is(stageId, "VILLAGE");
+        public bool IsLedger(int stageId) => Is(stageId, "LEDGER");
+        public bool IsBoss(int stageId) => Is(stageId, "BOSS");
+        public bool IsField(int stageId) => Is(stageId, "FIELD");
+        private bool Is(int stageId, string role) => _roles.TryGetValue(stageId, out string value) && value == role;
     }
 }

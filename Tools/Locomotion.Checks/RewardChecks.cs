@@ -55,7 +55,7 @@ internal static class RewardChecks
         actor.RestoreVitals(actor.MaxHealth, 3);
         check(actor.Health == actor.MaxHealth && definition.HP == health, "강화된 최대 체력 복원과 원본 정의 보존");
         rewards.Restore(new RewardSnapshot(400, new Dictionary<int, int> { [1] = 101, [2] = 3 }));
-        progress.RestartAfterDeath(null);
+        progress.RestartAfterDeath(null, TestDefinitions.Stages());
         check(rewards.Wallet.GetBalance(1) == 51 && rewards.Wallet.GetBalance(2) == 2
             && rewards.CurrentLevel.Level == 5 && rewards.LevelExperience == 0, "사망 재화 손실은 버림하고 레벨은 유지");
         var stats = new[] { "Crit", "Dodge", "AttackSpeed", "StaminaRegen", "ParryStamina" }

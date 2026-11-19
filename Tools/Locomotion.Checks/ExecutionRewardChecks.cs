@@ -44,7 +44,7 @@ internal static class ExecutionRewardChecks
             progress.DefeatedMonsters,rewards.Capture(),executions:session.Capture());
         check(saved.WithOpenedGates(new[]{1}).Executions.Corruption==1 && saved.WithSavePoints(new[]{1}).Executions.Claimed.Single().Equals(id),"저장 사본 복사에 처형 보상 기록 보존");
         session.TryPrepare(new MonsterSpawnId(8002,101,99),3001,out plan);
-        progress.RestartAfterDeath(saved);
+        progress.RestartAfterDeath(saved, TestDefinitions.Stages());
         check(session.Corruption==1 && !session.CanCommit(plan) && !session.TryPrepare(id,3001,out _),"사망은 저장된 오염·처형 기록을 함께 복원하고 이전 계획 무효화");
         var overflowRewards = new MonsterRewards(currencies,new[]{new MonsterReward(3101,3001,2,3,2)},new[]{new PlayerLevel(17001,1,100,0,0,0,0,true),new PlayerLevel(17002,2,100,0,0,0,0,true)});
         var overflowProgress = new GameProgressState(); overflowProgress.ConnectRewards(overflowRewards);

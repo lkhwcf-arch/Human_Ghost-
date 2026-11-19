@@ -214,6 +214,7 @@ namespace HumanGhost.Gameplay.Preview
                 _boss.ConfigureSpatialScale(_worldUnitsPerTile);
                 _leaving = false;
                 _catalog = catalog;
+                _stageRoles = new StageRoles(catalog.GetTable<Stage>().All);
                 _progress = GameSaveContext.Current?.Progress ?? new GameProgressState();
                 ImportEntryProgress();
                 BuildStage(catalog);
@@ -246,7 +247,7 @@ namespace HumanGhost.Gameplay.Preview
                 if (_boss.Combat != null) _boss.Combat.PatternStarted += OnBossPatternStarted;
                 if (_motion == null) _motion = new PreviewPlayerMotion(_player, _groundY, _useMapCollision, _playerHalfSize, GetMarkers(),
                     _actor.Definition.JumpHeight, _jumpMilliseconds,
-                    key => _playerAudio?.PlayAnimationSound(key), _stageId == StageExitRules.BossStage ? _stage?.MapRoot : null);
+                    key => _playerAudio?.PlayAnimationSound(key), _stageRoles.IsBoss(_stageId) ? _stage?.MapRoot : null);
                 _input.TryDropThrough = _motion.TryDropThrough;
                 _input.SetModalBlocked(_modalBlocked);
                 _input.JumpAccepted += OnJump;
@@ -258,7 +259,7 @@ namespace HumanGhost.Gameplay.Preview
                 // 걷기 표시는 장부방만, 나머지 전투 스테이지는 달리기 표시입니다.
                 _playerSprite = _player.GetComponentInChildren<PreviewPlayerSprite>(true);
                 _playerSprite?.SetLedgeBody(_playerHalfSize);
-                _playerSprite?.SetNonCombatArea(_stageId == StageExitRules.LedgerStage);
+                _playerSprite?.SetNonCombatArea(_stageRoles.IsLedger(_stageId));
                 if (_playerSprite != null) { _playerSprite.Footstep -= OnFootstep; _playerSprite.Footstep += OnFootstep; }
                 ConnectCutsceneData();
                 ConnectBossPhaseData();
@@ -282,7 +283,7 @@ namespace HumanGhost.Gameplay.Preview
                         monster.GetComponent<MonsterAnimationAudio>()?.Connect(monster, _audio.PlayEffect);
                 }
                 _deathRestart = _restartOnDeath ? new PreviewDeathRestart(gameObject.scene.name, _progress,
-                    () => _saveSession?.CurrentSnapshot, catalog.GetTable<Stage>().Get(StageExitRules.VillageStage).NextStage) : null;
+                    () => _saveSession?.CurrentSnapshot, _stageRoles) : null;
                 // 판정 창이 한 프레임 안에 열리고 닫혀도 열리는 순간 한 번은 접촉을 확인합니다.
                 _actor.AttackWindowChanged += OnPlayerAttackWindowChanged;
                 _subscribed = true;
@@ -549,6 +550,8 @@ namespace HumanGhost.Gameplay.Preview
         private void OnInteractionHealthChanged(int health) => RequestInteractionRefresh();
 
         private bool _leaving;
+        // 맵 역할(Stage.Role) 해석입니다. 데이터를 받을 때 한 번 만듭니다.
+        private StageRoles _stageRoles;
 
         private void GoToStage(int stageId, string anchor)
         {
@@ -633,12 +636,12 @@ namespace HumanGhost.Gameplay.Preview
         {
             _markersRoot = _hangEdgeRoot;
             if (_content == null) return;
-            _stageId = _progress.CurrentStage;
+            _stageId = _progress.CurrentStage != 0 ? _progress.CurrentStage : _stageRoles.VillageStage;
             _stage = new PreviewStage(_content, _stageId, catalog, _mapOrigin, _progress);
             _markersRoot = _stage.Markers;
             _monsters = _stage.Monsters.ToArray();
-            _showBossGauge = _stageId == StageExitRules.BossStage;
-            _bossActive = _stageId == StageExitRules.BossStage && !_progress.HasDefeatedBoss(StageExitRules.BossStage);
+            _showBossGauge = _stageRoles.IsBoss(_stageId);
+            _bossActive = _showBossGauge && !_progress.HasDefeatedBoss(_stageId);
             if (_bossActive)
             {
                 Transform spawn = new SpawnAnchors(_markersRoot).Get("Boss_Spawn");
@@ -679,7 +682,7 @@ namespace HumanGhost.Gameplay.Preview
 #if UNITY_EDITOR
             if (_verifyWalkableSpans) ReportWalkableSpanVerification();
 #endif
-            if (_stageId == StageExitRules.VillageStage)
+            if (_stageRoles.IsVillage(_stageId))
             StartMapControlsView.AddTo(_stage.MapRoot, _markersRoot, _feedbackTextPrefab, _catalog, _player);
             WorldGuideLabels.AddTo(_stage.MapRoot, _feedbackTextPrefab, _catalog, _content.GetStage(_stageId).WorldTexts);
         }
@@ -759,7 +762,7 @@ namespace HumanGhost.Gameplay.Preview
                 float cameraMinHeightWorld = SpatialRuntime.ToWorld(IntegerPosition.FromData(_cameraMinHeightUnits), _worldUnitsPerTile);
                 _followCamera.SetArea(_stage.Area.min.x + wallThicknessWorld, _stage.Area.max.x - wallThicknessWorld,
                     _stage.MapRoot.position.y + cameraMinHeightWorld, _stage.CameraSize);
-                _followCamera.LookEnabled = _stageId != StageExitRules.LedgerStage;
+                _followCamera.LookEnabled = !_stageRoles.IsLedger(_stageId);
             }
         }
 
@@ -787,9 +790,9 @@ namespace HumanGhost.Gameplay.Preview
         // 처치한 보스는 사망 재시작·재진입 때 다시 나오지 않습니다(K16add).
         private void StepStageClear()
         {
-            if (_bossActive && _boss.Actor.IsDead) _progress.MarkBossDefeated(StageExitRules.BossStage);
+            if (_bossActive && _boss.Actor.IsDead) _progress.MarkBossDefeated(_stageId);
             TryStartEnding();
-            if (_stage != null && _stageId != StageExitRules.VillageStage && _stageId != StageExitRules.LedgerStage && _stageId != StageExitRules.BossStage && RemainingMonsters() == 0)
+            if (_stage != null && _stageRoles.IsField(_stageId) && RemainingMonsters() == 0)
                 _progress.Progress.Clear(_stageId);
         }
 
@@ -1025,7 +1028,7 @@ namespace HumanGhost.Gameplay.Preview
             {
                 if (_stage == null) return;
                 // 장부방은 PlayerStart 없이 문 앞 표식만 둡니다.
-                if (_stageId == StageExitRules.LedgerStage)
+                if (_stageRoles.IsLedger(_stageId))
                 {
                     anchor = GetUniqueArrivalAnchor(_stageId);
                 }

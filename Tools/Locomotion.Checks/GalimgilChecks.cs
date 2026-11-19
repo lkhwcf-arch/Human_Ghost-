@@ -42,7 +42,7 @@ internal static class GalimgilChecks
         try { failing.TryGrantAtArrival(kills, out _); } catch (InvalidOperationException) { failed = true; }
         check(failed && failing.Claimed && failing.TryGrantAtArrival(kills, out _) == GalimgilGrantResult.AlreadyClaimed,
             "소비자 오류 후 확정 보상 보존·재지급 없음");
-        var progress = new GameProgressState(); progress.ConnectGalimgil(restored); progress.RestartAfterDeath(null);
+        var progress = new GameProgressState(); progress.ConnectGalimgil(restored); progress.RestartAfterDeath(null, TestDefinitions.Stages());
         check(progress.Galimgil.Claimed && progress.Galimgil.Capture().InteractedObjects.Single() == 101, "사망 시 지급·상호작용 기록 보존");
     }
 }

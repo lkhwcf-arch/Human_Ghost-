@@ -1,4 +1,5 @@
 using HumanGhost.Data.Definitions;
+using HumanGhost.Gameplay;
 
 // 계산식·상태 전이만을 위한 독립 예제입니다. 배포 수치의 정답으로 비교하지 않습니다.
 internal static class TestDefinitions
@@ -17,4 +18,11 @@ internal static class TestDefinitions
         return new Monster(unit, armored ? 3002 : 3001, unit.ID, 1000, 1500, 2000, 10, 1500,
             "KILL", 0, armored, armored ? "CHARGER" : "MELEE", 800, armored ? 600 : 150, true);
     }
+    // 현재 Stage.csv와 같은 역할 배치입니다(8001 마을 → 8002, 8005 장부방, 8004 보스방).
+    public static StageRoles Stages() => new StageRoles(new[]
+    {
+        StageRow(8001, 8002, "VILLAGE"), StageRow(8002, 8006, "FIELD"), StageRow(8003, 8004, "FIELD"), StageRow(8004, null, "BOSS"),
+        StageRow(8005, null, "LEDGER"), StageRow(8006, 8007, "FIELD"), StageRow(8007, 8003, "FIELD")
+    });
+    public static Stage StageRow(int id, int? next, string role) => new Stage(id, 1, 1, next, "", "", "", true, true, 0, 0, 0, null, role);
 }

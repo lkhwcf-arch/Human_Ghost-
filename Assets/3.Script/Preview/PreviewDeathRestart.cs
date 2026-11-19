@@ -17,13 +17,13 @@ namespace HumanGhost.Gameplay.Preview
 
         private readonly GameProgressState _progress;
         private readonly System.Func<SaveSnapshot> _lastSaved;
-        private readonly int? _stageAfterLedger;
-        public PreviewDeathRestart(string scene, GameProgressState progress, System.Func<SaveSnapshot> lastSaved, int? stageAfterLedger = null)
+        private readonly StageRoles _stages;
+        public PreviewDeathRestart(string scene, GameProgressState progress, System.Func<SaveSnapshot> lastSaved, StageRoles stages)
         {
             _scene = scene;
             _progress = progress ?? throw new System.ArgumentNullException(nameof(progress));
             _lastSaved = lastSaved ?? throw new System.ArgumentNullException(nameof(lastSaved));
-            _stageAfterLedger = stageAfterLedger;
+            _stages = stages ?? throw new System.ArgumentNullException(nameof(stages));
         }
 
         public void Step(PlayerActor actor, float seconds)
@@ -35,7 +35,7 @@ namespace HumanGhost.Gameplay.Preview
             string scene = _scene;
             PreviewScreenFade.Run(_fadeStepMilliseconds, _fadeStepMilliseconds, _fadeStepMilliseconds, _lifetime.Guard(() =>
             {
-                _progress.RestartAfterDeath(_lastSaved(), _stageAfterLedger);
+                _progress.RestartAfterDeath(_lastSaved(), _stages);
                 SceneManager.LoadScene(scene);
             }));
         }

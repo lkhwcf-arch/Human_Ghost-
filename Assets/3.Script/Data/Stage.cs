@@ -16,7 +16,9 @@ namespace HumanGhost.Data.Definitions
         public int UnlockTargetID { get; }
         public int UnlockRequiredValue { get; }
         public int? AmbienceSoundID { get; }
-        public Stage(int id, int textID, int order, int? nextStage, string bGM_Normal, string bGM_Battle, string spawnFile, bool active, bool contentEnabled, int unlockConditionType, int unlockTargetID, int unlockRequiredValue, int? ambienceSoundID = null)
+        // 맵 역할(VILLAGE·LEDGER·BOSS·FIELD, 11/19 코드 상수에서 이전)입니다. 해석은 StageRoles가 합니다.
+        public string Role { get; }
+        public Stage(int id, int textID, int order, int? nextStage, string bGM_Normal, string bGM_Battle, string spawnFile, bool active, bool contentEnabled, int unlockConditionType, int unlockTargetID, int unlockRequiredValue, int? ambienceSoundID = null, string role = "FIELD")
         {
             ID = id;
             TextID = textID;
@@ -31,6 +33,7 @@ namespace HumanGhost.Data.Definitions
             UnlockTargetID = unlockTargetID;
             UnlockRequiredValue = unlockRequiredValue;
             AmbienceSoundID = ambienceSoundID;
+            Role = role ?? "";
         }
     }
 }

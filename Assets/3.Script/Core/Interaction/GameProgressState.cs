@@ -50,7 +50,8 @@ namespace HumanGhost.Gameplay
             if (Rewards != null) throw new InvalidOperationException("세션의 자동 보상은 이미 연결됐습니다.");
             Rewards = rewards ?? throw new ArgumentNullException(nameof(rewards));
         }
-        public int CurrentStage { get; private set; } = StageExitRules.VillageStage;
+        // 0은 새 게임(아직 맵에 들어가지 않음)입니다. 시작 맵은 데이터(Stage.Role VILLAGE)가 정합니다.
+        public int CurrentStage { get; private set; }
         public int ShrineId { get; private set; }
         public bool CheckpointPassed => ShrineId != 0;
         public string ArrivalAnchor { get; private set; }
@@ -98,27 +99,29 @@ namespace HumanGhost.Gameplay
             CurrentStage = snapshot.StageId; ShrineId = snapshot.ShrineId;
             ArrivalAnchor = StageEntrance = null; ClearCarriedVitals();
         }
-        public void RestartAfterDeath(SaveSnapshot lastSaved, int? stageAfterLedger = null)
+        // 맵 역할(보스방·마을·장부방)은 데이터(StageRoles)로 판단합니다.
+        public void RestartAfterDeath(SaveSnapshot lastSaved, StageRoles stages)
         {
-            if (stageAfterLedger.HasValue && stageAfterLedger.Value <= 0) throw new ArgumentOutOfRangeException(nameof(stageAfterLedger));
+            if (stages == null) throw new ArgumentNullException(nameof(stages));
             if (Rewards != null && !Rewards.ApplyDeathLoss()) throw new InvalidOperationException("사망 재화 손실을 적용하지 못했습니다.");
             Executions?.Restore(lastSaved?.Executions ?? new ExecutionRewardSnapshot());
             _defeatedMonsters.Clear();
             if (lastSaved != null) _defeatedMonsters.UnionWith(lastSaved.DefeatedMonsters);
             ClearCarriedVitals();
             // 보스방만 마지막 서낭당, 필드는 죽은 맵에 들어온 입구를 유지합니다.
-            if (CurrentStage == StageExitRules.BossStage)
+            if (CurrentStage == 0) CurrentStage = stages.VillageStage;
+            if (stages.IsBoss(CurrentStage))
             {
-                CurrentStage = CheckpointPassed ? ShrineId : StageExitRules.VillageStage;
+                CurrentStage = CheckpointPassed ? ShrineId : stages.VillageStage;
                 ArrivalAnchor = CheckpointPassed ? "Respawn_Seonangdang" : null;
                 StageEntrance = null;
             }
             else ArrivalAnchor = StageEntrance;
             // 조사 완료 뒤의 초반 사망은 장부방을 반복하지 않습니다. 후반 서낭당은 우선 유지합니다.
-            if (stageAfterLedger.HasValue && Progress.IsCleared(StageExitRules.LedgerStage)
-                && (CurrentStage == StageExitRules.VillageStage || CurrentStage == StageExitRules.LedgerStage))
+            if (stages.StageAfterLedger.HasValue && Progress.IsCleared(stages.LedgerStage)
+                && (stages.IsVillage(CurrentStage) || stages.IsLedger(CurrentStage)))
             {
-                CurrentStage = stageAfterLedger.Value;
+                CurrentStage = stages.StageAfterLedger.Value;
                 ArrivalAnchor = StageEntrance = null;
             }
         }
