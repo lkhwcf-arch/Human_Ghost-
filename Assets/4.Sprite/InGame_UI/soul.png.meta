@@ -1,16 +1,16 @@
 fileFormatVersion: 2
-guid: 2affe28c99062364c93492cc8a47de3a
+guid: a2be4efc98faa054ba1fb4412c36758f
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 1579619503081765924
-    second: 998_0
+      213: -4856872790349125329
+    second: soul_0
   - first:
-      213: 2027178751565803073
-    second: 998_1
+      213: -8365233105574393139
+    second: soul_1
   - first:
-      213: -878293657105479693
-    second: 998_2
+      213: -1072843851052245742
+    second: soul_2
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -145,13 +145,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: 998_0
+      name: soul_0
       rect:
         serializedVersion: 2
         x: 0
-        y: 4
-        width: 311
-        height: 250
+        y: 2
+        width: 256
+        height: 251
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -160,20 +160,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 42cb771a19febe510800000000000000
-      internalID: 1579619503081765924
+      spriteID: f29eaf31eebe89cb0800000000000000
+      internalID: -4856872790349125329
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 998_1
+      name: soul_1
       rect:
         serializedVersion: 2
         x: 0
-        y: 94
-        width: 71
-        height: 160
+        y: 229
+        width: 44
+        height: 24
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -182,18 +182,18 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 14eac47855cf12c10800000000000000
-      internalID: 2027178751565803073
+      spriteID: dca86e6bfc8b8eb80800000000000000
+      internalID: -8365233105574393139
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 998_2
+      name: soul_2
       rect:
         serializedVersion: 2
-        x: 269
-        y: 167
+        x: 242
+        y: 165
         width: 9
         height: 10
       alignment: 0
@@ -204,8 +204,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 3f7cfbf729cafc3f0800000000000000
-      internalID: -878293657105479693
+      spriteID: 21d919e933e7c11f0800000000000000
+      internalID: -1072843851052245742
       vertices: []
       indices: 
       edges: []
@@ -224,9 +224,9 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      998_0: 1579619503081765924
-      998_1: 2027178751565803073
-      998_2: -878293657105479693
+      soul_0: -4856872790349125329
+      soul_1: -8365233105574393139
+      soul_2: -1072843851052245742
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
