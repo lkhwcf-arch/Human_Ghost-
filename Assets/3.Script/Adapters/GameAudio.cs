@@ -262,6 +262,9 @@ namespace HumanGhost.Gameplay.Adapters
         // Unity 경계: 실제 시각(초)은 읽는 즉시 정수 ms로 바꿉니다.
         private static long NowMilliseconds() => checked((long)Math.Floor(Time.unscaledTimeAsDouble * 1000.0));
 
+        // 재생 시작(PlayMusic)과 같은 기본 교차 시간으로 음악을 끕니다. 데이터의 빈 배경음 칸(음악 없음)에 씁니다.
+        public void FadeOutMusic() => FadeOutMusic(_crossfadeMilliseconds);
+
         public void FadeOutMusic(int milliseconds)
         {
             if (milliseconds <= 0) throw new ArgumentOutOfRangeException(nameof(milliseconds));

@@ -867,11 +867,13 @@ namespace HumanGhost.Gameplay.Preview
             if (_audio != null) _audio.ConnectTable(catalog);
             if (_audio != null) _audio.Apply(settings);
             if (_followCamera != null) _followCamera.ShakeEnabled = settings.CameraShake;
-            _normalMusic = _battleMusic = "AMBIANCE_FIRE";
+            // 맵 배경음은 Stage.BGM_Normal·BGM_Battle이 정합니다(11/19, 코드 고정값 AMBIANCE_FIRE 제거 · 조건 규칙 감사 3.13).
+            Stage stage = catalog.GetTable<Stage>().Get(_stageId);
+            _normalMusic = stage.BGM_Normal ?? ""; _battleMusic = stage.BGM_Battle ?? "";
             StartStageAmbience();
             _bossMusicPhase = null;
             if (_bossActive) StepBossMusic();
-            else _audio?.PlayMusic(_normalMusic);
+            else PlayStageMusic(_normalMusic);
             _combat = new CombatPresence(_combatHoldMilliseconds);
             _lastHealth = _actor.Health;
             _feedback?.Dispose();
@@ -979,6 +981,14 @@ namespace HumanGhost.Gameplay.Preview
             if (_followCamera != null) _followCamera.ShakeEnabled = value.CameraShake;
         }
 
+        // 빈 배경음 칸은 "음악 없음"입니다. 평상↔전투 전환에서 이전 음악이 남지 않도록 끕니다. 키 존재는 ResourceConnectionChecks가 검사합니다.
+        private void PlayStageMusic(string key)
+        {
+            if (_audio == null) return;
+            if (string.IsNullOrEmpty(key)) _audio.FadeOutMusic();
+            else _audio.PlayMusic(key);
+        }
+
         private void StepGameLayer()
         {
             if (_combat == null) return;
@@ -987,7 +997,7 @@ namespace HumanGhost.Gameplay.Preview
             for (int i = 0; !engaged && i < _monsterDrivers.Length; i++) engaged = _monsterDrivers[i].IsEngaged;
             if (engaged) _combat.Engage();
             _combat.Tick(_realElapsedMilliseconds);
-            if (!_bossActive) _audio?.PlayMusic(_combat.InCombat ? _battleMusic : _normalMusic);
+            if (!_bossActive) PlayStageMusic(_combat.InCombat ? _battleMusic : _normalMusic);
             if (_hud != null)
             {
                 _hud.SetBright(_combat.InCombat && (_textbox == null || !_textbox.IsOpen));
