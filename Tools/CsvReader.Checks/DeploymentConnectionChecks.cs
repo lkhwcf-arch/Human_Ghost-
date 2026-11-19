@@ -18,7 +18,8 @@ internal static class DeploymentConnectionChecks
         ["UnitID"] = "UnitStat", ["StageID"] = "Stage", ["NextStage"] = "Stage",
         ["MonsterID"] = "Monster", ["PlayerID"] = "Player", ["StateID"] = "State",
         ["EffectID"] = "StatusEffect", ["CurrencyID"] = "Currency", ["CutsceneID"] = "Cutscene",
-        ["SkillID"] = "Skill", ["WeaponID"] = "Item", ["StartWeapon"] = "Item"
+        ["SkillID"] = "Skill", ["WeaponID"] = "Item", ["StartWeapon"] = "Item",
+        ["BossSkillID"] = "BossSkill", ["BossID"] = "UnitStat"
     };
 
     public static void Run(IReadOnlyDataCatalog data, Action<bool> check)
@@ -117,6 +118,18 @@ internal static class DeploymentConnectionChecks
             Require(definition.States.Count > 0, "Boss[" + definition.ID + "]의 상태 정의가 없습니다.");
             var actor = new BossPoise(definition, definition.States[0]);
             Require(actor.Health == definition.HP, "Boss[" + definition.ID + "]의 CSV HP가 런타임에 전달되지 않았습니다.");
+        }
+        foreach (BossSkill skill in data.GetTable<BossSkill>().All)
+        {
+            BossSkillHit[] hits = data.GetTable<BossSkillHit>().All.Where(row => row.BossSkillID == skill.ID).OrderBy(row => row.ID).ToArray();
+            Require(hits.Length > 0, "BossSkill[" + skill.ID + "]의 BossSkillHit가 없습니다.");
+            if (!Enum.TryParse(skill.Kind, out BossPatternKind kind))
+                Require(false, "BossSkill[" + skill.ID + "].Kind가 보스 패턴 종류가 아닙니다.");
+            if (kind != BossPatternKind.DesperationLeap) continue;
+            foreach (Boss definition in data.GetTable<Boss>().All.Where(row => row.ID == skill.BossID))
+                foreach (BossState phase in definition.States.Where(row => row.Phase >= skill.MinPhase && row.Phase <= skill.MaxPhase))
+                    Require(phase.LeapAirTime <= hits[0].Windup,
+                        "BossState[" + phase.ID + "].LeapAirTime가 BossSkill[" + skill.ID + "] 첫 타 선딜보다 깁니다.");
         }
         var galimgil = data.GetDefinition<GalimgilRewardDefinition>();
         Reference("CurrencyID", galimgil.SoulCurrencyId, "galimgil_reward.soulCurrencyId");

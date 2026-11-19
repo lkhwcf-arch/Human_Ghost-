@@ -148,22 +148,8 @@ namespace HumanGhost.Gameplay.Preview
         // StageExit.EnterAction 값 중 걸어 들어가기 연출입니다(배포 검사 AllowedValues와 같음).
         private const string _walkInEnterAction = "WALK_IN";
 
-        private void OnBossPatternStarted(BossPattern pattern) => _audio?.PlayEffect(BossAttackSound(pattern));
-
-        private static string BossAttackSound(BossPattern pattern)
-        {
-            switch (pattern.Kind)
-            {
-                case BossPatternKind.Legacy:
-                    return pattern.Key == StateKey.Attack1 ? "BOSS_1_ATTACK1" : pattern.Key == StateKey.Attack2 ? "BOSS_1_ATTACK2" : pattern.Key == StateKey.Attack3 ? "BOSS_1_ATTACK3" : null;
-                case BossPatternKind.Pillar:
-                case BossPatternKind.TripleSlam: return "BOSS_2_PILLAR";
-                case BossPatternKind.Sweep: return "BOSS_2_SWEEP";
-                case BossPatternKind.GroundSlam: return "BOSS_2_SLAM";
-                case BossPatternKind.DesperationLeap: return "BOSS_2_LEAP";
-                default: return null;
-            }
-        }
+        // 패턴 시작 효과음은 BossSkill.SoundKey가 정합니다(11/19 코드 매핑에서 이전).
+        private void OnBossPatternStarted(BossPattern pattern) => _audio?.PlayEffect(_boss.SoundKeyOf(pattern));
 
         private void OnParrySucceeded(int milliseconds) => _parryFeedback?.Show(milliseconds, _player.transform.position + Vector3.right * _actor.Facing * 0.6f);
         public PlayerRuntime Player => _player;

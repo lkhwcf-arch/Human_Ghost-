@@ -1,6 +1,8 @@
 {
   "Files": [
     "Assets/3.Script/Data/Boss.cs",
+    "Assets/3.Script/Data/BossSkill.cs",
+    "Assets/3.Script/Data/BossSkillHit.cs",
     "Assets/3.Script/Data/BossState.cs",
     "Assets/3.Script/Data/Buff.cs",
     "Assets/3.Script/Data/CharacterStat.cs",
@@ -49,6 +51,8 @@
     "Assets/3.Script/Data/UI_Lang.cs",
     "Assets/3.Script/Data/UnitStat.cs",
     "Assets/3.Script/Data/Upgrade.cs",
+    "Assets/Data/Csv/BossSkill.csv",
+    "Assets/Data/Csv/BossSkillHit.csv",
     "Assets/Data/Csv/Buff.csv",
     "Assets/Data/Csv/CorruptionStep.csv",
     "Assets/Data/Csv/Currency.csv",

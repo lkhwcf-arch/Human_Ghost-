@@ -24,7 +24,9 @@ namespace HumanGhost.Data.Definitions
         public int SlamAfterCount { get; }
         public int ChargeGap { get; }
         public int LeapAirTime { get; }
-        public BossState(int id, int unitID, int idleMin, int idleMax, int poiseRegenDelay, int poiseRegen, int exposeTime, string executeType, int executeDamage, bool superArmor, int phase, string key, int hPThreshold, int desperationHPRate = 0, int closeRange = 0, int midRange = 0, int platformWaitTime = 0, int slamAfterCount = 0, int chargeGap = 0, int leapAirTime = 0)
+        // 이 페이즈의 보스 배경음(GameAudio 키, 비우면 없음, 11/19 코드 키에서 이전)입니다.
+        public string Music { get; }
+        public BossState(int id, int unitID, int idleMin, int idleMax, int poiseRegenDelay, int poiseRegen, int exposeTime, string executeType, int executeDamage, bool superArmor, int phase, string key, int hPThreshold, int desperationHPRate = 0, int closeRange = 0, int midRange = 0, int platformWaitTime = 0, int slamAfterCount = 0, int chargeGap = 0, int leapAirTime = 0, string music = "")
         {
             ID = id;
             UnitID = unitID;
@@ -46,6 +48,7 @@ namespace HumanGhost.Data.Definitions
             SlamAfterCount = slamAfterCount;
             ChargeGap = chargeGap;
             LeapAirTime = leapAirTime;
+            Music = music ?? "";
         }
     }
 }

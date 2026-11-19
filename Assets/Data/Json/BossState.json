@@ -22,7 +22,8 @@
         "PlatformWaitTime": 0,
         "SlamAfterCount": 0,
         "ChargeGap": 0,
-        "LeapAirTime": 0
+        "LeapAirTime": 0,
+        "Music": "BGM_BOSS_PHASE1"
       },
       {
         "ID": 4002,
@@ -44,7 +45,8 @@
         "PlatformWaitTime": 3000,
         "SlamAfterCount": 3,
         "ChargeGap": 2,
-        "LeapAirTime": 900
+        "LeapAirTime": 900,
+        "Music": "BGM_BOSS_PHASE2"
       }
     ]
   }

@@ -682,7 +682,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Adapters.BossRuntime
   _bossId: 1006
   _phase: 0
-  _patterns: {fileID: 11400000, guid: 9f2393e7678b9204596fba1f8818f2eb, type: 2}
 --- !u!114 &5277484808439752839
 MonoBehaviour:
   m_ObjectHideFlags: 0

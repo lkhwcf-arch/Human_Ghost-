@@ -27,8 +27,9 @@ namespace HumanGhost.Gameplay.Preview
 
             if (_bossMusicPhase.HasValue) _audio.FadeOutMusic(_bossMusicFadeOutMilliseconds);
             _bossMusicPhase = phase;
-            if (phase == 0) _audio.PlayMusic("BGM_BOSS_PHASE1", _bossMusicFadeInMilliseconds);
-            if (phase == 1) _audio.PlayMusic("BGM_BOSS_PHASE2", _bossMusicFadeInMilliseconds);
+            // 페이즈 음악은 현재 BossState.Music이 정합니다(11/19 코드 키에서 이전). 비우면 음악 없음.
+            string music = phase.HasValue ? boss.Phase.Music : "";
+            if (!string.IsNullOrEmpty(music)) _audio.PlayMusic(music, _bossMusicFadeInMilliseconds);
         }
         private BossPhaseTwoView _bossView;
         private void ConnectBossPhaseData()

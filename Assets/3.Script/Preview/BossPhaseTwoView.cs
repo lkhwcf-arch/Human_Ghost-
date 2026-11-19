@@ -157,8 +157,10 @@ namespace HumanGhost.Gameplay.Preview
             var position = _rigPosition;
             if (combat.IsAirborne)
             {
-                int start = combat.HitIndex == 0 ? combat.CurrentPattern.Hits[0].Windup - 900 : 0;
-                position.y += Mathf.Sin(Mathf.Clamp01(Frame((combat.HitElapsed - start) / 1000f, _framesPerSecond) / .9f) * Mathf.PI) * 6f;
+                int start = combat.HitIndex == 0 ? combat.CurrentPattern.Hits[0].Windup - combat.LeapAirTime : 0;
+                float airSeconds = combat.LeapAirTime / 1000f;
+                float progress = airSeconds <= 0f ? 1f : (combat.HitElapsed - start) / 1000f / airSeconds;
+                position.y += Mathf.Sin(Mathf.Clamp01(Frame(progress, _framesPerSecond)) * Mathf.PI) * 6f;
             }
             _rig.transform.localPosition = position;
             _rig.transform.localScale = new Vector3(_rigScale.x * combat.Facing, _rigScale.y, _rigScale.z);
@@ -189,7 +191,7 @@ namespace HumanGhost.Gameplay.Preview
             AttackSpec spec = combat.CurrentPattern.Hits[combat.HitIndex];
             if (combat.HitIndex % 2 == 0)
             {
-                int preparation = combat.HitIndex == 0 ? spec.Windup - 900 : 0;
+                int preparation = combat.HitIndex == 0 ? spec.Windup - combat.LeapAirTime : 0;
                 if (combat.HitElapsed < preparation)
                     return Mathf.Lerp(0f, .8f, (float)combat.HitElapsed / preparation);
                 if (combat.HitElapsed < spec.Windup)

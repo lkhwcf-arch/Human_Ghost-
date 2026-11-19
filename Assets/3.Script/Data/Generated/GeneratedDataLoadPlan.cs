@@ -11,6 +11,8 @@ namespace HumanGhost.Data.Infrastructure
         public static async Task<DataCatalog> LoadCsvAsync(BootstrapTableLoader loader, DataCatalog catalog, CancellationToken token)
         {
             await loader.LoadCsvAsync<UnitStat>(catalog, row => row.ID, token);
+            await loader.LoadCsvAsync<BossSkill>(catalog, row => row.ID, token);
+            await loader.LoadCsvAsync<BossSkillHit>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<Buff>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<CorruptionStep>(catalog, row => row.ID, token);
             await loader.LoadCsvAsync<Currency>(catalog, row => row.ID, token);

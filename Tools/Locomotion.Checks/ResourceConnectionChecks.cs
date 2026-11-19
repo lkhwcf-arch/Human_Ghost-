@@ -155,6 +155,37 @@ internal static class ResourceConnectionChecks
         check(currencyIds.Contains(MonsterRewards.SoulCurrencyId) && currencyIds.Contains(MonsterRewards.CoinCurrencyId)
             && shrineSoul == MonsterRewards.SoulCurrencyId && galimgilSoul == MonsterRewards.SoulCurrencyId,
             "혼·엽전 재화 ID가 MonsterRewards·서낭당·갈림길·Currency 사이에서 다릅니다.");
+        // 보스 패턴(BossSkill·BossSkillHit)과 페이즈(BossState)의 교차 검사입니다(11/19 BossPatterns.asset에서 이전).
+        var bossSkills = parser.Read(File.ReadAllText(Path.Combine(root, "Assets/Data/Csv/BossSkill.csv"))).Rows;
+        var bossHits = parser.Read(File.ReadAllText(Path.Combine(root, "Assets/Data/Csv/BossSkillHit.csv"))).Rows;
+        foreach (JToken boss in JArray.Parse(File.ReadAllText(Path.Combine(root, "Assets/Data/Json/BossState.json"))))
+        {
+            string bossId = (string)boss["UnitID"];
+            var skills = bossSkills.Where(row => row.Get("BossID") == bossId).ToList();
+            check(skills.Count > 0, "보스 " + bossId + "의 패턴 행(BossSkill)이 없습니다.");
+            foreach (var skill in skills)
+            {
+                var hits = bossHits.Where(row => row.Get("BossSkillID") == skill.Get("ID")).OrderBy(row => int.Parse(row.Get("ID"))).ToList();
+                check(hits.Count > 0, "보스 패턴 " + skill.Get("ID") + "의 타격 행(BossSkillHit)이 없습니다.");
+                string sound = skill.Get("SoundKey");
+                check(string.IsNullOrEmpty(sound) || audioKeys.Contains(sound), "보스 패턴 " + skill.Get("ID") + "의 SoundKey가 GameAudio에 없습니다: " + sound);
+                if (skill.Get("Kind") != "DesperationLeap") continue;
+                // 발악 도약 첫 타는 선딜 끝 LeapAirTime 동안 공중입니다. 선딜이 더 짧으면 공중 구간 시작이 음수가 됩니다.
+                int firstWindup = int.Parse(hits[0].Get("Windup"));
+                foreach (JToken state in boss["States"])
+                {
+                    int phase = (int)state["Phase"];
+                    if (phase < int.Parse(skill.Get("MinPhase")) || phase > int.Parse(skill.Get("MaxPhase"))) continue;
+                    check(firstWindup >= (int)state["LeapAirTime"], "보스 패턴 " + skill.Get("ID") + "의 첫 타 Windup(" + firstWindup
+                        + ")이 BossState " + (string)state["ID"] + "의 LeapAirTime(" + (int)state["LeapAirTime"] + ")보다 짧습니다.");
+                }
+            }
+            foreach (JToken state in boss["States"])
+            {
+                string music = (string)state["Music"];
+                check(string.IsNullOrEmpty(music) || audioKeys.Contains(music), "BossState " + (string)state["ID"] + "의 Music이 GameAudio에 없습니다: " + music);
+            }
+        }
         // 몬스터 패턴(MonsterSkill 패턴 열)과 Monster 정의의 교차 검사입니다(조건 규칙 감사 3.5·3.7).
         // 사용 중인 몬스터마다 패턴 행이 있고, 패턴 사거리는 AttackRange 이하이며, AIType 이름이 실제 패턴 구성과 같아야 합니다.
         var monsterRows = parser.Read(File.ReadAllText(Path.Combine(root, "Assets/Data/Csv/Monster.csv"))).Rows;
