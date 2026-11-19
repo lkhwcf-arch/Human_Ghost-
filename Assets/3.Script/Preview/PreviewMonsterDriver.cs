@@ -38,6 +38,7 @@ namespace HumanGhost.Gameplay.Preview
         // 높이 던지기 착지 판정 범위(tile_x100): 기억한 자리 좌우 50(가로 1칸), 바닥에서 위로 100(1칸).
         private const int _lobHitHalfWidthUnits = 50, _lobHitHeightUnits = 100;
         private readonly Sprite _projectileSprite;
+        public HumanGhost.Gameplay.Presentation.SpriteClipEffect HitImpact { get; }
         private readonly MonsterThrowRigView _throwRig;
         private PreviewGroundFireView _fire;
         private bool _fireChecked;
@@ -138,6 +139,7 @@ namespace HumanGhost.Gameplay.Preview
             if (_body == null) throw new InvalidOperationException("일반몹 임시 사각형이 없습니다.");
             _sprite = runtime.transform.Find("PreviewSprite")?.GetComponent<SpriteRenderer>();
             _projectileSprite = runtime.GetComponent<PreviewMonsterSprite>()?.ProjectileSprite;
+            HitImpact = runtime.GetComponent<PreviewMonsterSprite>()?.HitImpact;
             _throwRig = runtime.GetComponent<MonsterThrowRigView>();
             _color = _body.color;
             // 비탈 높이는 중앙 발로 잽니다. 피격·공격·어그로에 쓰는 Body 크기는 그대로입니다(비탈길 설계 4.2).

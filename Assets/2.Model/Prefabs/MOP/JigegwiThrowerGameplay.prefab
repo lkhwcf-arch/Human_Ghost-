@@ -8,6 +8,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 695029493892967079, guid: 2c4eccaa2474f0c4d82c9d847982a3a2, type: 3}
+      propertyPath: _hitImpact
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 795029493892967079, guid: 2c4eccaa2474f0c4d82c9d847982a3a2, type: 3}
       propertyPath: m_Name
       value: JigegwiThrowerGameplay

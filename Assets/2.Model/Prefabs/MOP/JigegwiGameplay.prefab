@@ -490,6 +490,7 @@ MonoBehaviour:
   _playerExecution: {fileID: 7400000, guid: a0b7867d86ea6334d9b237c6b7dbcf37, type: 2}
   _projectileSprite: {fileID: 21300000, guid: b0555fafbabae0c4b9dbc33e0420b177, type: 2}
   _executionGround: {fileID: 4866634274398671786}
+  _hitImpact: {fileID: 2581699890305169595, guid: 29bae68bc82c4663a68adbd3e11ff3a7, type: 3}
 --- !u!114 &1586763236878798711
 MonoBehaviour:
   m_ObjectHideFlags: 0

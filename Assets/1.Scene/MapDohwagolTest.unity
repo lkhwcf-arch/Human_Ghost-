@@ -2620,7 +2620,6 @@ MonoBehaviour:
   _combatMaxUnits: 3400
   _parryImpactPrefab: {fileID: 7401457905273330935, guid: 9bf738f7ed8dab84397f0abe5238ee19, type: 3}
   _hitImpactPrefab: {fileID: 2581699890305169595, guid: 36b209955ab68c640b2ababab310ae67, type: 3}
-  _jigegwiHitImpactPrefab: {fileID: 2581699890305169595, guid: 29bae68bc82c4663a68adbd3e11ff3a7, type: 3}
   _rollDustPrefab: {fileID: 2581699890305169595, guid: 1bfb3ac347b040fba5c4b0e44a1e2df1, type: 3}
   _verifyWalkableSpans: 0
   _cutscenes: {fileID: 0}

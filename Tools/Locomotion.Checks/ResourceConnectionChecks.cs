@@ -148,6 +148,13 @@ internal static class ResourceConnectionChecks
                 string key = stage.Get(column);
                 check(string.IsNullOrEmpty(key) || audioKeys.Contains(key), "Stage[" + stage.Get("ID") + "]." + column + "의 소리 키가 없습니다: " + key);
             }
+        // 혼·엽전 재화 ID는 코드(MonsterRewards)·서낭당·갈림길 JSON에 함께 있습니다. 서로 같고 Currency에 있어야 합니다(조건 규칙 감사 3.15).
+        var currencyIds = parser.Read(File.ReadAllText(Path.Combine(root, "Assets/Data/Csv/Currency.csv"))).Rows.Select(row => int.Parse(row.Get("ID"))).ToHashSet();
+        int shrineSoul = (int)JObject.Parse(File.ReadAllText(Path.Combine(root, "Assets/Data/Json/shrine/shrine_level.json")))["soulCurrencyId"];
+        int galimgilSoul = (int)JObject.Parse(File.ReadAllText(Path.Combine(root, "Assets/Data/Json/galimgil/galimgil_reward.json")))["soulCurrencyId"];
+        check(currencyIds.Contains(MonsterRewards.SoulCurrencyId) && currencyIds.Contains(MonsterRewards.CoinCurrencyId)
+            && shrineSoul == MonsterRewards.SoulCurrencyId && galimgilSoul == MonsterRewards.SoulCurrencyId,
+            "혼·엽전 재화 ID가 MonsterRewards·서낭당·갈림길·Currency 사이에서 다릅니다.");
         // 몬스터 패턴(MonsterSkill 패턴 열)과 Monster 정의의 교차 검사입니다(조건 규칙 감사 3.5·3.7).
         // 사용 중인 몬스터마다 패턴 행이 있고, 패턴 사거리는 AttackRange 이하이며, AIType 이름이 실제 패턴 구성과 같아야 합니다.
         var monsterRows = parser.Read(File.ReadAllText(Path.Combine(root, "Assets/Data/Csv/Monster.csv"))).Rows;

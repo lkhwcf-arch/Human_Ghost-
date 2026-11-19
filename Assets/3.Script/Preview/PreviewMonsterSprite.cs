@@ -1,5 +1,6 @@
 using HumanGhost.Data.Definitions;
 using HumanGhost.Gameplay.Adapters;
+using HumanGhost.Gameplay.Presentation;
 using UnityEngine;
 
 namespace HumanGhost.Gameplay.Preview
@@ -12,6 +13,9 @@ namespace HumanGhost.Gameplay.Preview
         public AnimationClip PlayerExecution => _playerExecution;
         [SerializeField, InspectorName("투사체 그림 (선택)")] private Sprite _projectileSprite = null;
         public Sprite ProjectileSprite => _projectileSprite;
+        // 플레이어가 이 몬스터를 맞힐 때 덧붙이는 이펙트입니다. 몬스터 ID 비교 대신 프리팹이 정합니다(11/19, 조건 규칙 감사 3.9).
+        [SerializeField, InspectorName("피격 이펙트 (선택)")] private SpriteClipEffect _hitImpact = null;
+        public SpriteClipEffect HitImpact => _hitImpact;
         [SerializeField, InspectorName("처형 시 바닥 기준 몸체 (선택)")] private SpriteRenderer _executionGround = null;
 
         private MonsterActor _actor;
