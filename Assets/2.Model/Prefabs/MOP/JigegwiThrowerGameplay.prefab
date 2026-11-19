@@ -53,10 +53,6 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8711519359393882842, guid: 2c4eccaa2474f0c4d82c9d847982a3a2, type: 3}
-      propertyPath: _patterns
-      value: 
-      objectReference: {fileID: 11400000, guid: e8b2f05d7a3c4169b6d2047c9e1fa358, type: 2}
-    - target: {fileID: 8711519359393882842, guid: 2c4eccaa2474f0c4d82c9d847982a3a2, type: 3}
       propertyPath: _monsterId
       value: 3004
       objectReference: {fileID: 0}

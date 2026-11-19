@@ -36,16 +36,9 @@ namespace HumanGhost.EditorTools
             {
                 gameplay.name = "OnggwiGameplay";
                 var runtime = gameplay.GetComponent<MonsterRuntime>();
-                var patterns = UnityEngine.Object.Instantiate(AssetDatabase.LoadAssetAtPath<MonsterPatternSettings>("Assets/2.Model/Prefabs/Config/JigegwiThrowerPatterns.asset"));
-                patterns.name = "OnggwiPatterns";
-                var setup = new SerializedObject(patterns); var entries = setup.FindProperty("_patterns");
-                entries.MoveArrayElement(1, 0); entries.arraySize = 1;
-                var entry = entries.GetArrayElementAtIndex(0);
-                entry.FindPropertyRelative("_key").intValue = 10004; entry.FindPropertyRelative("_minRange").intValue = 0;
-                entry.FindPropertyRelative("_extraDamage").intValue = 0; setup.ApplyModifiedPropertiesWithoutUndo();
-                AssetDatabase.CreateAsset(patterns, "Assets/2.Model/Prefabs/Config/OnggwiPatterns.asset");
-                setup = new SerializedObject(runtime); setup.FindProperty("_monsterId").intValue = 3005;
-                setup.FindProperty("_patterns").objectReferenceValue = patterns; setup.ApplyModifiedPropertiesWithoutUndo();
+                // 패턴 값은 MonsterSkill 데이터(3005 행)가 정합니다(11/19 패턴 설정 파일 삭제).
+                var setup = new SerializedObject(runtime); setup.FindProperty("_monsterId").intValue = 3005; setup.ApplyModifiedPropertiesWithoutUndo();
+                SerializedProperty entries, entry;
                 UnityEngine.Object.DestroyImmediate(gameplay.GetComponent<MonsterAnimationAudio>());
                 gameplay.GetComponent<MonsterPreviewLabel>().SetDisplayName("옹귀");
                 var view = gameplay.GetComponent<PreviewMonsterSprite>(); var display = new SerializedObject(view);

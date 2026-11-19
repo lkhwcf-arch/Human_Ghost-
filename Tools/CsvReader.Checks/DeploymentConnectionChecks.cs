@@ -70,8 +70,8 @@ internal static class DeploymentConnectionChecks
                     Require(text == row.Get(column), location + "이 원본과 다릅니다.");
                     if (value is int number)
                     {
-                        // 효과 증감과 앞뒤 정렬 순서는 부호 자체가 의미이므로 양수로 강제하지 않습니다.
-                        if (column != "Value" && column != "SortOrder") Require(number >= 0, location + "에 음수가 있습니다.");
+                        // 효과 증감·패턴 추가 피해(MonsterSkill.ExtraDamage)와 앞뒤 정렬 순서는 부호 자체가 의미이므로 양수로 강제하지 않습니다.
+                        if (column != "Value" && column != "SortOrder" && column != "ExtraDamage") Require(number >= 0, location + "에 음수가 있습니다.");
                         if (column == "HP") Require(number > 0, location + "는 양수여야 합니다.");
                         if (column == "Dodge" || column == "Crit" || column == "DeathLossRate")
                             Require(number <= 10000, location + "이 확률 분모 10000을 넘습니다.");

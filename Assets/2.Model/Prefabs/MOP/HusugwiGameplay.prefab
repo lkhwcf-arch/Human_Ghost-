@@ -164,7 +164,6 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Adapters.MonsterRuntime
   _monsterId: 3001
-  _patterns: {fileID: 11400000, guid: 983de56bb0d2481c9cfd5fd2929e48a6, type: 2}
 --- !u!114 &1051700862961071815
 MonoBehaviour:
   m_ObjectHideFlags: 0

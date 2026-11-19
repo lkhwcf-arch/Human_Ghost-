@@ -1,21 +1,20 @@
 using System;
+using System.Linq;
 using HumanGhost.Data.Definitions;
 using HumanGhost.Data.Storage;
 using UnityEngine;
 
 namespace HumanGhost.Gameplay.Adapters
 {
-    // 제공된 일반몹 정의와 패턴 설정으로 개체별 AI 런타임을 조립합니다. 관측·이동·판정은 외부 어댑터가 공급합니다.
+    // 데이터(Monster·MonsterSkill 패턴 행·MonsterAggro)로 개체별 AI 런타임을 조립합니다. 관측·이동·판정은 외부 어댑터가 공급합니다.
     public sealed class MonsterRuntime : SpatialRuntime
     {
         [SerializeField, Min(1)] private int _monsterId = 3001;
-        [SerializeField] private MonsterPatternSettings _patterns = null;
         private System.Random _random;
         private System.Random _hitRandom;
         private MillisecondClock _clock;
 
         public int MonsterId => _monsterId;
-        public MonsterPatternSettings Patterns => _patterns;
         public Monster Definition { get; private set; }
         public MonsterAggro Aggro { get; private set; }
         public MonsterActor Actor { get; private set; }
@@ -32,7 +31,6 @@ namespace HumanGhost.Gameplay.Adapters
         {
             if (catalog == null) throw new ArgumentNullException(nameof(catalog));
             if (IsInitialized) throw new InvalidOperationException("이미 초기화된 일반 몬스터입니다.");
-            if (_patterns == null) throw new InvalidOperationException("일반몹 패턴 설정을 연결하세요.");
             Monster definition = catalog.GetTable<Monster>().Get(_monsterId);
             // 기획자가 끈 몬스터(ContentEnabled=N)는 스폰 경로와 관계없이 실행하지 않습니다(조건 규칙 감사 3.4).
             if (!definition.ContentEnabled)
@@ -48,7 +46,12 @@ namespace HumanGhost.Gameplay.Adapters
                     aggro = row;
                 }
             if (aggro == null) throw new InvalidOperationException($"몬스터 {definition.ID}의 MonsterAggro 설정이 없습니다.");
-            Actor = new MonsterActor(definition, _patterns.CreatePatterns(), _patterns.HitStun, _patterns.CritHitStun, _random.Next, keepHealth, aggro);
+            // 패턴은 MonsterSkill의 이 몬스터 행을 StateID 순서(Attack1 → Attack2 → Attack3)로 씁니다(11/19 패턴 설정 파일에서 이전).
+            MonsterPattern[] patterns = catalog.GetTable<MonsterSkill>().All.Where(row => row.MonsterID == definition.ID).OrderBy(row => row.StateID)
+                .Select(row => new MonsterPattern((StateKey)row.StateID, row.Range, new AttackSpec(row.Windup, row.Active, row.Recovery, 0, row.ExtraDamage, 0, 0),
+                    row.BindTime, row.BindPresses, row.ChargeSpeed, row.WallStun, row.MinRange, row.Projectile, row.Lob, row.RetreatDistance, row.Cooldown))
+                .ToArray();
+            Actor = new MonsterActor(definition, patterns, definition.HitStun, definition.CritHitStun, _random.Next, keepHealth, aggro);
             HitRandom = _hitRandom.Next;
             Aggro = aggro;
             Definition = definition;

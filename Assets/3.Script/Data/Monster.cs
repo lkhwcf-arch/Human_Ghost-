@@ -18,7 +18,14 @@ namespace HumanGhost.Data.Definitions
         public int AttackRange { get; }
         public bool ContentEnabled { get; }
         public string EffectImmunities { get; }
-        public Monster(UnitStat common, int id, int unitID, int idleMin, int idleMax, int poiseRegenDelay, int poiseRegen, int exposeTime, string executeType, int executeDamage, bool superArmor, string aIType, int sightRange, int attackRange, bool contentEnabled, string effectImmunities = "")
+        // 피격 경직과 죽을 때 남기는 불(11/19 패턴 설정 파일에서 이전, ms·틱당 피해·절반 폭 tile_x100). 불 시간이 0이면 남기지 않습니다.
+        public int HitStun { get; }
+        public int CritHitStun { get; }
+        public int DeathFireTime { get; }
+        public int DeathFireDamage { get; }
+        public int DeathFireHalfWidth { get; }
+        public int DeathFireTick { get; }
+        public Monster(UnitStat common, int id, int unitID, int idleMin, int idleMax, int poiseRegenDelay, int poiseRegen, int exposeTime, string executeType, int executeDamage, bool superArmor, string aIType, int sightRange, int attackRange, bool contentEnabled, string effectImmunities = "", int hitStun = 0, int critHitStun = 0, int deathFireTime = 0, int deathFireDamage = 0, int deathFireHalfWidth = 0, int deathFireTick = 0)
             : base(common.HP, common.ATK, common.DEF, common.Dodge, common.Crit, common.CritDamage, common.Poise, common.MoveSpeed, common.ArmorPen)
         {
             ID = id;
@@ -36,6 +43,12 @@ namespace HumanGhost.Data.Definitions
             AttackRange = attackRange;
             ContentEnabled = contentEnabled;
             EffectImmunities = effectImmunities ?? "";
+            HitStun = hitStun;
+            CritHitStun = critHitStun;
+            DeathFireTime = deathFireTime;
+            DeathFireDamage = deathFireDamage;
+            DeathFireHalfWidth = deathFireHalfWidth;
+            DeathFireTick = deathFireTick;
         }
     }
 }

@@ -102,8 +102,8 @@ namespace HumanGhost.Gameplay.Preview
             var pattern = _monster.Actor.CurrentPattern;
             if (pattern != null && pattern.Key == state) return pattern.Attack.TotalTime;
             if (state == StateKey.Stun) return _monster.Actor.StunDuration;
-            if (state == StateKey.Hit) return _monster.Patterns.HitStun;
-            if (state == StateKey.CritHit) return _monster.Patterns.CritHitStun;
+            if (state == StateKey.Hit) return _monster.Definition.HitStun;
+            if (state == StateKey.CritHit) return _monster.Definition.CritHitStun;
             return 0;
         }
 

@@ -148,6 +148,21 @@ internal static class ResourceConnectionChecks
                 string key = stage.Get(column);
                 check(string.IsNullOrEmpty(key) || audioKeys.Contains(key), "Stage[" + stage.Get("ID") + "]." + column + "의 소리 키가 없습니다: " + key);
             }
+        // 몬스터 패턴(MonsterSkill 패턴 열)과 Monster 정의의 교차 검사입니다(조건 규칙 감사 3.5·3.7).
+        // 사용 중인 몬스터마다 패턴 행이 있고, 패턴 사거리는 AttackRange 이하이며, AIType 이름이 실제 패턴 구성과 같아야 합니다.
+        var monsterRows = parser.Read(File.ReadAllText(Path.Combine(root, "Assets/Data/Csv/Monster.csv"))).Rows;
+        var patternRows = parser.Read(File.ReadAllText(Path.Combine(root, "Assets/Data/Csv/MonsterSkill.csv"))).Rows;
+        foreach (var monster in monsterRows.Where(row => row.Get("ContentEnabled") == "Y"))
+        {
+            string id = monster.Get("ID");
+            var rows = patternRows.Where(row => row.Get("MonsterID") == id).ToList();
+            check(rows.Count > 0, "몬스터 " + id + "의 패턴 행(MonsterSkill)이 없습니다.");
+            int attackRange = int.Parse(monster.Get("AttackRange"));
+            check(rows.All(row => int.Parse(row.Get("Range")) <= attackRange), "몬스터 " + id + "의 패턴 Range가 AttackRange보다 큽니다.");
+            string behavior = rows.Any(row => row.Get("Lob") == "Y") ? "LOBBER" : rows.Any(row => row.Get("Projectile") == "Y") ? "THROWER"
+                : rows.Any(row => int.Parse(row.Get("ChargeSpeed")) > 0) ? "CHARGER" : "MELEE";
+            check(monster.Get("AIType") == behavior, "몬스터 " + id + "의 AIType(" + monster.Get("AIType") + ")이 패턴 구성(" + behavior + ")과 다릅니다.");
+        }
         // 상태별 그림 목록(PreviewStateSprite 하위 클래스)에 같은 StateKey가 둘 이상이면 첫 항목만 쓰이고 나머지는 조용히 버려집니다(조건 규칙 감사 3.6).
         // 기본 프리팹·씬의 목록만 봅니다. 프리팹 변형의 개별 덮어쓰기(propertyPath)는 대상이 아닙니다.
         string[] spriteScripts = new[] { "PreviewBossSprite", "PreviewMonsterSprite", "PreviewPlayerSprite" }

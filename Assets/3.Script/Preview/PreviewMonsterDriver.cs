@@ -179,7 +179,7 @@ namespace HumanGhost.Gameplay.Preview
             {
                 _sprite.flipX = _monster.Facing > 0;
                 _sprite.color = _monster.IsDead ? Color.gray : _monster.CurrentState == StateKey.Stun ? new Color(0.75f,0.35f,0.95f) :
-                    _monster.IsAttackActive && !_monster.IsRetreating ? new Color(1f,0.3f,0.3f) : _runtime.Patterns.LeavesDeathFire ? _burningTint : Color.white;
+                    _monster.IsAttackActive && !_monster.IsRetreating ? new Color(1f,0.3f,0.3f) : _runtime.Definition.DeathFireTime > 0 ? _burningTint : Color.white;
             }
             StepFire(seconds);
             if (_monster.IsDead) { IsEngaged = false; _body.color = Color.gray; _deathShown = true; return; }
@@ -341,10 +341,11 @@ namespace HumanGhost.Gameplay.Preview
             if (_monster.IsDead && !_fireChecked)
             {
                 _fireChecked = true;
-                GroundFire fire = _monster.WasExecuted ? null : _runtime.Patterns.CreateDeathFire();
+                Monster data = _runtime.Definition;
+                GroundFire fire = _monster.WasExecuted || data.DeathFireTime <= 0 ? null : new GroundFire(data.DeathFireTime, data.DeathFireDamage, data.DeathFireTick);
                 if (fire != null)
                 {
-                    float width = _runtime.Patterns.DeathFireHalfWidth / 50f * _worldUnitsPerTile;
+                    float width = data.DeathFireHalfWidth / 50f * _worldUnitsPerTile;
                     // 피해 범위가 눈에 보이도록 몸 아래쪽을 덮는 높이로 그립니다.
                     SpriteRenderer view = CreateView("PreviewGroundFire", new Color(1f, 0.45f, 0.1f, 0.8f), new Vector3(width, 0.6f, 1f));
                     view.transform.position = _runtime.transform.position + Vector3.down * (_body.bounds.extents.y - 0.3f);
