@@ -23,14 +23,18 @@ namespace HumanGhost.Gameplay.Preview
             // 재화별 첫 안내 문구는 Currency.FirstNoticeTextID가 정합니다(11/19 데이터 이전).
             foreach (Currency currency in _catalog.GetTable<Currency>().All)
                 if (_progress.Rewards.Wallet.GetBalance(currency.ID) > 0) QueueFirstNotice(CurrencyFirstNotice(currency));
-            if (_actor.HasSkill) QueueFirstNotice(30366);
+            QueueFirstNotice(SkillFirstNotice());
         }
         private static int CurrencyFirstNotice(Currency currency) => currency.ContentEnabled ? currency.FirstNoticeTextID ?? 0 : 0;
-        // 이 안내 문구를 첫 안내로 쓰는 재화의 그림 키(Currency.NoticeIcon)입니다. 없으면 빈 문자열(그림 없는 목표 안내 띠)입니다.
+        // 지금 가진 스킬의 첫 안내 문구(Skill.FirstNoticeTextID)입니다. 스킬이 없으면 0입니다.
+        private int SkillFirstNotice() => _actor.HasSkill ? _catalog.GetTable<Skill>().Get(_skillId).FirstNoticeTextID ?? 0 : 0;
+        // 이 안내 문구를 첫 안내로 쓰는 재화·스킬의 그림 키(NoticeIcon)입니다. 없으면 빈 문자열(그림 없는 목표 안내 띠)입니다.
         private string FirstNoticeIcon(int textId)
         {
             foreach (Currency currency in _catalog.GetTable<Currency>().All)
                 if (CurrencyFirstNotice(currency) == textId) return currency.NoticeIcon;
+            foreach (Skill skill in _catalog.GetTable<Skill>().All)
+                if (skill.ContentEnabled && skill.FirstNoticeTextID == textId) return skill.NoticeIcon;
             return "";
         }
         private void StepFirstNotices()

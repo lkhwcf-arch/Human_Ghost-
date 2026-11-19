@@ -1241,6 +1241,8 @@ MonoBehaviour:
     _sprite: {fileID: 21300000, guid: 2affe28c99062364c93492cc8a47de3a, type: 3}
   - _key: COIN
     _sprite: {fileID: 21300000, guid: 76c9989b9c5847d4295f4cb183142ad4, type: 3}
+  - _key: CUT_BIND
+    _sprite: {fileID: -190018354, guid: 41fc1b6e4a075bc4090db22bdb059aee, type: 3}
   _notice: {fileID: 1377059040630887796}
   _noticeText: {fileID: 6341229268340867398}
   _stageName: {fileID: 3312423336978318975}

@@ -16,7 +16,10 @@ namespace HumanGhost.Data.Definitions
         public int UnlockConditionType { get; }
         public int UnlockTargetID { get; }
         public int UnlockRequiredValue { get; }
-        public Skill(int id, int textID, int weaponID, int stateID, int damage, int poiseDamage, int cooldown, string unlockType, string effect, bool contentEnabled, int unlockConditionType, int unlockTargetID, int unlockRequiredValue)
+        // 처음 얻었을 때 한 번 띄울 안내 문구와 그 안내의 그림 키(CUT_BIND, 11/19 추가)입니다.
+        public int? FirstNoticeTextID { get; }
+        public string NoticeIcon { get; }
+        public Skill(int id, int textID, int weaponID, int stateID, int damage, int poiseDamage, int cooldown, string unlockType, string effect, bool contentEnabled, int unlockConditionType, int unlockTargetID, int unlockRequiredValue, int? firstNoticeTextID = null, string noticeIcon = "")
         {
             ID = id;
             TextID = textID;
@@ -31,6 +34,8 @@ namespace HumanGhost.Data.Definitions
             UnlockConditionType = unlockConditionType;
             UnlockTargetID = unlockTargetID;
             UnlockRequiredValue = unlockRequiredValue;
+            FirstNoticeTextID = firstNoticeTextID;
+            NoticeIcon = noticeIcon ?? "";
         }
     }
 }

@@ -147,7 +147,7 @@ TextureImporter:
         width: 198
         height: 226
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -160,11 +160,33 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: 07_skill_Z_Icon
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 57
+        width: 198
+        height: 169
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ea6891e901523a54199d7aaad5a3ce94
+      internalID: -190018354
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: d0879211717bb124abc9a15f29f7768a
     internalID: 0
     vertices: []
     indices: 
@@ -175,6 +197,7 @@ TextureImporter:
       entries: []
     nameFileIdTable:
       07_skill_Z_0: -2576410737328556141
+      07_skill_Z_Icon: -190018354
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

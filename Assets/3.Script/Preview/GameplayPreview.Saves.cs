@@ -52,7 +52,7 @@ namespace HumanGhost.Gameplay.Preview
                 if (!scope.IsDisposed && balance > 0) QueueFirstNotice(CurrencyFirstNotice(_catalog.GetTable<Currency>().Get(id)));
             };
             scope.Add(() => rewards.Wallet.Changed -= currency); rewards.Wallet.Changed += currency;
-            Action skillChanged = scope.Guard(() => { if (_actor.HasSkill) QueueFirstNotice(30366); });
+            Action skillChanged = scope.Guard(() => QueueFirstNotice(SkillFirstNotice()));
             scope.Add(() => _actor.DisplayChanged -= skillChanged); _actor.DisplayChanged += skillChanged;
             if (_stage == null) return;
             foreach (var pair in _stage.MonsterIds)
