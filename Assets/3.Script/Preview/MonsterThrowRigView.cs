@@ -20,6 +20,11 @@ namespace HumanGhost.Gameplay.Preview
         private RigBindPose _bind;
         private MaterialPropertyBlock _properties;
         private SpriteRenderer _heldRenderer, _handOverlay;
+        // 마지막 샘플 키(패턴·클립·공격 경과 ms·Facing)입니다. 같으면 포즈 복원·SampleAnimation을 건너뜁니다(같은 프레임 ProjectilePosition 재조회·경직 정지 포함). -1은 무효입니다.
+        // 표시 프레임은 경과에서 보간한 소수라 정수 프레임 번호를 키로 쓰면 동작이 끊겨 보이므로 경과 ms를 키로 씁니다.
+        private MonsterPattern _sampledPattern;
+        private AnimationClip _sampledClip;
+        private int _sampledElapsed = -1, _sampledFacing;
         private void Awake()
         {
             if (_monster == null || _source == null || _ground == null || _skin == null || _rig == null ||
@@ -43,31 +48,43 @@ namespace HumanGhost.Gameplay.Preview
         {
             var actor = _monster.Actor; var pattern = actor?.CurrentPattern;
             if (pattern == null || !pattern.IsProjectile) return;
-            Show(true); _bind.Restore();
+            Show(true);
             AnimationClip clip = pattern.IsLob && _throwHigh != null ? _throwHigh : _throw;
-            // [정수화 미적용 이유] 정수 ms 공격 경과에서 고른 프레임 번호를 SampleAnimation이 받는 클립 시각(초)으로 바꿉니다.
-            float time = (float)AttackAnimationTiming.FrameAt(pattern.Attack, actor.AttackElapsed, 0, 5, 12, 17) / clip.frameRate;
-            clip.SampleAnimation(_rig, time);
-            _rig.transform.localScale = new Vector3(_scale.x * (actor.Facing > 0 ? -1f : 1f), _scale.y, _scale.z);
+            int elapsed = actor.AttackElapsed;
+            if (pattern != _sampledPattern || clip != _sampledClip || elapsed != _sampledElapsed || actor.Facing != _sampledFacing)
+            {
+                _sampledPattern = pattern; _sampledClip = clip; _sampledElapsed = elapsed; _sampledFacing = actor.Facing;
+                _bind.Restore();
+                // [정수화 미적용 이유] 정수 ms 공격 경과에서 고른 프레임 번호를 SampleAnimation이 받는 클립 시각(초)으로 바꿉니다.
+                float time = (float)AttackAnimationTiming.FrameAt(pattern.Attack, elapsed, 0, 5, 12, 17) / clip.frameRate;
+                clip.SampleAnimation(_rig, time);
+                _rig.transform.localScale = new Vector3(_scale.x * (actor.Facing > 0 ? -1f : 1f), _scale.y, _scale.z);
+            }
             Vector3 position = _source.transform.position;
             position.y = _ground.bounds.min.y - _sourceFeet * _rig.transform.lossyScale.y;
             _rig.transform.position = position;
-            _heldStone.SetActive(actor.AttackElapsed < pattern.Attack.Windup);
-            _skin.color = _source.color;
-            _skin.sortingLayerID = _source.sortingLayerID; _skin.sortingOrder = _source.sortingOrder;
-            // 그리는 순서: 항아리 본체 < 돌 < 팔 덮개. 돌이 손 뒤에 쥐어진 것처럼 보입니다.
-            if (_heldRenderer != null) { _heldRenderer.sortingLayerID = _source.sortingLayerID; _heldRenderer.sortingOrder = _source.sortingOrder + 1; }
-            if (_handOverlay != null)
-            {
-                _handOverlay.sortingLayerID = _source.sortingLayerID; _handOverlay.sortingOrder = _source.sortingOrder + 2;
-                _handOverlay.color = _source.color; _handOverlay.SetPropertyBlock(_properties);
-            }
+            bool held = actor.AttackElapsed < pattern.Attack.Windup;
+            if (_heldStone.activeSelf != held) _heldStone.SetActive(held);
+            // 그리는 순서: 항아리 본체 < 돌 < 팔 덮개. 돌이 손 뒤에 쥐어진 것처럼 보입니다. 바뀐 값만 대입합니다.
+            Match(_skin, 0, true);
+            if (_heldRenderer != null) Match(_heldRenderer, 1, false);
+            // 피격 번쩍임은 MaterialPropertyBlock이라 매번 원본에서 읽어 같은 값으로 전달합니다.
             _source.GetPropertyBlock(_properties); _skin.SetPropertyBlock(_properties);
+            if (_handOverlay != null) { Match(_handOverlay, 2, true); _handOverlay.SetPropertyBlock(_properties); }
+        }
+        private void Match(SpriteRenderer target, int orderOffset, bool color)
+        {
+            int layer = _source.sortingLayerID, order = _source.sortingOrder + orderOffset;
+            if (target.sortingLayerID != layer) target.sortingLayerID = layer;
+            if (target.sortingOrder != order) target.sortingOrder = order;
+            if (color && target.color != _source.color) target.color = _source.color;
         }
         private void Show(bool value)
         {
             if (_source != null) _source.enabled = !value;
             if (_rig != null && _rig.activeSelf != value) _rig.SetActive(value);
+            // 투척 종료·비활성화 때 캐시를 비워 다음 공격이 이전 손 위치를 쓰지 않게 합니다.
+            if (!value) _sampledElapsed = -1;
         }
         private void OnDisable() => Show(false);
     }
