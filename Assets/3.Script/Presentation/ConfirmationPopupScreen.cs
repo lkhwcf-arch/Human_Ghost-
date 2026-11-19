@@ -13,7 +13,15 @@ namespace HumanGhost.Gameplay.Presentation
         [SerializeField] private Text _cancelLabel = null;
         [SerializeField] private Button _accept = null;
         [SerializeField] private Button _cancel = null;
+        // 닫기(X) 버튼은 선택입니다. 비우면 안내 모드의 닫기도 확인 버튼이 맡습니다.
         [SerializeField] private Button _close = null;
+        // 선택 표시 그림(선택). 지정하면 선택된 버튼에 선택 그림·글자색, 나머지에 미선택 그림·글자색을 씁니다.
+        [SerializeField, InspectorName("선택 버튼 그림 (선택)")] private Sprite _selectedSprite = null;
+        [SerializeField, InspectorName("미선택 버튼 그림 (선택)")] private Sprite _unselectedSprite = null;
+        // 끄면 FitNoticeWithin이 호출자 패널 크기에 맞춰 줄이지 않습니다(전용 크기로 배치한 팝업).
+        [SerializeField, InspectorName("호출 화면 크기에 맞춰 축소")] private bool _fitWithinOwner = true;
+        // [정수화 미적용 이유] UI 글자색(Unity Color)입니다.
+        [SerializeField] private Color _selectedLabelColor = Color.black, _unselectedLabelColor = Color.white;
         private bool _busy;
         private bool _cancelEnabled = true;
         private bool _noticeMode;
@@ -24,7 +32,7 @@ namespace HumanGhost.Gameplay.Presentation
         private Vector3 _normalPanelScale;
         private EventSystem _selectionEvents;
         protected override Button PrimaryButton => _accept;
-        protected override Button CloseButton => _noticeMode ? _close : _cancel;
+        protected override Button CloseButton => _noticeMode ? (_close != null ? _close : _accept) : _cancel;
         public event Action Accepted;
         public override void Show(EventSystem events, int defaultButton = 2)
         {
@@ -63,6 +71,7 @@ namespace HumanGhost.Gameplay.Presentation
             var panel = _message.transform.parent as RectTransform;
             if (panel == null || panel.rect.width <= 0f || panel.rect.height <= 0f || availableSize.x <= 0f || availableSize.y <= 0f)
                 throw new InvalidOperationException("안내 팝업 패널과 기준 화면 크기를 확인해 주세요.");
+            if (!_fitWithinOwner) return;
             float scale = Mathf.Min(1f, availableSize.x / panel.rect.width, availableSize.y / panel.rect.height);
             panel.localScale = Vector3.one * scale;
             if (_noticeMode)
@@ -72,7 +81,8 @@ namespace HumanGhost.Gameplay.Presentation
         {
             _busy = busy;
             _accept.interactable = !busy;
-            _cancel.interactable = _close.interactable = !busy && _cancelEnabled;
+            _cancel.interactable = !busy && _cancelEnabled;
+            if (_close != null) _close.interactable = _cancel.interactable;
         }
         public void SetCancelEnabled(bool enabled)
         {
@@ -84,7 +94,7 @@ namespace HumanGhost.Gameplay.Presentation
         public void Submit()
         {
             if (_busy) return;
-            if (_selectionEvents != null && _selectionEvents.currentSelectedGameObject == _close.gameObject) { RequestClose(); return; }
+            if (_close != null && _selectionEvents != null && _selectionEvents.currentSelectedGameObject == _close.gameObject) { RequestClose(); return; }
             if (SelectedButton == 1) Accept(); else RequestClose();
         }
         private void Accept() { if (!_busy) Accepted?.Invoke(); }
@@ -93,13 +103,28 @@ namespace HumanGhost.Gameplay.Presentation
         {
             _accept.onClick.AddListener(Accept);
             _cancel.onClick.AddListener(RequestClose);
-            _close.onClick.AddListener(RequestClose);
+            if (_close != null) _close.onClick.AddListener(RequestClose);
+        }
+        private void LateUpdate()
+        {
+            if (_selectedSprite == null || _unselectedSprite == null || _selectionEvents == null) return;
+            bool cancelSelected = _selectionEvents.currentSelectedGameObject == _cancel.gameObject;
+            Paint(_accept, _acceptLabel, !cancelSelected);
+            Paint(_cancel, _cancelLabel, cancelSelected);
+        }
+        private void Paint(Button button, Text label, bool selected)
+        {
+            var image = button.image;
+            Sprite sprite = selected ? _selectedSprite : _unselectedSprite;
+            if (image != null && image.sprite != sprite) image.sprite = sprite;
+            Color color = selected ? _selectedLabelColor : _unselectedLabelColor;
+            if (label != null && label.color != color) label.color = color;
         }
         protected virtual void OnDisable()
         {
             _accept.onClick.RemoveListener(Accept);
             _cancel.onClick.RemoveListener(RequestClose);
-            _close.onClick.RemoveListener(RequestClose);
+            if (_close != null) _close.onClick.RemoveListener(RequestClose);
         }
     }
 }

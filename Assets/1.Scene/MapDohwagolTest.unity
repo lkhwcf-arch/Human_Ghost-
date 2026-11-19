@@ -790,6 +790,7 @@ MonoBehaviour:
   _walkSteps: f40100004c040000
   _climb: {fileID: 7400000, guid: 6d2bf8909bcce0d4781c45984a4d084e, type: 2}
   _save: {fileID: 7400000, guid: 8b98f4955cee7ad408645c317b727aa1, type: 2}
+  _walkIn: {fileID: 7400000, guid: 8c25b5b505c28514491a3098f416e2d7, type: 2}
   _ladderClimb: {fileID: 7400000, guid: 5392c94f525b63e4090fd11907bcc578, type: 2}
   _ladderScale: 1.1
   _climbFullSizeRange: {x: 0.75, y: 0.78}
@@ -1042,6 +1043,10 @@ MonoBehaviour:
     _layerName: SKY
   - _path: Background/Mountains
     _layerName: FAR
+  - _path: Background/Midground*
+    _layerName: MID
+  - _path: Background/03_*
+    _layerName: MID
   - _path: Object/Foreground*
     _layerName: FRONT
 --- !u!1001 &112427744

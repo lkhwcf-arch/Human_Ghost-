@@ -493,7 +493,7 @@ namespace HumanGhost.Gameplay.Preview
             _loadingLocked = LoadingScreen.IsActive;
             _motion?.DiscardBufferedInput();
             _input.DiscardBufferedInput();
-            _input.SetLocked(locked || _shrineRising || _bossPhaseRunning || _loadingLocked || _saveLocked || _leaving || _actor.IsDead || (_textbox != null && _textbox.IsOpen) || (_pause != null && _pause.IsOpen));
+            _input.SetLocked(locked || _shrineRising || _walkInRoute != null || _bossPhaseRunning || _loadingLocked || _saveLocked || _leaving || _actor.IsDead || (_textbox != null && _textbox.IsOpen) || (_pause != null && _pause.IsOpen));
             _fields?.SetReady(!_loadingLocked && !_saveLocked && !_leaving);
             RefreshDialogueSkipHint();
         }
@@ -563,6 +563,40 @@ namespace HumanGhost.Gameplay.Preview
         private void TravelExit(StageExit route)
         {
             if (route.ExitAction == _finishDemoExit) { FinishDemo(); return; }
+            // 장부방 문(상호작용)으로 들어갈 때만 입장 그림을 끝까지 보여 준 뒤 이동합니다. 그동안 입력을 잠급니다.
+            if (_walkInRoute == null && route.TargetStageID == StageExitRules.LedgerStage && route.TriggerType == "Interact" && _playerSprite != null)
+            {
+                int duration = _playerSprite.BeginWalkIn();
+                if (duration > 0) { _walkInRoute = route; _walkInRemainingMilliseconds = duration; SetGameInputLocked(true); RefreshInteractPrompt(); return; }
+            }
+            TravelExitNow(route);
+        }
+
+        private StageExit _walkInRoute;
+        private int _walkInRemainingMilliseconds;
+        private void StepWalkIn()
+        {
+            if (_walkInRoute == null) return;
+            if (!_subscribed || _actor.IsDead) { CancelWalkIn(); return; }
+            _walkInRemainingMilliseconds = Math.Max(0, _walkInRemainingMilliseconds - _gameElapsedMilliseconds);
+            if (_walkInRemainingMilliseconds > 0) return;
+            StageExit route = _walkInRoute; _walkInRoute = null;
+            TravelExitNow(route);
+            // 이동이 시작되지 않았으면(모달 등으로 거부) 그림과 입력을 되돌립니다.
+            if (!_leaving) CancelWalkIn();
+        }
+        private void CancelWalkIn()
+        {
+            _walkInRoute = null; _walkInRemainingMilliseconds = 0;
+            if (_playerSprite != null) _playerSprite.EndWalkIn();
+            if (_subscribed) SetGameInputLocked(false);
+            RefreshInteractPrompt();
+        }
+        // 입장 중에는 문 안내(F 들어가기)를 숨깁니다. 안내는 통지 때만 다시 그리므로 직접 요청합니다.
+        private void RefreshInteractPrompt() { if (_interactor != null) _interactor.RequestRefresh(); }
+
+        private void TravelExitNow(StageExit route)
+        {
             bool wasLeaving = _leaving;
             GoToStage(route.TargetStageID, route.ArrivalAnchorName);
             if (!wasLeaving && _leaving) RecordRouteChoice(route);
@@ -739,8 +773,8 @@ namespace HumanGhost.Gameplay.Preview
 
         // 시연 마무리 출구는 엔딩 영상을 본 뒤에만 열립니다. 그 전에는 출구의 BlockedTextID 안내를 씁니다.
         private const string _finishDemoExit = "FinishDemo";
-        private bool CanUseExit(StageExit route) => route.ExitAction == _finishDemoExit ? CanFinishDemo()
-            : new ContentAccess(_progress.Progress.IsCleared).Evaluate(_catalog.GetTable<Stage>().Get(route.TargetStageID)) == ContentAccessResult.Allowed;
+        private bool CanUseExit(StageExit route) => _walkInRoute == null && (route.ExitAction == _finishDemoExit ? CanFinishDemo()
+            : new ContentAccess(_progress.Progress.IsCleared).Evaluate(_catalog.GetTable<Stage>().Get(route.TargetStageID)) == ContentAccessResult.Allowed);
 
         // 잡몹을 다 잡은 맵을 기록합니다. 맵 1은 명부, 보스방은 보스 처치가 기준이라 제외합니다.
         // 처치한 보스는 사망 재시작·재진입 때 다시 나오지 않습니다(K16add).
@@ -1060,6 +1094,7 @@ namespace HumanGhost.Gameplay.Preview
             // 도착 준비 후에도 로딩 화면이 닫힐 때까지 이동·출구 판정을 재개하지 않습니다.
             if (_subscribed && _loadingLocked != LoadingScreen.IsActive) SetGameInputLocked(false);
             StepShrineClose();
+            StepWalkIn();
             StepDialogues();
             StepLedger();
             StepFirstNotices();

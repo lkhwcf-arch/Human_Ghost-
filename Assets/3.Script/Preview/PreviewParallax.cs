@@ -40,6 +40,9 @@ namespace HumanGhost.Gameplay.Preview
         {
             new DefaultLayer("Background/Sky", "SKY"),
             new DefaultLayer("Background/Mountains", "FAR"),
+            // 중경: K9 맵은 Midground…, 가마터·갈림길은 03_… 판입니다(StageLayer Note와 같음). Backfill·PitDepthFade는 땅과 같이 둡니다.
+            new DefaultLayer("Background/Midground*", "MID"),
+            new DefaultLayer("Background/03_*", "MID"),
             // 화면 맨 앞 전경 오브젝트(Object 아래 Foreground로 시작하는 것 전부)입니다. 경로 끝 *는 이름 앞부분 일치입니다.
             // StageLayer에 FRONT 행이 없는 맵은 비율 10000이라 지금처럼 월드와 같이 움직입니다.
             new DefaultLayer("Object/Foreground*", "FRONT"),

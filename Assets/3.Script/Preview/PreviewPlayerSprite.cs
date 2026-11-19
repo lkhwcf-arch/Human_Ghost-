@@ -26,6 +26,7 @@ namespace HumanGhost.Gameplay.Preview
         public void SetNonCombatArea(bool value) { _nonCombatArea = value; RestartAnimation(); }
         [SerializeField] private AnimationClip _climb = null;
         [SerializeField] private AnimationClip _save = null;
+        [SerializeField, InspectorName("장부방 입장 애니메이션")] private AnimationClip _walkIn = null;
         [SerializeField] private AnimationClip _ladderClimb = null;
         // [정수화 미적용 이유] 플레이어 원화 Transform 크기·위치·손 기준점 표시 보정값입니다. 판정에 쓰지 않습니다.
         [SerializeField, InspectorName("사다리 표시 배율"), Range(1f, 1.5f)] private float _ladderScale = 1.1f;
@@ -100,6 +101,8 @@ namespace HumanGhost.Gameplay.Preview
         private int _actionElapsedMilliseconds;
         private MillisecondClock _actionClock;
         private bool _praying, _saveRising;
+        // 장부방 입장 그림은 끝나도 마지막 프레임을 유지합니다. 로딩 화면이 덮을 때까지 대기 자세로 돌아가지 않게 합니다.
+        private bool _walkingIn;
         // 저장 뒤 일어서기 그림의 최대 길이(ms)입니다. 클립이 더 짧으면 클립 길이를 씁니다.
         private const int _saveRiseMaxMilliseconds = 600;
         private int SaveRiseMilliseconds => _save == null ? 0 : Math.Min(_saveRiseMaxMilliseconds, MillisecondClock.ToMilliseconds(_save.length));
@@ -109,6 +112,21 @@ namespace HumanGhost.Gameplay.Preview
             _praying = false; _saveRising = _save != null; _action = _save; _actionElapsedMilliseconds = 0; _actionClock = default;
             RestartAnimation();
             return SaveRiseMilliseconds;
+        }
+        // 장부방 입장 그림 길이(정수 ms)를 돌려줍니다. 클립이 없으면 0이며 조립자는 바로 이동합니다.
+        public int BeginWalkIn()
+        {
+            if (_walkIn == null) return 0;
+            _praying = _saveRising = false; _walkingIn = true; _action = _walkIn; _actionElapsedMilliseconds = 0; _actionClock = default;
+            RestartAnimation();
+            return MillisecondClock.ToMilliseconds(_walkIn.length);
+        }
+        // 이동이 취소되면(사망 등) 입장 그림을 끝내고 원래 상태 그림으로 돌아갑니다.
+        public void EndWalkIn()
+        {
+            if (!_walkingIn) return;
+            _walkingIn = false; _action = null;
+            RestartAnimation();
         }
         // 아래 점프는 도약 준비를 건너뛰고 공중 자세를 유지합니다. 접지 뒤 착지 그림은 별도 클립으로 연결합니다.
         // [정수화 미적용 이유] Drop 클립의 샘플링 시각(초, AnimationClip API)입니다. 경과 시간은 정수 ms로 누적합니다.
@@ -132,7 +150,7 @@ namespace HumanGhost.Gameplay.Preview
             var scope = _cueScope; _cueScope = null; scope?.Dispose();
             _executionAnimation = null;
             _wasOnLedge = false; _ledgeExitRemaining = 0;
-            _action = null; _praying = _saveRising = false; _onLadder = _wasInAir = false; _ladderDirection = 0; _nonCombatArea = false; _dropElapsedMilliseconds = -1;
+            _action = null; _praying = _saveRising = _walkingIn = false; _onLadder = _wasInAir = false; _ladderDirection = 0; _nonCombatArea = false; _dropElapsedMilliseconds = -1;
             if (Renderer != null)
             {
                 Renderer.transform.localScale = _baseScale;
@@ -141,6 +159,7 @@ namespace HumanGhost.Gameplay.Preview
         }
         private void OnPresentationCue(string cue)
         {
+            _walkingIn = false;
             if (cue == "Parry" || cue == "ActionExit" || cue == "ClimbExit") { _action = null; _praying = _saveRising = false; RestartAnimation(); return; }
             if (cue == "Pray") { _action = _save; _praying = true; _saveRising = false; _actionElapsedMilliseconds = 0; _actionClock = default; RestartAnimation(); return; }
             if (cue == "LadderExit") { _onLadder = false; _ladderDirection = 0; return; }
@@ -239,7 +258,7 @@ namespace HumanGhost.Gameplay.Preview
                 }
             }
             _wasOnLedge = onLedge;
-            if (_action != null && !_praying && (_actionElapsedMilliseconds += Math.Min(milliseconds, int.MaxValue - _actionElapsedMilliseconds)) >= (_saveRising ? SaveRiseMilliseconds : MillisecondClock.ToMilliseconds(_action.length)))
+            if (_action != null && !_praying && !_walkingIn && (_actionElapsedMilliseconds += Math.Min(milliseconds, int.MaxValue - _actionElapsedMilliseconds)) >= (_saveRising ? SaveRiseMilliseconds : MillisecondClock.ToMilliseconds(_action.length)))
             { _action = null; _saveRising = false; }
             if (_dropElapsedMilliseconds >= 0) _dropElapsedMilliseconds = _player != null && _player.Actor != null && _player.Actor.CurrentState == StateKey.Jump ? _dropElapsedMilliseconds + Math.Min(milliseconds, int.MaxValue - _dropElapsedMilliseconds) : -1;
         }
