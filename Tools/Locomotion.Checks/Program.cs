@@ -142,6 +142,21 @@ internal static class Program
         machine.Tick(0);
         Check(machine.Current == StateKey.Idle, "Tick에서 정상 전환 가능");
         Expect<ArgumentOutOfRangeException>(() => machine.Tick(-1));
+
+        // 완료 통지(Changed) 중 재전환은 거부합니다(조건 규칙 감사 4.2). 상태는 이미 확정돼 있고 통지가 끝나면 다시 전환할 수 있습니다.
+        StateKey observed = StateKey.Idle;
+        Action<StateKey> reenter = key => { observed = machine.Current; machine.Change(idle); };
+        machine.Changed += reenter;
+        Expect<InvalidOperationException>(() => machine.Call(StateKey.Jump));
+        machine.Changed -= reenter;
+        Check(observed == StateKey.Jump && machine.Current == StateKey.Jump, "통지 중 재전환 거부, 통지 전 상태 확정 유지");
+        Check(machine.Change(idle) && machine.Current == StateKey.Idle, "통지 예외 뒤 통지 잠금 해제");
+        int notices = 0;
+        Action<StateKey> count = key => notices++;
+        machine.Changed += count;
+        machine.Call(StateKey.Jump); machine.Change(idle);
+        machine.Changed -= count;
+        Check(notices == 2, "통지 소비자가 명령을 부르지 않으면 전환마다 한 번씩 통지");
     }
 
     private static void CheckStamina(Player definition)

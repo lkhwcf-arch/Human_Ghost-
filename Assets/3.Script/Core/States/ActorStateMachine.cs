@@ -31,16 +31,18 @@ namespace HumanGhost.Gameplay.States
         public void Tick(int elapsedMilliseconds)
         {
             if (elapsedMilliseconds < 0) throw new ArgumentOutOfRangeException(nameof(elapsedMilliseconds));
-            if (_transitioning) throw new InvalidOperationException("상태 진입·종료 중에는 Tick을 호출할 수 없습니다.");
+            if (_transitioning) throw new InvalidOperationException("상태 진입·종료·변경 통지 중에는 Tick을 호출할 수 없습니다.");
             _tick?.Invoke(elapsedMilliseconds);
         }
 
         private bool Transition(StateKey key, Action enter, Action<int> tick, Action exit)
         {
             if (!Enum.IsDefined(typeof(StateKey), key)) throw new ArgumentOutOfRangeException(nameof(key));
-            if (_transitioning) throw new InvalidOperationException("상태 진입·종료 중 재전환할 수 없습니다.");
+            if (_transitioning) throw new InvalidOperationException("상태 진입·종료·변경 통지 중 재전환할 수 없습니다. 통지 소비자는 코어 명령을 다시 호출하지 않습니다.");
             if (Current == key) return false;
 
+            // 완료 통지(Changed)까지 같은 보호 구간에 둡니다. 통지 소비자의 재전환이 이벤트 순서를 중첩시키지 않게 합니다(조건 규칙 감사 4.2).
+            // 소비자 예외는 격리하지 않고 전파하며, 상태는 이미 확정돼 있고 보호는 finally에서 풀립니다.
             _transitioning = true;
             try
             {
@@ -49,10 +51,9 @@ namespace HumanGhost.Gameplay.States
                 _tick = tick;
                 _exit = exit;
                 enter?.Invoke();
+                Changed?.Invoke(key);
             }
             finally { _transitioning = false; }
-
-            Changed?.Invoke(key);
             return true;
         }
     }
