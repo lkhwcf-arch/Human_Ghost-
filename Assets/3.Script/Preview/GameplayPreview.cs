@@ -134,15 +134,19 @@ namespace HumanGhost.Gameplay.Preview
         public bool IsReady => _subscribed;
         private void OnFootstep(bool run) => _audio?.PlayEffect(run ? "PLAYER_RUN" : "PLAYER_WALK");
 
-        // 방 환경음(루프). 장부방 문을 지나 들어오거나 나왔으면 문소리를 냅니다.
+        // 방 환경음(루프)입니다. 장부방 문소리는 떠나는 쪽에서 문을 쓸 때 냅니다(PlayDoorSound).
         private void StartStageAmbience()
         {
             if (_audio == null) return;
             _audio.PlayAmbience(_catalog.GetTable<Stage>().Get(_stageId).AmbienceSoundID);
-            string anchor = _arrivalAnchor;
-            if (!string.IsNullOrEmpty(anchor) && _catalog.GetTable<StageExit>().All.Any(row => row.TargetStageID == _stageId && row.ArrivalAnchorName == anchor &&
-                (row.StageID == StageExitRules.LedgerStage || row.TargetStageID == StageExitRules.LedgerStage)))
-                _audio.PlayEffect("SFX_DOOR");
+        }
+
+        // 11/19 피드백: 장부방 문소리는 도착 후가 아니라 문을 쓰는 순간(밖에서 들어갈 때·안에서 나갈 때) 냅니다.
+        // 로딩 화면 최소 표시(2초) 뒤에 씬이 바뀌므로 소리(약 1.5초)는 끊기지 않습니다.
+        private void PlayDoorSound(StageExit route)
+        {
+            if (route.TriggerType == "Interact" && (route.StageID == StageExitRules.LedgerStage || route.TargetStageID == StageExitRules.LedgerStage))
+                _audio?.PlayEffect("SFX_DOOR");
         }
 
         private void OnBossPatternStarted(BossPattern pattern) => _audio?.PlayEffect(BossAttackSound(pattern));
@@ -567,9 +571,11 @@ namespace HumanGhost.Gameplay.Preview
             if (_walkInRoute == null && route.TargetStageID == StageExitRules.LedgerStage && route.TriggerType == "Interact" && _playerSprite != null)
             {
                 int duration = _playerSprite.BeginWalkIn();
-                if (duration > 0) { _walkInRoute = route; _walkInRemainingMilliseconds = duration; SetGameInputLocked(true); RefreshInteractPrompt(); return; }
+                if (duration > 0) { _walkInRoute = route; _walkInRemainingMilliseconds = duration; SetGameInputLocked(true); RefreshInteractPrompt(); PlayDoorSound(route); return; }
             }
+            bool wasLeaving = _leaving;
             TravelExitNow(route);
+            if (!wasLeaving && _leaving) PlayDoorSound(route);
         }
 
         private StageExit _walkInRoute;
@@ -996,10 +1002,9 @@ namespace HumanGhost.Gameplay.Preview
 
         private void ShowGateHint() { if (_textbox != null) _textbox.ShowObjective("결박이 길을 막고 있다. Z(결박 가르기)로 베어 내자"); }
 
-        private string _arrivalAnchor;
         private void MoveToArrival()
         {
-            string anchor = _arrivalAnchor = _progress.ArrivalAnchor;
+            string anchor = _progress.ArrivalAnchor;
             if (_markersRoot == null)
             {
                 if (!string.IsNullOrEmpty(anchor)) throw new InvalidOperationException("요청한 도착 앵커를 찾을 표식 묶음이 없습니다: " + anchor);
