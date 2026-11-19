@@ -45,6 +45,15 @@ internal static class MonsterChecks
         cinematicTarget.SetCutsceneDamageBlocked(false);
         Check(cinematicAttacker.TryHitPlayer(2001, cinematicTarget, CinematicRandom) == HitOutcome.Hit && cinematicRandomCalls == 2 && cinematicTarget.Health < player.HP, "컷씬 해제 후 같은 판정 창 정상 피해");
 
+        // 판정 창 닫힘 통지 전에 코어 정리를 끝냅니다(조건 규칙 감사 4.1). 소비자 예외는 격리하지 않고 전파하지만 패턴은 남지 않습니다.
+        var closing = H(); closing.Observe(1, 150, 1); closing.Tick(400);
+        Check(closing.IsAttackActive && closing.CurrentPattern != null, "닫힘 순서 검사 준비: 판정 창 열림");
+        bool clearedAtClose = false;
+        closing.AttackWindowChanged += active =>
+        { if (active) return; clearedAtClose = closing.CurrentPattern == null; throw new InvalidOperationException("표시 소비자 실패"); };
+        Expect<InvalidOperationException>(() => closing.Release());
+        Check(clearedAtClose && closing.CurrentPattern == null && !closing.IsAttackActive, "닫힘 통지 시점에 패턴 정리 완료, 소비자 예외 뒤에도 패턴이 남지 않음");
+
         // 무한 체력은 피해를 인정하되 HP만 유지합니다. 기본 개체의 사망 규칙은 그대로입니다.
         var dummy = new MonsterActor(husugwi, HusugwiPatterns(), 300, 500, Random, keepHealth: true);
         int dummyHits = 0, dummyPatterns = 0;

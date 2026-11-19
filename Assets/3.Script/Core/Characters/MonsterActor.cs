@@ -439,11 +439,13 @@ namespace HumanGhost.Gameplay
             return value;
         }
 
+        // 코어 정리(패턴·대상·구속)를 먼저 끝낸 뒤 판정 창 닫힘을 알립니다. 통지 소비자가 예외를 내도 패턴이 남아 다음 판단이 막히지 않습니다.
+        // 구속 중에는 판정 창이 이미 닫혀 있으므로(TryBind 직후) 구속 해제와 닫힘 통지가 한 호출에서 겹치지 않습니다.
         private void ClearPattern()
         {
-            SetAttackActive(false);
             _pattern = null; _attackWindow.ClearTargets();
-            if (_holding != null) { _holding.ReleaseBind(this); _holding = null; }
+            if (_holding != null) { PlayerActor holding = _holding; _holding = null; holding.ReleaseBind(this); }
+            SetAttackActive(false);
         }
 
         private void SetAttackActive(bool active) => _attackWindow.SetActive(active);
