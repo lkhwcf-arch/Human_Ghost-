@@ -88,11 +88,11 @@ namespace HumanGhost.Gameplay
         }
     }
 
-    // 출구 통과와 전멸 기록은 별개입니다. 목적지 잠금은 ContentAccess가 판단합니다.
+    // 출구 통과와 전멸 기록은 별개입니다. 목적지 잠금은 ContentAccess가 Stage.Unlock* 데이터로 판단합니다.
+    // 마을 출구의 명부 조사 조건도 데이터(8002 Unlock 1·8005·1)가 소유하므로 코드 사본(CanLeave)을 두지 않습니다(11/19, 조건 규칙 감사 3.10).
+    // 아래 맵 역할 상수는 Stage 역할 컬럼이 생기면 대체합니다(조건 규칙 감사 3.8).
     public static class StageExitRules
     {
         public const int VillageStage = 8001, LedgerStage = 8005, BossStage = 8004;
-        public static bool CanLeave(int stageId, bool ledgerCleared)
-            => stageId != VillageStage || ledgerCleared;
     }
 }
