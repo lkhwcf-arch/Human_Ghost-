@@ -32,13 +32,12 @@ namespace HumanGhost.Gameplay
         {
             get { int value = _elapsed; if (_pattern != null) for (int i = 0; i < _hit; i++) value += _pattern.Hits[i].TotalTime; return value; }
         }
-        // 필사 도약 첫 타의 선딜 끝 이 시간(ms) 동안 공중에 있습니다. 공중 판정·진행 제한·표시 이동(PreviewBossDriver)이 같은 값을 씁니다.
-        // 데이터 이전 전까지 이곳이 단일 원본입니다(조건 규칙 감사 3.14). 패턴 자산의 첫 타 Windup은 이 값 이상이어야 합니다.
-        public const int LeapTravelMilliseconds = 900;
-        // 필사 도약 체력 기준(현재 HP ≤ 최대 HP의 1/4)입니다. 2페이즈 선택기와 시작 허용(TryStart)이 같은 판정을 씁니다(조건 규칙 감사 3.14).
-        public bool IsDesperate => (long)Boss.Health * 4 <= Boss.Definition.HP;
+        // 필사 도약 첫 타의 선딜 끝 이 시간(ms) 동안 공중에 있습니다(BossState.LeapAirTime). 공중 판정·진행 제한·표시 이동(PreviewBossDriver)이 같은 값을 씁니다.
+        public int LeapAirTime => Boss.Phase.LeapAirTime;
+        // 필사 도약 체력 기준(남은 HP ≤ 최대 HP × BossState.DesperationHPRate/10000)입니다. 2페이즈 선택기와 시작 허용(TryStart)이 같은 판정을 씁니다.
+        public bool IsDesperate => (long)Boss.Health * 10000 <= (long)Boss.Definition.HP * Boss.Phase.DesperationHPRate;
         public bool IsAirborne => _pattern?.Kind == BossPatternKind.DesperationLeap && _hit % 2 == 0 &&
-            _elapsed >= (_hit == 0 ? _pattern.Hits[0].Windup - LeapTravelMilliseconds : 0) && _elapsed < _pattern.Hits[_hit].Windup;
+            _elapsed >= (_hit == 0 ? _pattern.Hits[0].Windup - LeapAirTime : 0) && _elapsed < _pattern.Hits[_hit].Windup;
         public bool IsParryable => _pattern != null && !_pattern.IsChain && (CurrentReaction == null || CurrentReaction.Parryable);
         public bool IsWindingUp => _pattern != null && _elapsed < _pattern.Hits[_hit].Windup;
 
@@ -123,8 +122,8 @@ namespace HumanGhost.Gameplay
                     if (_pattern.Kind == BossPatternKind.CrawlCharge && _attackWindow.IsActive)
                     { milliseconds = 0; break; }
                     int end = _elapsed < spec.Windup ? spec.Windup : _elapsed < spec.Windup + spec.Active ? spec.Windup + spec.Active : spec.TotalTime;
-                    if (_pattern.Kind == BossPatternKind.DesperationLeap && _hit == 0 && _elapsed < spec.Windup - LeapTravelMilliseconds)
-                        end = Math.Min(end, spec.Windup - LeapTravelMilliseconds);
+                    if (_pattern.Kind == BossPatternKind.DesperationLeap && _hit == 0 && _elapsed < spec.Windup - LeapAirTime)
+                        end = Math.Min(end, spec.Windup - LeapAirTime);
                     int step = Math.Min(milliseconds, end - _elapsed);
                     _elapsed += step; milliseconds -= step;
                     UpdateAirborne();

@@ -16,7 +16,15 @@ namespace HumanGhost.Data.Definitions
         public int Phase { get; }
         public string Key { get; }
         public int HPThreshold { get; }
-        public BossState(int id, int unitID, int idleMin, int idleMax, int poiseRegenDelay, int poiseRegen, int exposeTime, string executeType, int executeDamage, bool superArmor, int phase, string key, int hPThreshold)
+        // 2페이즈 패턴 선택 기준(11/19 코드 상수에서 이전). 쓰지 않는 페이즈는 0입니다.
+        public int DesperationHPRate { get; }
+        public int CloseRange { get; }
+        public int MidRange { get; }
+        public int PlatformWaitTime { get; }
+        public int SlamAfterCount { get; }
+        public int ChargeGap { get; }
+        public int LeapAirTime { get; }
+        public BossState(int id, int unitID, int idleMin, int idleMax, int poiseRegenDelay, int poiseRegen, int exposeTime, string executeType, int executeDamage, bool superArmor, int phase, string key, int hPThreshold, int desperationHPRate = 0, int closeRange = 0, int midRange = 0, int platformWaitTime = 0, int slamAfterCount = 0, int chargeGap = 0, int leapAirTime = 0)
         {
             ID = id;
             UnitID = unitID;
@@ -31,6 +39,13 @@ namespace HumanGhost.Data.Definitions
             Phase = phase;
             Key = key;
             HPThreshold = hPThreshold;
+            DesperationHPRate = desperationHPRate;
+            CloseRange = closeRange;
+            MidRange = midRange;
+            PlatformWaitTime = platformWaitTime;
+            SlamAfterCount = slamAfterCount;
+            ChargeGap = chargeGap;
+            LeapAirTime = leapAirTime;
         }
     }
 }

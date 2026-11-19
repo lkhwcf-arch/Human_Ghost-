@@ -8,7 +8,7 @@ internal static class BossPhaseTwoChecks
     {
         var common=new UnitStat(1006,0,"Boss",null,500,34,0,0,0,0,120,250,0);
         var first=new BossState(4001,1006,1000,1000,2000,15,2000,"DAMAGE",1800,false,0,"Idle",10000);
-        var second=new BossState(4002,1006,600,600,2000,15,2000,"DAMAGE",1800,false,1,"Rage",5000);
+        var second=new BossState(4002,1006,600,600,2000,15,2000,"DAMAGE",1800,false,1,"Rage",5000,2500,300,600,3000,3,2,900);
         BossPoise Boss(bool phaseTwo=false)=>new BossPoise(new Boss(common,new[]{first,second}),phaseTwo?second:first,true);
         AttackSpec Hit(int w,int a,int r,int d=0)=>new AttackSpec(w,a,r,0,d,0,0,immediate:w==0);
         BossPattern Pattern(BossPatternKind kind, AttackSpec[] hits, int group=0)=>new BossPattern(StateKey.Attack1,hits,1,
@@ -69,7 +69,7 @@ internal static class BossPhaseTwoChecks
         check(!combat.IsDesperate&&!select.DesperationPending&&all[select.Choose(100,0)].Kind!=BossPatternKind.DesperationLeap&&!combat.TryStart(2),"HP25 경계 바로 위: 선택 안 함·시작 거부 일치");
         boss.ReceiveHit(1,0);
         check(combat.IsDesperate&&select.DesperationPending&&all[select.Choose(100,0)].Kind==BossPatternKind.DesperationLeap&&combat.TryStart(2),"HP25 경계: 선택과 시작 허용 일치");
-        check(BossCombat.LeapTravelMilliseconds==900,"도약 체공 단일 원본 값 보존(900ms)");
+        check(combat.LeapAirTime==900,"도약 체공은 현재 페이즈 데이터(LeapAirTime) 값");
         int healed=0;target=Player();target.ConfigureHerbs(5,100,3);target.HerbRecovered+=()=>healed++;target.ReceiveHit(10,false);target.Tick(1000);
         check(target.TryUseHerb(),"회복 섭취 시작");target.Tick(99);check(healed==0,"섭취 완료 전 VFX 알림 없음");target.Tick(1);check(healed==1,"회복 완료 알림 1회");
         target.Tick(1000);target.TryUseHerb();target.ReceiveHit(1,false);target.Tick(1000);check(healed==1,"피격으로 취소한 섭취는 VFX 알림 없음");

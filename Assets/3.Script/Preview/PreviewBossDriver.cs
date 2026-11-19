@@ -104,7 +104,7 @@ namespace HumanGhost.Gameplay.Preview
             int milliseconds = _clock.AdvanceFrame(seconds);
             bool phaseTwo = _runtime.Actor.Phase.Phase > 0 && combat.HasPhaseTwoPatterns;
             _platformMilliseconds = checked(_runtime.ToInteger(_playerBody.bounds.min.y) - _runtime.ToInteger(_body.bounds.min.y)) >= _platformHeight
-                ? Math.Min(3001, _platformMilliseconds + milliseconds) : 0;
+                ? Math.Min(_runtime.Actor.Phase.PlatformWaitTime + 1, _platformMilliseconds + milliseconds) : 0;
             if (AutomaticPatterns && phaseTwo && _phaseTwo.DesperationPending && combat.IsAttacking)
             { combat.Release(); combat.Face(offset < 0 ? -1 : 1); }
             int velocity = combat.Velocity;
@@ -125,8 +125,8 @@ namespace HumanGhost.Gameplay.Preview
             if (AutomaticPatterns && !phaseTwo && noticed && !combat.IsAttacking && !combat.IsWaiting) SelectPattern(distance);
             if (combat.IsAirborne)
             {
-                // 착지 BossCombat.LeapTravelMilliseconds 전부터 착지 순간까지 수평으로 옮깁니다(코어 공중 판정과 같은 값).
-                const int travel = BossCombat.LeapTravelMilliseconds;
+                // 착지 LeapAirTime 전부터 착지 순간까지 수평으로 옮깁니다(코어 공중 판정과 같은 데이터 값).
+                int travel = combat.LeapAirTime;
                 int start = combat.HitIndex == 0 ? combat.CurrentPattern.Hits[0].Windup - travel : 0;
                 long elapsed = Math.Max(0, Math.Min(travel, combat.HitElapsed - start));
                 long x = checked(_leapStartX + (_landingX - _leapStartX) * elapsed / travel);

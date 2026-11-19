@@ -15,7 +15,14 @@
         "SuperArmor": false,
         "Phase": 0,
         "Key": "Idle",
-        "HPThreshold": 10000
+        "HPThreshold": 10000,
+        "DesperationHPRate": 0,
+        "CloseRange": 0,
+        "MidRange": 0,
+        "PlatformWaitTime": 0,
+        "SlamAfterCount": 0,
+        "ChargeGap": 0,
+        "LeapAirTime": 0
       },
       {
         "ID": 4002,
@@ -30,7 +37,14 @@
         "SuperArmor": false,
         "Phase": 1,
         "Key": "Rage",
-        "HPThreshold": 5000
+        "HPThreshold": 5000,
+        "DesperationHPRate": 2500,
+        "CloseRange": 300,
+        "MidRange": 600,
+        "PlatformWaitTime": 3000,
+        "SlamAfterCount": 3,
+        "ChargeGap": 2,
+        "LeapAirTime": 900
       }
     ]
   }
