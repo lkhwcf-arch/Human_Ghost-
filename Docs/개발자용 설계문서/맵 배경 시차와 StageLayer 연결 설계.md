@@ -45,10 +45,10 @@ flowchart TD
 
 | Stage | 맵 프리팹 | 연결 방식 | 쓰이는 레이어 이름 |
 | --- | --- | --- | --- |
-| 8001 마을 | Map_1_Dohwagol_K9 | 기본 연결 | SKY·FAR·FRONT |
+| 8001 마을 | Map_1_Dohwagol_K9 | 기본 연결 | SKY·FAR·MID·FRONT |
 | 8002 사냥터1 | Map_2_Sangil_K9 | MapParallaxLayers | SKY·FAR·FAR_NEAR·MID_FAR·MID_NEAR·NEAR·PLAY·PLAY_NEAR |
 | 8003 사냥터2 | Map_3_Hyeopgok_K9 | MapParallaxLayers | SKY·FAR·FAR_NEAR·MID_FAR·MID_NEAR·NEAR·PLAY |
-| 8004 보스방 | Map_BossRoom_K9 | 기본 연결 | SKY·FAR |
+| 8004 보스방 | Map_BossRoom_K9 | 기본 연결 | SKY·FAR·MID |
 | 8005 장부방 | Map_Jangbubang_K9 | **실내(연결 안 함)** | — |
 | 8006 가마터 | Map_2b_Onggi_K9 | MapParallaxLayers | SKY·FAR·MID_FAR·MID_NEAR·NEAR·PLAY |
 | 8007 갈림길 | Map_X01_Galimgil_K9 | 기본 연결 | SKY·FAR·MID |
@@ -91,18 +91,19 @@ Stage   ID    … Role     Interior
 
 | ID | Stage | LayerName | 지운 이유 |
 | --- | --- | --- | --- |
-| 9003 | 8001 마을 | MID | 맵에 `Background/Midground*`·`03_*`이 없음 |
+| ~~9003~~ | 8001 마을 | MID | **11/20 복구.** 맵에 `Background/Midground_중경_불타는마을A`·`B`가 있어 기본 연결 MID로 쓰임 |
 | 9004 | 8001 마을 | PLAY | 기본 연결에 PLAY가 없음. 값도 10000이라 행이 없을 때와 같음 |
 | 9008 | 8002 사냥터1 | MID | `MapParallaxLayers`가 MID를 쓰지 않음(11/20 세분 레이어로 대체) |
 | 9030 | 8002 사냥터1 | FRONT | 같음. 전경은 `NEAR`·`PLAY_NEAR`로 대체 |
 | 9012 | 8003 사냥터2 | MID | 같음 |
 | 9014 | 8004 보스방 | BACK | `BACK`에 연결되는 경로가 없음 |
 | 9015 | 8004 보스방 | PLAY | 기본 연결에 PLAY가 없음. 값 10000 |
-| 9033 | 8004 보스방 | MID | 보스방에 `Midground*`·`03_*`이 없음(배경은 Sky·Mountains·Backfill) |
+| ~~9033~~ | 8004 보스방 | MID | **11/20 복구.** 보스방에 `Background/Midground_중경`이 있어 기본 연결 MID로 쓰임 |
 | 9018 | 8006 가마터 | MID | `MapParallaxLayers`가 MID를 쓰지 않음 |
 | 9023 | 8007 갈림길 | PLAY | 기본 연결에 PLAY가 없음. 값 10000 |
 
 - 지운 행은 화면에 영향이 없습니다(반영되지 않던 값).
+- 9003·9033은 지운 뒤 확인에서 맵에 `Background/Midground*` 오브젝트가 있는 것으로 확인됐습니다. 행이 없는 동안 두 맵의 중경이 시차 없이(10000) 움직였으므로 원래 값(가로 5000·세로 10000)으로 복구했습니다. 최종 삭제는 8행입니다.
 - 원본 시트(`StageLayer.xlsx`) 설명 칸에 지운 ID와 이유를 적었습니다. 시트의 행 번호는 당겨졌지만 ID는 바뀌지 않습니다.
 - 다시 쓰려면 먼저 맵 프리팹에 그 이름으로 대상을 연결하고(`MapParallaxLayers` 또는 기본 연결 경로), 그다음 행을 추가합니다.
 
