@@ -107,7 +107,8 @@ namespace HumanGhost.Gameplay.Adapters
                 IsOpen = true;
                 ++_generation;
                 ShowSlots("");
-                _pointerEvents.SetActive(true);
+                // 씬에 이미 EventSystem이 있으면 그것을 쓰고, 없을 때만 시험용 EventSystem을 켭니다(활성 EventSystem은 하나만 허용).
+                if (UnityEngine.EventSystems.EventSystem.current == null) _pointerEvents.SetActive(true);
                 _menuInput.Enable();
             }
             catch (Exception error)

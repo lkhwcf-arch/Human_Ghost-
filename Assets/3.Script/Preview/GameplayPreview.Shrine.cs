@@ -44,6 +44,7 @@ namespace HumanGhost.Gameplay.Preview
                 _player.NotifyPresentationCue("Pray");
                 _shrineModalBinding.SetModalOwner(this, true);
                 _shrineInput.Enable();
+                if (_interactor != null) _interactor.SetPromptHidden(true);
                 Cursor.visible = true;
             }
             catch (Exception error) { DisconnectShrine(); ReportShrineError(error); }
@@ -63,6 +64,7 @@ namespace HumanGhost.Gameplay.Preview
         {
             _shrineInput?.Disable();
             if (_shrineScreen != null) _shrineScreen.Hide();
+            if (_interactor != null) _interactor.SetPromptHidden(false);
             Cursor.visible = _shrineCursorWasVisible;
             _shrineRising = true;
             _shrineRiseRemainingMilliseconds = _playerSprite != null ? _playerSprite.BeginSaveRise() : 0;
@@ -95,6 +97,7 @@ namespace HumanGhost.Gameplay.Preview
                 () => input?.Dispose(),
                 () => { if (screen != null) screen.Hide(); },
                 () => { if (opened) Cursor.visible = _shrineCursorWasVisible; },
+                () => { if (_interactor != null) _interactor.SetPromptHidden(false); },
                 () => { if (_shrineModalBinding != null) _shrineModalBinding.SetModalOwner(this, false); },
                 () => { _shrineClosedFrame = -1; _shrineRising = false; _shrineRiseRemainingMilliseconds = 0; },
                 () => { if (_player != null && _player.Actor != null && _player.isActiveAndEnabled) _player.NotifyPresentationCue("ActionExit"); },

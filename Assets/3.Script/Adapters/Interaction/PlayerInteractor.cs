@@ -22,6 +22,7 @@ namespace HumanGhost.Gameplay.Adapters
         private TextMesh _prompt;
         [SerializeField, InspectorName("상호작용 F 키 그림 (없으면 글자 표시)")] private Sprite _interactionKeySprite = null;
         private bool _promptHasKeyIcon;
+        private bool _promptHidden;
         private SpriteRenderer _promptKeyIcon, _investigationArtwork;
         private Renderer _promptTextRenderer;
         private SpriteRenderer _promptBackdrop, _promptBorder;
@@ -93,6 +94,8 @@ namespace HumanGhost.Gameplay.Adapters
         }
         public bool IsShrinePromptVisible => HasContext && _prompt != null && _prompt.gameObject.activeSelf && _selected is ShrineInteract;
         public void RequestRefresh() => _scope?.Invalidate();
+        // 서낭당처럼 화면이 월드를 덮는 동안 월드 안내를 숨깁니다. 대화창과 같은 숨김 경로를 씁니다.
+        public void SetPromptHidden(bool hidden) { if (_promptHidden == hidden) return; _promptHidden = hidden; RequestRefresh(); }
         private void StopBindings()
         {
             _scope?.Dispose(); _scope = null;
@@ -146,7 +149,7 @@ namespace HumanGhost.Gameplay.Adapters
         private void LateUpdate()
         {
             if (!HasContext || _prompt == null || _scope == null || !_scope.TryConsumeRefresh()) return;
-            bool open = _context.Textbox.IsOpen;
+            bool open = _context.Textbox.IsOpen || _promptHidden;
             if (open)
             {
                 _selected = null;

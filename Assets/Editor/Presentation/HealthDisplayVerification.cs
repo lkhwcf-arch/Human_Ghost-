@@ -120,22 +120,29 @@ namespace HumanGhost.Editor.Presentation
                 firstAnchor.localPosition += new Vector3(70, -35, 0);
                 Check(Vector3.Distance(firstView.transform.position, firstAnchor.position) < 0.001f, "표시가 앵커 이동을 따라가지 않습니다.");
                 RectTransform Fill(HealthDisplay view) => (RectTransform)new SerializedObject(view).FindProperty("_fill").objectReferenceValue;
-                float inactiveRatio = Fill(secondView).anchorMax.x;
-                Check(Mathf.Approximately(Fill(firstView).anchorMax.x, 1f), "최초 체력 표시가 잘못됐습니다.");
+                // HealthDisplay.SetFillRatio와 같은 규칙: Filled 이미지는 fillAmount, 그 외는 가로 앵커로 비율을 표시합니다.
+                float Ratio(HealthDisplay view)
+                {
+                    RectTransform fill = Fill(view);
+                    var image = fill.GetComponent<UnityEngine.UI.Image>();
+                    return image != null && image.type == UnityEngine.UI.Image.Type.Filled ? image.fillAmount : fill.anchorMax.x;
+                }
+                float inactiveRatio = Ratio(secondView);
+                Check(Mathf.Approximately(Ratio(firstView), 1f), "최초 체력 표시가 잘못됐습니다.");
                 firstPlayer.ReceiveHit(1);
-                Check(Mathf.Approximately(Fill(firstView).anchorMax.x, (float)firstPlayer.Health / definition.HP), "피격 이벤트가 화면에 반영되지 않았습니다.");
-                Check(Mathf.Approximately(Fill(secondView).anchorMax.x, inactiveRatio), "다른 플레이어의 이벤트가 비활성 표시에 섞였습니다.");
+                Check(Mathf.Approximately(Ratio(firstView), (float)firstPlayer.Health / definition.HP), "피격 이벤트가 화면에 반영되지 않았습니다.");
+                Check(Mathf.Approximately(Ratio(secondView), inactiveRatio), "다른 플레이어의 이벤트가 비활성 표시에 섞였습니다.");
                 secondPlayer.ReceiveHit(1);
-                Check(Mathf.Approximately(Fill(secondView).anchorMax.x, inactiveRatio), "비활성 부모 아래에서 체력 이벤트를 소비했습니다.");
+                Check(Mathf.Approximately(Ratio(secondView), inactiveRatio), "비활성 부모 아래에서 체력 이벤트를 소비했습니다.");
                 secondParent.SetActive(true);
-                Check(Mathf.Approximately(Fill(secondView).anchorMax.x, (float)secondPlayer.Health / definition.HP), "부모 활성화 시 최신 체력으로 동기화하지 않았습니다.");
+                Check(Mathf.Approximately(Ratio(secondView), (float)secondPlayer.Health / definition.HP), "부모 활성화 시 최신 체력으로 동기화하지 않았습니다.");
                 firstParent.SetActive(false);
-                float hiddenRatio = Fill(firstView).anchorMax.x;
+                float hiddenRatio = Ratio(firstView);
                 firstPlayer.Tick(definition.HitIFrame + definition.HitStunTime);
                 firstPlayer.ReceiveHit(1);
-                Check(Mathf.Approximately(Fill(firstView).anchorMax.x, hiddenRatio), "비활성 중 체력 이벤트를 소비했습니다.");
+                Check(Mathf.Approximately(Ratio(firstView), hiddenRatio), "비활성 중 체력 이벤트를 소비했습니다.");
                 firstParent.SetActive(true);
-                Check(Mathf.Approximately(Fill(firstView).anchorMax.x, (float)firstPlayer.Health / definition.HP), "재활성화 시 체력이 갱신되지 않았습니다.");
+                Check(Mathf.Approximately(Ratio(firstView), (float)firstPlayer.Health / definition.HP), "재활성화 시 체력이 갱신되지 않았습니다.");
                 Fails(() => firstAnchors.Get("MissingAnchor"), "누락 앵커를 허용했습니다.");
                 var duplicate = new GameObject(_anchorName, typeof(RectTransform));
                 duplicate.transform.SetParent(firstParent.transform, false);

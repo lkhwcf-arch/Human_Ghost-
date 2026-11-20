@@ -12,6 +12,10 @@ namespace HumanGhost.EditorTools
     // 실행 상태를 읽기만 합니다. 배치·저장·입력을 변경하지 않습니다.
     public static class NpcInteractionVerification
     {
+        // 편집 모드에서는 일반 컴포넌트의 OnEnable이 불리지 않아 등록을 확인할 수 없습니다.
+        [MenuItem("인귀/검사/상호작용 등록 수명 검사", true)]
+        private static bool CanInspectLifetime() => EditorApplication.isPlaying && !EditorApplication.isCompiling;
+
         [MenuItem("인귀/검사/상호작용 등록 수명 검사")]
         public static void InspectLifetime()
         {
