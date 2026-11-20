@@ -199,6 +199,11 @@ namespace HumanGhost.Gameplay.Preview
         // float 유효숫자는 24비트라 좌표 크기 M의 관측 오차는 약 M × 2^-23입니다. 접촉점·발 높이 두 관측 여유로 8배(M >> 20)를
         // 정수로 계산해 GroundSlopeRule에 넘깁니다. 맵 좌표 수백 칸·144fps에서도 경사 한계를 약 0.3° 이내로만 넓힙니다.
         private const int _observationErrorShift = 20;
+        // 직전 비탈 추종이 확정한 몸통 중심(x, y)과 그 위치에서 관측한 지지면입니다. 다음 걸음이 같은 위치에서 시작하면 지지면을 다시 재지 않고 씁니다.
+        // 이유: 같은 지점을 두 번 재면 Raycast 시작점이 달라 float 관측값이 미세하게 달라지고, 높이를 차이로만 옮기므로 그 차이가 걸음마다 쌓였습니다
+        // (11/20 비탈 접지 검증 144fps 실패, 발 간격 −0.0010칸). 한 번 잰 값을 이어 쓰면 오차가 한 번 관측 오차 이내로 유지됩니다.
+        private long _lastFootX, _lastFootY, _lastFootSurface;
+        private bool _hasLastFoot;
 
         public PreviewFootCollision(Vector2 halfSize, float worldUnitsPerTile) : base(true, 0f, halfSize)
         {
@@ -276,11 +281,16 @@ namespace HumanGhost.Gameplay.Preview
         public bool TryFollowFootSlope(long x, long y, long run, out long rise)
         {
             rise = 0;
-            if (!UsesColliders || run == 0) return false;
+            if (!UsesColliders || run == 0) { _hasLastFoot = false; return false; }
             long error = ObservationError(x, y);
+            // 직전 추종이 확정한 위치에서 시작할 때만 이어 씁니다. 몬스터 드라이버는 매 프레임 몸통 중심을 Transform(float)에서 다시 정수로 읽으므로
+            // 관측 오차 이내의 차이는 같은 위치로 봅니다. 넉백·낙하 등 다른 이동이 있었거나 추종이 실패했으면 다시 잽니다.
+            bool continued = _hasLastFoot && Math.Abs(x - _lastFootX) <= error && Math.Abs(y - _lastFootY) <= error;
+            _hasLastFoot = false;
             long probe = checked(GroundSlopeRule.ObservationTolerance + error + _skin);
             // 현재 발 = 몸통 중심 아래의 실제 지지면입니다(Body 그림 보정과 무관, FindSupport 참고).
             if (!FindSupport(x, y, error, out long current, out Collider2D currentFloor)) return false;
+            if (continued) current = _lastFootSurface;
             // 조회 범위는 정수 규칙의 최대 높이 변화(관측 오차 포함)입니다. 이동량에 비례하므로 프레임률과 무관합니다.
             long window = GroundSlopeRule.MaxRise(run, error);
             if (!FindFootSurface(checked(x + run), checked(current + window), checked(window * 2), out long surface, out Collider2D nextFloor) ||
@@ -304,6 +314,7 @@ namespace HumanGhost.Gameplay.Preview
                     if (!hits[i].collider.usedByEffector) return false;
             }
             rise = observed;
+            _lastFootX = checked(x + run); _lastFootY = checked(y + observed); _lastFootSurface = surface; _hasLastFoot = true;
             return true;
         }
 

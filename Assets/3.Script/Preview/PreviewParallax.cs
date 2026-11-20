@@ -61,6 +61,8 @@ namespace HumanGhost.Gameplay.Preview
             if (map == null) throw new ArgumentNullException(nameof(map));
             if (!(worldUnitsPerTile > 0f) || float.IsInfinity(worldUnitsPerTile)) throw new ArgumentOutOfRangeException(nameof(worldUnitsPerTile));
             Disconnect();
+            // 실내 공간(Stage.Interior=Y, 장부방)은 배경 시차를 쓰지 않습니다. 레이어를 연결하지 않아 배경이 맵과 같이 움직입니다.
+            if (data.GetTable<Stage>().Get(stageId).Interior) return;
             _worldUnitsPerTile = worldUnitsPerTile;
             var layers = map.GetComponent<MapParallaxLayers>();
             if (layers != null)

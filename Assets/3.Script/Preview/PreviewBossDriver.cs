@@ -125,9 +125,11 @@ namespace HumanGhost.Gameplay.Preview
             if (AutomaticPatterns && !phaseTwo && noticed && !combat.IsAttacking && !combat.IsWaiting) SelectPattern(distance);
             if (combat.IsAirborne)
             {
-                // 착지 LeapAirTime 전부터 착지 순간까지 수평으로 옮깁니다(코어 공중 판정과 같은 데이터 값).
-                int travel = combat.LeapAirTime;
-                int start = combat.HitIndex == 0 ? combat.CurrentPattern.Hits[0].Windup - travel : 0;
+                // 코어 공중 판정(IsAirborne)과 같은 구간 동안 수평으로 옮깁니다. 첫 도약은 선딜 끝 LeapAirTime, 두 번째 도약은 그 타격의 선딜 전체입니다.
+                // 공중이면 start ≤ HitElapsed < Windup이라 구간 길이는 0보다 큽니다.
+                int windup = combat.CurrentPattern.Hits[combat.HitIndex].Windup;
+                int start = combat.HitIndex == 0 ? windup - combat.LeapAirTime : 0;
+                int travel = windup - start;
                 long elapsed = Math.Max(0, Math.Min(travel, combat.HitElapsed - start));
                 long x = checked(_leapStartX + (_landingX - _leapStartX) * elapsed / travel);
                 _runtime.SetPosition(new IntegerPosition(x, _runtime.Position.Y));

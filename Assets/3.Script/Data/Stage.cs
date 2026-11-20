@@ -18,7 +18,9 @@ namespace HumanGhost.Data.Definitions
         public int? AmbienceSoundID { get; }
         // 맵 역할(VILLAGE·LEDGER·BOSS·FIELD, 11/19 코드 상수에서 이전)입니다. 해석은 StageRoles가 합니다.
         public string Role { get; }
-        public Stage(int id, int textID, int order, int? nextStage, string bGM_Normal, string bGM_Battle, string spawnFile, bool active, bool contentEnabled, int unlockConditionType, int unlockTargetID, int unlockRequiredValue, int? ambienceSoundID = null, string role = "FIELD")
+        // 실내 공간(11/20, 장부방)입니다. Y면 배경 시차를 쓰지 않습니다(PreviewParallax).
+        public bool Interior { get; }
+        public Stage(int id, int textID, int order, int? nextStage, string bGM_Normal, string bGM_Battle, string spawnFile, bool active, bool contentEnabled, int unlockConditionType, int unlockTargetID, int unlockRequiredValue, int? ambienceSoundID = null, string role = "FIELD", bool interior = false)
         {
             ID = id;
             TextID = textID;
@@ -34,6 +36,7 @@ namespace HumanGhost.Data.Definitions
             UnlockRequiredValue = unlockRequiredValue;
             AmbienceSoundID = ambienceSoundID;
             Role = role ?? "";
+            Interior = interior;
         }
     }
 }

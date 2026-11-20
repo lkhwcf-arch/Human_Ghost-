@@ -119,6 +119,10 @@ internal static class DeploymentConnectionChecks
             var actor = new BossPoise(definition, definition.States[0]);
             Require(actor.Health == definition.HP, "Boss[" + definition.ID + "]의 CSV HP가 런타임에 전달되지 않았습니다.");
         }
+        // 실내 맵(Stage.Interior=Y)은 배경 시차를 쓰지 않으므로 StageLayer 행이 있으면 반영되지 않는 값입니다.
+        foreach (Stage stage in data.GetTable<Stage>().All.Where(row => row.Interior))
+            Require(!data.GetTable<StageLayer>().All.Any(row => row.StageID == stage.ID),
+                "Stage[" + stage.ID + "]는 실내(Interior=Y)라 StageLayer 행을 두지 않습니다.");
         foreach (BossSkill skill in data.GetTable<BossSkill>().All)
         {
             BossSkillHit[] hits = data.GetTable<BossSkillHit>().All.Where(row => row.BossSkillID == skill.ID).OrderBy(row => row.ID).ToArray();

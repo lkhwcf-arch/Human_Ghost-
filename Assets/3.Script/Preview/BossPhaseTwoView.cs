@@ -157,9 +157,10 @@ namespace HumanGhost.Gameplay.Preview
             var position = _rigPosition;
             if (combat.IsAirborne)
             {
-                int start = combat.HitIndex == 0 ? combat.CurrentPattern.Hits[0].Windup - combat.LeapAirTime : 0;
-                float airSeconds = combat.LeapAirTime / 1000f;
-                float progress = airSeconds <= 0f ? 1f : (combat.HitElapsed - start) / 1000f / airSeconds;
+                // 공중 구간은 코어 IsAirborne과 같습니다(첫 도약은 선딜 끝 LeapAirTime, 두 번째 도약은 그 타격의 선딜 전체). 공중이면 길이는 0보다 큽니다.
+                int windup = combat.CurrentPattern.Hits[combat.HitIndex].Windup;
+                int start = combat.HitIndex == 0 ? windup - combat.LeapAirTime : 0;
+                float progress = (combat.HitElapsed - start) / (float)(windup - start);
                 position.y += Mathf.Sin(Mathf.Clamp01(Frame(progress, _framesPerSecond)) * Mathf.PI) * 6f;
             }
             _rig.transform.localPosition = position;
