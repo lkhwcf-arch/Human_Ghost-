@@ -22,3 +22,4 @@ ID,EnumName,Key,Value,SheetKey
 21,SoundCategory,Monster,3,MONSTER
 22,SoundCategory,Boss,4,BOSS
 23,SoundCategory,Common,5,COMMON
+24,SoundCategory,Bgm,6,BGM

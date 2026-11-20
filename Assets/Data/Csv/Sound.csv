@@ -79,3 +79,7 @@ ID,Address,Category,Volume,Loop,FadeInMs,FadeOutMs,RefIndex
 3079,Assets/8.Audio/SFX_261117/title_ambiance,5,10000,Y,0,0,
 3080,Assets/8.Audio/SFX_261117/HG_SFX_AB3,1,10000,Y,0,0,8006
 3081,Assets/8.Audio/SFX_261117/HG_SFX_AB3,1,10000,Y,0,0,8007
+3082,Assets/8.Audio/BGM/HG_Lobby_BGM,6,10000,Y,1000,1000,
+3083,Assets/8.Audio/BGM/HG_Boss_Phase1,6,10000,Y,2000,3000,
+3084,Assets/8.Audio/BGM/HG_Boss_Phase2,6,10000,Y,2000,3000,
+3085,Assets/8.Audio/SFX/HG_TitleSound,6,10000,Y,1000,1000,

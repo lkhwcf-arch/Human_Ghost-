@@ -99,7 +99,8 @@ namespace HumanGhost.Gameplay.Preview
         private bool _bossActive = true;
         private IReadOnlyDataCatalog _catalog;
         private CombatPresence _combat;
-        private string _normalMusic, _battleMusic;
+        // 현재 맵의 평상·전투 배경음악 Sound ID(Stage.BGM_Normal·BGM_Battle)입니다.
+        private int? _normalMusic, _battleMusic;
         private int _lastHealth;
         private bool _bossHitThisFrame;
         private const int _combatHoldMilliseconds = 3000;
@@ -854,14 +855,12 @@ namespace HumanGhost.Gameplay.Preview
             if (_audio != null) _audio.ConnectTable(catalog);
             if (_audio != null) _audio.Apply(settings);
             if (_followCamera != null) _followCamera.ShakeEnabled = settings.CameraShake;
-            // 맵 배경음은 Stage.BGM_Normal·BGM_Battle이 정합니다(11/19, 코드 고정값 AMBIANCE_FIRE 제거 · 조건 규칙 감사 3.13).
+            // 맵 배경음악은 Stage.BGM_Normal·BGM_Battle의 Sound ID가 정합니다(11/20 문자열 키에서 변경).
             Stage stage = catalog.GetTable<Stage>().Get(_stageId);
-            _normalMusic = stage.BGM_Normal ?? ""; _battleMusic = stage.BGM_Battle ?? "";
+            _normalMusic = stage.BGM_Normal; _battleMusic = stage.BGM_Battle;
             StartStageAmbience();
-            _bossMusicPhase = null;
-            if (_bossActive) StepBossMusic();
-            else PlayStageMusic(_normalMusic);
             _combat = new CombatPresence(_combatHoldMilliseconds);
+            PlayStageMusic();
             _lastHealth = _actor.Health;
             _feedback?.Dispose();
             _feedback = new PreviewCombatFeedback(_speed, _followCamera, _audio, _hitImpactPrefab);
@@ -969,11 +968,14 @@ namespace HumanGhost.Gameplay.Preview
         }
 
         // 빈 배경음 칸은 "음악 없음"입니다. 평상↔전투 전환에서 이전 음악이 남지 않도록 끕니다. 키 존재는 ResourceConnectionChecks가 검사합니다.
-        private void PlayStageMusic(string key)
+        // 전투 중이고 BGM_Battle이 있으면 전투 곡, 아니면 평상 곡입니다(전투 칸이 비면 평상 유지).
+        // 보스방에서는 현재 페이즈의 BossState.Music이 있으면 그 곡으로 바꿉니다. 보스가 죽거나 이미 처치한 방은 음악을 끕니다.
+        private void PlayStageMusic()
         {
-            if (_audio == null) return;
-            if (string.IsNullOrEmpty(key)) _audio.FadeOutMusic();
-            else _audio.PlayMusic(key);
+            if (_audio == null || _combat == null) return;
+            int? music = _combat.InCombat && _battleMusic.HasValue ? _battleMusic : _normalMusic;
+            if (_showBossGauge) music = _bossActive && !_boss.Actor.IsDead ? _boss.Actor.Phase.Music ?? music : null;
+            _audio.PlayMusic(music);
         }
 
         private void StepGameLayer()
@@ -984,7 +986,7 @@ namespace HumanGhost.Gameplay.Preview
             for (int i = 0; !engaged && i < _monsterDrivers.Length; i++) engaged = _monsterDrivers[i].IsEngaged;
             if (engaged) _combat.Engage();
             _combat.Tick(_realElapsedMilliseconds);
-            if (!_bossActive) PlayStageMusic(_combat.InCombat ? _battleMusic : _normalMusic);
+            PlayStageMusic();
             if (_hud != null)
             {
                 _hud.SetBright(_combat.InCombat && (_textbox == null || !_textbox.IsOpen));
@@ -1102,7 +1104,8 @@ namespace HumanGhost.Gameplay.Preview
             StepLedger();
             StepFirstNotices();
             StepCutsceneFlow();
-            if (_subscribed && _bossActive) StepBossMusic();
+            // 보스 페이즈 전환·사망은 전투 갱신이 멈춘 연출 중에도 곡에 바로 반영합니다.
+            if (_subscribed && _bossActive) PlayStageMusic();
             if (StepBossPhase()) return;
             if (_modalBlocked || _saveLocked || _leaving || LoadingScreen.IsActive || !_subscribed || !_player.isActiveAndEnabled || (_bossActive && !_boss.isActiveAndEnabled)) return;
             if (_stageNamePending && CanPause() && (_textbox == null || !_textbox.IsOpen))

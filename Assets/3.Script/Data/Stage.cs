@@ -7,8 +7,9 @@ namespace HumanGhost.Data.Definitions
         public int TextID { get; }
         public int Order { get; }
         public int? NextStage { get; }
-        public string BGM_Normal { get; }
-        public string BGM_Battle { get; }
+        // 평상·전투 배경음 Sound ID(Category 6 BGM, 11/20 문자열 키에서 변경)입니다. 전투가 비면 평상을 유지합니다.
+        public int? BGM_Normal { get; }
+        public int? BGM_Battle { get; }
         public string SpawnFile { get; }
         public bool Active { get; }
         public bool ContentEnabled { get; }
@@ -20,7 +21,7 @@ namespace HumanGhost.Data.Definitions
         public string Role { get; }
         // 실내 공간(11/20, 장부방)입니다. Y면 배경 시차를 쓰지 않습니다(PreviewParallax).
         public bool Interior { get; }
-        public Stage(int id, int textID, int order, int? nextStage, string bGM_Normal, string bGM_Battle, string spawnFile, bool active, bool contentEnabled, int unlockConditionType, int unlockTargetID, int unlockRequiredValue, int? ambienceSoundID = null, string role = "FIELD", bool interior = false)
+        public Stage(int id, int textID, int order, int? nextStage, int? bGM_Normal, int? bGM_Battle, string spawnFile, bool active, bool contentEnabled, int unlockConditionType, int unlockTargetID, int unlockRequiredValue, int? ambienceSoundID = null, string role = "FIELD", bool interior = false)
         {
             ID = id;
             TextID = textID;

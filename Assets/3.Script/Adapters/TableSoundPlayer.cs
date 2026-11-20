@@ -98,9 +98,10 @@ namespace HumanGhost.Gameplay.Adapters
                 ApplyVolume(voice);
                 channel.gameObject.SetActive(true);
                 channel.Play();
-                if (definition.Category == 1)
+                // 환경음·배경음악은 분류마다 한 곡만 둡니다. 새 곡이 커지는 동안 이전 곡은 자기 FadeOutMs로 줄어듭니다.
+                if (IsBackground(definition))
                     foreach (Voice existing in _voices)
-                        if (existing.Definition.Category == 1) { existing.Envelope.Stop(); ApplyVolume(existing); }
+                        if (existing.Definition.Category == definition.Category) { existing.Envelope.Stop(); ApplyVolume(existing); }
                 _voices.Add(voice);
             }
             catch { ReturnChannel(channel); throw; }
@@ -136,6 +137,15 @@ namespace HumanGhost.Gameplay.Adapters
                 voice.Source.timeSamples = (int)((sample + elapsedMilliseconds * clip.frequency / 1000) % clip.samples);
             }
         }
+        // 해당 분류에서 줄어드는 중인 소리가 있는지 봅니다. 엔딩 전 배경음악 페이드 대기에 씁니다.
+        public bool IsStopping(SoundCategory category)
+        {
+            foreach (Voice voice in _voices)
+                if (voice.Definition.Category == (int)category && voice.Envelope.IsStopping && !voice.Envelope.IsStopped) return true;
+            return false;
+        }
+        private static bool IsBackground(Sound definition)
+            => definition.Category == (int)SoundCategory.Ambience || definition.Category == (int)SoundCategory.Bgm;
         public void StopAll()
         {
             foreach (Voice voice in _voices) { voice.Envelope.Stop(); ApplyVolume(voice); }
@@ -189,9 +199,10 @@ namespace HumanGhost.Gameplay.Adapters
         {
             // 외부에서 채널을 제거한 경우 다음 갱신에서 정리하며 빈 객체는 호출하지 않습니다.
             if (voice.Source == null) return;
-            int category = voice.Definition.Category == 1 ? _settings.MusicPercent : _settings.EffectsPercent;
+            bool background = IsBackground(voice.Definition);
+            int category = background ? _settings.MusicPercent : _settings.EffectsPercent;
             voice.Source.volume = voice.Definition.Volume / 10000f * category / 100f * voice.Envelope.Gain / 10000f
-                * (voice.Definition.Category == 1 && _paused ? 0.5f : 1f);
+                * (background && _paused ? 0.5f : 1f);
         }
         private AudioSource AcquireChannel()
         {

@@ -21,7 +21,8 @@ namespace HumanGhost.Gameplay.Adapters
         [SerializeField, InspectorName("소리 프리팹")] private GameAudio _audioPrefab = null;
         private GameAudio _audio;
         [SerializeField, InspectorName("타이틀 배경 영상")] private TitleVideoBackground _backgroundVideo = null;
-        [SerializeField, InspectorName("타이틀 배경음 키")] private string _musicKey = "BGM_VILLAGE";
+        // 타이틀은 Stage 행이 없어 배경음악 Sound ID(Category 6 BGM)를 직접 지정합니다(3085 HG_TitleSound, 0 = 없음).
+        [SerializeField, InspectorName("타이틀 배경음악 Sound ID"), Min(0)] private int _musicSoundId = 3085;
         // 타이틀은 Stage 행이 없어 Sound 표 ID를 직접 지정합니다(3079 title_ambiance).
         [SerializeField, InspectorName("타이틀 환경음 Sound ID"), Min(0)] private int _ambienceSoundId = 3079;
         [SerializeField] private SettingsScreen _settingsPrefab = null;
@@ -224,7 +225,7 @@ namespace HumanGhost.Gameplay.Adapters
             }
         }
 
-        private void PlayTitleMusic() { if (_audio != null) { _audio.PlayMusic(_musicKey); _audio.PlayAmbience(_ambienceSoundId); } }
+        private void PlayTitleMusic() { if (_audio != null) { _audio.PlayMusic(_musicSoundId == 0 ? (int?)null : _musicSoundId); _audio.PlayAmbience(_ambienceSoundId); } }
 
         private void ConnectAudioData(IReadOnlyDataCatalog data)
         {

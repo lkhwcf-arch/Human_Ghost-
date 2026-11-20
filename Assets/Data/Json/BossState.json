@@ -23,7 +23,7 @@
         "SlamAfterCount": 0,
         "ChargeGap": 0,
         "LeapAirTime": 0,
-        "Music": "BGM_BOSS_PHASE1"
+        "Music": null
       },
       {
         "ID": 4002,
@@ -46,7 +46,7 @@
         "SlamAfterCount": 3,
         "ChargeGap": 2,
         "LeapAirTime": 900,
-        "Music": "BGM_BOSS_PHASE2"
+        "Music": 3084
       }
     ]
   }

@@ -17,7 +17,7 @@ internal static class ContentAccessChecks
             checks++;
         }
         Stage CreateStage(bool enabled, int condition = 1) =>
-            new Stage(8002, 30012, 3, 8003, "", "", "", true, enabled, condition, 8005, 1);
+            new Stage(8002, 30012, 3, 8003, null, null, "", true, enabled, condition, 8005, 1);
 
         Check(access.Evaluate(CreateStage(false)) == ContentAccessResult.DisabledByPlanner && queries == 0);
         Check(access.Evaluate(CreateStage(true)) == ContentAccessResult.UnlockRequired);

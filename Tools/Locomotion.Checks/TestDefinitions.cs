@@ -24,5 +24,5 @@ internal static class TestDefinitions
         StageRow(8001, 8002, "VILLAGE"), StageRow(8002, 8006, "FIELD"), StageRow(8003, 8004, "FIELD"), StageRow(8004, null, "BOSS"),
         StageRow(8005, null, "LEDGER"), StageRow(8006, 8007, "FIELD"), StageRow(8007, 8003, "FIELD")
     });
-    public static Stage StageRow(int id, int? next, string role) => new Stage(id, 1, 1, next, "", "", "", true, true, 0, 0, 0, null, role);
+    public static Stage StageRow(int id, int? next, string role) => new Stage(id, 1, 1, next, null, null, "", true, true, 0, 0, 0, null, role);
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -127,6 +128,7 @@ internal static class ResourceConnectionChecks
         var soundRows = parser.Read(File.ReadAllText(Path.Combine(root, "Assets/Data/Csv/Sound.csv"))).Rows
             .ToDictionary(row => int.Parse(row.Get("ID")));
         var audioKeys = new HashSet<string>(StringComparer.Ordinal);
+        var audioSoundIds = new HashSet<int>();
         var soundAddresses = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (Match entry in Regex.Matches(audio, @"- _key: ([^\r\n]+)\r?\n\s+_clip: \{[^}]*guid: ([a-f0-9]{32})[^}]*\}\r?\n\s+_soundId: (\d+)"))
         {
@@ -135,6 +137,7 @@ internal static class ResourceConnectionChecks
             string clip = Asset(entry.Groups[2].Value, "소리 " + key);
             int id = int.Parse(entry.Groups[3].Value);
             if (id == 0) continue; // 기존 문자열 소리 키는 Sound ID 없이도 동작합니다.
+            audioSoundIds.Add(id);
             check(soundRows.ContainsKey(id), "GameAudio의 Sound CSV 참조가 없습니다: " + id);
             string address = soundRows[id].Get("Address");
             check(!string.IsNullOrWhiteSpace(address), "Sound 주소가 비어 있습니다: " + id);
@@ -142,12 +145,20 @@ internal static class ResourceConnectionChecks
                 "같은 Sound 주소에 다른 클립이 연결됐습니다: " + address);
             soundAddresses[address] = clip;
         }
+        // 배경음악은 Sound ID(Category 6 BGM)로 지정하고 클립은 GameAudio 소리 목록의 같은 Sound ID 항목이 공급합니다(11/20).
+        void CheckMusic(string id, string owner)
+        {
+            if (string.IsNullOrEmpty(id)) return;
+            int soundId = int.Parse(id, CultureInfo.InvariantCulture);
+            check(soundRows.TryGetValue(soundId, out var sound) && sound.Get("Category") == "6", owner + "의 배경음악이 Sound Category 6(BGM)이 아닙니다: " + id);
+            check(audioSoundIds.Contains(soundId), owner + "의 배경음악 Sound " + id + " 클립이 GameAudio 소리 목록에 없습니다.");
+        }
         foreach (var stage in stages.Values)
             foreach (string column in new[] { "BGM_Normal", "BGM_Battle" })
-            {
-                string key = stage.Get(column);
-                check(string.IsNullOrEmpty(key) || audioKeys.Contains(key), "Stage[" + stage.Get("ID") + "]." + column + "의 소리 키가 없습니다: " + key);
-            }
+                CheckMusic(stage.Get(column), "Stage[" + stage.Get("ID") + "]." + column);
+        Match titleMusic = Regex.Match(title, @"(?m)^  _musicSoundId: (\d+)\r?$");
+        check(titleMusic.Success, "타이틀 배경음악 Sound ID 연결을 찾지 못했습니다.");
+        if (titleMusic.Success && titleMusic.Groups[1].Value != "0") CheckMusic(titleMusic.Groups[1].Value, "타이틀");
         // 혼·엽전 재화 ID는 코드(MonsterRewards)·서낭당·갈림길 JSON에 함께 있습니다. 서로 같고 Currency에 있어야 합니다(조건 규칙 감사 3.15).
         var currencyIds = parser.Read(File.ReadAllText(Path.Combine(root, "Assets/Data/Csv/Currency.csv"))).Rows.Select(row => int.Parse(row.Get("ID"))).ToHashSet();
         int shrineSoul = (int)JObject.Parse(File.ReadAllText(Path.Combine(root, "Assets/Data/Json/shrine/shrine_level.json")))["soulCurrencyId"];
@@ -182,8 +193,7 @@ internal static class ResourceConnectionChecks
             }
             foreach (JToken state in boss["States"])
             {
-                string music = (string)state["Music"];
-                check(string.IsNullOrEmpty(music) || audioKeys.Contains(music), "BossState " + (string)state["ID"] + "의 Music이 GameAudio에 없습니다: " + music);
+                CheckMusic((string)state["Music"], "BossState " + (string)state["ID"] + ".Music");
             }
         }
         // 몬스터 패턴(MonsterSkill 패턴 열)과 Monster 정의의 교차 검사입니다(조건 규칙 감사 3.5·3.7).

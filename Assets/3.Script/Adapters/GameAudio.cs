@@ -8,7 +8,8 @@ using UnityEngine;
 
 namespace HumanGhost.Gameplay.Adapters
 {
-    // 배경음 크로스페이드·효과음 재생(K12)입니다. Stage의 BGM 키를 받아 Inspector 목록에서 찾습니다. 클립은 교체할 수 있습니다.
+    // 배경음악·환경음·효과음 재생(K12)입니다. 배경음악은 Sound 표 ID(Category 6 BGM)로 받아 TableSoundPlayer가 크로스페이드합니다.
+    // 클립은 Inspector 소리 목록의 Sound ID 항목이 공급합니다.
     public class GameAudio : MonoBehaviour
     {
         [Serializable]
@@ -22,42 +23,9 @@ namespace HumanGhost.Gameplay.Adapters
             public AudioClip Clip => _clip;
         }
 
-        private const int _crossfadeMilliseconds = 1000;
-        private MillisecondClock _fadeClock;
-        private MusicFade _fadeA, _fadeB;
-
-        private struct MusicFade
-        {
-            // [정수화 미적용 이유] AudioSource.volume에 곱하는 0~1 페이드 이득입니다. 페이드 시간은 정수 ms로 진행하고 이득만 오디오 경계의 실수로 둡니다.
-            private float _start, _target;
-            private int _elapsed, _duration;
-            // [정수화 미적용 이유] AudioSource.volume에 곱하는 0~1 페이드 이득입니다(오디오 출력 경계).
-            public float Gain { get; private set; }
-            public bool IsRunning => _elapsed < _duration;
-            public bool IsFadingOut => IsRunning && _target == 0f;
-
-            public void Begin(float target, int milliseconds)
-            {
-                _start = Gain;
-                _target = target;
-                _elapsed = 0;
-                _duration = milliseconds;
-            }
-
-            public void Step(AudioSource source, int milliseconds)
-            {
-                if (!IsRunning) return;
-                _elapsed += Math.Min(milliseconds, _duration - _elapsed);
-                Gain = Mathf.Lerp(_start, _target, _elapsed / (float)_duration);
-                if (!IsRunning && _target == 0f) source.Stop();
-            }
-        }
-
-        private ref MusicFade CurrentFade => ref (_usingA ? ref _fadeA : ref _fadeB);
-        public bool IsMusicFadingOut => _fadeA.IsFadingOut || _fadeB.IsFadingOut;
+        // 배경음악이 줄어드는 중인지 봅니다(곡 교체·정지의 FadeOutMs 구간). 엔딩 영상은 이 페이드가 끝난 뒤 시작합니다.
+        public bool IsMusicFadingOut => _tablePlayer != null && _tablePlayer.IsStopping(SoundCategory.Bgm);
         [SerializeField, InspectorName("소리 목록")] private Entry[] _clips = Array.Empty<Entry>();
-        [SerializeField] private AudioSource _musicA = null;
-        [SerializeField] private AudioSource _musicB = null;
         [SerializeField] private AudioSource _effects = null;
         // 방 환경음은 Sound 표 ID로 TableSoundPlayer가 재생합니다(Category 1 환경음: 배경음 음량·일시정지 50%).
         private int _ambienceId, _ambienceVoice;
@@ -67,8 +35,8 @@ namespace HumanGhost.Gameplay.Adapters
         private static long _carriedAtMs;
         private readonly Dictionary<string, List<AudioClip>> _lookup = new Dictionary<string, List<AudioClip>>();
         private readonly System.Random _effectRandom = new System.Random();
-        private string _currentMusic;
-        private int _tableMusicId;
+        // 요청된 배경음악 Sound ID(0 = 없음)입니다. 표 연결 전 요청도 기억했다가 연결 시 시작합니다.
+        private int _musicId;
         private IReadOnlyDataCatalog _catalog;
         private readonly Dictionary<string, List<int>> _cueIds = new Dictionary<string, List<int>>();
 
@@ -86,11 +54,7 @@ namespace HumanGhost.Gameplay.Adapters
                     : _fallback.LoadAsync(address, cancellation);
             }
         }
-        private bool _usingA = true;
-        private int _fadeInMilliseconds = _crossfadeMilliseconds;
-        // [정수화 미적용 이유] AudioSource.volume에 넣는 음량 배율입니다. 설정은 정수 퍼센트로 저장하고 출력 직전에만 0~1로 바꿉니다.
-        private float _musicVolume = 0.8f;
-        private float _pauseScale = 1f;
+        private bool _paused;
         private GameSettings _settings = new GameSettings();
         private TableSoundPlayer _tablePlayer;
         private readonly HashSet<object> _cutsceneOwners = new HashSet<object>();
@@ -99,7 +63,7 @@ namespace HumanGhost.Gameplay.Adapters
             if (owner == null) throw new ArgumentNullException(nameof(owner));
             if (muted) _cutsceneOwners.Add(owner); else _cutsceneOwners.Remove(owner);
             bool blocked = _cutsceneOwners.Count > 0;
-            _musicA.mute = _musicB.mute = _effects.mute = blocked;
+            _effects.mute = blocked;
             if (_tablePlayer != null) _tablePlayer.SetMuted(blocked);
         }
 
@@ -113,22 +77,16 @@ namespace HumanGhost.Gameplay.Adapters
             }
         }
 
+        // 다시 켜지면 표를 재연결해 요청된 배경음악·환경음을 다시 시작합니다.
         private void OnEnable()
         {
-            if (_catalog == null) return;
-            string music = _currentMusic;
-            _currentMusic = null; _tableMusicId = 0;
-            StopSourceMusic();
-            ConnectTable(_catalog);
-            if (!string.IsNullOrEmpty(music)) PlayMusic(music, _fadeInMilliseconds);
+            if (_catalog != null) ConnectTable(_catalog);
         }
 
         public void Apply(GameSettings settings)
         {
             _settings = settings.Clone();
-            _musicVolume = settings.MusicPercent / 100f;
             _effects.volume = settings.EffectsPercent / 100f;
-            UpdateVolumes();
             if (_tablePlayer != null) _tablePlayer.Apply(_settings);
         }
 
@@ -157,19 +115,19 @@ namespace HumanGhost.Gameplay.Adapters
             // 같은 음원 주소를 쓰는 다른 Sound 행(맵별 환경음 행 등)도 프리팹 클립으로 함께 준비합니다.
             foreach (Sound sound in sounds.All)
                 if (clips.ContainsKey(sound.Address) && !ids.Contains(sound.ID)) ids.Add(sound.ID);
-            string music = _tableMusicId == 0 ? null : _currentMusic;
-            if (music != null) _currentMusic = null;
-            _tableMusicId = 0; _catalog = data;
+            _catalog = data;
             _tablePlayer.Connect(data, new PrefabAudioSource(clips));
             // 이 목록은 이미 프리팹에 들어 있는 클립뿐이라 준비가 즉시 끝납니다. 비동기 대기는 하지 않습니다.
             Task preparation = _tablePlayer.PrepareAsync(ids);
             if (!preparation.IsCompleted) throw new InvalidOperationException("프리팹 소리 준비가 즉시 완료되지 않았습니다.");
             preparation.GetAwaiter().GetResult();
             _tablePlayer.Apply(_settings);
-            _tablePlayer.SetPaused(_pauseScale < 1f);
+            _tablePlayer.SetPaused(_paused);
             _tablePlayer.SetMuted(_cutsceneOwners.Count > 0);
-            if (music != null) PlayMusic(music);
-            // 재연결은 재생 채널을 비우므로 요청된 환경음을 다시 시작합니다.
+            // 재연결은 재생 채널을 비우므로 요청된 배경음악·환경음을 다시 시작합니다.
+            int music = _musicId;
+            _musicId = 0;
+            PlayMusic(music == 0 ? (int?)null : music);
             _ambienceVoice = 0;
             StartAmbience();
         }
@@ -188,42 +146,26 @@ namespace HumanGhost.Gameplay.Adapters
         // 일시정지 중 배경음 50%(O04).
         public void SetPaused(bool paused)
         {
-            _pauseScale = paused ? 0.5f : 1f;
-            UpdateVolumes();
+            _paused = paused;
             if (_tablePlayer != null) _tablePlayer.SetPaused(paused);
         }
 
-        public void PlayMusic(string key) => PlayMusic(key, _crossfadeMilliseconds);
-
-        public void PlayMusic(string key, int fadeInMilliseconds)
+        // 배경음악 Sound ID(Category 6 BGM)를 재생합니다. 빈 값은 정지, 같은 ID는 끊지 않습니다.
+        // 곡이 바뀌면 새 곡은 자기 FadeInMs로 커지고 이전 곡은 자기 FadeOutMs로 줄어듭니다(TableSoundPlayer 분류별 한 곡).
+        public void PlayMusic(int? soundId)
         {
-            if (fadeInMilliseconds <= 0) throw new ArgumentOutOfRangeException(nameof(fadeInMilliseconds));
-            if (string.IsNullOrEmpty(key) || key == _currentMusic) return;
-            if (_cueIds.TryGetValue(key, out List<int> ids))
-            {
-                _tablePlayer.Play(ids[0]);
-                if (_tableMusicId != 0) _tablePlayer.Stop(_tableMusicId);
-                StopSourceMusic();
-                _tableMusicId = ids[0]; _currentMusic = key;
-                _fadeInMilliseconds = fadeInMilliseconds;
-                return;
-            }
-            if (!_lookup.TryGetValue(key, out List<AudioClip> clips)) return;
-            if (_tableMusicId != 0) { _tablePlayer.Stop(_tableMusicId); _tableMusicId = 0; }
-            AudioClip clip = clips[0];
-            if (_currentMusic != null && !CurrentFade.IsFadingOut)
-                CurrentFade.Begin(0f, _crossfadeMilliseconds);
-            _currentMusic = key;
-            _fadeInMilliseconds = fadeInMilliseconds;
-            _usingA = !_usingA;
-            AudioSource next = _usingA ? _musicA : _musicB;
-            CurrentFade = default;
-            CurrentFade.Begin(1f, fadeInMilliseconds);
-            next.clip = clip;
-            next.loop = true;
-            UpdateVolumes();
-            next.Play();
+            int id = soundId ?? 0;
+            if (id == _musicId) return;
+            int previous = _musicId;
+            _musicId = id;
+            // 표 연결 전 요청은 기억해 두고 ConnectTable에서 시작합니다.
+            if (_tablePlayer == null || _catalog == null) return;
+            if (id != 0 && _tablePlayer.IsPrepared(id)) { _tablePlayer.Play(id); return; }
+            if (previous != 0) _tablePlayer.Stop(previous);
+            if (id != 0) Debug.LogError($"배경음악 Sound {id}의 클립이 GameAudio 소리 목록에 없습니다.", this);
         }
+
+        public void StopMusic() => PlayMusic(null);
 
         // 배경음과 겹쳐 도는 환경음(Sound ID, 루프)입니다. 빈 값은 정지, 같은 ID·같은 음원 주소는 끊지 않고 이어서 재생합니다.
         public void PlayAmbience(int? soundId)
@@ -262,33 +204,6 @@ namespace HumanGhost.Gameplay.Adapters
         // Unity 경계: 실제 시각(초)은 읽는 즉시 정수 ms로 바꿉니다.
         private static long NowMilliseconds() => checked((long)Math.Floor(Time.unscaledTimeAsDouble * 1000.0));
 
-        // 재생 시작(PlayMusic)과 같은 기본 교차 시간으로 음악을 끕니다. 데이터의 빈 배경음 칸(음악 없음)에 씁니다.
-        public void FadeOutMusic() => FadeOutMusic(_crossfadeMilliseconds);
-
-        public void FadeOutMusic(int milliseconds)
-        {
-            if (milliseconds <= 0) throw new ArgumentOutOfRangeException(nameof(milliseconds));
-            if (_currentMusic == null) return;
-            if (_tableMusicId != 0) { StopMusic(); return; }
-            _currentMusic = null;
-            CurrentFade.Begin(0f, milliseconds);
-        }
-
-        public void StopMusic()
-        {
-            if (_tableMusicId != 0 && _tablePlayer != null) _tablePlayer.Stop(_tableMusicId);
-            _tableMusicId = 0; _currentMusic = null;
-            StopSourceMusic();
-        }
-
-        private void StopSourceMusic()
-        {
-            _fadeA = _fadeB = default;
-            _fadeClock = default;
-            if (_musicA != null) _musicA.Stop();
-            if (_musicB != null) _musicB.Stop();
-        }
-
         // 같은 프레임 근처에 여러 몹이 함께 맞으면 같은 피격음이 겹쳐 크게 들립니다.
         // 같은 소리 묶음(몹 피격음은 종류와 무관하게 한 묶음, 플레이어 소리는 별도)은 짧은 간격 안에 한 번만 재생합니다.
         private const long _effectMergeMilliseconds = 60;
@@ -318,18 +233,6 @@ namespace HumanGhost.Gameplay.Adapters
         private void Update()
         {
             if (_ambienceVoice != 0 && _tablePlayer != null) CarryAmbience();
-            if (!_fadeA.IsRunning && !_fadeB.IsRunning) return;
-            int milliseconds = _fadeClock.AdvanceFrame(Time.unscaledDeltaTime);
-            _fadeA.Step(_musicA, milliseconds);
-            _fadeB.Step(_musicB, milliseconds);
-            UpdateVolumes();
-        }
-
-        private void UpdateVolumes()
-        {
-            float volume = _musicVolume * _pauseScale;
-            _musicA.volume = volume * _fadeA.Gain;
-            _musicB.volume = volume * _fadeB.Gain;
         }
     }
 }
