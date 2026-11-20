@@ -4103,31 +4103,23 @@ MonoBehaviour:
   m_GameObject: {fileID: 100001}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 85313397802449bbb769e42391a14cf9, type: 3}
+  m_Script: {fileID: 11500000, guid: 8741356ba4f233241821a78d893592b1, type: 3}
   m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Preview.MapParallaxLayers
   _layers:
   - _target: {fileID: 1740349354150454599}
     _layerName: SKY
-    _rateMultiplier: 10000
   - _target: {fileID: 1087111841658019353}
     _layerName: FAR
-    _rateMultiplier: 10000
   - _target: {fileID: 2387048374830322559}
-    _layerName: MID
-    _rateMultiplier: 7000
+    _layerName: MID_FAR
   - _target: {fileID: 975166998107559634}
-    _layerName: FAR
-    _rateMultiplier: 15000
+    _layerName: FAR_NEAR
   - _target: {fileID: 4363111662289048607}
-    _layerName: MID
-    _rateMultiplier: 11000
+    _layerName: MID_NEAR
   - _target: {fileID: 6044325149473205751}
-    _layerName: MID
-    _rateMultiplier: 16000
+    _layerName: NEAR
   - _target: {fileID: 919800000000000502}
-    _layerName: MID
-    _rateMultiplier: 16000
+    _layerName: NEAR
   - _target: {fileID: 7016200451169754101}
     _layerName: PLAY
-    _rateMultiplier: 10000

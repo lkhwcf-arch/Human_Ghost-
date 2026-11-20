@@ -66,13 +66,13 @@ namespace HumanGhost.Gameplay.Preview
             if (layers != null)
             {
                 foreach (MapParallaxLayers.Layer layer in layers.Layers)
-                    Add(data, stageId, layer.Target, layer.LayerName, layer.RateMultiplier);
+                    Add(data, stageId, layer.Target, layer.LayerName);
             }
             else
             {
                 foreach (DefaultLayer layer in _defaultLayers)
                     foreach (Transform target in FindTargets(map, layer.Path))
-                        Add(data, stageId, target, layer.LayerName, _rateDenominator);
+                        Add(data, stageId, target, layer.LayerName);
             }
             // 기준 카메라 위치: 맵이 고정 기준점(맵 기준 tile_x100)을 정했으면 그 점, 아니면 연결 순간의 카메라입니다.
             Vector3 camera = layers != null && layers.UseFixedCameraOrigin
@@ -94,8 +94,8 @@ namespace HumanGhost.Gameplay.Preview
 
         private void OnDisable() => Disconnect();
 
-        // 비율 = StageLayer 비율 × 맵 배율 / 10000(둘 다 만분율). 행이 없으면 10000(월드와 같이 움직임)입니다.
-        private void Add(IReadOnlyDataCatalog data, int stageId, Transform target, string layerName, int rateMultiplier)
+        // 비율 = StageLayer 비율(만분율). 맵별 차이는 StageLayer 행(LayerName)으로 둡니다. 행이 없으면 10000(월드와 같이 움직임)입니다.
+        private void Add(IReadOnlyDataCatalog data, int stageId, Transform target, string layerName)
         {
             if (target == null) return;
             int parallaxX = _rateDenominator, parallaxY = _rateDenominator;
@@ -105,8 +105,8 @@ namespace HumanGhost.Gameplay.Preview
             _targets.Add(new Target
             {
                 Transform = target,
-                RateX = Scale(parallaxX, rateMultiplier),
-                RateY = Scale(parallaxY, rateMultiplier),
+                RateX = parallaxX,
+                RateY = parallaxY,
                 BaseX = ToInteger(position.x),
                 BaseY = ToInteger(position.y),
                 BaseZ = position.z,
@@ -147,7 +147,6 @@ namespace HumanGhost.Gameplay.Preview
                 if (child.name.StartsWith(prefix, StringComparison.Ordinal)) yield return child;
         }
 
-        private static int Scale(int rate, int multiplier) => checked((int)((long)rate * multiplier / _rateDenominator));
         private long ToInteger(float world) => SpatialRuntime.ToInteger(world, _worldUnitsPerTile);
         private float ToWorld(long units) => SpatialRuntime.ToWorld(units, _worldUnitsPerTile);
     }

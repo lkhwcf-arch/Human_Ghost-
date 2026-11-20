@@ -12,13 +12,11 @@ namespace HumanGhost.Gameplay.Preview
         public sealed class Layer
         {
             [SerializeField, InspectorName("대상")] private Transform _target = null;
+            // 대상끼리 이동 비율을 다르게 하려면 StageLayer에 행을 추가하고 그 LayerName을 지정합니다(프리팹에 비율 수치를 두지 않음).
             [SerializeField, InspectorName("StageLayer 이름")] private string _layerName = "";
-            // 같은 StageLayer 이름에 묶인 대상끼리 차이를 둘 때 쓰는 배율입니다(만분율, 10000 = 표 값 그대로).
-            [SerializeField, InspectorName("이동 비율 배율 (만분율)"), Min(0)] private int _rateMultiplier = 10000;
 
             public Transform Target => _target;
             public string LayerName => _layerName;
-            public int RateMultiplier => _rateMultiplier;
         }
 
         [SerializeField, InspectorName("레이어")] private Layer[] _layers = Array.Empty<Layer>();

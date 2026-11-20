@@ -10882,52 +10882,37 @@ MonoBehaviour:
   m_GameObject: {fileID: 100001}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 85313397802449bbb769e42391a14cf9, type: 3}
+  m_Script: {fileID: 11500000, guid: 8741356ba4f233241821a78d893592b1, type: 3}
   m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Preview.MapParallaxLayers
   _layers:
   - _target: {fileID: 1058453994330403795}
     _layerName: SKY
-    _rateMultiplier: 10000
   - _target: {fileID: 7961375320522914730}
     _layerName: FAR
-    _rateMultiplier: 10000
   - _target: {fileID: 7467285802320533440}
-    _layerName: MID
-    _rateMultiplier: 7000
+    _layerName: MID_FAR
   - _target: {fileID: 6404510274341626973}
-    _layerName: FAR
-    _rateMultiplier: 15000
+    _layerName: FAR_NEAR
   - _target: {fileID: 8506467142136223698}
-    _layerName: MID
-    _rateMultiplier: 11000
+    _layerName: MID_NEAR
   - _target: {fileID: 9082893218785629463}
-    _layerName: MID
-    _rateMultiplier: 16000
+    _layerName: NEAR
   - _target: {fileID: 919800000000000102}
-    _layerName: MID
-    _rateMultiplier: 16000
+    _layerName: NEAR
   - _target: {fileID: 7016200451169754101}
     _layerName: PLAY
-    _rateMultiplier: 10000
   - _target: {fileID: 7016200451169743001}
-    _layerName: PLAY
-    _rateMultiplier: 12000
+    _layerName: PLAY_NEAR
   - _target: {fileID: 7016200451169743011}
-    _layerName: PLAY
-    _rateMultiplier: 12000
+    _layerName: PLAY_NEAR
   - _target: {fileID: 7016200451169743021}
-    _layerName: PLAY
-    _rateMultiplier: 12000
+    _layerName: PLAY_NEAR
   - _target: {fileID: 7016200451169743031}
-    _layerName: PLAY
-    _rateMultiplier: 12000
+    _layerName: PLAY_NEAR
   - _target: {fileID: 7016200451169743041}
-    _layerName: PLAY
-    _rateMultiplier: 12000
+    _layerName: PLAY_NEAR
   - _target: {fileID: 7016200451169743051}
-    _layerName: PLAY
-    _rateMultiplier: 12000
+    _layerName: PLAY_NEAR
   - _target: {fileID: 7016200451169743061}
-    _layerName: PLAY
-    _rateMultiplier: 12000
+    _layerName: PLAY_NEAR
