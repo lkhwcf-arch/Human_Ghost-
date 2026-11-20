@@ -23,7 +23,7 @@ flowchart LR
 
 `Assets/2.Model/Prefabs/MOP/BossGameplay.prefab`의 `PreviewBossSprite._clips`에서 Attack2(10005)의 실제 참조를 읽었습니다. 순서는 `Assets/4.Sprite/Swaemoon/attack2.png`의 00~12 다음 `attack5.png`의 00~12, 총 26장입니다. 두 시트의 첫 칸도 정상 원화이며 투명한 빈 프레임이 아닙니다.
 
-`BossPatterns.asset`의 첫 타격은 준비 500 / 활성 100 / 회복 0ms, 다음 타격은 준비 250 / 활성 100 / 회복 600ms입니다. 총 1550ms, 활성 구간은 500~600ms 및 850~950ms입니다. `PreviewBossSprite.GetFrame`은 공격 전체 시간에 모든 원화를 균등 배치합니다. 각 원화 길이는 약 59.615ms, 두 번째 시트 시작은 775ms입니다.
+작성 당시 `BossPatterns.asset`, 현재 `BossSkillHit` 4202·4203(2026-11-19 같은 값으로 이전)의 첫 타격은 준비 500 / 활성 100 / 회복 0ms, 다음 타격은 준비 250 / 활성 100 / 회복 600ms입니다. 총 1550ms, 활성 구간은 500~600ms 및 850~950ms입니다. `PreviewBossSprite.GetFrame`은 공격 전체 시간에 모든 원화를 균등 배치합니다. 각 원화 길이는 약 59.615ms, 두 번째 시트 시작은 775ms입니다.
 
 이번 클립은 현재 구현의 원화 순서와 재생 시간을 그대로 기준으로 삼았습니다. 오른팔을 들어 준비하고 몸 앞으로 횡으로 휘두르고 복귀하는 확인 가능한 키 포즈를 기존 2페이즈 체형에 맞춰 근사 배치했습니다. 가려진 준비 자세를 새로운 팀 디자인으로 확정하지 않았습니다.
 

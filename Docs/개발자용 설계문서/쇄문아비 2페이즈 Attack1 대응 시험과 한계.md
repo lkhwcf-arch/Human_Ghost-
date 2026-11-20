@@ -27,7 +27,7 @@ flowchart LR
 ## 기준 자료
 
 - `Assets/4.Sprite/Swaemoon/attack1.png`의 `attack1_00`~`attack1_12`: 실제 BossGameplay 프리팹의 Attack1 원화 13장입니다. 00번도 정상 그림입니다.
-- `Assets/2.Model/Prefabs/Config/BossPatterns.asset`의 Attack1(10004): 준비 700ms, 타격 120ms, 회복 600ms, 총 1420ms. 2페이즈에서도 이 타이밍을 사용합니다.
+- 작성 당시 `BossPatterns.asset`, 현재 `BossSkill` 4101·`BossSkillHit` 4201(2026-11-19 같은 값으로 이전)의 Attack1(10004): 준비 700ms, 타격 120ms, 회복 600ms, 총 1420ms. 2페이즈에서도 이 타이밍을 사용합니다.
 - `PreviewBossSprite.GetFrame`은 공격 전체 시간에 원화를 균등 배치합니다. 각 장의 구간은 약 109.23ms입니다. 700~820ms의 타격 구간은 06~07번에 걸칩니다. GIF의 13×130ms=1690ms를 게임 기준으로 사용하지 않았습니다.
 - C09 쇄문아비 R2의 Attack1은 문짝 내려찍기입니다. [확인한 팀 기획서 사본](https://docs.google.com/document/d/15j7ZZTBYxbZs1k9qZVZwjvxkO1gUrRxL/edit)을 참고했습니다. 기획서와 기존 공격부를 새롭게 해석하거나 전투 수치를 바꾸지 않았습니다.
 
