@@ -642,6 +642,160 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: HeadOverlap
+      rect:
+        serializedVersion: 2
+        x: 419
+        y: 7
+        width: 18
+        height: 18
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 267c761b891bf014da023f26a9f7bd44
+      internalID: -1811549327
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NearShoulderOverlap
+      rect:
+        serializedVersion: 2
+        x: 442
+        y: 7
+        width: 18
+        height: 18
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 623afea241f037a45a1b4cf7a2aecf32
+      internalID: 1412030849
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NearElbowOverlap
+      rect:
+        serializedVersion: 2
+        x: 465
+        y: 7
+        width: 18
+        height: 18
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 04724b4ceab9bef4fa56792f8e0076f7
+      internalID: -205010675
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NearWristOverlap
+      rect:
+        serializedVersion: 2
+        x: 488
+        y: 7
+        width: 18
+        height: 18
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cab1e3100448ddb4f845a6e4c3342ab4
+      internalID: 2132493787
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: FrontKneeOverlap
+      rect:
+        serializedVersion: 2
+        x: 419
+        y: 30
+        width: 18
+        height: 18
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: abca7ea7a8fd5f547b45e9c15c9e05c7
+      internalID: 1107916326
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: RearKneeOverlap
+      rect:
+        serializedVersion: 2
+        x: 442
+        y: 30
+        width: 18
+        height: 18
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6ad01733660f7bd4c937dda0817836c0
+      internalID: 1071842428
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: FrontAnkleOverlap
+      rect:
+        serializedVersion: 2
+        x: 465
+        y: 30
+        width: 18
+        height: 18
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 125200b5ee47fd146bc4a6aa76fa89b3
+      internalID: 1603711354
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     customData: 
     physicsShape: []
@@ -656,6 +810,13 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
+      FrontAnkleOverlap: 1603711354
+      FrontKneeOverlap: 1107916326
+      HeadOverlap: -1811549327
+      NearElbowOverlap: -205010675
+      NearShoulderOverlap: 1412030849
+      NearWristOverlap: 2132493787
+      RearKneeOverlap: 1071842428
       far_forearm: 944030605
       far_hand: -1981678529
       far_upperarm_sleeve: -463370376
