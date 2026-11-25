@@ -1,0 +1,681 @@
+fileFormatVersion: 2
+guid: a597d52a55b26184ab85eb92a4829e2b
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 589423789839891532
+    second: JigegwiRigParts_0
+  - first:
+      213: 7374825016956045266
+    second: JigegwiRigParts_1
+  - first:
+      213: -5145572696129530132
+    second: JigegwiRigParts_2
+  - first:
+      213: -429028138929490601
+    second: JigegwiRigParts_3
+  - first:
+      213: -4496871019283343843
+    second: JigegwiRigParts_4
+  - first:
+      213: -7707328983315365554
+    second: JigegwiRigParts_5
+  - first:
+      213: -8315684181926406887
+    second: JigegwiRigParts_6
+  - first:
+      213: -6627523689362863573
+    second: JigegwiRigParts_7
+  - first:
+      213: -524615410273908886
+    second: JigegwiRigParts_8
+  - first:
+      213: 3088701052883553090
+    second: JigegwiRigParts_9
+  - first:
+      213: 6031661107434268274
+    second: JigegwiRigParts_10
+  - first:
+      213: -5838164553601871373
+    second: JigegwiRigParts_11
+  - first:
+      213: 5051663223228069334
+    second: JigegwiRigParts_12
+  - first:
+      213: 4452679368667842973
+    second: JigegwiRigParts_13
+  - first:
+      213: -1928237538672982306
+    second: JigegwiRigParts_14
+  - first:
+      213: -9104601789715525199
+    second: JigegwiRigParts_15
+  - first:
+      213: 653916230912732329
+    second: JigegwiRigParts_16
+  - first:
+      213: 8337070085326101867
+    second: JigegwiRigParts_17
+  - first:
+      213: -872391150061115295
+    second: JigegwiRigParts_18
+  - first:
+      213: 909383475091299290
+    second: JigegwiRigParts_19
+  - first:
+      213: 919119530723872761
+    second: JigegwiRigParts_20
+  - first:
+      213: -3626214038804525144
+    second: JigegwiRigParts_21
+  - first:
+      213: 7634345845295824008
+    second: JigegwiRigParts_22
+  - first:
+      213: 6702644428168289514
+    second: JigegwiRigParts_23
+  - first:
+      213: -4966942250891551894
+    second: JigegwiRigParts_24
+  - first:
+      213: -8006942227668268776
+    second: JigegwiRigParts_25
+  - first:
+      213: -4093071934867622639
+    second: JigegwiRigParts_26
+  - first:
+      213: -9143773955744224336
+    second: JigegwiRigParts_27
+  - first:
+      213: -2071073448462374707
+    second: JigegwiRigParts_28
+  - first:
+      213: -4139663022706038553
+    second: JigegwiRigParts_29
+  - first:
+      213: -1639970252164081336
+    second: JigegwiRigParts_30
+  - first:
+      213: 8028100594580350026
+    second: JigegwiRigParts_31
+  - first:
+      213: -3454504039032043
+    second: JigegwiRigParts_32
+  - first:
+      213: 4217129176814443033
+    second: JigegwiRigParts_33
+  - first:
+      213: 8057877716034993955
+    second: JigegwiRigParts_34
+  - first:
+      213: -8708085415436238804
+    second: JigegwiRigParts_35
+  - first:
+      213: -6442137889697120212
+    second: JigegwiRigParts_36
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: torso
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 241
+        height: 188
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e8f501c165cb1e346b9fd55f0193358b
+      internalID: 2056943182
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rear_thigh
+      rect:
+        serializedVersion: 2
+        x: 141
+        y: 192
+        width: 36
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b9a9bd943e15f8d44ab15689690d4489
+      internalID: 568859550
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rear_shin
+      rect:
+        serializedVersion: 2
+        x: 97
+        y: 192
+        width: 40
+        height: 36
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ecdac321ce31c504cb22feb688955104
+      internalID: -978283490
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rear_foot
+      rect:
+        serializedVersion: 2
+        x: 181
+        y: 234
+        width: 26
+        height: 17
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c8914d071285de542a459f2ee2b737dc
+      internalID: -904116143
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: far_upperarm_sleeve
+      rect:
+        serializedVersion: 2
+        x: 378
+        y: 0
+        width: 32
+        height: 66
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2ee4c7b36c705ee49894cdc09b97686f
+      internalID: -463370376
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: far_forearm
+      rect:
+        serializedVersion: 2
+        x: 269
+        y: 240
+        width: 19
+        height: 11
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a7728fe9c211d85429ca81b19818b4c4
+      internalID: 944030605
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: far_hand
+      rect:
+        serializedVersion: 2
+        x: 269
+        y: 222
+        width: 18
+        height: 14
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 986cda27ab5ea1d448de9df64627c9df
+      internalID: -1981678529
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: pack_frame
+      rect:
+        serializedVersion: 2
+        x: 245
+        y: 0
+        width: 129
+        height: 144
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f688d05eb5630994daffd44517e41394
+      internalID: 859138496
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: pack_cloth
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 192
+        width: 61
+        height: 60
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 11a96af1194a3ef4ea7f03b8e032f338
+      internalID: 1646972228
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: front_thigh
+      rect:
+        serializedVersion: 2
+        x: 141
+        y: 228
+        width: 25
+        height: 26
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 63d80cf769385234199dce39240bb7f3
+      internalID: -971569913
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: front_shin
+      rect:
+        serializedVersion: 2
+        x: 215
+        y: 192
+        width: 22
+        height: 25
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: db24aa788a2fc3e479c6fc6618a847f8
+      internalID: -289317021
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: front_foot
+      rect:
+        serializedVersion: 2
+        x: 97
+        y: 232
+        width: 40
+        height: 18
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8857c3f094a9cda429902d7361499c42
+      internalID: -760186715
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: waist_cloth
+      rect:
+        serializedVersion: 2
+        x: 245
+        y: 148
+        width: 54
+        height: 70
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d23db4f4079b8494fafc86e8b50a4a14
+      internalID: -790093159
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: head
+      rect:
+        serializedVersion: 2
+        x: 303
+        y: 148
+        width: 39
+        height: 77
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 77c76aac6bd491646aa41dde65deabc2
+      internalID: -1634989083
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: near_sleeve
+      rect:
+        serializedVersion: 2
+        x: 65
+        y: 192
+        width: 28
+        height: 54
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c3176c56bc79dc8418576640a51c4d33
+      internalID: 1171386632
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: near_upperarm
+      rect:
+        serializedVersion: 2
+        x: 245
+        y: 222
+        width: 20
+        height: 24
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c43ca5fed38413947a67eabcf9e6c53b
+      internalID: -1957790115
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: near_forearm
+      rect:
+        serializedVersion: 2
+        x: 215
+        y: 221
+        width: 20
+        height: 26
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7bfde88481bcbf040b0e39c9705da741
+      internalID: 194554972
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: near_hand
+      rect:
+        serializedVersion: 2
+        x: 181
+        y: 192
+        width: 30
+        height: 38
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8fa051d7333c67248b8b6d7521802745
+      internalID: 454166585
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 3e8b4b113fd587746ab2cbaaabf09fed
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      far_forearm: 944030605
+      far_hand: -1981678529
+      far_upperarm_sleeve: -463370376
+      front_foot: -760186715
+      front_shin: -289317021
+      front_thigh: -971569913
+      head: -1634989083
+      near_forearm: 194554972
+      near_hand: 454166585
+      near_sleeve: 1171386632
+      near_upperarm: -1957790115
+      pack_cloth: 1646972228
+      pack_frame: 859138496
+      rear_foot: -904116143
+      rear_shin: -978283490
+      rear_thigh: 568859550
+      torso: 2056943182
+      waist_cloth: -790093159
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: '[[130.5,123.0],[165.0,88.0],[189.0,63.0],[203.0,40.5],[136.0,120.0],[126.5,119.5],[110.0,121.0],[153.5,156.0],[174.5,149.0],[108.5,87.0],[113.0,66.5],[107.0,48.0],[134.0,79.0],[72.5,134.5],[90.0,122.0],[89.0,94.0],[83.0,78.0],[77.0,50.0]]'
+  assetBundleName: 
+  assetBundleVariant: 
