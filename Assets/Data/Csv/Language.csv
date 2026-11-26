@@ -246,3 +246,14 @@ ID,KO,EN
 30391,스페이스,Space
 30392,너라면 그 문을 닫을 수 있겠느냐.,Could you have shut that gate?
 30393,너라면 그 문을…,Could you have shut…
+30394,저장 요청 처리 중 오류가 발생했습니다. 콘솔을 확인해 주세요.,An error occurred while saving. Please check the console.
+30395,타이틀 준비에 실패했습니다. 콘솔을 확인해 주세요.,Failed to prepare the title screen. Please check the console.
+30396,저장 조회 결과를 기다리고 있습니다.,Checking saved data...
+30397,기능 실행에 실패했습니다. 콘솔을 확인해 주세요.,The selected option failed to run. Please check the console.
+30398,종류,Type
+30399,횟수,Count
+30400,메시지,Message
+30401,스택,Stack
+30402,씬,Scene
+30403,상태,State
+30404,시간,Time

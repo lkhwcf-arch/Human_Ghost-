@@ -5,6 +5,9 @@ ID,Key,TextID
 51004,Title.Exit,30031
 51005,Title.Subtitle,30049
 51006,Title.SaveList.Title,30207
+51007,Title.Status.InitFailed,30395
+51008,Title.Status.WaitingSave,30396
+51009,Title.Status.CommandFailed,30397
 51101,Pause.Title,30032
 51102,Pause.Resume,30033
 51103,Pause.Controls,30034
@@ -93,6 +96,7 @@ ID,Key,TextID
 51802,SaveSlot.Empty,30208
 51803,SaveSlot.Saved,30024
 51804,SaveSlot.Unavailable,30261
+51805,SaveSlot.RequestFailed,30394
 51901,Interact.Pray,30063
 51902,Interact.Talk,30064
 51903,Interact.Examine,30065
@@ -123,6 +127,13 @@ ID,Key,TextID
 52115,Error.Feature.MapTransition,30345
 52116,Error.Feature.Combat,30346
 52117,Error.Feature.Controls,30347
+52118,Error.Detail.Kind,30398
+52119,Error.Detail.Count,30399
+52120,Error.Detail.Message,30400
+52121,Error.Detail.Stack,30401
+52122,Error.Detail.Scene,30402
+52123,Error.Detail.State,30403
+52124,Error.Detail.Time,30404
 52202,StartGuide.Jump,30369
 52203,StartGuide.Attack,30370
 52204,StartGuide.Herb,30371
