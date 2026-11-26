@@ -129,6 +129,9 @@ internal static class DeploymentConnectionChecks
             Require(hits.Length > 0, "BossSkill[" + skill.ID + "]의 BossSkillHit가 없습니다.");
             if (!Enum.TryParse(skill.Kind, out BossPatternKind kind))
                 Require(false, "BossSkill[" + skill.ID + "].Kind가 보스 패턴 종류가 아닙니다.");
+            bool usesChainRange = skill.BindPresses > 0 && hits.All(hit => hit.Range == 0 && hit.Height == 0);
+            Require(usesChainRange ? skill.ChainRange > 0 : hits.All(hit => hit.Range > 0 && hit.Height > 0),
+                "BossSkill[" + skill.ID + "]의 데이터 판정 범위가 없습니다.");
             if (kind != BossPatternKind.DesperationLeap) continue;
             foreach (Boss definition in data.GetTable<Boss>().All.Where(row => row.ID == skill.BossID))
                 foreach (BossState phase in definition.States.Where(row => row.Phase >= skill.MinPhase && row.Phase <= skill.MaxPhase))

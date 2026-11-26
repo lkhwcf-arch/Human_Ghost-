@@ -9,23 +9,25 @@ namespace HumanGhost.Gameplay.Adapters
     public class FieldObjectArea
     {
         private readonly bool _acceptsMonsters;
+        // [정수화 미적용 이유] 표시와 분리한 Unity 접촉 영역입니다. 월드 단위로 변환한 Bounds로만 노출합니다.
+        private readonly Bounds _contact;
         private readonly IReadOnlyList<EffectDefinition> _effects;
         public int ID { get; }
         // [정수화 미적용 이유] 필드 오브젝트 접촉 영역(Unity Bounds)입니다. 배치 데이터(tile_x100)를 월드로 바꿔 만들며, 대상 Collider bounds와 같은 좌표계로 겹침을 봅니다. 필드 판정 정수화 시 정수 범위로 바꿉니다.
         public Bounds Bounds { get; }
         public FieldKind Kind { get; }
-        public FieldObjectArea(int id, Bounds bounds, FieldObject definition)
+        public FieldObjectArea(int id, Bounds bounds, Bounds contact, FieldObject definition)
         {
-            ID = id; Bounds = bounds; _effects = FieldEffectData.Read(definition);
+            ID = id; Bounds = bounds; _contact = contact; _effects = FieldEffectData.Read(definition);
             Kind = FieldEffectData.ReadKind(definition.Kind);
             _acceptsMonsters = definition.MonsterHit || Kind == FieldKind.Ice;
         }
         public void Observe(FieldEffectTargetBinding binding, EffectSession session)
         {
             bool accepts = !binding.IsMonster || _acceptsMonsters;
-            Bounds target = binding.Bounds;
-            bool overlaps = Bounds.min.x <= target.max.x && Bounds.max.x >= target.min.x
-                && Bounds.min.y <= target.max.y && Bounds.max.y >= target.min.y;
+            Bounds target = binding.ReadFootBounds();
+            bool overlaps = _contact.min.x <= target.max.x && _contact.max.x >= target.min.x
+                && _contact.min.y <= target.max.y && _contact.max.y >= target.min.y;
             if (accepts && binding.Target.IsAvailable && overlaps)
                 session.Enter(ID, _effects, binding.Target);
             else session.Exit(ID, binding.Target);
@@ -44,8 +46,10 @@ namespace HumanGhost.Gameplay.Adapters
         public bool NeedsTick => !_disposed && _ready && _session.NeedsTick;
         public event Action<EffectResult> Changed { add { _session.Changed += value; } remove { _session.Changed -= value; } }
         public FieldObjectController(IEnumerable<FieldObjectArea> areas) => _areas = new List<FieldObjectArea>(areas);
-        public void Bind(PlayerRuntime runtime, SpriteRenderer body) => Add(runtime, new FieldEffectTargetBinding(runtime, body, Observe));
-        public void Bind(MonsterRuntime runtime, SpriteRenderer body) => Add(runtime, new FieldEffectTargetBinding(runtime, body, Observe));
+        public void Bind(PlayerRuntime runtime, SpriteRenderer body, int footWidth, int footHeight, int footOffset) =>
+            Add(runtime, new FieldEffectTargetBinding(runtime, body, footWidth, footHeight, footOffset, Observe));
+        public void Bind(MonsterRuntime runtime, SpriteRenderer body, int footHeight) =>
+            Add(runtime, new FieldEffectTargetBinding(runtime, body, footHeight, Observe));
         private void Add(SpatialRuntime runtime, FieldEffectTargetBinding binding)
         {
             if (_disposed || _targets.ContainsKey(runtime))

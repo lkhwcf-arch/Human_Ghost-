@@ -43,6 +43,8 @@ namespace HumanGhost.Gameplay
         public int BindPresses { get; }
         public int PullSpeed { get; }
         public bool IsChain => BindPresses > 0;
+        // 자동 선택은 첫 타의 도달 거리로 판단합니다. 사슬은 별도 사슬 거리로 시작합니다.
+        public int StartRange => IsChain ? Range : Areas.Count == 0 ? 0 : Areas[0].Range;
 
         public BossPattern(StateKey key, IReadOnlyList<AttackSpec> hits, int minPhase = 0, int chargeSpeed = 0, int wallPoiseDamage = 0,
             int range = 0, int bindTime = 0, int bindPresses = 0, int pullSpeed = 0,

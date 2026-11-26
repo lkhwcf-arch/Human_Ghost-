@@ -14,6 +14,10 @@ namespace HumanGhost.Gameplay.Preview
         private MillisecondClock _fieldClock;
         // 필드 오브젝트 접촉 영역의 임시 두께(tile_x100)입니다. 데이터에 높이 컬럼이 생기면 그 값으로 바꿉니다.
         private const int _fieldContactHeightUnits = 20;
+        [SerializeField, Min(1)] private int _fieldPlayerFootWidthUnits = 100;
+        [SerializeField, Min(1)] private int _fieldFootHeightUnits = 30;
+        [SerializeField, Min(0)] private int _fieldFireSideInsetUnits = 15;
+        [SerializeField, Range(0, _fieldContactHeightUnits - 1)] private int _fieldFireTopInsetUnits = 5;
         // 빙판 그림을 바닥 판정선보다 내려 그리는 깊이(tile_x100)입니다. 지면 그림 윗면이 판정선보다 약 0.05칸 낮아 그대로 두면 떠 보입니다. 표시만 바꾸고 접촉 영역은 그대로입니다.
         private const int _fieldIceSinkUnits = 10;
 
@@ -32,13 +36,24 @@ namespace HumanGhost.Gameplay.Preview
                 float height = SpatialRuntime.ToWorld(IntegerPosition.FromData(_fieldContactHeightUnits), _worldUnitsPerTile);
                 Vector3 center = origin + new Vector3(placement.X / 100f * _worldUnitsPerTile + width / 2f,
                     placement.Y / 100f * _worldUnitsPerTile + height / 2f, 0f);
-                areas.Add(new FieldObjectArea(placement.ID, new Bounds(center, new Vector3(width, height, 1f)), definition));
+                var visual = new Bounds(center, new Vector3(width, height, 1f));
+                Bounds contact = visual;
+                FieldKind kind = FieldEffectData.ReadKind(definition.Kind);
+                if (kind == FieldKind.FireStatic || kind == FieldKind.FireCycle || kind == FieldKind.FireSpread)
+                {
+                    int sideInset = Math.Min(_fieldFireSideInsetUnits, Math.Max(0, (placement.Width - 1) / 2));
+                    Vector3 insetMax = new Vector3(SpatialRuntime.ToWorld(IntegerPosition.FromData(sideInset), _worldUnitsPerTile),
+                        SpatialRuntime.ToWorld(IntegerPosition.FromData(_fieldFireTopInsetUnits), _worldUnitsPerTile), 0f);
+                    contact.SetMinMax(visual.min + new Vector3(insetMax.x, 0f, 0f), visual.max - insetMax);
+                }
+                areas.Add(new FieldObjectArea(placement.ID, visual, contact, definition));
             }
             if (areas.Count == 0) return;
             _fields = new FieldObjectController(areas);
-            _fields.Bind(_player, _playerBody);
-            foreach (var monster in _monsters)
-                _fields.Bind(monster, monster.GetComponentInChildren<SpriteRenderer>(true));
+            int playerFootOffset = IntegerPosition.ToData(_player.ToInteger(_playerHalfSize.y));
+            _fields.Bind(_player, _playerBody, _fieldPlayerFootWidthUnits, _fieldFootHeightUnits, playerFootOffset);
+            for (int i = 0; i < _monsters.Length; i++)
+                _fields.Bind(_monsters[i], _monsterDrivers[i].Body, _fieldFootHeightUnits);
             _fieldClock = default;
             try { ShowFieldAreas(areas); }
             catch (Exception error)

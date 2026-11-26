@@ -342,7 +342,7 @@ namespace HumanGhost.Gameplay.Preview
         private void UpdateFootstep(PlayerActor actor)
         {
             AnimationClip clip = CurrentAnimation;
-            bool stepping = actor != null && actor.CurrentState == StateKey.Walk && actor.Locomotion.IsGrounded && _action == null && !actor.IsParrying && clip != null;
+            bool stepping = actor != null && actor.CurrentState == StateKey.Walk && actor.Locomotion.IsGrounded && !_onLadder && _action == null && !actor.IsParrying && clip != null;
             if (!stepping || clip != _stepClip) { _stepClip = stepping ? clip : null; _stepFrame = -1; if (!stepping) return; }
             int frame = Mathf.FloorToInt(AnimationTime * clip.frameRate);
             int previous = _stepFrame; _stepFrame = frame;

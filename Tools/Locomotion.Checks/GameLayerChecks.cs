@@ -80,7 +80,9 @@ internal static class GameLayerChecks
         var layoutMenu = new SettingsMenu(layoutSettings);
         layoutMenu.Select(SettingsRow.KeyboardLayout);
         layoutMenu.Adjust(1);
-        check(layoutMenu.Current.KeyboardLayout == KeyboardLayout.Arrows && layoutMenu.IsDirty, "옵션에서 조작 방식 전환");
+        check(layoutMenu.Current.KeyboardLayout == KeyboardLayout.Skul && layoutMenu.IsDirty, "옵션에서 기본 조작 방식으로 전환");
+        layoutMenu.Adjust(1);
+        check(layoutMenu.Current.KeyboardLayout == KeyboardLayout.Arrows, "옵션에서 조작 방식 순환");
         check(layoutMenu.Answer(false).KeyboardLayout == KeyboardLayout.Wasd, "조작 방식 취소 시 원래 값 복원");
         var defaults = new GameSettings();
         var windowSettings = defaults.Clone();
@@ -118,10 +120,10 @@ internal static class GameLayerChecks
         var keyboardSettings = defaults.Clone(); keyboardSettings.SetKeyboardLayout(KeyboardLayout.Wasd);
         var keyboardApplication = new SettingsApplication(value => applied = value, value => { }, error => reported = error, layout => activeLayout = layout);
         check(keyboardApplication.Complete(defaults, keyboardSettings) && activeLayout == KeyboardLayout.Wasd
-            && defaults.KeyboardLayout == KeyboardLayout.Arrows, "선택한 키 배치는 입력에 적용하고 설정 원본은 보존");
+            && defaults.KeyboardLayout == KeyboardLayout.Skul, "선택한 키 배치는 입력에 적용하고 설정 원본은 보존");
         var keyboardFailure = new SettingsApplication(value => applied = value, value => throw new InvalidOperationException("키 배치 저장 실패"),
             error => reported = error, layout => activeLayout = layout);
-        check(!keyboardFailure.Complete(defaults, keyboardSettings) && activeLayout == KeyboardLayout.Arrows, "키 배치 저장 실패 시 입력도 이전 방식으로 복구");
+        check(!keyboardFailure.Complete(defaults, keyboardSettings) && activeLayout == KeyboardLayout.Skul, "키 배치 저장 실패 시 입력도 이전 방식으로 복구");
         var brokenApply = new SettingsApplication(value => { if (value.Master == 4) throw new InvalidOperationException("표시 적용 실패 검사"); applied = value; }, value => saves++, error => reported = error);
         check(!brokenApply.Complete(defaults, changedSettings) && saves == 1 && applied.SameAs(defaults), "설정 적용 실패 시 저장하지 않고 원래 값 복구");
         var mutatingConsumer = new SettingsApplication(value => value.SetMaster(0), value => value.SetEffects(0), error => reported = error);

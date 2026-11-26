@@ -32,7 +32,11 @@ namespace HumanGhost.Gameplay
                 if (distance > rule.CloseRange) return -1;
                 kind = _last == BossPatternKind.Pillar ? BossPatternKind.Sweep : BossPatternKind.Pillar;
             }
-            for (int i = 0; i < _combat.PatternCount; i++) if (_combat.GetPattern(i).Kind == kind) return i;
+            for (int i = 0; i < _combat.PatternCount; i++)
+            {
+                BossPattern pattern = _combat.GetPattern(i);
+                if (pattern.Kind == kind && rule.Phase >= pattern.MinPhase && rule.Phase <= pattern.MaxPhase) return i;
+            }
             throw new InvalidOperationException("2페이즈 필수 패턴이 없습니다: " + kind);
         }
         public void Started(BossPattern pattern)

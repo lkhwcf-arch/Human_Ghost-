@@ -47,6 +47,8 @@ namespace HumanGhost.Gameplay.Preview
             (!_monster.IsDead || !_deathShown || !_fireChecked || (_fire != null && _fire.IsActive) ||
             (_sprite != null && _sprite.color != Color.gray) || (_body != null && _body.color != Color.gray));
         public SpriteRenderer Sprite => _sprite != null ? _sprite : _body;
+        internal SpriteRenderer Body => _body;
+        internal bool HasAttack => _monster.CurrentPattern != null && !_monster.IsRetreating;
         // [정수화 미적용 이유] 표시·외부 연결용 Transform 위치입니다. 이동 상태는 SpatialRuntime 정수 좌표입니다.
         public Vector3 Position => _runtime.transform.position;
         public int MonsterId => _runtime.MonsterId;
@@ -104,7 +106,8 @@ namespace HumanGhost.Gameplay.Preview
             long height = FootHeightOffset();
             _monster.Observe(_playerTargetId, IntegerPosition.ToData(Math.Abs(offset)), Math.Sign(offset),
                 IntegerPosition.ToData(Math.Abs(height)),
-                IntegerPosition.ToData(Math.Abs(own.X - _spawnX)), Math.Sign(_spawnX - own.X), true, Math.Sign(height));
+                IntegerPosition.ToData(Math.Abs(own.X - _spawnX)), Math.Sign(_spawnX - own.X), true, Math.Sign(height),
+                !_hasSpan || target.X >= _spanMin && target.X <= _spanMax);
             IsEngaged = !_monster.IsDead && _monster.HasAggro;
         }
 
@@ -122,7 +125,7 @@ namespace HumanGhost.Gameplay.Preview
 
         // targetId: 이 몬스터의 장면 내 양수 개체 ID, playerTargetId: 플레이어의 개체 ID(데이터 ID와 별개).
         public PreviewMonsterDriver(MonsterRuntime runtime, PlayerRuntime player, SpriteRenderer playerBody, SpriteRenderer attackWindow,
-            int targetId, int playerTargetId, float worldUnitsPerTile, Action<int, StateKey, int> applyHitEffects = null)
+            int targetId, int playerTargetId, float worldUnitsPerTile, Action<int, StateKey, int> applyHitEffects = null, Func<bool> canStartAttack = null)
         {
             _runtime = runtime != null ? runtime : throw new ArgumentNullException(nameof(runtime));
             _player = player != null ? player : throw new ArgumentNullException(nameof(player));
@@ -135,7 +138,7 @@ namespace HumanGhost.Gameplay.Preview
             _targetId = targetId; _playerTargetId = playerTargetId; _worldUnitsPerTile = worldUnitsPerTile;
             _applyHitEffects = applyHitEffects;
             // 매복 몬스터는 꺼진 채 연결합니다.
-            _body = runtime.GetComponentInChildren<SpriteRenderer>(true);
+            _body = runtime.transform.Find("PreviewVisuals/Body")?.GetComponent<SpriteRenderer>();
             if (_body == null) throw new InvalidOperationException("일반몹 임시 사각형이 없습니다.");
             _sprite = runtime.transform.Find("PreviewSprite")?.GetComponent<SpriteRenderer>();
             _projectileSprite = runtime.GetComponent<PreviewMonsterSprite>()?.ProjectileSprite;
@@ -150,6 +153,11 @@ namespace HumanGhost.Gameplay.Preview
             _monster.AttackWindowChanged += attackChanged;
             // 뒤로 깡총 거리는 개체의 패턴 목록(생성 후 불변)에서 한 번만 구합니다. 공간 조회는 코어가 물러서기를 고르는 순간에만 부릅니다.
             foreach (MonsterPattern pattern in _monster.Patterns) if (pattern.IsRetreat) _retreatDistance = Math.Max(_retreatDistance, pattern.RetreatDistance);
+            if (canStartAttack != null)
+            {
+                _scope.Add(() => _monster.UseAttackAvailability(null));
+                _monster.UseAttackAvailability(canStartAttack);
+            }
             if (_retreatDistance > 0)
             {
                 _scope.Add(() => _monster.UseRetreatSpace(null));

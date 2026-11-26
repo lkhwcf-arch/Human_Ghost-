@@ -8,7 +8,7 @@ namespace HumanGhost.Gameplay.Adapters
     public static class GameSettingsStore
     {
         [Serializable]
-        private sealed class Payload { public int Master = GameSettings.MaxVolume; public int Music = 8; public int Effects = 8; public bool CameraShake = true; public int KeyboardLayout; public int WindowMode; public int Language; }
+        private sealed class Payload { public int Master = GameSettings.MaxVolume; public int Music = 8; public int Effects = 8; public bool CameraShake = true; public int KeyboardLayout = (int)HumanGhost.Gameplay.KeyboardLayout.Skul; public int WindowMode; public int Language; }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void InitializeLanguage() => LanguageSettings.Reset(Load().Language);
@@ -24,7 +24,8 @@ namespace HumanGhost.Gameplay.Adapters
                 var data = new Payload();
                 JsonUtility.FromJsonOverwrite(File.ReadAllText(FilePath), data);
                 var settings = new GameSettings(data.Master, data.Music, data.Effects, data.CameraShake);
-                settings.SetKeyboardLayout(data.KeyboardLayout == 1 ? KeyboardLayout.Wasd : KeyboardLayout.Arrows);
+                if (Enum.IsDefined(typeof(KeyboardLayout), data.KeyboardLayout))
+                    settings.SetKeyboardLayout((KeyboardLayout)data.KeyboardLayout);
                 settings.SetWindowMode(data.WindowMode == 1 ? WindowMode.Windowed : WindowMode.Fullscreen);
                 settings.SetLanguage(data.Language == 1 ? LanguageCode.English : LanguageCode.Korean);
                 return settings;

@@ -135,6 +135,12 @@ namespace HumanGhost.Gameplay.Presentation
             return index < _volumeSliders.Length ? _volumeSliders[index] : null;
         }
 
+        private void Update()
+        {
+            if (CanInteract && _menu != null && !_menu.IsConfirming && _menu.Row == SettingsRow.KeyboardLayout &&
+                UnityEngine.InputSystem.Keyboard.current?.rKey.wasPressedThisFrame == true) Adjust(1);
+        }
+
         private void Select(SettingsRow row) { if (CanInteract) _menu?.Select(row); }
 
         public void Move(int direction) { if (CanInteract) _menu?.Move(direction); }
@@ -206,7 +212,8 @@ namespace HumanGhost.Gameplay.Presentation
                 _windowMode.text = Ui(51206) + "  ◀ " + Ui(value.WindowMode == WindowMode.Windowed ? 51207 : 51208) + " ▶";
                 SetSelected(_windowMode, _menu.Row == SettingsRow.WindowMode);
             }
-            _layout.text = Ui(51209) + "  " + Ui(value.KeyboardLayout == KeyboardLayout.Arrows ? 51210 : 51211);
+            string layout = value.KeyboardLayout == KeyboardLayout.Skul ? "Skul" : Ui(value.KeyboardLayout == KeyboardLayout.Arrows ? 51210 : 51211);
+            _layout.text = Ui(51209) + "  ◀ " + layout + " ▶  [R]";
             SetSelected(_layout, _menu.Row == SettingsRow.KeyboardLayout);
             RenderVolume(_master, (_masterTextId == 0 ? Ui(51202) : Text(_masterTextId)), value.Master, SettingsRow.Master);
             RenderVolume(_music, Ui(51203), value.Music, SettingsRow.Music);

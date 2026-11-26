@@ -34,13 +34,19 @@ namespace HumanGhost.Gameplay
         private readonly MonsterAwareness _awareness;
         private int _returnDirection;
         private int _height;
+        private bool _targetOnReachableFloor;
         private int[] _cooldowns;
         // 물러서기 착지점(뒤 RetreatDistance 안)에 벽·낭떠러지·발판 끝이 없는지 묻는 공간 관측(인자: 물러설 방향)입니다.
         // 어댑터가 공급하며, 물러서기 외 조건(쿨타임·층·거리)이 모두 맞을 때만 호출해 매 프레임 물리 조회를 하지 않습니다. 없으면 허용합니다.
         private Func<int, bool> _retreatSpace;
         public void UseRetreatSpace(Func<int, bool> retreatSpace) => _retreatSpace = retreatSpace;
-        // 같은 층으로 보는 발 높이 차이(tile_x100) 상한입니다. 물러서기 조건에만 씁니다.
+        // 같은 층으로 보는 발 높이 차이(tile_x100) 상한입니다.
         private const int _sameFloorHeight = 50;
+        private const int _retryMilliseconds = 250;
+        private const int _firstAttackDelay = 500;
+        private int _firstAttackRemaining = _firstAttackDelay;
+        private Func<bool> _canStartAttack;
+        public void UseAttackAvailability(Func<bool> canStart) => _canStartAttack = canStart;
 
         public Monster Definition { get; }
         public ActorStateMachine States { get; }
@@ -115,7 +121,7 @@ namespace HumanGhost.Gameplay
         public void Observe(int targetId, int distance, int direction) => Observe(targetId, distance, direction, 0, 0, 0);
 
         public void Observe(int targetId, int distance, int direction, int height, int spawnDistance, int spawnDirection,
-            bool targetEligible = true, int heightDirection = 1)
+            bool targetEligible = true, int heightDirection = 1, bool targetOnReachableFloor = true)
         {
             if (targetId <= 0) throw new ArgumentOutOfRangeException(nameof(targetId));
             if (distance < 0) throw new ArgumentOutOfRangeException(nameof(distance));
@@ -124,6 +130,7 @@ namespace HumanGhost.Gameplay
             if (heightDirection < -1 || heightDirection > 1 || height > 0 && heightDirection == 0)
                 throw new ArgumentOutOfRangeException(nameof(heightDirection));
             _targetId = targetEligible ? targetId : 0; _distance = distance; _direction = direction; _returnDirection = spawnDirection; _height = height;
+            _targetOnReachableFloor = targetOnReachableFloor;
             // 생성 뒤 첫 관측에서 한 번 플레이어 쪽을 봅니다(같은 x면 왼쪽). 정면 인식 거리가 의도대로 적용됩니다(몬스터생성방향_1117).
             if (!_initialFacingSet) { _initialFacingSet = true; Facing = direction > 0 ? 1 : -1; }
             bool wasReturning = IsReturning;
@@ -306,6 +313,7 @@ namespace HumanGhost.Gameplay
         {
             if (milliseconds < 0) throw new ArgumentOutOfRangeException(nameof(milliseconds));
             if (IsDead || IsInvulnerable || milliseconds == 0) return;
+            int frameMilliseconds = milliseconds;
             for (int i = 0; i < _cooldowns.Length; i++) _cooldowns[i] = Math.Max(0, _cooldowns[i] - milliseconds);
             if (_awareness != null)
             {
@@ -343,7 +351,7 @@ namespace HumanGhost.Gameplay
                         // 뒤로 깡총 착지 직후에는 대기 없이 보통 던지기로 이어집니다.
                         MonsterPattern next = _pattern.IsRetreat ? FollowUpThrow() : null;
                         ClearPattern();
-                        if (next != null && _targetId != 0 && HasAggro) StartPattern(next); else StartWait();
+                        if (next != null && _targetId != 0 && HasAggro && _canStartAttack?.Invoke() != false) StartPattern(next); else StartWait();
                     }
                 }
                 else if (_stunRemaining > 0)
@@ -362,6 +370,11 @@ namespace HumanGhost.Gameplay
                 }
                 else break;
             }
+            if (_awareness != null && HasAggro && _firstAttackRemaining > 0)
+            {
+                _firstAttackRemaining = Math.Max(0, _firstAttackRemaining - frameMilliseconds);
+                if (_firstAttackRemaining == 0) Decide();
+            }
         }
 
         // 배회(목표 없음 → 대기) → 발견(시야 안 → 추적) → 공격 거리 안이면 거리가 맞는 패턴 중 하나.
@@ -372,39 +385,83 @@ namespace HumanGhost.Gameplay
             if (_awareness != null && _awareness.Advance(0, false)) BeginReturn();
             if (IsReturning)
             {
+                _firstAttackRemaining = _firstAttackDelay;
                 if (_returnDirection != 0) Facing = _returnDirection;
                 if (_returnDirection == 0) States.Change(_idle); else States.Change(_walk);
                 return;
             }
-            if (_targetId == 0 || !HasAggro) { States.Change(_idle); return; }
+            if (_targetId == 0 || !HasAggro)
+            {
+                _firstAttackRemaining = _firstAttackDelay;
+                States.Change(_idle);
+                return;
+            }
             if (_direction != 0) Facing = _direction;
+            bool sameFloor = _targetOnReachableFloor && _height <= _sameFloorHeight;
             if (_distance <= Definition.AttackRange)
             {
+                bool firstAttackWaiting = _awareness != null && _firstAttackRemaining > 0;
+                bool inRange = false;
                 // 붙으면(같은 층·거리 안·뒤 공간 있음·쿨타임 끝) 물러서기가 먼저입니다. 막혔으면 그 자리에서 다른 패턴을 고릅니다.
                 for (int i = 0; i < _patterns.Length; i++)
                 {
                     MonsterPattern pattern = _patterns[i];
-                    if (pattern.IsRetreat && _cooldowns[i] == 0 && _height <= _sameFloorHeight &&
+                    if (pattern.IsRetreat && _cooldowns[i] == 0 && sameFloor &&
                         _distance <= pattern.Range && _distance >= pattern.MinRange && (_retreatSpace == null || _retreatSpace(-_direction)))
-                    { StartPattern(pattern); return; }
+                    {
+                        if (firstAttackWaiting) States.Change(_idle);
+                        else if (CanStartPattern()) StartPattern(pattern);
+                        return;
+                    }
                 }
                 _candidates.Clear();
-                foreach (MonsterPattern pattern in _patterns)
-                    if (!pattern.IsRetreat && _distance <= pattern.Range && _distance >= pattern.MinRange) _candidates.Add(pattern);
-                if (_candidates.Count > 0) { StartPattern(_candidates[Pick(0, _candidates.Count)]); return; }
+                for (int i = 0; i < _patterns.Length; i++)
+                {
+                    MonsterPattern pattern = _patterns[i];
+                    if (pattern.IsRetreat || (!pattern.IsProjectile && !sameFloor) ||
+                        _distance > pattern.Range || _distance < pattern.MinRange) continue;
+                    inRange = true;
+                    if (_cooldowns[i] == 0) _candidates.Add(pattern);
+                }
+                if (inRange)
+                {
+                    if (firstAttackWaiting) States.Change(_idle);
+                    else if (_candidates.Count == 0) WaitToRetry();
+                    else if (CanStartPattern()) StartPattern(_candidates[Pick(0, _candidates.Count)]);
+                    return;
+                }
             }
             States.Change(_walk);
         }
 
+        private bool CanStartPattern()
+        {
+            if (_canStartAttack?.Invoke() != false) return true;
+            WaitToRetry();
+            return false;
+        }
+
+        private void WaitToRetry()
+        {
+            _waitRemaining = _retryMilliseconds;
+            States.Change(_idle);
+        }
+
         private void BeginReturn()
         {
+            _firstAttackRemaining = _firstAttackDelay;
             ClearPattern(); _stunRemaining = _waitRemaining = _exposedRemaining = 0;
             Poise = Definition.Poise; _sinceHit = _poiseRemainder = 0;
         }
 
         private MonsterPattern FollowUpThrow()
         {
-            foreach (MonsterPattern pattern in _patterns) if (pattern.IsProjectile && !pattern.IsLob) return pattern;
+            for (int i = 0; i < _patterns.Length; i++)
+            {
+                MonsterPattern pattern = _patterns[i];
+                if (pattern.IsProjectile && !pattern.IsLob && _cooldowns[i] == 0 &&
+                    _distance <= pattern.Range && _distance >= pattern.MinRange) return pattern;
+            }
             return null;
         }
 

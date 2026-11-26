@@ -36,7 +36,7 @@ namespace HumanGhost.Gameplay.Adapters
             BossSkillHit[] hitRows = catalog.GetTable<BossSkillHit>().All.OrderBy(row => row.ID).ToArray();
             BossSkill[] skills = catalog.GetTable<BossSkill>().All.Where(row => row.BossID == definition.ID).OrderBy(row => row.ID).ToArray();
             BossPattern[] patterns = skills.Length == 0 ? null : skills.Select(skill => CreatePattern(skill, hitRows.Where(hit => hit.BossSkillID == skill.ID).ToArray())).ToArray();
-            ValidatePhaseTiming(phase, patterns);
+            foreach (BossState state in definition.States) ValidatePhaseTiming(state, patterns);
             _sounds.Clear();
             for (int i = 0; patterns != null && i < patterns.Length; i++) _sounds.Add(patterns[i], skills[i].SoundKey);
             bool transition = patterns != null && Array.Exists(patterns, p => p.Kind != BossPatternKind.Legacy);
@@ -61,9 +61,12 @@ namespace HumanGhost.Gameplay.Adapters
             if (hits.Length == 0) throw new InvalidOperationException($"보스 패턴 {skill.ID}의 타격(BossSkillHit)을 1개 이상 설정하세요.");
             var kind = (BossPatternKind)Enum.Parse(typeof(BossPatternKind), skill.Kind);
             AttackSpec[] specs = hits.Select(hit => new AttackSpec(hit.Windup, hit.Active, hit.Recovery, 0, hit.ExtraDamage, 0, 0, immediate: hit.Windup == 0)).ToArray();
-            // 1페이즈(Legacy) 패턴도 모든 타격에 범위를 적으면 같은 판정·예고 범위를 씁니다(2B3).
-            BossHitArea[] areas = kind != BossPatternKind.Legacy || hits.All(hit => hit.Range > 0)
-                ? hits.Select(hit => new BossHitArea(hit.Range, hit.Height, hit.Radial, hit.DamageGroup)).ToArray() : null;
+            // 사슬은 범위가 비어 있으면 ChainRange를 씁니다. 그 외 타격은 표의 판정과 예고가 동일한 범위를 사용합니다.
+            bool usesChainRange = skill.BindPresses > 0 && hits.All(hit => hit.Range == 0 && hit.Height == 0);
+            if (!usesChainRange && hits.Any(hit => hit.Range <= 0 || hit.Height <= 0))
+                throw new InvalidOperationException($"보스 패턴 {skill.ID}의 각 타격에 양수 Range와 Height가 필요합니다.");
+            BossHitArea[] areas = usesChainRange ? null :
+                hits.Select(hit => new BossHitArea(hit.Range, hit.Height, hit.Radial, hit.DamageGroup)).ToArray();
             BossHitReaction[] reactions = skill.HitReactions
                 ? hits.Select(hit => new BossHitReaction(hit.KnockbackDistance, hit.KnockbackTime, hit.DownTime, hit.SlowRate, hit.SlowTime, hit.Parryable)).ToArray() : null;
             return new BossPattern((StateKey)skill.StateID, specs, skill.MinPhase, skill.ChargeSpeed, skill.WallPoiseDamage, skill.ChainRange,

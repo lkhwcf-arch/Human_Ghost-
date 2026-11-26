@@ -11,6 +11,8 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField] private GameObject _rig = null;
         [SerializeField] private AnimationClip _idle = null, _walk = null, _slam = null, _sweep = null, _doubleSlam = null, _leap = null, _slump = null;
         [SerializeField] private LineRenderer _warning = null, _dust = null;
+        private LineRenderer _warningOutline, _chargeDirection;
+        private const int _warningRingSegments = 32;
         [SerializeField] private SpriteRenderer _flash = null;
         // 1페이즈·일반몹 스프라이트(10fps)와 같은 프레임감으로 리그 포즈를 끊어 보여 줍니다. 판정 시간은 바꾸지 않습니다.
         [SerializeField, InspectorName("리그 표시 프레임 (fps)"), Min(1)] private int _framesPerSecond = 10;
@@ -39,8 +41,9 @@ namespace HumanGhost.Gameplay.Preview
         public void FlashTransition() => _flashRemainingMilliseconds = 180;
         private PreviewFollowCamera _camera;
         // [정수화 미적용 이유] 경고 범위 그림의 중심 월드 X(Transform 표시)입니다. 판정에 쓰지 않습니다.
-        private System.Func<float> _warningOrigin;
-        public void ConnectWarningOrigin(System.Func<float> origin) => _warningOrigin = origin;
+        private System.Func<float> _warningOrigin, _warningChargeEnd;
+        public void ConnectWarningGeometry(System.Func<float> origin, System.Func<float> chargeEnd)
+        { _warningOrigin = origin; _warningChargeEnd = chargeEnd; }
         private System.Action _walkStep;
         private int _walkFrame = -1;
         public void ConnectWalkStep(System.Action step) => _walkStep = step;
@@ -66,6 +69,18 @@ namespace HumanGhost.Gameplay.Preview
             _rigPosition = _rig.transform.localPosition; _rigScale = _rig.transform.localScale;
             _parts = _rig.GetComponentsInChildren<SpriteRenderer>(true);
             _bind = new RigBindPose(_rig);
+            _warningOutline = Instantiate(_warning, _warning.transform.parent);
+            _warningOutline.name = "WarningOutline";
+            _warningOutline.sortingOrder = _warning.sortingOrder - 1;
+            _warningOutline.startColor = _warningOutline.endColor = new Color(.05f, .02f, .03f, .95f);
+            _warning.useWorldSpace = _warningOutline.useWorldSpace = true;
+            _warning.numCornerVertices = _warningOutline.numCornerVertices = 4;
+            _warning.shadowCastingMode = _warningOutline.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            _chargeDirection = Instantiate(_warning, _warning.transform.parent);
+            _chargeDirection.name = "ChargeDirection";
+            _chargeDirection.loop = false;
+            _chargeDirection.positionCount = 3;
+            _warning.enabled = _warningOutline.enabled = _chargeDirection.enabled = false;
         }
         // 걷기 표시 프레임이 손 짚는 프레임에 들어서면 한 번 알립니다. 걷기 시작 첫 프레임은 울리지 않습니다.
         private void UpdateWalkStep(int frame)
@@ -104,7 +119,7 @@ namespace HumanGhost.Gameplay.Preview
             _properties.SetFloat("_FlashAmount", _hitFlashMilliseconds > 0 ? 1f : 0f);
             _properties.SetFloat("_AuraStrength", actor.IsDead ? 0f : .18f);
             _hitFlashMilliseconds = System.Math.Max(0, _hitFlashMilliseconds - _elapsedMilliseconds);
-            // 1페이즈도 범위가 있는 패턴은 같은 바닥 예고를 씁니다(2B3).
+            // 두 페이즈에 같은 공격 예고를 적용합니다.
             if (!_rig.activeSelf) { _dust.enabled = false; _walkFrame = -1; DrawWarning(combat); return; }
             _idleMilliseconds = checked(_idleMilliseconds + _elapsedMilliseconds);
             _loopMilliseconds = checked(_loopMilliseconds + _loopClock.AdvanceFrame(Time.deltaTime * _loopRate / 10000d));
@@ -165,11 +180,13 @@ namespace HumanGhost.Gameplay.Preview
             }
             _rig.transform.localPosition = position;
             _rig.transform.localScale = new Vector3(_rigScale.x * combat.Facing, _rigScale.y, _rigScale.z);
-            bool red = combat.IsWindingUp && !combat.IsAirborne;
+            bool preparing = combat.IsWindingUp && !combat.IsAirborne;
             float pulse = .5f + .35f * Mathf.Sin(_idleMilliseconds / 1000f * 18f);
-            if (combat.CurrentPattern?.Kind == BossPatternKind.TripleSlam && combat.HitIndex == 0)
+            if (preparing && combat.CurrentPattern.Kind == BossPatternKind.TripleSlam && combat.HitIndex == 0)
                 pulse = .25f + .75f * Mathf.Abs(Mathf.Sin(combat.HitElapsed / (float)combat.CurrentPattern.Hits[0].Windup * Mathf.PI * 3f));
-            Color color = actor.IsDead ? Color.gray : red ? Color.Lerp(Color.white, new Color(1f,.15f,.1f), pulse) : actor.IsExposed ? new Color(.9f,.8f,1f) : Color.white;
+            _properties.SetFloat("_WarningAmount", preparing ? pulse : 0f);
+            _properties.SetColor("_WarningColor", WarningColor(combat.IsParryable));
+            Color color = actor.IsDead ? Color.gray : actor.IsExposed ? new Color(.9f,.8f,1f) : Color.white;
             foreach (var part in _parts) { part.color = color; part.SetPropertyBlock(_properties); }
             DrawWarning(combat);
             // 충격파 흙먼지 원 = 판정 반지름(BossHitGeometry.ShockwaveReach, B06). 판정과 같은 값 하나에서 그립니다.
@@ -180,10 +197,11 @@ namespace HumanGhost.Gameplay.Preview
             {
                 int wave = BossHitGeometry.IsShockwave(current, combat.HitIndex) ? combat.HitIndex : combat.HitIndex + 1;
                 float progress = reach / (float)current.Areas[wave].Range;
-                var colorDust = new Color(.55f,.34f,.17f,1f-.6f*progress);
+                var colorDust = new Color(1f, .49f, .21f, 1f - .35f * progress);
                 _dust.startColor = _dust.endColor = colorDust;
-                _dust.transform.position = new Vector3(transform.position.x, _body.bounds.min.y + .05f, -.12f);
-                Ring(_dust, reach / 100f, .12f);
+                _dust.transform.position = new Vector3(_boss.ToWorld(_boss.Position.X), _body.bounds.min.y + ToWorld(28), -.12f);
+                _dust.startWidth = _dust.endWidth = ToWorld(12);
+                Ring(_dust, ToWorld(reach), ToWorld(24));
             }
         }
         // 공급 도약 클립의 착지 자세는 1.2초입니다. 실제 공중 구간 끝과 두 번째 착지에도 같은 자세를 맞춥니다.
@@ -204,18 +222,93 @@ namespace HumanGhost.Gameplay.Preview
             return Mathf.Lerp(1.7f, end, (float)combat.HitElapsed / spec.TotalTime);
         }
 
-        // 선딜 동안 바닥에 판정 범위를 그립니다. 범위가 없는 패턴은 그리지 않습니다.
         private void DrawWarning(BossCombat combat)
         {
             var pattern = combat.CurrentPattern;
-            _warning.enabled = pattern != null && combat.IsWindingUp && pattern.Areas.Count > combat.HitIndex;
-            if (!_warning.enabled) return;
-            var area = pattern.Areas[combat.HitIndex];
-            float width = area.Range / 100f;
-            float center = _warningOrigin != null ? _warningOrigin() : transform.position.x;
-            if (!area.Radial) center += combat.Facing * width * .5f;
-            _warning.transform.position = new Vector3(center, _body.bounds.min.y + .04f, -.1f);
-            Ring(_warning, area.Radial ? width : width * .5f, .12f);
+            int hit = combat.HitIndex;
+            bool windup = combat.IsWindingUp;
+            bool draw = pattern != null && (windup || combat.IsAttackActive) &&
+                (pattern.Areas.Count > hit || pattern.IsChain) &&
+                (windup || !BossHitGeometry.IsShockwave(pattern, hit));
+            _warning.enabled = _warningOutline.enabled = draw;
+            _chargeDirection.enabled = false;
+            if (!draw) return;
+
+            // 뒤따르는 충격파는 최대 도달 범위를 미리 표시합니다. 실제 판정 중에는 퍼지는 흙먼지가 현재 반지름을 표시합니다.
+            if (windup && BossHitGeometry.IsShockwave(pattern, hit + 1)) hit++;
+            BossHitArea area = hit < pattern.Areas.Count ? pattern.Areas[hit] : null;
+            float origin = _warningOrigin?.Invoke() ?? _boss.ToWorld(_boss.Position.X);
+            float range = ToWorld(area?.Range ?? pattern.Range);
+            float y = _body.bounds.min.y + ToWorld(30);
+            float depth = ToWorld(24);
+            float chargeEnd = windup && pattern.IsCharge ? _warningChargeEnd?.Invoke() ?? origin : origin;
+            bool showChargeDirection = chargeEnd != origin;
+            int count = showChargeDirection ? 7 : area?.Radial == true ? _warningRingSegments : 4;
+            _warning.positionCount = _warningOutline.positionCount = count;
+            _warning.startWidth = _warning.endWidth = ToWorld(10);
+            _warningOutline.startWidth = _warningOutline.endWidth = ToWorld(19);
+            Color color = showChargeDirection ? new Color(1f, .86f, .16f) : WarningColor(combat.IsParryable);
+            color.a = windup ? 1f : .72f;
+            _warning.startColor = _warning.endColor = color;
+
+            if (showChargeDirection)
+            {
+                float shoulder = Mathf.Lerp(chargeEnd, origin, Mathf.Min(.45f, ToWorld(65) / Mathf.Abs(chargeEnd - origin)));
+                float shaft = depth * .45f;
+                SetWarningPoint(0, origin, y - shaft);
+                SetWarningPoint(1, shoulder, y - shaft);
+                SetWarningPoint(2, shoulder, y - depth);
+                SetWarningPoint(3, chargeEnd, y);
+                SetWarningPoint(4, shoulder, y + depth);
+                SetWarningPoint(5, shoulder, y + shaft);
+                SetWarningPoint(6, origin, y + shaft);
+
+                // 끝 화살표가 카메라 밖에 있어도 보스 가까이에서 방향을 읽을 수 있게 합니다.
+                float direction = Mathf.Sign(chargeEnd - origin);
+                float nearTip = origin + direction * Mathf.Min(ToWorld(145), Mathf.Abs(chargeEnd - origin) * .8f);
+                float nearBack = Mathf.Lerp(nearTip, origin, .38f);
+                _chargeDirection.startColor = _chargeDirection.endColor = color;
+                _chargeDirection.startWidth = _chargeDirection.endWidth = ToWorld(10);
+                _chargeDirection.SetPosition(0, new Vector3(nearBack, y - shaft, -.11f));
+                _chargeDirection.SetPosition(1, new Vector3(nearTip, y, -.11f));
+                _chargeDirection.SetPosition(2, new Vector3(nearBack, y + shaft, -.11f));
+                _chargeDirection.enabled = true;
+            }
+            else if (area?.Radial == true)
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    float angle = i * 2f * Mathf.PI / count;
+                    SetWarningPoint(i, origin + Mathf.Cos(angle) * range, y + Mathf.Sin(angle) * depth);
+                }
+            }
+            else
+            {
+                float end = origin + combat.Facing * range;
+                SetWarningPoint(0, origin, y - depth * .5f);
+                SetWarningPoint(1, end, y - depth * .5f);
+                SetWarningPoint(2, end, y + depth * .5f);
+                SetWarningPoint(3, origin, y + depth * .5f);
+            }
+        }
+
+        private void SetWarningPoint(int index, float x, float y)
+        {
+            var point = new Vector3(x, y, -.1f);
+            _warning.SetPosition(index, point);
+            _warningOutline.SetPosition(index, point);
+        }
+
+        private static Color WarningColor(bool parryable) => parryable ? Color.white : new Color(1f, .25f, .20f);
+
+        private float ToWorld(int units) => _boss.ToWorld(IntegerPosition.FromData(units));
+
+        private void OnDisable()
+        {
+            if (_warning != null) _warning.enabled = false;
+            if (_warningOutline != null) _warningOutline.enabled = false;
+            if (_chargeDirection != null) _chargeDirection.enabled = false;
+            if (_dust != null) _dust.enabled = false;
         }
         private static float Map(int elapsed, AttackSpec spec, float contact, float recovery, float end, float start = 0f)
         {

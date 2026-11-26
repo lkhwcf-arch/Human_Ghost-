@@ -95,6 +95,32 @@ internal static class MonsterAwarenessChecks
             enemy.Observe(2001, 50, 1, 0, 500, -1, false);
             check(!enemy.HasAggro && enemy.CurrentPattern == null && !enemy.IsAttackActive, "대상 비활성 중 공격 해제: " + elapsed);
         }
+        enemy = Enemy(); enemy.Observe(2001, 50, 1, 0, 0, 0);
+        enemy.Tick(499);
+        check(enemy.HasAggro && enemy.CurrentPattern == null, "인식 후 500ms 전까지 공격하지 않음");
+        enemy.Tick(1);
+        check(enemy.CurrentPattern != null && enemy.AttackElapsed == 0, "첫 공격은 500ms 뒤 예비 동작부터 시작");
+
+        enemy = Enemy(); enemy.Observe(2001, 50, 1, 0, 0, 0, targetOnReachableFloor: false);
+        enemy.Tick(500);
+        check(enemy.HasAggro && enemy.CurrentPattern == null, "같은 높이의 끊긴 발판에서는 추적하되 근접 공격하지 않음");
+        enemy.Observe(2001, 50, 1, 51, 0, 0);
+        check(enemy.CurrentPattern == null, "위층에서는 근접 공격하지 않음");
+        enemy.Observe(2001, 50, 1, 50, 0, 0);
+        check(enemy.CurrentPattern != null, "같은 층 허용 높이 경계에서는 공격함");
+
+        enemy = Enemy();
+        bool mayAttack = false;
+        enemy.UseAttackAvailability(() => mayAttack);
+        enemy.Observe(2001, 50, 1, 0, 0, 0);
+        enemy.Tick(500);
+        check(enemy.CurrentPattern == null && enemy.CurrentState == StateKey.Idle, "공격 자리가 없을 때 제자리 경계");
+        mayAttack = true;
+        enemy.Tick(249);
+        check(enemy.CurrentPattern == null, "공격 자리 재확인 간격 유지");
+        enemy.Tick(1);
+        check(enemy.CurrentPattern != null, "공격 자리 확보 후 공격 재개");
+
         enemy = Enemy(); enemy.Observe(2001, 500, 1, 0, 600, -1); enemy.ReceiveHit(0, poiseDamage: 24);
         enemy.Observe(2001, 1500, 1, 700, 1300, -1); enemy.Tick(999);
         check(enemy.IsExposed && !enemy.IsReturning, "노출 중 복귀 보류");

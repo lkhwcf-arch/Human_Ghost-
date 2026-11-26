@@ -22,7 +22,9 @@ namespace HumanGhost.Gameplay.Preview
             _bossView = _boss.GetComponent<BossPhaseTwoView>();
             _bossView?.ConnectCamera(_followCamera);
             _bossView?.ConnectWalkStep(() => _audio?.PlayEffect("BOSS_2_WALK"));
-            _bossView?.ConnectWarningOrigin(() => _bossDriver != null ? _bossDriver.WarningOriginX : _boss.ToWorld(_boss.Position.X));
+            _bossView?.ConnectWarningGeometry(
+                () => _bossDriver != null ? _bossDriver.WarningOriginX : _boss.ToWorld(_boss.Position.X),
+                () => _bossDriver != null ? _bossDriver.WarningChargeEndX : _boss.ToWorld(_boss.Position.X));
             // 2페이즈 대사는 이 보스의 첫 분노 상태(Phase 1 이상 중 가장 앞) 진입 대사입니다. 상태 ID를 코드에 두지 않습니다(11/19, 조건 규칙 감사 3.9).
             int phaseTwoState = _boss.Actor.Definition.States.Where(state => state.Phase > 0).OrderBy(state => state.Phase).First().ID;
             _bossPhaseDialogue = _catalog.GetTable<Dialogue>().All.Single(row => row.TriggerType == "BOSS_STATE_ENTER" && row.TriggerTargetID == phaseTwoState);

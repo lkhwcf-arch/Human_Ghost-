@@ -34,6 +34,19 @@ namespace HumanGhost.Gameplay.Adapters
 
         private static string ReadKeyboardKey(string action, KeyboardLayout layout)
         {
+            if (layout == KeyboardLayout.Skul)
+            {
+                switch (action)
+                {
+                    case "Jump": return "c";
+                    case "Attack": return "x";
+                    case "Roll": return "z";
+                    case "Parry": return "s";
+                    case "Skill": case "Skill1": return "a";
+                    case "Herb": case "Heal": return "d";
+                    case "Interact": return "f";
+                }
+            }
             bool wasd = layout == KeyboardLayout.Wasd;
             switch (action)
             {

@@ -43,7 +43,11 @@ namespace HumanGhost.Gameplay.Adapters
                 _submit = _owned.FindAction("UI/Submit", true);
                 _jumpSubmitBinding = _submit.bindings.Count;
                 _submit.AddBinding(KeyboardControls.KeyboardBinding("Jump", KeyboardLayout.Arrows));
-                if (_acceptBothJumpKeys) _submit.AddBinding(KeyboardControls.KeyboardBinding("Jump", KeyboardLayout.Wasd));
+                if (_acceptBothJumpKeys)
+                {
+                    _submit.AddBinding(KeyboardControls.KeyboardBinding("Jump", KeyboardLayout.Wasd));
+                    _submit.AddBinding(KeyboardControls.KeyboardBinding("Jump", KeyboardLayout.Skul));
+                }
                 _cancel = _owned.FindAction("UI/Cancel", true);
             }
             catch { UnityEngine.Object.Destroy(_owned); throw; }

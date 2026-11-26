@@ -35,9 +35,6 @@ namespace HumanGhost.Gameplay.Preview
         [SerializeField, InspectorName("플레이어 체력 표시 연결")] private HealthDisplayHost _healthDisplay = null;
         [SerializeField, InspectorName("체력 표시 프리팹 목록")] private HealthDisplayPrefabs _healthPrefabs = null;
         [SerializeField, InspectorName("체력 표시 앵커 묶음")] private Transform _healthAnchorRoot = null;
-        [SerializeField, InspectorName("임시 보스 근접 거리 (tile_x100)"), Min(1)] private int _bossRangeUnits = 250;
-        [SerializeField, InspectorName("임시 보스 둘째 타 거리 (tile_x100)"), Min(1)] private int _bossSecondRangeUnits = 350;
-        [SerializeField, InspectorName("임시 보스 인식 거리 (tile_x100, 0=제한 없음)"), Min(0)] private int _bossSightUnits = 0;
         [SerializeField, InspectorName("결박 가르기 Skill ID"), Min(1)] private int _skillId = 7001;
         [SerializeField, InspectorName("약초 Buff ID"), Min(1)] private int _herbBuffId = 14001;
         [SerializeField, InspectorName("사망 뒤 재시작 사용")] private bool _restartOnDeath = true;
@@ -212,7 +209,7 @@ namespace HumanGhost.Gameplay.Preview
                     if (monster == null) throw new InvalidOperationException("일반몹 데이터 수신 참조를 연결하세요.");
                     if (!monster.IsInitialized) monster.Initialize(catalog);
                     _monsterDrivers[i] = new PreviewMonsterDriver(monster, _player, _playerBody, _attackWindow,
-                        _firstMonsterTargetId + i, _playerTargetId, _worldUnitsPerTile, ApplyMonsterHitEffects);
+                        _firstMonsterTargetId + i, _playerTargetId, _worldUnitsPerTile, ApplyMonsterHitEffects, CanStartMonsterAttack);
                     _monsterDrivers[i].UseLedgeProtection(() => _motion?.ProtectedLedge);
                     var poiseView = monster.GetComponent<MonsterPoiseView>();
                     if (poiseView == null)
@@ -223,7 +220,7 @@ namespace HumanGhost.Gameplay.Preview
                 }
                 _bossDriver?.Dispose();
                 _bossDriver = !_bossActive || _boss.Combat == null ? null : new PreviewBossDriver(_boss, _player, _bossBody, _playerBody,
-                    _worldUnitsPerTile, _bossRangeUnits, _bossSecondRangeUnits, _bossSightUnits);
+                    _worldUnitsPerTile);
                 _boss.GetComponent<BossChainView>()?.Connect(_player, _playerBody);
                 _bossSprite = _boss.GetComponent<PreviewBossSprite>();
                 _actor = _player.Actor;
@@ -640,6 +637,16 @@ namespace HumanGhost.Gameplay.Preview
         }
 
 
+        private bool CanStartMonsterAttack()
+        {
+            if (_actor == null || _actor.BoundBy != null || _actor.CurrentState == StateKey.Stun || _motion?.IsInKnockback == true)
+                return false;
+            int attacking = 0;
+            foreach (var driver in _monsterDrivers)
+                if (driver?.HasAttack == true && ++attacking >= 2) return false;
+            return true;
+        }
+
         // 각 몬스터가 선 바닥의 끊기지 않은 구간을 찾습니다. 탐사 규칙은 PreviewWalkableSpanScanner가 소유하고 여기서는 결과만 연결합니다(S05).
         private void ApplyWalkableSpans()
         {
@@ -648,7 +655,7 @@ namespace HumanGhost.Gameplay.Preview
             for (int i = 0; i < _monsters.Length; i++)
             {
                 MonsterRuntime runtime = _monsters[i];
-                SpriteRenderer body = runtime.GetComponentInChildren<SpriteRenderer>(true);
+                SpriteRenderer body = _monsterDrivers[i].Body;
                 // Unity 경계: 그림 크기만 정수로 바꾸고 이후 발 위치·탐사는 정수 좌표로 진행합니다.
                 long half = SpatialRuntime.ToInteger(body.transform.lossyScale.y, _worldUnitsPerTile) / 2;
                 long halfWidth = SpatialRuntime.ToInteger(body.bounds.extents.x, _worldUnitsPerTile);

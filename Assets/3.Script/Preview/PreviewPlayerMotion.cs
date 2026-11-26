@@ -37,8 +37,9 @@ namespace HumanGhost.Gameplay.Preview
         private const int _climbRiseStartRate = 1500, _climbRiseLengthRate = 6500;
         private const int _climbAdvanceStartRate = 4500, _climbAdvanceLengthRate = 5000;
         public bool IsClimbingLedge => _climbElapsed >= 0;
+        public bool IsInKnockback => _knockback.IsRolling;
         // [정수화 미적용 이유] 보호 중인 턱 표식의 Transform 위치입니다. 받는 쪽(PreviewMonsterDriver)이 즉시 정수로 바꿉니다.
-        public Vector2? ProtectedLedge => _player.Actor.IsTraversalProtected && _hangEdge != null ? (Vector2?)_hangEdge.position : null;
+        public Vector2? ProtectedLedge => _player.Actor.IsHanging && _hangEdge != null ? (Vector2?)_hangEdge.position : null;
         private readonly System.Collections.Generic.List<LadderClimbArea> _ladders = new System.Collections.Generic.List<LadderClimbArea>();
         private LadderClimbArea _ladder;
         private const int _ladderStepMilliseconds = 350;
@@ -254,7 +255,7 @@ namespace HumanGhost.Gameplay.Preview
             _player.SetPosition(position);
             if (moved && (_ladderStepRemaining -= milliseconds) <= 0)
             {
-                _playSound?.Invoke("PLAYER_WALK");
+                _playSound?.Invoke("PLAYER_CLIMB");
                 _ladderStepRemaining = _ladderStepMilliseconds;
             }
             else if (!moved) _ladderStepRemaining = 0;
@@ -274,7 +275,7 @@ namespace HumanGhost.Gameplay.Preview
         {
             if (!_airborne || IsHanging) return false;
             Vector3 position = _player.transform.position;
-            if (!_hangEdges.TryFind(position, out Transform edge, out int side, _releasedEdge) || !_player.Actor.TryHang(side, true)) return false;
+            if (!_hangEdges.TryFind(position, out Transform edge, out int side, _releasedEdge) || !_player.Actor.TryHang(side)) return false;
             _playSound?.Invoke("PLAYER_HANG");
             _hangEdge = edge; _hangSide = side;
             _motion.StopRoll(); _motion.SetVerticalSpeed();

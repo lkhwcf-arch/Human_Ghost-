@@ -11,9 +11,6 @@ namespace HumanGhost.Gameplay.Preview
         private readonly PlayerRuntime _player;
         private readonly SpriteRenderer _body;
         private readonly SpriteRenderer _playerBody;
-        private readonly int _rangeUnits;
-        private readonly int _secondRangeUnits;
-
         private int _nextPattern;
         private readonly BossPhaseTwoSelector _phaseTwo;
         private readonly BossCombat _combat;
@@ -28,7 +25,8 @@ namespace HumanGhost.Gameplay.Preview
             get
             {
                 var combat = _runtime.Combat; var pattern = combat.CurrentPattern;
-                if (pattern?.Kind == BossPatternKind.DesperationLeap && combat.IsAirborne) return _runtime.ToWorld(_landingX);
+                if (pattern?.Kind == BossPatternKind.DesperationLeap && combat.IsWindingUp)
+                    return _runtime.ToWorld(combat.IsAirborne ? _landingX : Math.Max(_minX, Math.Min(_maxX, _player.Position.X)));
                 long x = _runtime.Position.X;
                 // 3연타는 판정 창이 열릴 때 한 칸 전진합니다. 경고도 같은 최종 위치를 보여 줍니다.
                 if (pattern?.Kind == BossPatternKind.TripleSlam && combat.IsWindingUp &&
@@ -37,6 +35,20 @@ namespace HumanGhost.Gameplay.Preview
                 return _runtime.ToWorld(x);
             }
         }
+        // 돌진 속도·판정 지속 시간과 실제 이동 한계로 선딜 표식의 끝을 구합니다.
+        public float WarningChargeEndX
+        {
+            get
+            {
+                BossPattern pattern = _combat.CurrentPattern;
+                long origin = _runtime.Position.X;
+                if (pattern == null || !pattern.IsCharge) return _runtime.ToWorld(origin);
+                long travel = checked(IntegerPosition.FromData(pattern.ChargeSpeed) * pattern.Hits[_combat.HitIndex].Active / 1000);
+                long end = Math.Max(_minX, Math.Min(_maxX, checked(origin + _combat.Facing * travel)));
+                return _runtime.ToWorld(end);
+            }
+        }
+
         // 플레이어가 보스 발보다 이만큼 높으면(1.5칸) 발판 위 대기 시간을 셉니다.
         private const long _platformHeight = IntegerPosition.UnitsPerTile * 3 / 2;
         private MillisecondClock _clock;
@@ -56,17 +68,15 @@ namespace HumanGhost.Gameplay.Preview
 #endif
 
         public PreviewBossDriver(BossRuntime runtime, PlayerRuntime player, SpriteRenderer body,
-            SpriteRenderer playerBody, float worldUnitsPerTile, int rangeUnits, int secondRangeUnits, int sightUnits)
+            SpriteRenderer playerBody, float worldUnitsPerTile)
         {
             _runtime = runtime != null ? runtime : throw new ArgumentNullException(nameof(runtime));
             _player = player != null ? player : throw new ArgumentNullException(nameof(player));
             _body = body != null ? body : throw new ArgumentNullException(nameof(body));
             _playerBody = playerBody != null ? playerBody : throw new ArgumentNullException(nameof(playerBody));
-            if (runtime.Combat == null || worldUnitsPerTile <= 0f || rangeUnits <= 0 || secondRangeUnits < rangeUnits || sightUnits < 0)
-                throw new ArgumentException("보스 패턴·임시 거리 설정을 확인하세요.");
+            if (runtime.Combat == null || worldUnitsPerTile <= 0f)
+                throw new ArgumentException("보스 패턴과 타일 크기 설정을 확인하세요.");
             runtime.ConfigureSpatialScale(worldUnitsPerTile);
-            _rangeUnits = rangeUnits;
-            _secondRangeUnits = secondRangeUnits;
             // 보스 전투는 이 드라이버가 방에 조립된 동안 거리와 화면에 관계없이 유지합니다.
             _combat = runtime.Combat;
             _phaseTwo = new BossPhaseTwoSelector(_combat);
@@ -108,21 +118,22 @@ namespace HumanGhost.Gameplay.Preview
             if (AutomaticPatterns && phaseTwo && _phaseTwo.DesperationPending && combat.IsAttacking)
             { combat.Release(); combat.Face(offset < 0 ? -1 : 1); }
             int velocity = combat.Velocity;
-            long distance = Math.Abs(offset);
-            bool noticed = true;
-            IsEngaged = noticed;
-            if (AutomaticPatterns && phaseTwo && noticed && !combat.IsAttacking && !combat.IsWaiting)
+            int distance = IntegerPosition.ToData(Math.Abs(offset));
+            IsEngaged = true;
+            if (AutomaticPatterns && !combat.IsAttacking && !combat.IsWaiting)
             {
-                int index = _phaseTwo.Choose(IntegerPosition.ToData(distance), _platformMilliseconds);
-                if (index >= 0) combat.TryStart(index);
-                velocity = combat.Velocity;
+                if (phaseTwo)
+                {
+                    int index = _phaseTwo.Choose(distance, _platformMilliseconds);
+                    if (index >= 0) combat.TryStart(index);
+                }
+                else SelectPattern(distance);
+                if (!combat.IsAttacking && (!phaseTwo || distance > _runtime.Actor.Phase.CloseRange))
+                    velocity = combat.Facing * _runtime.Actor.Definition.MoveSpeed;
             }
-            if (AutomaticPatterns && noticed && !combat.IsAttacking && !combat.IsWaiting && distance > IntegerPosition.FromData(_rangeUnits))
-                velocity = combat.Facing * _runtime.Actor.Definition.MoveSpeed;
             bool wall = _runtime.MoveHorizontal(_motion.StepHorizontal(velocity, milliseconds), _minX, _maxX);
             if (wall) _motion.ResetHorizontal();
             if (wall) combat.NotifyWallHit();
-            if (AutomaticPatterns && !phaseTwo && noticed && !combat.IsAttacking && !combat.IsWaiting) SelectPattern(distance);
             if (combat.IsAirborne)
             {
                 // 코어 공중 판정(IsAirborne)과 같은 구간 동안 수평으로 옮깁니다. 첫 도약은 선딜 끝 LeapAirTime, 두 번째 도약은 그 타격의 선딜 전체입니다.
@@ -138,19 +149,26 @@ namespace HumanGhost.Gameplay.Preview
             Pull(milliseconds);
         }
 
-        // 근접 거리는 사슬 외 패턴을 순환하고, 그 밖에서는 사슬이 닿으면 사슬을 씁니다.
-        private void SelectPattern(long distance)
+        // 표의 첫 타 사거리 안에 들어온 근접 패턴을 순환합니다. 쓸 수 있는 근접 패턴이 없으면 사슬을 확인합니다.
+        private void SelectPattern(int distance)
         {
             BossCombat combat = _runtime.Combat;
-            bool melee = distance <= IntegerPosition.FromData(_rangeUnits);
+            int phase = _runtime.Actor.Phase.Phase;
+            int chain = -1;
             for (int i = 0; i < combat.PatternCount; i++)
             {
-                int index = _nextPattern++ % combat.PatternCount;
+                int index = (_nextPattern + i) % combat.PatternCount;
                 BossPattern pattern = combat.GetPattern(index);
-                if (pattern.Kind != BossPatternKind.Legacy) continue;
-                if (melee ? pattern.IsChain : !pattern.IsChain || distance > IntegerPosition.FromData(pattern.Range)) continue;
-                if (combat.TryStart(index)) return;
+                if (pattern.Kind != BossPatternKind.Legacy || phase < pattern.MinPhase || phase > pattern.MaxPhase ||
+                    distance > pattern.StartRange) continue;
+                if (pattern.IsChain) { if (chain < 0) chain = index; continue; }
+                if (combat.TryStart(index))
+                {
+                    _nextPattern = (index + 1) % combat.PatternCount;
+                    return;
+                }
             }
+            if (chain >= 0) combat.TryStart(chain);
         }
 
         private void Pull(int milliseconds)
@@ -189,9 +207,7 @@ namespace HumanGhost.Gameplay.Preview
             }
             Bounds own = _body.bounds, target = _playerBody.bounds;
             long offset = checked(_player.Position.X - _runtime.Position.X);
-            int rangeUnits = combat.CurrentPattern.IsChain ? combat.CurrentPattern.Range : combat.HitIndex > 0 ? _secondRangeUnits : _rangeUnits;
-            bool touching = combat.IsCharging ? own.Intersects(target) :
-                target.min.y <= own.max.y && target.max.y >= own.min.y && offset * combat.Facing >= 0 && Math.Abs(offset) <= IntegerPosition.FromData(rangeUnits);
+            bool touching;
             if (pattern.Areas.Count > 0)
             {
                 long origin = pattern.Kind == BossPatternKind.DesperationLeap ? _landingX : _runtime.Position.X;
@@ -205,6 +221,11 @@ namespace HumanGhost.Gameplay.Preview
                     IntegerPosition.ToData(checked(_player.Position.X - origin)),
                     IntegerPosition.ToData(checked(_runtime.ToInteger(target.min.y) - bottom)),
                     IntegerPosition.ToData(checked(_runtime.ToInteger(target.max.y) - bottom)), combat.Facing);
+            }
+            else
+            {
+                touching = pattern.IsChain && target.min.y <= own.max.y && target.max.y >= own.min.y &&
+                    offset * combat.Facing >= 0 && Math.Abs(offset) <= IntegerPosition.FromData(pattern.Range);
             }
             if (!touching) return;
             int direction = Math.Sign(-offset);

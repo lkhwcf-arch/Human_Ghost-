@@ -9,6 +9,7 @@ namespace HumanGhost.Gameplay.Adapters
     {
         private readonly SpatialRuntime _runtime;
         private readonly SpriteRenderer _body;
+        private readonly int _footWidth, _footHeight, _footOffset;
         private readonly Func<bool> _alive;
         private readonly Func<int, bool> _damage;
         private readonly string _immunities;
@@ -17,26 +18,39 @@ namespace HumanGhost.Gameplay.Adapters
         private long _generation;
         public EffectTarget Target { get; private set; }
         public bool IsMonster { get; }
-        // [정수화 미적용 이유] Unity Collider2D.bounds 관측값입니다. 필드 오브젝트 접촉 겹침 판정의 입력이며, 필드 판정 정수화 시 정수 범위로 바꿉니다.
-        public Bounds Bounds => _body != null ? _body.bounds : default;
+        public Bounds ReadFootBounds()
+        {
+            if (_body == null) return default;
+            Bounds body = _body.bounds;
+            float ToWorld(int units) => _runtime.ToWorld(IntegerPosition.FromData(units));
+            float height = ToWorld(_footHeight);
+            float bottom = IsMonster ? body.min.y : _runtime.transform.position.y - ToWorld(_footOffset);
+            float width = IsMonster ? body.size.x : ToWorld(_footWidth);
+            return new Bounds(new Vector3(body.center.x, bottom + height / 2, body.center.z),
+                new Vector3(width, height, body.size.z));
+        }
 
-        public FieldEffectTargetBinding(PlayerRuntime runtime, SpriteRenderer body, Action<FieldEffectTargetBinding> changed)
-            : this(runtime, body, () => !runtime.Actor.IsDead, runtime.Actor.ReceiveFieldDamage, "", false, changed)
+        public FieldEffectTargetBinding(PlayerRuntime runtime, SpriteRenderer body, int footWidth, int footHeight, int footOffset,
+            Action<FieldEffectTargetBinding> changed)
+            : this(runtime, body, () => !runtime.Actor.IsDead, runtime.Actor.ReceiveFieldDamage, "", false, changed,
+                footWidth, footHeight, footOffset)
         {
             Action<int> health = _scope.Guard<int>(OnHealth);
             _scope.Add(() => runtime.Actor.HealthChanged -= health); runtime.Actor.HealthChanged += health;
         }
-        public FieldEffectTargetBinding(MonsterRuntime runtime, SpriteRenderer body, Action<FieldEffectTargetBinding> changed)
+        public FieldEffectTargetBinding(MonsterRuntime runtime, SpriteRenderer body, int footHeight,
+            Action<FieldEffectTargetBinding> changed)
             : this(runtime, body, () => !runtime.Actor.IsDead, runtime.Actor.ReceiveFieldDamage,
-                runtime.Definition.EffectImmunities, true, changed)
+                runtime.Definition.EffectImmunities, true, changed, 0, footHeight, 0)
         {
             Action<int> health = _scope.Guard<int>(OnHealth);
             _scope.Add(() => runtime.Actor.HealthChanged -= health); runtime.Actor.HealthChanged += health;
         }
         private FieldEffectTargetBinding(SpatialRuntime runtime, SpriteRenderer body, Func<bool> alive, Func<int, bool> damage,
-            string immunities, bool isMonster, Action<FieldEffectTargetBinding> changed)
+            string immunities, bool isMonster, Action<FieldEffectTargetBinding> changed, int footWidth, int footHeight, int footOffset)
         {
             _runtime = runtime; _body = body; _alive = alive; _damage = damage; _immunities = immunities;
+            _footWidth = footWidth; _footHeight = footHeight; _footOffset = footOffset;
             IsMonster = isMonster; _changed = changed;
             Action spatial = _scope.Guard(Refresh);
             Action<bool> availability = _scope.Guard<bool>(OnAvailability);

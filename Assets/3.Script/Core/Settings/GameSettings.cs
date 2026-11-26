@@ -3,7 +3,7 @@ using System;
 namespace HumanGhost.Gameplay
 {
     // 설정 값(O05)입니다. 세이브와 별개이며 볼륨은 0~10칸입니다.
-    public enum KeyboardLayout { Arrows = 0, Wasd = 1 }
+    public enum KeyboardLayout { Arrows = 0, Wasd = 1, Skul = 2 }
     public enum WindowMode { Fullscreen = 0, Windowed = 1 }
 
     public class GameSettings
@@ -13,7 +13,7 @@ namespace HumanGhost.Gameplay
         public int Music { get; private set; } = 8;
         public int Effects { get; private set; } = 8;
         public bool CameraShake { get; private set; } = true;
-        public KeyboardLayout KeyboardLayout { get; private set; }
+        public KeyboardLayout KeyboardLayout { get; private set; } = KeyboardLayout.Skul;
         public WindowMode WindowMode { get; private set; }
         public LanguageCode Language { get; private set; }
 
@@ -31,7 +31,7 @@ namespace HumanGhost.Gameplay
         public void SetCameraShake(bool value) => CameraShake = value;
         public void SetKeyboardLayout(KeyboardLayout layout)
         {
-            if (layout != KeyboardLayout.Arrows && layout != KeyboardLayout.Wasd)
+            if (layout != KeyboardLayout.Arrows && layout != KeyboardLayout.Wasd && layout != KeyboardLayout.Skul)
                 throw new ArgumentOutOfRangeException(nameof(layout));
             KeyboardLayout = layout;
         }

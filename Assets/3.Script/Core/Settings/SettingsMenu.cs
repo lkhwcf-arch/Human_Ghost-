@@ -55,7 +55,11 @@ namespace HumanGhost.Gameplay
             if (Row == SettingsRow.Music) Current.SetMusic(Current.Music + direction);
             else if (Row == SettingsRow.Effects) Current.SetEffects(Current.Effects + direction);
             else if (Row == SettingsRow.CameraShake) Current.SetCameraShake(!Current.CameraShake);
-            else if (Row == SettingsRow.KeyboardLayout) Current.SetKeyboardLayout(Current.KeyboardLayout == KeyboardLayout.Arrows ? KeyboardLayout.Wasd : KeyboardLayout.Arrows);
+            else if (Row == SettingsRow.KeyboardLayout)
+            {
+                int layout = ((int)Current.KeyboardLayout + Math.Sign(direction) + 3) % 3;
+                Current.SetKeyboardLayout((KeyboardLayout)layout);
+            }
             else if (Row == SettingsRow.Language) Current.SetLanguage(Current.Language == LanguageCode.Korean ? LanguageCode.English : LanguageCode.Korean);
             else if (Row == SettingsRow.WindowMode) Current.SetWindowMode(Current.WindowMode == WindowMode.Fullscreen ? WindowMode.Windowed : WindowMode.Fullscreen);
             Changed?.Invoke();
