@@ -85,6 +85,7 @@ namespace HumanGhost.Gameplay.Adapters
             scope.Add(() => progress.Changed -= invalidate); progress.Changed += invalidate;
             Action languageChanged = () => { _shownPromptId = null; scope.Invalidate(); };
             scope.Add(() => LanguageSettings.Changed -= languageChanged); LanguageSettings.Changed += languageChanged;
+            scope.Add(() => KeyboardControls.Changed -= invalidate); KeyboardControls.Changed += invalidate;
             if (_registry != null)
             {
                 InteractionRegistry registry = _registry;
@@ -187,11 +188,12 @@ namespace HumanGhost.Gameplay.Adapters
             // 기존 조사 그림에는 E 키가 포함돼 있습니다. F 그림 공급 전에는 공통 글자 안내를 씁니다.
             bool artwork = false;
             if (_investigationArtwork != null) _investigationArtwork.enabled = artwork;
-            if (_promptKeyIcon != null) _promptKeyIcon.enabled = !artwork && _promptHasKeyIcon;
-            string text = artwork ? "" : _promptHasKeyIcon ? label : label.Length == 0 ? key : key + " " + label;
+            bool showIcon = !artwork && _promptHasKeyIcon && key == "F";
+            if (_promptKeyIcon != null) _promptKeyIcon.enabled = showIcon;
+            string text = artwork ? "" : showIcon ? label : label.Length == 0 ? key : key + " " + label;
             if (_prompt.text != text) _prompt.text = text;
             if (!_prompt.gameObject.activeSelf) _prompt.gameObject.SetActive(true);
-            if (_promptHasKeyIcon && !artwork && _promptTextRenderer != null)
+            if (showIcon && _promptTextRenderer != null)
             {
                 float keyWidth = _promptKeyIcon.bounds.size.x;
                 float textWidth = text.Length > 0 ? _promptTextRenderer.bounds.size.x : 0f;

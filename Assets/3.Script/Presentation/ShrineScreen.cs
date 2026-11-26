@@ -259,8 +259,16 @@ namespace HumanGhost.Gameplay.Presentation
             Label("MenuView/Wallet/HonCount", _progress.Rewards.Wallet.GetBalance(MonsterRewards.SoulCurrencyId).ToString());
             Label("MenuView/Wallet/YeopjeonCount", _progress.Rewards.Wallet.GetBalance(MonsterRewards.CoinCurrencyId).ToString());
             for (int i = 0; i < 3; i++) Node($"MenuView/Items/Item_{i}/Cursor").gameObject.SetActive(main && i == _menu.Selected);
-            string key = KeyboardControls.Layout == KeyboardLayout.Wasd ? "K" : "C";
-            foreach (string view in new[] { "MenuView", "OfferView" }) Label(view + "/Hints/Hint_Confirm/KeyCap/KeyText", key);
+            string key = KeyboardControls.ReadActionKey("Jump");
+            foreach (string view in new[] { "MenuView", "OfferView" })
+            {
+                const string confirmKey = "/Hints/Hint_Confirm/KeyCap/KeyText";
+                Label(view + confirmKey, key);
+                Text label = Node(view + confirmKey).GetComponent<Text>();
+                label.resizeTextForBestFit = true;
+                label.resizeTextMinSize = 8;
+                label.horizontalOverflow = HorizontalWrapMode.Wrap;
+            }
             Label("MenuView/Title", Ui(51701));
             Label("MenuView/Items/Item_0/Label", Ui(51702));
             Label("MenuView/Items/Item_1/Label", Ui(51703));

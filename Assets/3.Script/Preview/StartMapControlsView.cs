@@ -29,6 +29,7 @@ namespace HumanGhost.Gameplay.Preview
         private TextMesh[] _labels;
         private GameObject[] _screens;
         private RawImage[] _images;
+        private Text[] _videoKeys;
         private bool[] _played;
         private VideoPlayer _video;
         private SpatialRuntime _player;
@@ -63,6 +64,7 @@ namespace HumanGhost.Gameplay.Preview
                 view._labels = new TextMesh[entries.Length];
                 view._screens = new GameObject[entries.Length];
                 view._images = new RawImage[entries.Length];
+                view._videoKeys = new Text[entries.Length];
                 view._played = new bool[entries.Length];
                 view._video = CreateVideoPlayer(root);
                 for (int i = 0; i < view._labels.Length; i++)
@@ -74,7 +76,8 @@ namespace HumanGhost.Gameplay.Preview
                     mesh.fontStyle = FontStyle.Bold; mesh.color = new Color(1f,.96f,.86f,1f);
                     var renderer = label.GetComponent<MeshRenderer>(); renderer.sharedMaterial = prototype.GetComponent<MeshRenderer>().sharedMaterial;
                     renderer.sortingOrder = 62; view._labels[i] = mesh;
-                    view._screens[i] = CreateScreen(label.transform, renderer.sortingLayerID, out view._images[i]);
+                    view._screens[i] = CreateScreen(label.transform, mesh.font, renderer.sortingLayerID,
+                        out view._images[i], out view._videoKeys[i]);
                 }
                 root.SetActive(true);
             }
@@ -113,7 +116,7 @@ namespace HumanGhost.Gameplay.Preview
         }
 
         // 문구 바로 위의 월드 화면입니다. 재생 중에만 켜며 높이는 문구 갱신 때 맞춥니다.
-        private static GameObject CreateScreen(Transform label, int sortingLayerId, out RawImage image)
+        private static GameObject CreateScreen(Transform label, Font font, int sortingLayerId, out RawImage image, out Text keyText)
         {
             var screen = new GameObject("GuideVideo", typeof(RectTransform), typeof(Canvas), typeof(Image));
             screen.SetActive(false);
@@ -132,6 +135,31 @@ namespace HumanGhost.Gameplay.Preview
             pictureRect.offsetMin = new Vector2(_videoFrame, _videoFrame); pictureRect.offsetMax = new Vector2(-_videoFrame, -_videoFrame);
             image = picture.GetComponent<RawImage>();
             image.raycastTarget = false;
+
+            // 원본 영상 우하단에 박힌 키 영역에 현재 입력 텍스트를 올립니다.
+            var caption = new GameObject("KeyCaption", typeof(RectTransform), typeof(Image));
+            caption.transform.SetParent(pictureRect, false);
+            var captionRect = (RectTransform)caption.transform;
+            captionRect.anchorMin = new Vector2(.715f, 0f);
+            captionRect.anchorMax = new Vector2(1f, .218f);
+            captionRect.offsetMin = captionRect.offsetMax = Vector2.zero;
+            var backdrop = caption.GetComponent<Image>();
+            backdrop.color = new Color(.025f, .02f, .015f, 1f);
+            backdrop.raycastTarget = false;
+
+            var key = new GameObject("KeyText", typeof(RectTransform), typeof(Text));
+            key.transform.SetParent(captionRect, false);
+            var keyRect = (RectTransform)key.transform;
+            keyRect.localScale = Vector3.one * .011f;
+            keyRect.sizeDelta = new Vector2(96f, 42f);
+            keyText = key.GetComponent<Text>();
+            keyText.font = font;
+            keyText.color = new Color(1f, .96f, .86f, 1f);
+            keyText.alignment = TextAnchor.MiddleCenter;
+            keyText.resizeTextForBestFit = true;
+            keyText.resizeTextMinSize = 10;
+            keyText.resizeTextMaxSize = 22;
+            keyText.raycastTarget = false;
             return screen;
         }
 
@@ -173,7 +201,9 @@ namespace HumanGhost.Gameplay.Preview
             for (int i = 0; i < _labels.Length; i++)
             {
                 UI_Lang entry = _entries[i];
-                string key = KeyboardControls.ReadActionKey(ReadAction(entry), _text.ReadUi);
+                string action = ReadAction(entry);
+                string key = KeyboardControls.ReadActionKey(action, _text.ReadUi);
+                _videoKeys[i].text = action == "Jump" ? KeyboardControls.ReadActionKey("DropThrough", _text.ReadUi) : key;
                 TextMesh label = _labels[i];
                 label.characterSize = .031f;
                 label.text = Wrap(string.Format(_text.Read(entry.TextID), key));

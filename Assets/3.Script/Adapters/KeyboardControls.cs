@@ -32,44 +32,52 @@ namespace HumanGhost.Gameplay.Adapters
             Changed?.Invoke();
         }
 
-        private static string ReadKeyboardKey(string action)
+        private static string ReadKeyboardKey(string action, KeyboardLayout layout)
         {
-            bool wasd = Layout == KeyboardLayout.Wasd;
+            bool wasd = layout == KeyboardLayout.Wasd;
             switch (action)
             {
-                case "Jump": return wasd ? "k" : "c";
-                case "Attack": return wasd ? "j" : "x";
-                case "Roll": return wasd ? "l" : "space";
-                case "Skill": case "Skill1": return wasd ? "u" : "z";
-                case "Herb": case "Heal": return wasd ? "i" : "q";
-                case "Interact": return "f";
+                case "Jump": return wasd ? "space" : "z";
+                case "Attack": return wasd ? "k" : "x";
+                case "Roll": return wasd ? "leftShift" : "c";
+                case "Parry": return wasd ? "j" : "leftShift";
+                case "Skill": case "Skill1": return wasd ? "q" : "d";
+                case "Herb": case "Heal": return wasd ? "f" : "a";
+                case "Interact": return wasd ? "e" : "f";
                 default: return null;
             }
         }
+        internal static string KeyboardBinding(string action, KeyboardLayout layout)
+        {
+            string key = ReadKeyboardKey(action, layout);
+            return key == null ? null : "<Keyboard>/" + key;
+        }
+
         public static string ReadActionKey(string action)
         {
             bool wasd = Layout == KeyboardLayout.Wasd;
             switch (action)
             {
                 case "Move": return wasd ? "W A S D" : "← ↑ ↓ →";
+                case "CameraLook": return wasd ? "Num 8 / 2, W / S" : "↑ / ↓";
                 case "DropThrough": return (wasd ? "S + " : "↓ + ") + ReadActionKey("Jump");
-                case "Parry": return wasd ? "Right Shift" : "Left Shift";
                 case "Execute": case "Shrine": action = "Interact"; break;
             }
-            string key = ReadKeyboardKey(action);
+            string key = ReadKeyboardKey(action, Layout);
             if (key == null) throw new ArgumentException("입력 안내에 연결할 동작이 없습니다: " + action, nameof(action));
-            return key.ToUpperInvariant();
+            return key == "leftShift" ? "Left Shift" : key.ToUpperInvariant();
         }
 
         // 이름 있는 키(Shift·Space)는 UI_Lang 문구로 바꿔 언어를 따릅니다. 글자 키·기호는 그대로 둡니다.
         public static string ReadActionKey(string action, Func<int, string> readUi)
         {
             if (readUi == null) throw new ArgumentNullException(nameof(readUi));
+            if (action == "DropThrough")
+                return (Layout == KeyboardLayout.Wasd ? "S + " : "↓ + ") + ReadActionKey("Jump", readUi);
             string key = ReadActionKey(action);
             switch (key)
             {
                 case "Left Shift": return readUi(51318);
-                case "Right Shift": return readUi(51319);
                 case "SPACE": return readUi(51320);
                 default: return key;
             }
@@ -83,36 +91,29 @@ namespace HumanGhost.Gameplay.Adapters
 
         public static void Apply(InputActionAsset asset)
         {
+            InputActionMap player = asset.FindActionMap("Player");
+            if (player == null) return;
             bool wasd = Layout == KeyboardLayout.Wasd;
-            foreach (InputActionMap map in asset.actionMaps)
-            foreach (InputAction action in map.actions)
+            foreach (InputAction action in player.actions)
             {
+                string mapped = KeyboardBinding(action.name, Layout);
+                bool mappedKeyboard = false;
                 for (int i = 0; i < action.bindings.Count; i++)
                 {
                     InputBinding binding = action.bindings[i];
-                    if (binding.isComposite || binding.path == null || !binding.path.StartsWith("<Keyboard>/", StringComparison.OrdinalIgnoreCase))
-                        continue;
                     string path = binding.path;
-                    string key = path.Substring("<Keyboard>/".Length).ToLowerInvariant();
-                    if (map.name == "Player")
+                    if (binding.isComposite || path == null || !path.StartsWith("<Keyboard>/", StringComparison.OrdinalIgnoreCase))
+                        continue;
+                    if (action.name == "Move")
                     {
-                        if (action.name == "Move")
-                        {
-                            bool arrows = key == "uparrow" || key == "downarrow" || key == "leftarrow" || key == "rightarrow";
-                            action.ApplyBindingOverride(i, (wasd ? arrows : !arrows) ? "" : path);
-                            continue;
-                        }
-                        string mapped = ReadKeyboardKey(action.name);
-                        if (mapped != null)
-                        {
-                            bool first = true;
-                            for (int previous = 0; previous < i; previous++)
-                                if (action.bindings[previous].path.StartsWith("<Keyboard>/", StringComparison.OrdinalIgnoreCase)) first = false;
-                            action.ApplyBindingOverride(i, first ? "<Keyboard>/" + mapped : "");
-                        }
+                        bool arrows = path.EndsWith("Arrow", StringComparison.OrdinalIgnoreCase);
+                        action.ApplyBindingOverride(i, (wasd ? arrows : !arrows) ? "" : path);
                     }
-                    else if (map.name == "UI" && action.name == "Submit" && (key == "c" || key == "k"))
-                        action.ApplyBindingOverride(i, "<Keyboard>/" + (wasd ? "k" : "c"));
+                    else if (mapped != null)
+                    {
+                        action.ApplyBindingOverride(i, mappedKeyboard ? "" : mapped);
+                        mappedKeyboard = true;
+                    }
                 }
             }
         }

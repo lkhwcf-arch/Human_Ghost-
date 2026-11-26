@@ -147,7 +147,7 @@ namespace HumanGhost.Gameplay.Preview
             }
             if (milliseconds <= 0) return;
             int direction = LookEnabled && actor != null && actor.Locomotion.IsGrounded && actor.Locomotion.CanMove && _input != null
-                ? _input.VerticalDirection : 0;
+                ? _input.CameraVerticalDirection : 0;
             if (direction != _lookDirection) { _lookDirection = direction; _lookHeldMilliseconds = 0; }
             _lookHeldMilliseconds = direction == 0 ? 0 : _lookHeldMilliseconds + System.Math.Min(milliseconds, int.MaxValue - _lookHeldMilliseconds);
             int distanceUnits = direction < 0 ? _lookDownDistanceUnits : _lookDistanceUnits;

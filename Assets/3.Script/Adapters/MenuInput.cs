@@ -13,6 +13,7 @@ namespace HumanGhost.Gameplay.Adapters
         private readonly Action _accept, _back;
         private readonly Action<int> _side;
         private readonly bool _acceptBothJumpKeys;
+        private readonly int _jumpSubmitBinding;
         private int _horizontal;
         private bool _enabled;
         private bool _blocked;
@@ -40,8 +41,9 @@ namespace HumanGhost.Gameplay.Adapters
                 _owned.Disable();
                 _navigate = _owned.FindAction("UI/Navigate", true);
                 _submit = _owned.FindAction("UI/Submit", true);
-                _submit.AddBinding("<Keyboard>/c");
-                if (_acceptBothJumpKeys) _submit.AddBinding("<Keyboard>/k");
+                _jumpSubmitBinding = _submit.bindings.Count;
+                _submit.AddBinding(KeyboardControls.KeyboardBinding("Jump", KeyboardLayout.Arrows));
+                if (_acceptBothJumpKeys) _submit.AddBinding(KeyboardControls.KeyboardBinding("Jump", KeyboardLayout.Wasd));
                 _cancel = _owned.FindAction("UI/Cancel", true);
             }
             catch { UnityEngine.Object.Destroy(_owned); throw; }
@@ -101,11 +103,8 @@ namespace HumanGhost.Gameplay.Adapters
         }
         private void ApplyKeyboardLayout()
         {
-            KeyboardControls.Apply(_owned);
-            if (!_acceptBothJumpKeys) return;
-            for (int i = 0; i < _submit.bindings.Count; i++)
-                if (_submit.bindings[i].path == "<Keyboard>/c" || _submit.bindings[i].path == "<Keyboard>/k")
-                    _submit.RemoveBindingOverride(i);
+            if (!_acceptBothJumpKeys)
+                _submit.ApplyBindingOverride(_jumpSubmitBinding, KeyboardControls.KeyboardBinding("Jump", KeyboardControls.Layout));
         }
         private void OnKeyboardChanged()
         {

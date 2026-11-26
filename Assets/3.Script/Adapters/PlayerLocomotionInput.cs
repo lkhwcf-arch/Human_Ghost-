@@ -20,6 +20,20 @@ namespace HumanGhost.Gameplay.Adapters
         private InputAction _moveAction, _jumpAction, _attackAction, _rollAction, _interactAction, _skillAction, _herbAction;
         private int _vertical;
         public int VerticalDirection => _vertical;
+        public int CameraVerticalDirection
+        {
+            get
+            {
+                if (!_subscribed || IsBlocked) return 0;
+                Keyboard keyboard = Keyboard.current;
+                if (KeyboardControls.Layout == KeyboardLayout.Wasd && keyboard != null)
+                {
+                    int keypad = (keyboard.numpad8Key.isPressed ? 1 : 0) - (keyboard.numpad2Key.isPressed ? 1 : 0);
+                    if (keypad != 0) return keypad;
+                }
+                return _vertical;
+            }
+        }
         private PlayerLocomotion _locomotion;
         private PlayerActor _actor;
         private bool _subscribed;

@@ -87,7 +87,7 @@ namespace HumanGhost.Gameplay.Presentation
             PlayerActor player = _player;
             _scope.Add(() => player.DisplayChanged -= invalidate);
             player.DisplayChanged += invalidate;
-            _scope.Add(() => KeyboardControls.Changed -= invalidate); KeyboardControls.Changed += invalidate;
+            _scope.Add(() => KeyboardControls.Changed -= RefreshLanguage); KeyboardControls.Changed += RefreshLanguage;
             _scope.Add(() => LanguageSettings.Changed -= RefreshLanguage); LanguageSettings.Changed += RefreshLanguage;
             if (_wallet != null)
             {
@@ -156,8 +156,13 @@ namespace HumanGhost.Gameplay.Presentation
             }
             RefreshStamina(_player.Stamina.Current);
             RefreshBoss();
-            if (_shownHerbs != _player.HerbCount) { _shownHerbs = _player.HerbCount; _herbs.text = (_herbKey == null ? (KeyboardControls.Layout == KeyboardLayout.Wasd ? "I  " : "Q  ") + Ui(51602, "약초") + " " : "") + _shownHerbs; }
-            if (_herbKey != null) _herbKey.text = KeyboardControls.Layout == KeyboardLayout.Wasd ? "I" : "Q";
+            if (_shownHerbs != _player.HerbCount)
+            {
+                _shownHerbs = _player.HerbCount;
+                string key = KeyboardControls.ReadActionKey("Herb");
+                _herbs.text = (_herbKey == null ? key + "  " + Ui(51602, "약초") + " " : "") + _shownHerbs;
+                if (_herbKey != null) _herbKey.text = key;
+            }
             if (_shownSkill != _player.HasSkill)
             {
                 _shownSkill = _player.HasSkill; _skill.gameObject.SetActive(_player.HasSkill);
@@ -165,12 +170,17 @@ namespace HumanGhost.Gameplay.Presentation
                 if (_skillName != null) _skillName.gameObject.SetActive(false);
                 _shownCooldown = -1;
             }
-            if (_skillKey != null) _skillKey.transform.parent.gameObject.SetActive(KeyboardControls.Layout == KeyboardLayout.Wasd);
             int cooldown = _player.SkillCooldownSeconds;
             if (_player.HasSkill && cooldown != _shownCooldown)
             {
                 _shownCooldown = cooldown;
-                _skill.text = (_skillIcon == null ? (KeyboardControls.Layout == KeyboardLayout.Wasd ? "U  " : "Z  ") + Ui(51603, "결박 가르기") + " " : "") +
+                string key = KeyboardControls.ReadActionKey("Skill");
+                if (_skillKey != null)
+                {
+                    _skillKey.text = key;
+                    _skillKey.transform.parent.gameObject.SetActive(true);
+                }
+                _skill.text = (_skillIcon == null ? key + "  " + Ui(51603, "결박 가르기") + " " : "") +
                     (cooldown > 0 ? string.Format(System.Globalization.CultureInfo.InvariantCulture, Ui(51604, "{0}초"), cooldown) : "");
             }
         }

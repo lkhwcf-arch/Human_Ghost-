@@ -17,8 +17,8 @@ namespace HumanGhost.Gameplay.Adapters
         {
             _actor = actor ?? throw new ArgumentNullException(nameof(actor));
             _isBlocked = isBlocked ?? throw new ArgumentNullException(nameof(isBlocked));
-            _action = new InputAction("Parry", InputActionType.Button, "<Keyboard>/leftShift");
-            _action.AddBinding("<Keyboard>/rightShift"); _action.AddBinding("<Gamepad>/leftTrigger");
+            _action = new InputAction("Parry", InputActionType.Button, KeyboardControls.KeyboardBinding("Parry", KeyboardControls.Layout));
+            _action.AddBinding("<Gamepad>/leftTrigger");
             ApplyKeyboardLayout();
         }
 
@@ -43,12 +43,8 @@ namespace HumanGhost.Gameplay.Adapters
             _unlockFrame = Time.frameCount;
             if (_enabled) _action.Enable();
         }
-        private void ApplyKeyboardLayout()
-        {
-            bool wasd = KeyboardControls.Layout == KeyboardLayout.Wasd;
-            _action.ApplyBindingOverride(0, wasd ? "" : "<Keyboard>/leftShift");
-            _action.ApplyBindingOverride(1, wasd ? "<Keyboard>/rightShift" : "");
-        }
+        private void ApplyKeyboardLayout() =>
+            _action.ApplyBindingOverride(0, KeyboardControls.KeyboardBinding("Parry", KeyboardControls.Layout));
         private void OnParry(InputAction.CallbackContext context)
         {
             if (!_enabled || _isBlocked() || Time.frameCount <= _unlockFrame) return;

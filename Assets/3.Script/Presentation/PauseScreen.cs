@@ -86,16 +86,21 @@ namespace HumanGhost.Gameplay.Presentation
         private void RefreshControls()
         {
             if (_text == null) return;
-            bool wasd = Adapters.KeyboardControls.Layout == KeyboardLayout.Wasd;
             string Ui(int id) => _text.ReadUi(id);
+            string Key(string action) => KeyboardControls.ReadActionKey(action, Ui);
+            string look = LanguageSettings.Current == LanguageCode.English ? "Look up / down" : "카메라 위·아래 보기";
             _controlsText.text = Ui(51301) + "\n" + Ui(51302) + " / " + Ui(51303) + " / " + Ui(51304) + "\n" +
-                Ui(51305) + (wasd ? "  WASD" : "  " + Ui(51315)) + " / " + Ui(51316) + "\n" +
-                Ui(51306) + (wasd ? "  K" : "  C") + " / A\n" +
-                Ui(51307) + (wasd ? "  J" : "  X") + " / X\n" +
-                Ui(51308) + (wasd ? "  L" : "  " + Ui(51320)) + " / B\n" +
-                Ui(51309) + "  F / " + Ui(51317) + "\n" + Ui(51310) + (wasd ? "  I" : "  Q") + " / LB\n" +
-                Ui(51311) + (wasd ? "  U" : "  Z") + " / Y\n" +
-                Ui(51312) + (wasd ? "  S+K" : "  ↓+C") + " / ↓+A\n" + Ui(51313) + "  Esc / Start" + "\n\n" + _text.Read(30366, LanguageSettings.Current);
+                Ui(51305) + "  " + Key("Move") + " / " + Ui(51316) + "\n" +
+                look + "  " + Key("CameraLook") + " / ↑↓\n" +
+                Ui(51306) + "  " + Key("Jump") + " / A\n" +
+                Ui(51307) + "  " + Key("Attack") + " / X\n" +
+                Ui(51308) + "  " + Key("Roll") + " / B\n" +
+                string.Format(Ui(52207), Key("Parry")) + " / LT\n" +
+                Ui(51309) + "  " + Key("Interact") + " / —\n" +
+                Ui(51310) + "  " + Key("Herb") + " / LB\n" +
+                Ui(51311) + "  " + Key("Skill") + " / Y\n" +
+                Ui(51312) + "  " + Key("DropThrough") + " / ↓+A\n" +
+                Ui(51313) + "  Esc / Start" + "\n\n" + _text.Read(30366, LanguageSettings.Current);
             _controlsText.verticalOverflow = VerticalWrapMode.Truncate;
             _controlsText.resizeTextForBestFit = true; _controlsText.resizeTextMinSize = 22; _controlsText.resizeTextMaxSize = 32;
         }
