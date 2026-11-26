@@ -462,12 +462,11 @@ namespace HumanGhost.Gameplay.Preview
 
         private void OnInteract() { if (_interactor != null) _interactor.Press(); else _motion.TryGrab(); }
 
-        // 매달린 중 위·아래는 오르기·놓기이고, 그 밖의 위는 상호작용입니다(K03·K15).
+        // 수직 입력으로 사다리와 턱을 조작합니다. 맵 상호작용은 Interact 입력이 담당합니다.
         private void OnVertical(int direction)
         {
             if (_motion.TryUseLadder(direction)) return;
             if (_motion.IsHanging) _motion.OnVerticalPressed(direction);
-            else if (direction > 0) OnInteract();
         }
 
         private void OnAdvance() { if (!_leaving && !LoadingScreen.IsActive && (_pause == null || !_pause.IsOpen)) _textbox.Advance(); }

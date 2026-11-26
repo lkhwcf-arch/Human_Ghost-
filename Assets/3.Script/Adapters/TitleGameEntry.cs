@@ -9,7 +9,7 @@ using UnityEngine.InputSystem;
 
 namespace HumanGhost.Gameplay.Adapters
 {
-    // 타이틀 요청을 키 선택·인트로·저장 진입에 연결합니다. 재생·저장 규칙은 기존 모듈을 사용합니다.
+    // 타이틀 요청을 인트로·저장·설정에 연결합니다. 재생·저장 규칙은 기존 모듈을 사용합니다.
     // 실행 순서: CutsceneHost(기본 0)의 LateUpdate가 인트로 결과를 확정한 같은 프레임에 이 LateUpdate가 소비해야
     // 컷씬이 사라진 프레임에 로딩 화면이 바로 덮습니다. 순서가 정해지지 않으면 타이틀이 한 프레임 비칠 수 있습니다.
     [DefaultExecutionOrder(10)]
@@ -49,7 +49,6 @@ namespace HumanGhost.Gameplay.Adapters
         {
             _modalBlocked = blocked;
             _settingsInput?.SetBlocked(blocked);
-            if (_layoutScreen != null) _layoutScreen.SetBlocked(blocked);
             if (_settingsScreen != null) _settingsScreen.SetInputBlocked(blocked);
         }
 
@@ -75,10 +74,6 @@ namespace HumanGhost.Gameplay.Adapters
         {
             if (_backgroundVideo != null) _backgroundVideo.Ready -= PlayTitleMusic;
             if (_audio != null) { _audio.StopMusic(); _audio.PlayAmbience(null); }
-            _layoutResultReady = false;
-            _layoutPending = false;
-            _layoutResult = null;
-            if (_layoutScreen != null) _layoutScreen.Cancel();
             if (_introPending)
             {
                 _cutscenes?.Cancel();
@@ -121,7 +116,6 @@ namespace HumanGhost.Gameplay.Adapters
             return true;
         }
 
-        // 옵션과 새 게임 선택이 같은 입력 사본·설정 적용/저장 경계를 공유합니다.
         private void PrepareMenu()
         {
             if (_host == null || _data == null || _data.Data == null || _settingsPrefab == null || _input == null)
@@ -145,7 +139,8 @@ namespace HumanGhost.Gameplay.Adapters
                 {
                     _settingsScreen = Instantiate(_settingsPrefab, _menuRoot.transform);
                     _settingsScreen.gameObject.SetActive(false);
-                    _settingsInput = new MenuInput(_input, MoveMenu, SubmitMenu, BackMenu, AdjustMenu, acceptBothJumpKeys: true);
+                    _settingsInput = new MenuInput(_input, _settingsScreen.Move, _settingsScreen.Submit,
+                        _settingsScreen.Back, _settingsScreen.Adjust, acceptBothJumpKeys: true);
                     _menuRoot.SetActive(true);
                 }
                 catch
@@ -156,10 +151,6 @@ namespace HumanGhost.Gameplay.Adapters
                 }
             }
         }
-        private void MoveMenu(int direction) { if (_layoutPending) _layoutScreen.Move(direction); else _settingsScreen.Move(direction); }
-        private void SubmitMenu() { if (_layoutPending) _layoutScreen.Submit(); else _settingsScreen.Submit(); }
-        private void BackMenu() { if (_layoutPending) _layoutScreen.Back(); else _settingsScreen.Back(); }
-        private void AdjustMenu(int direction) { if (_layoutPending) _layoutScreen.Move(direction); else _settingsScreen.Adjust(direction); }
 
         private void PreviewSettings(GameSettings value)
         {
