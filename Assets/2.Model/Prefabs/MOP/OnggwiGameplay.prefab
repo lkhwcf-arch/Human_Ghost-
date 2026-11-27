@@ -384,6 +384,7 @@ MonoBehaviour:
   _monster: {fileID: 1980982738135429473}
   _playerExecution: {fileID: 0}
   _projectileSprite: {fileID: 21300000, guid: b0555fafbabae0c4b9dbc33e0420b177, type: 2}
+  _hitImpact: {fileID: 0}
   _executionGround: {fileID: 4452050456959029098}
   _hopHeight: 1
 --- !u!114 &2299183735442136735
@@ -443,6 +444,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HumanGhost.Gameplay.Adapters.MonsterAnimationAudio
   _soundPrefix: M3
   _separateCriticalHit: 0
+  _projectileSoundOnRelease: 1
   _walkStepMilliseconds: 500
 --- !u!1 &6479756317502007801
 GameObject:

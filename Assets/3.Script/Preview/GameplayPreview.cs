@@ -148,6 +148,13 @@ namespace HumanGhost.Gameplay.Preview
 
         // 패턴 시작 효과음은 BossSkill.SoundKey가 정합니다(11/19 코드 매핑에서 이전).
         private void OnBossPatternStarted(BossPattern pattern) => _audio?.PlayEffect(_boss.SoundKeyOf(pattern));
+        // 필사 도약 착지음은 패턴 시작음(BOSS_2_LEAP)과 다른 시점입니다. 공중→착지(false)마다 한 번 냅니다.
+        // 취소·사망·비활성화는 패턴을 먼저 비운 뒤 false를 알리므로 CurrentPattern이 없어 울리지 않습니다.
+        private void OnBossAirborneChanged(bool airborne)
+        {
+            if (airborne || _boss.Combat.CurrentPattern?.Kind != BossPatternKind.DesperationLeap) return;
+            _audio?.PlayEffect("BOSS_2_LEAP_LAND");
+        }
 
         private void OnParrySucceeded(int milliseconds) => _parryFeedback?.Show(milliseconds, _player.transform.position + Vector3.right * _actor.Facing * 0.6f);
         public PlayerRuntime Player => _player;
@@ -226,7 +233,7 @@ namespace HumanGhost.Gameplay.Preview
                 _actor = _player.Actor;
                 _actor.ApplyLevel(_progress.Rewards.CurrentLevel);
                 _actor.ParrySucceeded += OnParrySucceeded;
-                if (_boss.Combat != null) _boss.Combat.PatternStarted += OnBossPatternStarted;
+                if (_boss.Combat != null) { _boss.Combat.PatternStarted += OnBossPatternStarted; _boss.Combat.AirborneChanged += OnBossAirborneChanged; }
                 if (_motion == null) _motion = new PreviewPlayerMotion(_player, _groundY, _useMapCollision, _playerHalfSize, GetMarkers(),
                     _actor.Definition.JumpHeight, _jumpMilliseconds,
                     key => _playerAudio?.PlayAnimationSound(key), _stageRoles.IsBoss(_stageId) ? _stage?.MapRoot : null);
@@ -261,8 +268,14 @@ namespace HumanGhost.Gameplay.Preview
                     _playerAudio = _player.GetComponent<PlayerAnimationAudio>();
                     if (_playerAudio == null) _playerAudio = _player.gameObject.AddComponent<PlayerAnimationAudio>();
                     _playerAudio.Connect(_player, key => { if (_audio != null) _audio.PlayEffect(key); });
-                    foreach (MonsterRuntime monster in _monsters)
-                        monster.GetComponent<MonsterAnimationAudio>()?.Connect(monster, _audio.PlayEffect);
+                    // 드라이버 i는 _monsters[i]로 만들었으므로 같은 인덱스의 소리에 실제 발사를 연결합니다. 해제는 드라이버 Dispose.
+                    for (int i = 0; i < _monsters.Length; i++)
+                    {
+                        var monsterAudio = _monsters[i].GetComponent<MonsterAnimationAudio>();
+                        if (monsterAudio == null) continue;
+                        monsterAudio.Connect(_monsters[i], _audio.PlayEffect);
+                        _monsterDrivers[i].ProjectileReleased += monsterAudio.PlayProjectileRelease;
+                    }
                 }
                 _deathRestart = _restartOnDeath ? new PreviewDeathRestart(gameObject.scene.name, _progress,
                     () => _saveSession?.CurrentSnapshot, _stageRoles) : null;
@@ -312,7 +325,7 @@ namespace HumanGhost.Gameplay.Preview
 #endif
             actions.Add(() => { if (_actor != null) _actor.ParrySucceeded -= OnParrySucceeded; });
             actions.Add(() => { if (_playerSprite != null) _playerSprite.Footstep -= OnFootstep; });
-            actions.Add(() => { if (_boss != null && _boss.Combat != null) _boss.Combat.PatternStarted -= OnBossPatternStarted; });
+            actions.Add(() => { if (_boss != null && _boss.Combat != null) { _boss.Combat.PatternStarted -= OnBossPatternStarted; _boss.Combat.AirborneChanged -= OnBossAirborneChanged; } });
             actions.Add(() => { var audio = _playerAudio; _playerAudio = null; if (audio != null) audio.Disconnect(); });
             foreach (MonsterRuntime monster in _monsters)
                 actions.Add(() => { if (monster != null) monster.GetComponent<MonsterAnimationAudio>()?.Disconnect(); });

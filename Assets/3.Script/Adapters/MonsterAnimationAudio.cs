@@ -9,6 +9,8 @@ namespace HumanGhost.Gameplay.Adapters
     {
         [SerializeField] private string _soundPrefix = "";
         [SerializeField] private bool _separateCriticalHit = false;
+        // 켜면 투척 패턴의 ATTACK_1/2를 선딜 시작 대신 PreviewMonsterDriver.ProjectileReleased(돌 발사 성공 직후)에서 냅니다. 옹귀 전용으로 프리팹에서 켭니다.
+        [SerializeField] private bool _projectileSoundOnRelease = false;
         [SerializeField, Min(50)] private int _walkStepMilliseconds = 500;
         private MonsterRuntime _monster;
         private MonsterActor _actor;
@@ -66,6 +68,15 @@ namespace HumanGhost.Gameplay.Adapters
         private void OnStateChanged(StateKey state) { if (state == StateKey.Execute) PlayDeath(); }
         private void PlayDeath() { if (_deathPlayed) return; _deathPlayed = true; Play("DEATH"); }
         private void OnPatternStarted(MonsterPattern pattern)
+        {
+            if (!(_projectileSoundOnRelease && pattern.IsProjectile)) PlayAttack(pattern);
+        }
+        // 조립자가 드라이버의 실제 발사 알림(ProjectileReleased)에 연결합니다. 플래그가 꺼진 몬스터는 시작 소리만 냅니다.
+        public void PlayProjectileRelease(MonsterPattern pattern)
+        {
+            if (_projectileSoundOnRelease && _actor != null && pattern != null && pattern.IsProjectile) PlayAttack(pattern);
+        }
+        private void PlayAttack(MonsterPattern pattern)
         {
             if (pattern.Key == StateKey.Attack1) Play("ATTACK_1");
             else if (pattern.Key == StateKey.Attack2) Play("ATTACK_2");

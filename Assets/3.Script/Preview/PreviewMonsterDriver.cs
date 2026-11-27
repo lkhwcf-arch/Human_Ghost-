@@ -169,6 +169,7 @@ namespace HumanGhost.Gameplay.Preview
         {
             if (_scope.IsDisposed) return;
             IsEngaged = false;
+            ProjectileReleased = null;
             SubscriptionScope.Cleanup(_scope.Dispose, () => _projectile?.Destroy(), () => _fire?.Destroy(),
                 () => { if (_lobShadow != null) UnityEngine.Object.Destroy(_lobShadow.gameObject); });
         }
@@ -257,6 +258,8 @@ namespace HumanGhost.Gameplay.Preview
 
         // 플레이어 판정 창과 이 몬스터의 접촉. GameplayPreview가 창 열림 순간과 매 프레임 호출합니다. 중복은 창 등록이 막습니다.
         public event System.Action PlayerDodged;
+        // 실제로 돌을 던진 순간에만 그때의 패턴을 알립니다(교전 불가로 생성하지 않으면 알리지 않음).
+        public event System.Action<MonsterPattern> ProjectileReleased;
 
         public HitOutcome CheckPlayerHit()
         {
@@ -308,9 +311,11 @@ namespace HumanGhost.Gameplay.Preview
                 }
             }
             Vector3 from = _throwRig != null ? _throwRig.ProjectilePosition : _runtime.transform.position;
-            if (!_monster.CurrentPattern.IsLob)
+            MonsterPattern pattern = _monster.CurrentPattern;
+            if (!pattern.IsLob)
             {
-                _projectile.Throw(from, _player.transform.position, _monster.CurrentPattern.Attack.Active);
+                _projectile.Throw(from, _player.transform.position, pattern.Attack.Active);
+                ProjectileReleased?.Invoke(pattern);
                 return;
             }
             // 높이 던지기: 던진 순간 막손이 서 있던 자리의 바닥(땅·발판 윗면)을 기억하고 그 자리에 그림자를 둡니다.
@@ -326,7 +331,8 @@ namespace HumanGhost.Gameplay.Preview
             }
             _lobShadow.transform.position = _lobTarget;
             _lobShadow.enabled = true;
-            _projectile.Throw(from, _lobTarget + Vector3.up * (.25f * _worldUnitsPerTile), _monster.CurrentPattern.Attack.Active, _lobArc100);
+            _projectile.Throw(from, _lobTarget + Vector3.up * (.25f * _worldUnitsPerTile), pattern.Attack.Active, _lobArc100);
+            ProjectileReleased?.Invoke(pattern);
         }
 
         // 기존 원형 이펙트가 없어 런타임에 원 하나를 만듭니다(아트 공급 시 교체).

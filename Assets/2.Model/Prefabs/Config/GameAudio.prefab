@@ -227,9 +227,6 @@ MonoBehaviour:
   - _key: PLAYER_HEAL
     _clip: {fileID: 8300000, guid: 280f41c0fe4c3ab4d8a3412770fdc5ab, type: 3}
     _soundId: 3021
-  - _key: PLAYER_CLIMB
-    _clip: {fileID: 8300000, guid: b738f89e9421bbb44b42985745194d07, type: 3}
-    _soundId: 3022
   - _key: PLAYER_SAVE
     _clip: {fileID: 8300000, guid: 99ed9b6675ec71e40b1c765f1d908a9d, type: 3}
     _soundId: 3023
@@ -386,4 +383,37 @@ MonoBehaviour:
   - _key: AMB_5
     _clip: {fileID: 8300000, guid: b0daae5f36db35449bf8ed0f93a82e98, type: 3}
     _soundId: 3050
+  - _key: PLAYER_CLIMB
+    _clip: {fileID: 8300000, guid: fc3f109fd5c10ce4b98bd923cd234cd6, type: 3}
+    _soundId: 3086
+  - _key: PLAYER_CLIMB
+    _clip: {fileID: 8300000, guid: 8bb78bb93cf9edb4fb97381368914a16, type: 3}
+    _soundId: 3087
+  - _key: PLAYER_CLIMB
+    _clip: {fileID: 8300000, guid: 51bb725c179037844af326aea869a343, type: 3}
+    _soundId: 3088
+  - _key: PLAYER_CLIMB
+    _clip: {fileID: 8300000, guid: fd19cdcedbbfe88458cd8df346287e61, type: 3}
+    _soundId: 3089
+  - _key: PLAYER_CLIMB
+    _clip: {fileID: 8300000, guid: ed73d516a6086bf44a325df8cc13f08a, type: 3}
+    _soundId: 3090
+  - _key: M3_ATTACK_1
+    _clip: {fileID: 8300000, guid: e7512f795a9a8cb418727f6fff028fd7, type: 3}
+    _soundId: 3091
+  - _key: M3_ATTACK_2
+    _clip: {fileID: 8300000, guid: e7512f795a9a8cb418727f6fff028fd7, type: 3}
+    _soundId: 3091
+  - _key: M3_HIT
+    _clip: {fileID: 8300000, guid: ba13106e8ec2c13429037c450cedb5af, type: 3}
+    _soundId: 3092
+  - _key: M3_HIT
+    _clip: {fileID: 8300000, guid: 979d6cbd728ce7d4d8380ef838fa7472, type: 3}
+    _soundId: 3093
+  - _key: M3_HIT
+    _clip: {fileID: 8300000, guid: 0948070de117ac74fa981a99e0e3aa69, type: 3}
+    _soundId: 3094
+  - _key: BOSS_2_LEAP_LAND
+    _clip: {fileID: 8300000, guid: 1cc193d3180e98a4fbec472787f2dc21, type: 3}
+    _soundId: 3095
   _effects: {fileID: 1532842353738971575}
